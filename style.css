@@ -1,7 +1,7 @@
 /* 
    ==========================================================================
    EDUCATIONAL APP - CORE STYLESHEET
-   Version: 3.1 (Unified & Optimized)
+   Version: 3.2 (Apple-Inspired Colors)
    --------------------------------------------------------------------------
    Цели файла:
    - Дать единый визуальный язык для всех уроков
@@ -25,17 +25,17 @@
     --line-height-base: 1.6;
 
     /* Цвета (по умолчанию, затем могут переопределяться темой/JSON) */
-    --accent: #0A84FF;
-    --accent-soft: rgba(10, 132, 255, 0.08);
-    --accent-strong: rgba(10, 132, 255, 0.18);
+    --accent: #007AFF; /* Синий акцентный цвет Apple */
+    --accent-soft: rgba(0, 122, 255, 0.08);
+    --accent-strong: rgba(0, 122, 255, 0.18);
 
-    --bg-page: #0f0f12;
+    --bg-page: #F5F5F7; /* Светлый фон Apple */
     --bg-card: #FFFFFF;
     --bg-elevated: #FFFFFF;
-    --bg-muted: #F0F0F3;
+    --bg-muted: #F0F0F3; /* Более светлый оттенок фона */
 
-    --text-main: #1D1D1F;
-    --text-sub: #86868B;
+    --text-main: #1D1D1F; /* Темный текст Apple */
+    --text-sub: #86868B; /* Вторичный текст Apple */
     --text-invert: #FFFFFF;
 
     --border-subtle: 1px solid rgba(0,0,0,0.06);
@@ -58,11 +58,11 @@
     --content-max-width: 760px;
     
     /* Цвета для квиза */
-    --accent-success: #34C759;
+    --accent-success: #34C759; /* Зелёный Apple */
     --accent-success-bg: #E8F8EA;
-    --accent-error: #FF3B30;
+    --accent-error: #FF3B30; /* Красный Apple */
     --accent-error-bg: #FFF0F0;
-    --accent-warning: #FF9500;
+    --accent-warning: #FF9500; /* Оранжевый Apple */
     
     /* Переменные для темы */
     --p: #007AFF; /* Primary Fallback */
@@ -895,5 +895,4 @@ body.theme-playful .block:nth-child(even) {
     header h1 {
         font-size: 1.5rem;
     }
-
 }
