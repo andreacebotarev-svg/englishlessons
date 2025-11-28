@@ -3,366 +3,554 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading lesson...</title>
+    <title>Lesson Loading...</title>
     <style>
+        /* --- 1. DESIGN SYSTEM --- */
         :root {
-            --bg: #ffffff;
-            --text: #1d1d1f;
-            --accent: #00838F; /* Будет перезаписано из JSON */
-            --secondary: #F5F5F7;
-            --border: #e1e1e1;
-            --success: #34C759;
-            --error: #FF3B30;
+            --bg: #F5F7FA; /* Светло-серый, приятнее чистого белого */
+            --surface: #FFFFFF;
+            --text: #2D3748;
+            --text-light: #718096;
+            --accent: #00838F; /* Перезапишется из JSON */
+            --accent-glow: rgba(0, 131, 143, 0.4);
+            --border: #E2E8F0;
+            --success: #48BB78;
+            --error: #F56565;
+            --radius: 20px;
+            --shadow: 0 10px 30px -10px rgba(0,0,0,0.08);
+            --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            --font-read: "Georgia", "Merriweather", serif;
         }
         
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --bg: #111827;
+            --surface: #1F2937;
+            --text: #F7FAFC;
+            --text-light: #A0AEC0;
+            --border: #2D3748;
+            --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        * { box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: var(--font-ui);
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            line-height: 1.6;
-            transition: background 0.3s, color 0.3s;
+            line-height: 1.7;
+            overflow-x: hidden;
+            transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Темы */
-        body.theme-dark { --bg: #1c1c1e; --text: #f5f5f7; --secondary: #2c2c2e; --border: #3a3a3c; }
+        /* --- 2. UI COMPONENTS --- */
         
-        .container { max-width: 700px; margin: 0 auto; padding: 20px 20px 100px 20px; }
-        
-        /* Заголовок урока */
-        header { margin-bottom: 40px; text-align: center; }
-        .lesson-title { font-size: 2rem; margin: 0 0 10px 0; letter-spacing: -0.02em; color: var(--text); }
-        .lesson-subtitle { color: #888; font-size: 1.1rem; font-weight: 400; }
-        
-        /* Общие стили блоков */
-        .block { margin-bottom: 50px; animation: fadeIn 0.5s ease; }
-        .block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .block-title { margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--accent); }
-        
-        /* Текст для чтения */
-        .reading-text { font-size: 1.1rem; text-align: justify; }
-        
-        /* Интерактивные слова */
-        .word { cursor: pointer; border-radius: 4px; transition: 0.1s; }
-        .word:hover { background-color: rgba(0,0,0, 0.05); color: var(--accent); }
-        body.theme-dark .word:hover { background-color: rgba(255,255,255, 0.1); }
-        .word.active { background-color: var(--accent); color: white !important; }
-        
-        /* Кнопка Listen */
-        .listen-btn {
-            background: var(--secondary); border: none; padding: 8px 16px; 
-            border-radius: 20px; color: var(--accent); font-weight: 600; cursor: pointer;
-            font-size: 0.9rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem; transition: 0.3s; z-index: 100;
         }
-        .listen-btn:hover { background: #e0e0e0; transform: scale(1.02); }
-        .listen-btn.playing { background: var(--accent); color: white; }
-        
-        /* Fact Block */
-        .block--fact .fact-box {
-            background: var(--secondary); padding: 25px; border-radius: 12px; 
-            border-left: 5px solid var(--accent); position: relative;
-        }
-        .fact-box__title { 
-            font-weight: 900; font-size: 0.75rem; letter-spacing: 1.5px; 
-            color: var(--accent); margin-bottom: 10px; text-transform: uppercase; 
-        }
-        .fact-box__text { font-style: italic; font-size: 1.05rem; }
+        .theme-toggle:hover { background: rgba(255,255,255,0.4); transform: rotate(15deg); }
 
-        /* Vocabulary Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        /* Progress Bar */
+        #progress-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 6px;
+            background: transparent; z-index: 1000; pointer-events: none;
+        }
+        #progress-bar {
+            height: 100%; background: linear-gradient(90deg, var(--accent), #4FD1C5);
+            width: 0%; transition: width 0.1s linear;
+            box-shadow: 0 0 15px var(--accent); border-radius: 0 4px 4px 0;
+        }
+
+        /* Hero Section with Animated Gradient */
+        .hero {
+            position: relative;
+            background: linear-gradient(135deg, var(--accent), #2c3e50, var(--accent));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            padding: 100px 20px 80px;
+            clip-path: ellipse(150% 100% at 50% 0%);
+            margin-bottom: 60px;
+            text-align: center;
+        }
+        @keyframes gradientBG { 
+            0% { background-position: 0% 50% } 
+            50% { background-position: 100% 50% } 
+            100% { background-position: 0% 50% } 
+        }
+        
+        .hero-content { max-width: 800px; margin: 0 auto; position: relative; z-index: 2; }
+        .hero-tag { 
+            display: inline-block; background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(5px); padding: 6px 16px; border-radius: 30px; 
+            font-size: 0.8rem; font-weight: 700; letter-spacing: 1.5px; margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .lesson-title { 
+            font-size: 3.5rem; margin: 0 0 15px 0; line-height: 1.1; font-weight: 800;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.2); letter-spacing: -1px;
+        }
+        .lesson-subtitle { font-size: 1.3rem; opacity: 0.9; font-weight: 300; }
+
+        /* Layout */
+        .layout {
+            display: grid; grid-template-columns: 1fr 300px; gap: 60px;
+            max-width: 1100px; margin: 0 auto; padding: 0 20px 100px;
+        }
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .lesson-title { font-size: 2.5rem; }
+        }
+
+        /* Cards & Blocks */
+        .block { margin-bottom: 70px; opacity: 0; transform: translateY(30px); transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .block.reveal { opacity: 1; transform: translateY(0); }
+
+        .block-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 25px;
+        }
+        .block-title { 
+            margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--text); 
+            position: relative; padding-left: 20px;
+        }
+        .block-title::before {
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 6px; height: 24px; background: var(--accent); border-radius: 4px;
+        }
+
+        .reading-text { 
+            font-family: var(--font-read); font-size: 1.25rem; color: var(--text); 
+            text-align: left; line-height: 1.8;
+        }
+
+        /* --- INTERACTIVE ELEMENTS --- */
+
+        /* Magic Words */
+        .word { 
+            cursor: pointer; border-radius: 4px; padding: 0 2px; 
+            border-bottom: 2px solid transparent; transition: all 0.2s; 
+        }
+        .word:hover { background-color: var(--accent-glow); border-bottom-color: var(--accent); }
+        .word.active { 
+            background-color: var(--accent); color: white; 
+            transform: scale(1.1); display: inline-block; box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        /* Audio Button with EQ Animation */
+        .btn-audio {
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 8px 20px; border-radius: 50px; color: var(--accent);
+            font-weight: 600; cursor: pointer; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 10px; transition: 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .btn-audio:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--accent); }
+        .btn-audio.playing { background: var(--accent); color: white; border-color: var(--accent); padding-right: 25px; }
+        
+        .eq-viz { display: flex; gap: 3px; height: 12px; align-items: flex-end; }
+        .bar { width: 3px; background: currentColor; border-radius: 2px; height: 3px; }
+        .playing .bar { animation: bounce 0.5s infinite; }
+        .playing .bar:nth-child(2) { animation-delay: 0.1s; }
+        .playing .bar:nth-child(3) { animation-delay: 0.2s; }
+        @keyframes bounce { 0%, 100% { height: 3px; } 50% { height: 100%; } }
+
+        /* Vocabulary Cards (3D Hover) */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
         .v-item {
-            background: var(--secondary); padding: 15px; border-radius: 12px; 
-            cursor: pointer; text-align: center; transition: 0.2s; border: 1px solid transparent;
-            display: flex; flex-direction: column; justify-content: center; min-height: 80px;
+            background: var(--surface); padding: 25px; border-radius: var(--radius);
+            text-align: center; cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border); position: relative; overflow: hidden;
         }
-        .v-item:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .v-item .en { display: block; font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 1.05rem; }
-        .v-item .ru { display: block; font-size: 0.9rem; color: #777; line-height: 1.2; }
-
-        /* Phrases List */
-        .p-list { display: flex; flex-direction: column; gap: 12px; }
-        .p-item {
-            display: flex; align-items: center; padding: 16px; border-radius: 12px;
-            background: var(--secondary); cursor: pointer; transition: 0.2s;
+        .v-item:hover { 
+            transform: translateY(-8px) scale(1.02); 
+            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1); 
+            border-color: var(--accent); 
         }
-        .p-item:hover { background: #eee; padding-left: 20px; }
-        body.theme-dark .p-item:hover { background: #333; }
-        .p-text-group { flex-grow: 1; }
-        .p-en { font-weight: 600; margin-bottom: 4px; font-size: 1.05rem; color: var(--text); }
-        .p-ru { font-size: 0.9rem; color: #888; }
-        .p-icon { color: var(--accent); font-size: 0.8rem; opacity: 0.5; }
+        .v-item .en { display: block; font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: 1.1rem; }
+        .v-item .ru { font-size: 0.95rem; color: var(--text-light); transition: filter 0.4s, opacity 0.4s; }
+        
+        /* Study Mode Blur */
+        .grid.study-mode .ru { filter: blur(8px); opacity: 0.3; }
+        .grid.study-mode .v-item:hover .ru { filter: none; opacity: 1; }
 
-        /* Quiz */
-        .q-item { background: var(--bg); border: 1px solid var(--border); padding: 25px; border-radius: 16px; }
-        .q-txt { display: block; font-weight: 700; font-size: 1.2rem; margin-bottom: 20px; }
-        .opts { display: flex; flex-direction: column; gap: 10px; }
+        /* Fact Box */
+        .fact-box {
+            background: linear-gradient(135deg, var(--surface), var(--bg));
+            padding: 30px; border-radius: var(--radius); border: 1px solid var(--border);
+            border-left: 6px solid var(--accent); position: relative;
+            box-shadow: var(--shadow);
+        }
+        .fact-box__title { color: var(--accent); font-weight: 900; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 10px;}
+        .fact-box__title::before { content: '💡'; font-size: 1.2rem; }
+        .fact-box__text { font-family: var(--font-read); font-style: italic; font-size: 1.15rem; }
+
+        /* Quiz Section */
+        .q-item { 
+            background: var(--surface); border: 1px solid var(--border); padding: 35px; 
+            border-radius: var(--radius); box-shadow: var(--shadow);
+        }
+        .q-txt { font-weight: 800; font-size: 1.3rem; display: block; margin-bottom: 25px; }
+        .opts { display: flex; flex-direction: column; gap: 12px; }
         .opt-btn {
-            text-align: left; padding: 14px 18px; border: 2px solid var(--secondary);
-            background: transparent; border-radius: 12px; cursor: pointer;
-            font-size: 1rem; color: var(--text); transition: 0.2s; font-weight: 500;
+            padding: 18px 25px; border: 2px solid var(--border); background: transparent;
+            border-radius: 14px; text-align: left; font-size: 1.05rem; cursor: pointer;
+            transition: 0.2s; color: var(--text); position: relative; font-weight: 500;
         }
-        .opt-btn:hover { border-color: #ccc; }
-        .opt-btn.good { background: rgba(52, 199, 89, 0.15); border-color: var(--success); color: #2d8a42; }
-        .opt-btn.bad { background: rgba(255, 59, 48, 0.15); border-color: var(--error); color: var(--error); opacity: 0.7; }
-        .fb { margin-top: 20px; padding: 15px; background: var(--secondary); border-radius: 8px; display: none; animation: fadeIn 0.3s; }
+        .opt-btn:hover { border-color: var(--accent); background: var(--bg); }
+        .opt-btn:active { transform: scale(0.98); }
+        
+        /* Quiz States */
+        .opt-btn.good { border-color: var(--success); background: rgba(72, 187, 120, 0.15); color: #2F855A; padding-left: 35px; }
+        .opt-btn.good::before { content: '✓'; position: absolute; left: 15px; font-weight: bold; }
+        
+        .opt-btn.bad { border-color: var(--error); background: rgba(245, 101, 101, 0.15); color: #C53030; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
-        /* Utils */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .error-msg { color: var(--error); text-align: center; margin-top: 50px; }
+        .fb { margin-top: 20px; padding: 15px; background: var(--bg); border-radius: 10px; display: none; animation: fadeIn 0.4s; border-left: 4px solid; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+        /* Sidebar (Glassmorphism) */
+        .sidebar { position: sticky; top: 30px; height: fit-content; }
+        .nav-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 25px; border-radius: var(--radius);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        [data-theme="dark"] .nav-card { background: rgba(30, 40, 50, 0.7); border-color: rgba(255,255,255,0.1); }
+        
+        .nav-title { 
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; 
+            color: var(--text-light); margin-bottom: 20px; font-weight: 800; 
+        }
+        .nav-item { 
+            display: block; padding: 10px 0; color: var(--text); opacity: 0.7;
+            text-decoration: none; font-size: 0.95rem; border-left: 2px solid transparent;
+            padding-left: 20px; margin-left: -25px; transition: 0.3s; cursor: pointer;
+        }
+        .nav-item:hover { opacity: 1; color: var(--accent); transform: translateX(5px); }
+        .nav-item.active { 
+            border-left-color: var(--accent); color: var(--accent); opacity: 1; font-weight: 700;
+            background: linear-gradient(90deg, var(--accent-glow), transparent);
+        }
+
+        /* SKELETON LOADER */
+        .skeleton { animation: shimmer 1.5s infinite linear; background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%); background-size: 200% 100%; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .sk-title { height: 40px; width: 60%; margin-bottom: 20px; }
+        .sk-text { height: 15px; margin-bottom: 10px; width: 100%; }
+        .sk-card { height: 100px; width: 100%; border-radius: 20px; margin-bottom: 20px; }
+
+        /* Confetti */
+        .confetti { position: fixed; width: 8px; height: 8px; pointer-events: none; z-index: 9999; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="app">
-        <h2 style="text-align:center; color:#ccc; margin-top: 100px; font-weight: 400;">Loading...</h2>
+<!-- Theme Toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">◑</button>
+
+<!-- Progress -->
+<div id="progress-container"><div id="progress-bar"></div></div>
+
+<!-- Hero -->
+<div class="hero" id="hero">
+    <div class="hero-content" id="hero-content">
+        <!-- Skeleton Hero -->
+        <div style="height:30px; width:100px; background:rgba(255,255,255,0.3); border-radius:20px; margin:0 auto 20px;"></div>
+        <div style="height:60px; width:80%; background:rgba(255,255,255,0.3); border-radius:10px; margin:0 auto 15px;"></div>
     </div>
 </div>
 
-<script>
-    // --- 1. INIT & FETCH ---
+<!-- Main Layout -->
+<div class="layout">
+    <main class="main-content" id="app">
+        <!-- Skeleton Loading State -->
+        <div class="block">
+            <div class="skeleton sk-title"></div>
+            <div class="skeleton sk-text"></div>
+            <div class="skeleton sk-text"></div>
+            <div class="skeleton sk-text" style="width:80%"></div>
+        </div>
+        <div class="block"><div class="skeleton sk-card"></div></div>
+        <div class="block">
+            <div class="skeleton sk-title"></div>
+            <div class="skeleton sk-text"></div>
+        </div>
+    </main>
     
-    const lessonId = getLessonId();
-    const dataUrl = `../data/${lessonId}.json`;
+    <aside class="sidebar">
+        <div class="nav-card">
+            <div class="nav-title">Lesson Plan</div>
+            <nav class="nav-list" id="nav-list">
+                <div class="skeleton sk-text" style="width:70%; margin:10px 0;"></div>
+                <div class="skeleton sk-text" style="width:80%; margin:10px 0;"></div>
+                <div class="skeleton sk-text" style="width:60%; margin:10px 0;"></div>
+            </nav>
+        </div>
+    </aside>
+</div>
 
-    fetch(dataUrl)
-        .then(r => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            return r.json();
-        })
-        .then(data => renderLesson(data))
-        .catch(err => {
-            console.error(err);
-            document.getElementById('app').innerHTML = `
-                <div class="error-msg">
-                    <h3>Oops!</h3>
-                    <p>Cannot load lesson data (${lessonId}.json).</p>
-                    <p style="font-size:0.8em; opacity:0.7">${err.message}</p>
-                </div>`;
+<script>
+    // --- 0. THEME LOGIC ---
+    function toggleTheme() {
+        const body = document.body;
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        // Update hero gradient slightly for dark mode
+        updateHeroGradient(); 
+    }
+
+    // --- 1. INIT & LOADING ---
+    const lessonId = window.location.pathname.split('/').pop().replace('.html', '') || '263';
+    let lessonColor = '#00838F'; // Default
+
+    // Scroll Progress
+    window.addEventListener('scroll', () => {
+        const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        document.getElementById("progress-bar").style.width = scrolled + "%";
+    });
+
+    // Fetch Data
+    setTimeout(() => { // Small delay to show off skeleton (optional, remove in prod)
+        fetch(`../data/${lessonId}.json`)
+            .then(r => r.ok ? r.json() : Promise.reject('JSON Error'))
+            .then(render)
+            .catch(err => {
+                document.getElementById('app').innerHTML = `<div style="text-align:center; color:var(--error)"><h3>Error Loading Lesson</h3><p>${err}</p></div>`;
+            });
+    }, 600);
+
+    // --- 2. RENDER ENGINE ---
+    function render(data) {
+        // Setup Hero
+        document.title = data.title;
+        lessonColor = data.colors?.[0] || '#00838F';
+        
+        // Set Colors
+        document.documentElement.style.setProperty('--accent', lessonColor);
+        updateHeroGradient();
+
+        const heroHTML = `
+            <span class="hero-tag">LESSON ${data.id}</span>
+            <h1 class="lesson-title">${data.title}</h1>
+            <div class="lesson-subtitle">${data.subtitle || ''}</div>
+        `;
+        document.getElementById('hero-content').innerHTML = heroHTML;
+        document.getElementById('hero-content').style.opacity = 0;
+        setTimeout(() => {
+            document.getElementById('hero-content').style.transition = 'opacity 1s';
+            document.getElementById('hero-content').style.opacity = 1;
+        }, 100);
+
+        // Generate Content
+        const app = document.getElementById('app');
+        const navList = document.getElementById('nav-list');
+        let html = '';
+        let navHtml = '';
+
+        data.content.forEach((block, i) => {
+            const id = `blk-${i}`;
+            if (block.title) {
+                navHtml += `<a class="nav-item" onclick="scrollToBlock('${id}')" id="nav-${id}">${block.title}</a>`;
+            }
+            html += `<div id="${id}" class="block-wrapper">${renderBlock(block, i)}</div>`;
         });
 
-    function getLessonId() {
-        // Извлекает '263' из '.../dist/263.html'
-        const path = window.location.pathname;
-        const file = path.split('/').pop(); 
-        return file.replace('.html', '') || '263'; // fallback для тестов
+        app.innerHTML = html;
+        navList.innerHTML = navHtml;
+
+        // Init Animations
+        initScrollReveal();
+        initScrollSpy();
     }
 
-
-    // --- 2. RENDER ---
-
-    function renderLesson(data) {
-        document.title = data.title || 'Lesson';
-        
-        // Применение цветов из JSON
-        if (data.colors && data.colors.length) {
-            document.documentElement.style.setProperty('--accent', data.colors[0]);
-        }
-        
-        if (data.theme) document.body.classList.add(`theme-${data.theme}`);
-
-        let html = `
-            <header>
-                <h1 class="lesson-title">${data.title}</h1>
-                ${data.subtitle ? `<div class="lesson-subtitle">${data.subtitle}</div>` : ''}
-            </header>
-        `;
-
-        if (Array.isArray(data.content)) {
-            data.content.forEach((item, i) => {
-                html += renderBlock(item, i);
-            });
-        }
-
-        document.getElementById('app').innerHTML = html;
+    function updateHeroGradient() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        const c2 = isDark ? '#1a202c' : '#2c3e50';
+        document.getElementById('hero').style.background = `linear-gradient(135deg, ${lessonColor}, ${c2}, ${lessonColor})`;
+        document.getElementById('hero').style.backgroundSize = '400% 400%';
     }
 
-    function renderBlock(item, idx) {
-        // 1. Standard Block
+    function renderBlock(item, i) {
+        // Common Header with Audio Viz
+        const header = (title) => `
+            <div class="block-header">
+                <h3 class="block-title">${title}</h3>
+                <button class="btn-audio" onclick="readBlock(this)">
+                    <div class="eq-viz"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+                    <span class="lbl">Listen</span>
+                </button>
+            </div>`;
+
         if (item.type === 'block') {
-            return `
-                <div class="block">
-                    <div class="block-header">
-                        <h3 class="block-title">${item.title || ''}</h3>
-                        <button class="listen-btn" onclick="readBlock(this)">
-                            <span class="icon">▶</span> Listen
-                        </button>
-                    </div>
-                    <div class="reading-text interactive-text">
-                        ${processText(item.text)}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // 2. Fact
-        if (item.type === 'fact') {
-            return `
-                <div class="block block--fact">
-                    <div class="fact-box">
-                        <div class="fact-box__title">Did you know?</div>
-                        <div class="fact-box__text interactive-text">${processText(item.text)}</div>
-                    </div>
-                </div>
-            `;
+            return `<div class="block">
+                ${item.title ? header(item.title) : ''}
+                <div class="reading-text interactive-text">${processText(item.text)}</div>
+            </div>`;
         }
 
-        // 3. Vocabulary
+        if (item.type === 'fact') {
+            return `<div class="block block--fact"><div class="fact-box">
+                <div class="fact-box__title">Did you know?</div>
+                <div class="fact-box__text interactive-text">${processText(item.text)}</div>
+            </div></div>`;
+        }
+
         if (item.type === 'vocab') {
             const cards = item.items.map(w => `
-                <div class="v-item" onclick="speakText('${esc(w.en)}')">
-                    <span class="en">${w.en}</span>
-                    <span class="ru">${w.ru}</span>
-                </div>
-            `).join('');
-            return `
-                <div class="block">
+                <div class="v-item" onclick="speak('${esc(w.en)}')">
+                    <span class="en">${w.en}</span><span class="ru">${w.ru}</span>
+                </div>`).join('');
+            return `<div class="block">
+                <div class="block-header">
                     <h3 class="block-title">Vocabulary</h3>
-                    <div class="grid">${cards}</div>
+                    <button class="btn-audio" style="border-radius:10px" onclick="toggleStudyMode(this)">🎓 Study Mode</button>
                 </div>
-            `;
+                <div class="grid">${cards}</div>
+            </div>`;
         }
 
-        // 4. Phrases
         if (item.type === 'phrase') {
-            const list = item.items.map(ph => `
-                <div class="p-item" onclick="speakText('${esc(ph.en)}')">
-                    <div class="p-text-group">
-                        <div class="p-en">${ph.en}</div>
-                        <div class="p-ru">${ph.ru}</div>
-                    </div>
-                    <div class="p-icon">▶</div>
-                </div>
-            `).join('');
-            return `
-                <div class="block">
-                    <h3 class="block-title">Phrases</h3>
-                    <div class="p-list">${list}</div>
-                </div>
-            `;
+             const list = item.items.map(p => `
+                <div class="btn-audio" style="width:100%; margin-bottom:10px; justify-content:space-between; border-radius:12px; padding:15px;" onclick="speak('${esc(p.en)}')">
+                    <div style="text-align:left"><div style="font-weight:700; color:var(--text)">${p.en}</div><div style="font-size:0.9em; color:var(--text-light)">${p.ru}</div></div>
+                    <div style="opacity:0.5">▶</div>
+                </div>`).join('');
+            return `<div class="block"><h3 class="block-title">Useful Phrases</h3>${list}</div>`;
         }
 
-        // 5. Quiz
         if (item.type === 'quiz') {
-            const opts = item.options.map((opt, i) => `
-                <button class="opt-btn" data-index="${i}" onclick="checkQuiz(this, ${item.answer})">
-                    ${opt}
-                </button>
-            `).join('');
-            
-            // Экранируем кавычки для data-attribute
-            const safeFeedback = (item.feedback || '').replace(/"/g, '&quot;');
-            
-            return `
-                <div class="block">
-                    <div class="q-item" data-fb="${safeFeedback}">
-                        <span class="q-txt">${item.question}</span>
-                        <div class="opts">${opts}</div>
-                        <div class="fb"></div>
-                    </div>
-                </div>
-            `;
+            const opts = item.options.map((o, idx) => 
+                `<button class="opt-btn" onclick="check(event, this, ${idx}, ${item.answer}, '${esc(item.feedback||'')}')">${o}</button>`
+            ).join('');
+            return `<div class="block"><div class="q-item">
+                <span class="q-txt">${item.question}</span>
+                <div class="opts">${opts}</div>
+                <div class="fb"></div>
+            </div></div>`;
         }
-
         return '';
     }
 
+    // --- 3. UTILS & LOGIC ---
 
-    // --- 3. TEXT PROCESSING ---
+    function processText(txt) { return txt.replace(/([\w'’]+)/g, '<span class="word" onclick="speakWord(this)">$1</span>'); }
+    function esc(s) { return s ? s.replace(/'/g, "\\'") : ''; }
+    function scrollToBlock(id) { document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'center'}); }
 
-    function processText(text) {
-        if (!text) return '';
-        // Простое разбиение на слова для кликабельности
-        // Сначала экранируем HTML, если он есть (безопасность)
-        // Но считаем, что в JSON доверенный контент.
-        
-        // Оборачиваем слова в span.word
-        // Регулярка ищет последовательности букв/цифр/апострофов
-        return text.replace(/([\w'’]+)/g, '<span class="word" onclick="speakWord(this)">$1</span>');
+    // Scroll Reveal Observer
+    function initScrollReveal() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('reveal'); });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.block').forEach(b => observer.observe(b));
     }
 
-    function esc(str) {
-        return str.replace(/'/g, "\\'");
+    // Scroll Spy Observer
+    function initScrollSpy() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                    const link = document.getElementById(`nav-${e.target.id}`);
+                    if (link) link.classList.add('active');
+                }
+            });
+        }, { threshold: 0.4 });
+        document.querySelectorAll('.block-wrapper').forEach(b => observer.observe(b));
     }
 
-
-    // --- 4. AUDIO & INTERACTION ---
-
-    function speakText(text, onEnd) {
+    // Audio System
+    function speak(txt, cb) {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US'; // Можно 'en-GB' для британского акцента
-        u.rate = 0.9;
-        if (onEnd) u.onend = onEnd;
+        const u = new SpeechSynthesisUtterance(txt);
+        u.lang = 'en-GB'; u.rate = 0.95;
+        if(cb) u.onend = cb;
         window.speechSynthesis.speak(u);
-    }
-
-    function speakWord(el) {
-        // Убираем активный класс с других
-        document.querySelectorAll('.word.active').forEach(s => s.classList.remove('active'));
-        
-        el.classList.add('active');
-        speakText(el.innerText, () => {
-            setTimeout(() => el.classList.remove('active'), 500);
-        });
     }
 
     function readBlock(btn) {
         if (btn.classList.contains('playing')) {
             window.speechSynthesis.cancel();
             btn.classList.remove('playing');
-            btn.querySelector('.icon').innerText = '▶';
-            btn.innerHTML = '<span class="icon">▶</span> Listen';
+            btn.querySelector('.lbl').innerText = 'Listen';
             return;
         }
-
-        const block = btn.closest('.block');
-        // Берем текст только из reading-text
-        const container = block.querySelector('.reading-text');
-        if (!container) return;
-        
-        const text = container.innerText;
-        
+        const txt = btn.closest('.block').querySelector('.reading-text').innerText;
         btn.classList.add('playing');
-        btn.innerHTML = '<span class="icon">⏹</span> Stop';
-        
-        speakText(text, () => {
+        btn.querySelector('.lbl').innerText = 'Stop';
+        speak(txt, () => {
             btn.classList.remove('playing');
-            btn.innerHTML = '<span class="icon">▶</span> Listen';
+            btn.querySelector('.lbl').innerText = 'Listen';
         });
     }
 
+    function speakWord(el) {
+        document.querySelectorAll('.word.active').forEach(w => w.classList.remove('active'));
+        el.classList.add('active');
+        speak(el.innerText, () => setTimeout(()=>el.classList.remove('active'), 500));
+    }
 
-    // --- 5. QUIZ LOGIC ---
+    function toggleStudyMode(btn) {
+        const grid = btn.closest('.block').querySelector('.grid');
+        grid.classList.toggle('study-mode');
+        btn.innerText = grid.classList.contains('study-mode') ? '👁 Reveal' : '🎓 Study Mode';
+    }
 
-    function checkQuiz(btn, correctIdx) {
+    // Quiz Logic
+    window.check = function(e, btn, idx, correct, fbTxt) {
         const parent = btn.closest('.q-item');
-        const allBtns = parent.querySelectorAll('.opt-btn');
-        const fb = parent.querySelector('.fb');
-        const feedbackTxt = parent.dataset.fb;
-        const selectedIdx = parseInt(btn.dataset.index);
-
-        // Блокируем все кнопки
-        allBtns.forEach(b => {
-            b.disabled = true;
-            b.style.cursor = 'default';
-            if (parseInt(b.dataset.index) === correctIdx) {
-                b.classList.add('good'); // Показываем правильный всегда
-            }
-        });
-
-        if (selectedIdx === correctIdx) {
-            // Верно
-            fb.innerHTML = `<strong style="color:var(--success)">Correct!</strong> ${feedbackTxt}`;
-        } else {
-            // Неверно
-            btn.classList.add('bad');
-            fb.innerHTML = `<strong style="color:var(--error)">Incorrect.</strong> ${feedbackTxt}`;
-        }
+        const fbDiv = parent.querySelector('.fb');
+        const all = parent.querySelectorAll('.opt-btn');
         
-        fb.style.display = 'block';
+        all.forEach(b => b.disabled = true);
+        
+        if (idx === correct) {
+            btn.classList.add('good');
+            fbDiv.innerHTML = `<b style="color:var(--success)">Correct!</b> ${fbTxt}`;
+            fbDiv.style.borderColor = 'var(--success)';
+            fireConfetti(e.clientX, e.clientY);
+        } else {
+            btn.classList.add('bad');
+            all[correct].classList.add('good');
+            fbDiv.innerHTML = `<b style="color:var(--error)">Incorrect.</b> ${fbTxt}`;
+            fbDiv.style.borderColor = 'var(--error)';
+        }
+        fbDiv.style.display = 'block';
     }
 
+    function fireConfetti(x, y) {
+        const colors = ['#48BB78', '#4299E1', '#ECC94B', '#F56565', '#ED64A6'];
+        for (let i=0; i<40; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti';
+            el.style.left = x + 'px'; el.style.top = y + 'px';
+            el.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+            
+            const tx = (Math.random()-0.5) * 300;
+            const ty = (Math.random()-0.5) * 300;
+            el.style.transition = `all ${0.8 + Math.random()}s cubic-bezier(0.25, 1, 0.5, 1)`;
+            
+            document.body.appendChild(el);
+            // Trigger animation next frame
+            requestAnimationFrame(() => {
+                el.style.transform = `translate(${tx}px, ${ty}px) rotate(${Math.random()*720}deg)`;
+                el.style.opacity = 0;
+            });
+            setTimeout(() => el.remove(), 1500);
+        }
+    }
 </script>
 </body>
 </html>
