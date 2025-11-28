@@ -1,18 +1,22 @@
 /**
- * EDUCATIONAL APP ENGINE v3.3
- * Builder: Connects JSON data -> HTML Structure -> CSS Styling
+ * EDUCATIONAL APP ENGINE v3.4
+ * Logic: JSON Data -> HTML Builder -> Interactivity
  */
 
-// 1. АВТО-ОПРЕДЕЛЕНИЕ ID УРОКА
-// Берет имя файла (например, "263.html" -> "263")
+// ========================================================
+// 1. INITIALIZATION & DATA FETCHING
+// ========================================================
+
+// Определяем ID урока из URL
 const pathParts = window.location.pathname.split('/');
 const fileName = pathParts[pathParts.length - 1];
 const lessonId = fileName.replace('.html', '') || '263'; 
 
-// Добавляем ?v=... чтобы браузер не кэшировал старую версию JSON
+console.log(`Starting Engine for Lesson ID: ${lessonId}`);
+
+// Загружаем JSON (с анти-кэшем)
 const dataUrl = `../data/${lessonId}.json?v=${new Date().getTime()}`;
 
-// 2. ЗАГРУЗКА ДАННЫХ
 fetch(dataUrl)
     .then(response => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -23,50 +27,48 @@ fetch(dataUrl)
     })
     .catch(error => {
         console.error('Engine Error:', error);
-        document.getElementById('app').innerHTML = `
-            <div style="text-align:center; padding:40px; color:var(--accent-error)">
-                <h3>Error loading lesson</h3>
-                <p>Check console or try refreshing.</p>
-            </div>
-        `;
+        const app = document.getElementById('app');
+        if (app) {
+            app.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#FF3B30; font-family:sans-serif;">
+                    <h3>Error loading lesson</h3>
+                    <p>Could not load data from de>${dataUrl}</code></p>
+                    <p><small>${error.message}</small></p>
+                </div>
+            `;
+        }
     });
 
-/* --- ГЛАВНАЯ ФУНКЦИЯ СТРОИТЕЛЬСТВА --- */
+
+// ========================================================
+// 2. CORE BUILDER FUNCTION
+// ========================================================
 
 function buildLesson(data) {
+    const app = document.getElementById('app');
+    if (!app) return;
+
     // A. Настройка Страницы (Meta & Theme)
     document.title = data.title || 'Lesson';
 
-    // Применяем цвета из JSON (переопределяем CSS переменные)
+    // Применяем цвета из JSON
     if (data.colors && data.colors.length > 0) {
         const root = document.documentElement.style;
-        root.setProperty('--accent', data.colors[0]); // Основной цвет
-        root.setProperty('--p', data.colors[0]);      // Primary
-        if (data.colors[1]) root.setProperty('--s', data.colors[1]); // Secondary
+        root.setProperty('--accent', data.colors[0]); 
+        root.setProperty('--p', data.colors[0]);      
+        if (data.colors[1]) root.setProperty('--s', data.colors[1]);
         
-        // Генерируем полупрозрачные оттенки для кнопок
-        root.setProperty('--accent-soft', data.colors[0] + '1A'); // 10% прозрачности
-        root.setProperty('--accent-strong', data.colors[0] + '33'); // 20% прозрачности
+        // Генерируем оттенки
+        root.setProperty('--accent-soft', data.colors[0] + '1A'); // 10%
+        root.setProperty('--accent-strong', data.colors[0] + '33'); // 20%
     }
 
-    // Включаем тему (если есть в JSON, иначе Dark по умолчанию или из системы)
+    // Тема
     if (data.theme && data.theme !== 'default') {
         document.body.classList.add(`theme-${data.theme}`);
     }
 
-    // B. Генерация HTML-структуры
-    let html = '';
-
-    // 1. Header (Шапка)
-    html += `
-        <header>
-            <h1 class="lesson-title">${data.title || 'Untitled'}</h1>
-            ${data.subtitle ? `<div class="lesson-subtitle">${data.subtitle}</div>` : ''}
-        </header>
-    `;
-
-    // 2. Навигация по Табам (Tabs) - соответствие CSS .tabs-nav
-    // Сортируем данные
+    // B. Сортировка Контента
     const readContent = [];
     const vocabContent = [];
     const quizContent = [];
@@ -77,24 +79,33 @@ function buildLesson(data) {
         else readContent.push(item); // block, fact, phrase
     });
 
-    // Генерируем табы только если есть контент
+    // C. Генерация HTML
+    let html = '';
+
+    // --- Header ---
+    html += `
+        <header>
+            <h1 class="lesson-title">${data.title || 'Untitled'}</h1>
+            ${data.subtitle ? `<div class="lesson-subtitle">${data.subtitle}</div>` : ''}
+        </header>
+    `;
+
+    // --- Tabs Navigation ---
+    // Показываем табы только если есть контент
     if (readContent.length || vocabContent.length || quizContent.length) {
         html += `
             <div class="nav-container">
                 <div class="nav">
-                    <button class="tab-btn ${readContent.length ? 'active' : ''}" 
-                            onclick="switchTab('read')" 
-                            style="${readContent.length ? '' : 'display:none'}">
+                    <button class="tab-btn active" onclick="switchTab('read')" 
+                            style="${readContent.length ? '' : 'display:none;'}">
                         📖 Learn
                     </button>
-                    <button class="tab-btn ${vocabContent.length ? '' : 'disabled'}" 
-                            onclick="switchTab('vocab')" 
-                            style="${vocabContent.length ? '' : 'display:none'}">
+                    <button class="tab-btn" onclick="switchTab('vocab')" 
+                            style="${vocabContent.length ? '' : 'display:none;'}">
                         🔤 Vocab
                     </button>
-                    <button class="tab-btn ${quizContent.length ? '' : 'disabled'}" 
-                            onclick="switchTab('quiz')" 
-                            style="${quizContent.length ? '' : 'display:none'}">
+                    <button class="tab-btn" onclick="switchTab('quiz')" 
+                            style="${quizContent.length ? '' : 'display:none;'}">
                         ✅ Quiz
                     </button>
                 </div>
@@ -102,51 +113,53 @@ function buildLesson(data) {
         `;
     }
 
-    // 3. Контент Вкладок
-    // -- TAB 1: READ --
-    html += `<div id="tab-read" class="section ${readContent.length ? 'active' : ''}">`;
+    // --- Tab 1: Read ---
+    html += `<div id="tab-read" class="section active">`;
     if (readContent.length) {
         readContent.forEach((item, idx) => {
-            const delay = `style="animation-delay: ${idx * 0.05}s"`;
+            const delay = `style="animation-delay: ${idx * 0.1}s"`;
             if (item.type === 'block') html += buildBlock(item, delay);
             else if (item.type === 'fact') html += buildFact(item, delay);
             else if (item.type === 'phrase') html += buildPhrases(item, delay);
         });
     } else {
-        html += `<div class="block"><p>No reading content.</p></div>`;
+        html += `<div class="block"><p style="color:var(--text-sub)">No reading content.</p></div>`;
     }
     html += `</div>`;
 
-    // -- TAB 2: VOCAB --
+    // --- Tab 2: Vocab ---
     html += `<div id="tab-vocab" class="section">`;
     if (vocabContent.length) {
         vocabContent.forEach(item => html += buildVocab(item));
     } else {
-        html += `<div class="block"><p>No vocabulary list.</p></div>`;
+        html += `<div class="block"><p style="color:var(--text-sub)">No vocabulary list.</p></div>`;
     }
     html += `</div>`;
 
-    // -- TAB 3: QUIZ --
+    // --- Tab 3: Quiz ---
     html += `<div id="tab-quiz" class="section">`;
     if (quizContent.length) {
         quizContent.forEach(item => html += buildQuiz(item));
     } else {
-        html += `<div class="block"><p>No quiz available.</p></div>`;
+        html += `<div class="block"><p style="color:var(--text-sub)">No quiz available.</p></div>`;
     }
     html += `</div>`;
 
-    // C. Вставка в DOM
-    const app = document.getElementById('app');
+    // D. Вставка и Финализация
     app.innerHTML = html;
     
-    // Удаляем класс загрузки, если он был
-    app.classList.add('loaded');
+    // Небольшая задержка для плавности
+    requestAnimationFrame(() => {
+        app.classList.add('loaded');
+    });
 }
 
-/* --- ФУНКЦИИ-СТРОИТЕЛИ (Генерируют HTML под CSS классы) --- */
+
+// ========================================================
+// 3. HTML GENERATORS
+// ========================================================
 
 function buildBlock(item, style) {
-    // CSS классы: .block, .block-header, .listen-btn, .reading-text
     return `
         <div class="block" ${style}>
             <div class="block-header">
@@ -161,7 +174,6 @@ function buildBlock(item, style) {
 }
 
 function buildFact(item, style) {
-    // CSS классы: .block--fact, .fact-box
     return `
         <div class="block block--fact" ${style}>
             <div class="fact-box">
@@ -175,7 +187,6 @@ function buildFact(item, style) {
 }
 
 function buildVocab(item) {
-    // CSS классы: .grid, .v-item
     if (!item.items) return '';
     const cards = item.items.map(w => `
         <div class="v-item" onclick="speakText('${w.en.replace(/'/g, "\\'")}', this)">
@@ -193,7 +204,6 @@ function buildVocab(item) {
 }
 
 function buildPhrases(item, style) {
-    // CSS классы: .p-list, .p-item
     if (!item.items) return '';
     const rows = item.items.map(ph => `
         <div class="p-item" onclick="speakText('${ph.en.replace(/'/g, "\\'")}', this)">
@@ -214,7 +224,6 @@ function buildPhrases(item, style) {
 }
 
 function buildQuiz(item) {
-    // CSS классы: .quiz-card (или .q-item), .opt-btn
     const optionsHtml = item.options.map((opt, idx) => `
         <button class="opt-btn" 
                 data-index="${idx}" 
@@ -234,84 +243,99 @@ function buildQuiz(item) {
     `;
 }
 
-/* --- ИНТЕРАКТИВНОСТЬ И УТИЛИТЫ --- */
 
-// Переключение вкладок
+// ========================================================
+// 4. INTERACTIVITY & UTILITIES
+// ========================================================
+
+// --- Tab Switching ---
 window.switchTab = function(tabName) {
     // Скрываем все секции
     document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-    document.getElementById(`tab-${tabName}`).classList.add('active');
+    // Активируем нужную
+    const target = document.getElementById(`tab-${tabName}`);
+    if (target) target.classList.add('active');
     
     // Обновляем кнопки
     const btns = document.querySelectorAll('.tab-btn');
     btns.forEach(b => b.classList.remove('active'));
     
-    // Находим нужную кнопку (простой маппинг по индексу)
-    if(tabName === 'read') btns[0].classList.add('active');
-    if(tabName === 'vocab') btns[1].classList.add('active');
-    if(tabName === 'quiz') btns[2].classList.add('active');
+    // Простой маппинг кнопок (0=Read, 1=Vocab, 2=Quiz)
+    if(tabName === 'read' && btns[0]) btns[0].classList.add('active');
+    if(tabName === 'vocab' && btns[1]) btns[1].classList.add('active');
+    if(tabName === 'quiz' && btns[2]) btns[2].classList.add('active');
 };
 
-// Обработка текста: [hl]...[/hl] -> <span class="hl">
+// --- Text Processing ---
+// Превращает [hl]word[/hl] в <span class="hl">word</span> и делает слова кликабельными
 function processText(text) {
     if (!text) return '';
+    
+    // Заменяем теги подсветки на временные маркеры
     let processed = text.replace(/\[hl\]/g, '___HL___').replace(/\[\/hl\]/g, '___HL_END___');
     
-    // Разбиваем на слова, чтобы сделать их кликабельными
+    // Разбиваем текст на токены (слова и знаки препинания)
     return processed.split(/(\s+|[.,!?;:()"])/).map(token => {
         if (!token.trim() || token.includes('___')) return token;
-        // Если это слово (буквы/цифры)
+        
+        // Если это слово (содержит буквы)
         if (/[a-zA-Z0-9]/.test(token)) {
             const safe = token.replace(/'/g, "\\'");
             return `<span class="word" onclick="speakText('${safe}', this)">${token}</span>`;
         }
         return token;
     }).join('')
+      // Восстанавливаем теги подсветки
       .replace(/___HL___/g, '<span class="hl">')
       .replace(/___HL_END___/g, '</span>');
 }
 
-// Text-to-Speech (Озвучка)
+// --- TTS (Text-to-Speech) ---
 window.speakText = function(text, el) {
     if (!window.speechSynthesis) return;
+    
+    // Остановить предыдущее
     window.speechSynthesis.cancel();
     
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US'; u.rate = 0.9;
+    u.lang = 'en-US'; 
+    u.rate = 0.9; // Чуть медленнее для обучения
     
     // Попытка найти хороший голос
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => v.name.includes('Google US English')) 
-                        || voices.find(v => v.name.includes('Samantha'))
-                        || voices.find(v => v.lang.startsWith('en'));
-    
-    if (preferredVoice) u.voice = preferredVoice;
+    const preferred = voices.find(v => v.name.includes('Google US')) || 
+                      voices.find(v => v.lang === 'en-US');
+    if (preferred) u.voice = preferred;
 
-    // Визуальный эффект нажатия
+    // Визуальный эффект
     if (el) {
-        el.classList.add('active'); // Для слов
-        if (el.classList.contains('v-item')) el.style.transform = 'scale(0.95)'; // Для карточек
+        // Сбросить активные классы с других слов
+        document.querySelectorAll('.word.active').forEach(w => w.classList.remove('active'));
+        
+        el.classList.add('active');
+        if (el.classList.contains('v-item')) el.style.transform = 'scale(0.95)';
         
         u.onend = () => {
-            setTimeout(() => {
-                el.classList.remove('active');
-                if (el.classList.contains('v-item')) el.style.transform = '';
-            }, 200);
+            el.classList.remove('active');
+            if (el.classList.contains('v-item')) el.style.transform = '';
         };
     }
+    
     window.speechSynthesis.speak(u);
 };
 
+// Чтение целого блока
 window.readBlock = function(btn) {
     const block = btn.closest('.block');
+    // Берем только чистый текст (без HTML тегов)
     const text = block.querySelector('.reading-text').innerText;
     
     if (btn.classList.contains('playing')) {
         window.speechSynthesis.cancel();
-        btn.classList.remove('playing');
         btn.innerHTML = '▶ Listen';
+        btn.classList.remove('playing');
     } else {
-        // Сброс других кнопок
+        // Сброс всех других кнопок Listen
         document.querySelectorAll('.listen-btn').forEach(b => {
             b.classList.remove('playing');
             b.innerHTML = '▶ Listen';
@@ -319,24 +343,35 @@ window.readBlock = function(btn) {
         
         btn.classList.add('playing');
         btn.innerHTML = '⏹ Stop';
-        window.speakText(text, null);
+        
+        // Используем speakText, но передаем кнопку как элемент для callback
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US'; u.rate = 0.9;
+        u.onend = () => {
+            btn.classList.remove('playing');
+            btn.innerHTML = '▶ Listen';
+        };
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
     }
 };
 
-// Логика Квиза
+// --- Quiz Logic ---
 window.checkQuiz = function(btn, correctIndex) {
     const parent = btn.closest('.quiz-card');
     const allBtns = parent.querySelectorAll('.opt-btn');
     const fb = parent.querySelector('.fb');
     const myIndex = parseInt(btn.dataset.index);
     
-    // Блокируем повторные клики
-    allBtns.forEach(b => b.disabled = true);
-    
-    // Сброс
+    // Разрешаем менять ответ? (Пока да, просто сбрасываем стили)
     allBtns.forEach(b => b.classList.remove('good', 'bad'));
-    fb.style.display = 'block';
     
+    fb.style.display = 'block';
+    // Сброс анимации
+    fb.style.animation = 'none';
+    fb.offsetHeight; /* trigger reflow */
+    fb.style.animation = null; 
+
     if (myIndex === correctIndex) {
         btn.classList.add('good');
         fb.innerText = parent.dataset.feedback || 'Correct!';
