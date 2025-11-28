@@ -1,0 +1,345 @@
+Промт для генерации HTML-шаблона
+text
+Ты – опытный фронтенд‑разработчик, который пишет чистый, современный, поддерживаемый HTML5 и JavaScript для образовательного веб‑приложения.
+
+Тебе нужно СГЕНЕРИРОВАТЬ ОДИН ПОЛНЫЙ HTML‑ФАЙЛ‑ШАБЛОН УРОКА для проекта с такой архитектурой:
+- Вся текстовая и структурная информация об уроке хранится в JSON‑файле в папке `../data/`.
+- HTML‑файл в папке `dist/` является «тонкой оболочкой». Он не содержит текста урока, а только:
+  - базовую HTML‑структуру,
+  - подключение глобального CSS,
+  - корневой контейнер для контента,
+  - скрипт, который загружает JSON и строит интерфейс.
+
+Важно:
+- Твой ответ ДОЛЖЕН содержать ТОЛЬКО валидный HTML‑код целиком (от `<!DOCTYPE html>` до закрывающего `</html>`), без пояснений, комментариев вне кода и без маркдауна.
+- Весь JavaScript нужно встроить внутрь этого HTML‑файла в один `<script>` внизу перед `</body>`.
+- Никаких внешних JS‑CDN, фреймворков и сборщиков – только «ванильный» JS.
+
+--------------------------------
+1. ОБЩАЯ СТРУКТУРА ДОКУМЕНТА
+--------------------------------
+
+1.1. Используй стандартную HTML5‑структуру:
+- `<!DOCTYPE html>`
+- `<html lang="en">` (можно `lang="ru"`, если удобнее, но интерфейс в целом ориентирован на английский контент).
+- В `<head>` добавь:
+  - `<meta charset="UTF-8">`
+  - `<meta name="viewport" content="width=device-width, initial-scale=1.0">`
+  - `<title>Loading lesson...</title>` – временный заголовок, который потом будет заменён скриптом на `data.title` из JSON.
+  - Подключение глобальных стилей: `<link rel="stylesheet" href="../style.css">`
+  - Опционально: `<meta name="referrer" content="no-referrer">` и `<meta name="color-scheme" content="light dark">`.
+
+1.2. В `<body>`:
+- Добавь один корневой контейнер для приложения:
+<div class="container"> <div id="app"> <h2 style="text-align:center; color:#888;">Loading lesson...</h2> </div> </div> ``` - Никакого жёстко зашитого текста урока в HTML. Всё содержимое урока должно появляться ТОЛЬКО после загрузки JSON и выполнения JS‑логики.
+ЛОГИКА ОПРЕДЕЛЕНИЯ ID УРОКА И ЗАГРУЗКИ JSON
+
+2.1. Внизу <body> создай один <script> без внешних подключений.
+
+2.2. В начале скрипта определи lessonId на основе имени HTML‑файла:
+
+Используй window.location.pathname, возьми последнюю часть пути (split('/')), убери суффикс .html.
+
+Пример логики (ОПИШИ своими словами или реализуй в коде):
+
+Если открыт файл dist/263.html, то lessonId должен быть строкой "263".
+
+Если открыт файл dist/263_hw12.html, то lessonId должен быть "263_hw12".
+
+2.3. Реализуй функцию загрузки JSON:
+
+Сформируй URL: const url = `../data/${lessonId}.json`;
+
+Вызови fetch(url).
+
+Обработай успешный ответ: response.json() → renderLesson(data).
+
+Обработай ошибки:
+
+Если файл не найден или JSON некорректен, замени содержимое контейнера #app на понятное сообщение об ошибке (на английском):
+«Error: cannot load lesson data. Please check the code or try again later.»
+
+Сообщение об ошибке оформи <div style="color:red; text-align:center; margin-top:40px;">....
+
+РЕНДЕРИНГ УРОКА (ФУНКЦИЯ renderLesson)
+
+3.1. Общие требования к функции renderLesson(data):
+
+Вход: объект data – содержимое файла ../data/LESSON_ID.json. Структура:
+
+data.id – строка ID (например, "263").
+
+data.title – заголовок урока.
+
+data.subtitle – подзаголовок.
+
+data.theme – строка ("default", "dark", "paper", "playful"), может отсутствовать.
+
+data.colors – массив из 1–2 цветов (например, ["#00838F", "#F5F5F7"]).
+
+data.content – массив блоков, каждый блок имеет поле type ("block", "fact", "vocab", "phrase", "quiz" и т.д.).
+
+Функция должна:
+
+Настроить тему (CSS‑переменные и классы).
+
+Сгенерировать HTML‑строку для всего содержимого урока.
+
+Вставить её в элемент #app.
+
+После вставки – активировать интерактивность (слова, квизы, кнопки Listen).
+
+3.2. Темизация:
+
+Установи document.title = data.title || 'Lesson';
+
+Если data.colors существует и содержит хотя бы 1 цвет:
+
+Установи CSS‑переменные через document.documentElement.style.setProperty(...):
+
+--accent = первый цвет (colors[0])
+
+--p = первый цвет
+
+--s = второй цвет, если есть, иначе оставь дефолт.
+
+Если у data.theme есть значение:
+
+Очисти классы у document.body (или аккуратно добавь) и добавь класс theme-${data.theme} (например, theme-dark).
+
+Это использует систему тем из style.css (default / dark / paper / playful).
+
+3.3. Разметка заголовка урока:
+
+В начале сгенерируй шапку:
+
+text
+<header>
+  <h1 class="lesson-title">...</h1>
+  <div class="lesson-subtitle">...</div>
+</header>
+Подставь data.title и data.subtitle с защитой от undefined (если нет подзаголовка – можно скрыть или оставить пустую строку).
+
+3.4. Рендеринг массива data.content:
+
+Используй data.content.forEach(...) для обхода блоков.
+
+В зависимости от item.type генерируй разные фрагменты HTML (СТРОКОЙ, а не через createElement), затем конкатенируй их в одну переменную html.
+
+Типы блоков, которые нужно поддержать:
+
+(a) type: "block" — основной текстовый блок:
+
+Структура:
+
+text
+<div class="block">
+  <div class="block-header">
+    <h3 class="block-title">Заголовок секции</h3>
+    <button class="listen-btn" onclick="readBlock(this)">▶ Listen</button>
+  </div>
+  <div class="reading-text interactive-text">
+    <!-- сюда вставляется текст с обработкой слов -->
+  </div>
+</div>
+item.title – заголовок секции.
+
+item.text – один или несколько абзацев текста (строка). Перед вставкой пропусти её через функцию processText (см. ниже).
+
+(b) type: "fact" — выделенный факт:
+
+Структура:
+
+text
+<div class="block block--fact">
+  <div class="fact-box">
+    <div class="fact-box__title">FACT</div>
+    <div class="fact-box__text">...</div>
+  </div>
+</div>
+Вставь item.text как текст факта (можно тоже пропустить через processText, чтобы слова озвучивались по клику).
+
+(c) type: "vocab" — словарь:
+
+Структура:
+
+text
+<div class="block">
+  <h3 class="block-title">Vocabulary</h3>
+  <div class="grid">
+    <!-- карточки слов -->
+  </div>
+</div>
+item.items – массив объектов { "en": "...", "ru": "..." }.
+
+Для каждого элемента сгенерируй:
+
+text
+<div class="v-item" onclick="speakVocab(this)">
+  <span class="en">...EN...</span>
+  <span class="ru">...RU...</span>
+</div>
+(d) type: "phrase" — список фраз:
+
+Структура:
+
+text
+<div class="block">
+  <h3 class="block-title">Phrases</h3>
+  <div class="p-list">
+    <!-- элементы p-item -->
+  </div>
+</div>
+item.items – массив объектов { "en": "...", "ru": "..." }.
+
+Для каждой фразы:
+
+text
+<div class="p-item" onclick="speakPhrase(this)">
+  <div class="p-text-group">
+    <div class="p-en">EN TEXT</div>
+    <div class="p-ru">RU TEXT</div>
+  </div>
+  <div class="p-icon">▶</div>
+</div>
+(e) type: "quiz" — вопрос с вариантами:
+
+Структура:
+
+text
+<div class="q-item">
+  <span class="q-txt">QUESTION TEXT</span>
+  <div class="opts">
+    <!-- кнопки вариантов -->
+  </div>
+  <div class="fb"></div>
+</div>
+item.question – текст вопроса.
+
+item.options – массив вариантов (строки).
+
+item.answer – индекс правильного варианта (0, 1, 2...).
+
+item.feedback – строка с объяснением (может быть опциональной).
+
+Внутри .opts создай одну кнопку на каждый вариант:
+
+text
+<button class="opt-btn" data-index="0" onclick="checkQuizOption(this, CORRECT_INDEX)">
+  Option text
+</button>
+Где CORRECT_INDEX – значение item.answer.
+
+(f) Если встретился неизвестный type:
+
+Аккуратно проигнорируй его или выведи простой <div class="block">Unsupported block type</div>.
+
+После того, как все блоки сгенерированы, вставь суммарный HTML в #app:
+
+text
+document.getElementById('app').innerHTML = html;
+ОБРАБОТКА ТЕКСТА (processText) И ИНТЕРАКТИВНЫЕ СЛОВА
+
+4.1. Создай функцию processText(rawText), которая:
+
+Принимает строку rawText с обычными предложениями (возможно, с разметкой вида [hl]...[/hl] для подсветки).
+
+Возвращает строку с HTML, где:
+
+каждое слово обёрнуто в <span class="word" ...>,
+
+специальные участки [hl]...[/hl] заменены на <span class="hl">...</span> И внутри них тоже можно кликать по словам.
+
+4.2. Пример логики:
+
+Разбей текст по пробелам.
+
+Для каждого токена:
+
+Если это маркер [hl], включи режим «подсветка».
+
+Если это [/hl], выключи режим «подсветка».
+
+Иначе оберни «чистое» слово в <span class="word"> (если режим подсветки включен – вложи его внутрь <span class="hl"> или добавь класс).
+
+4.3. По клику на любое слово:
+
+Используй функцию speakWord(word) (реализуй её в JS) для озвучивания через Web Speech API (window.speechSynthesis).
+
+Добавляй/снимай CSS‑класс active у нажатого слова для визуальной обратной связи.
+
+TTS (ОЗВУЧКА) И КНОПКИ LISTEN
+
+5.1. Реализуй базовую функцию speak(text, onEnd):
+
+Отменяет предыдущее произнесение (speechSynthesis.cancel()).
+
+Создаёт новый SpeechSynthesisUtterance(text).
+
+Устанавливает язык, например utterance.lang = 'en-US' (или 'en-GB' – на твоё усмотрение).
+
+Вызывает speechSynthesis.speak(utterance).
+
+Если передан onEnd, повесь его на utterance.onend.
+
+5.2. readBlock(button):
+
+Находит родительский блок (.block).
+
+Берёт текст из .reading-text (например, innerText).
+
+Если кнопка уже в состоянии «playing» – останови озвучку и верни вид «▶ Listen».
+
+Иначе:
+
+Добавь класс playing к кнопке, измени текст на «⏹ Stop».
+
+Вызови speak(fullText, callback), где в callback убери playing и верни текст кнопки обратно.
+
+5.3. Отдельные функции:
+
+speakWord(word) – озвучивает только одно слово.
+
+speakVocab(cardElement) – озвучивает английское слово из .en.
+
+speakPhrase(itemElement) – озвучивает английский текст из .p-en.
+
+ЛОГИКА КВИЗА (checkQuizOption)
+
+6.1. Функция checkQuizOption(button, correctIndex):
+
+Определяет индекс выбранного варианта через button.dataset.index.
+
+Находит родительский .q-item и внутри него:
+
+все .opt-btn,
+
+блок .fb (feedback).
+
+Сбрасывает предыдущие состояния: убирает классы good и bad со всех .opt-btn, очищает текст .fb.
+
+6.2. Если выбранный индекс совпадает с correctIndex:
+
+Добавь класс good к нажатой кнопке (CSS уже красит её зеленым).
+
+В .fb запиши текст item.feedback (передай его в checkQuizOption или найди через data-* атрибут).
+
+Покажи .fb (например, block.style.display = 'block').
+
+6.3. Если выбранный индекс неправильный:
+
+Добавь класс bad к нажатой кнопке.
+
+В .fb выведи подсказку (например, «Try again» или пояснение).
+
+Покажи .fb.
+
+ЗАВЕРШЕНИЕ
+
+HTML‑файл должен быть полностью самодостаточным: открыл dist/XXX.html через HTTP‑сервер → он сам нашёл свой JSON, загрузил, отрисовал и оживил весь урок.
+
+Не добавляй никаких лишних комментариев вне кода, не пиши пояснений. Ответ – это чистый финальный HTML‑файл, готовый к сохранению в dist/NNN.html.
+
+text
+
+Этот промпт уже «разжёвывает» другой модели всё: структуру документа, схему данных, рендеринг, интерактив и поведение JS, поэтому на его основе можно стабильно получать правильные HTML‑оболочки под твой проект.[5][7]

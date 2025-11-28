@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Urban Life: My Home</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="engine.js" defer></script>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        const lessonData = {"title": "Urban Life: My Home", "subtitle": "Interactive English", "colors": ["#D2691E", "#C41E3A"], "story": {"title": "🛥️ A Home on the Water", "content": "<p><strong>Interviewer:</strong> Tell me about your home, Melanie.</p>\n<p><strong>Melanie:</strong> It's a <span class=\"highlight\" onclick=\"say('canal boat')\">canal boat</span>. It's in Stratford-upon-Avon. I'm an <span class=\"highlight\" onclick=\"say('artist')\">artist</span> and the boat is a fantastic place for <span class=\"highlight\" onclick=\"say('painting')\">painting</span>.</p>\n<p><strong>Interviewer:</strong> Is it a <span class=\"highlight\" onclick=\"say('quiet life')\">quiet life</span>?</p>\n<p><strong>Melanie:</strong> Yes, usually there aren't <span class=\"highlight\" onclick=\"say('many')\">many</span> boats on the canals.</p>", "profile": {"Name": "Melanie", "Home": "Canal Boat 🛥️", "Job": "Artist 🎨"}}, "vocab": {"words": [{"lesson_id": 1, "word_en": "kitchen", "word_ru": "кухня", "category": "Rooms", "audio_phrase": "kitchen"}, {"lesson_id": 1, "word_en": "bedroom", "word_ru": "спальня", "category": "Rooms", "audio_phrase": "bedroom"}, {"lesson_id": 1, "word_en": "sofa", "word_ru": "диван", "category": "Furniture", "audio_phrase": "sofa"}], "phrases": [{"lesson_id": 1, "word_en": "We spend a lot of time in the kitchen.", "word_ru": "Мы проводим много времени на кухне.", "category": "Phrases", "audio_phrase": "We spend a lot of time in the kitchen."}]}, "quiz": [{"lesson_id": 1, "question": "Melanie lives in a flat.", "options_json": "[\"True\", \"False\"]", "correct_index": 1, "feedback": "She lives on a boat.", "opts": ["True", "False"]}, {"lesson_id": 1, "question": "She is an artist.", "options_json": "[\"True\", \"False\"]", "correct_index": 0, "feedback": "Correct! She paints.", "opts": ["True", "False"]}]};
+        window.onload = () => { if(window.initLesson) initLesson(lessonData); };
+    </script>
+</body>
+</html>
