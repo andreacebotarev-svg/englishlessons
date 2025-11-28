@@ -97,6 +97,62 @@
       "options": ["Nothing happens", "You can go to prison", "You pay a fine"],
       "answer": 1,
       "feedback": "That's right! Voting is compulsory in Argentina."
+    },
+    {
+      "type": "quiz",
+      "question": "At what age do you become responsible for crimes in Britain?",
+      "options": ["Six", "Ten", "Sixteen"],
+      "answer": 1,
+      "feedback": "Correct! In Britain, criminal responsibility starts at age 10."
+    },
+    {
+      "type": "quiz",
+      "question": "In which country can you marry at sixteen without parental permission?",
+      "options": ["UK", "China", "Scotland"],
+      "answer": 2,
+      "feedback": "Correct! Scotland allows marriage at 16 without parental consent."
+    },
+    {
+      "type": "quiz",
+      "question": "What is the legal drinking age in the USA?",
+      "options": ["Eighteen", "Twenty", "Twenty-one"],
+      "answer": 2,
+      "feedback": "Correct! In the USA, you must be 21 to buy alcohol."
+    },
+    {
+      "type": "quiz",
+      "question": "At what age can you join the army in Britain?",
+      "options": ["Sixteen", "Eighteen", "Seventeen"],
+      "answer": 0,
+      "feedback": "Correct! You can join the British army from age 16."
+    },
+    {
+      "type": "quiz",
+      "question": "In which country do men return to the army every year for three weeks?",
+      "options": ["UK", "USA", "Switzerland"],
+      "answer": 2,
+      "feedback": "Correct! This is a Swiss military obligation."
+    },
+    {
+      "type": "quiz",
+      "question": "At what age is it legal to drive in most of Europe?",
+      "options": ["Sixteen", "Seventeen", "Eighteen"],
+      "answer": 2,
+      "feedback": "Correct! The driving age in most of Europe is 18."
+    },
+    {
+      "type": "quiz",
+      "question": "What was the driving law in the UK until 1935?",
+      "options": ["You had to take a driving test", "You could drive at age 14", "You could just buy a car and drive away"],
+      "answer": 2,
+      "feedback": "Correct! No test was required before 1935 in the UK."
+    },
+    {
+      "type": "quiz",
+      "question": "In which country must you be 22 (men) or 20 (women) to marry?",
+      "options": ["UK", "China", "USA"],
+      "answer": 1,
+      "feedback": "Correct! These are the marriage ages in China."
     }
   ]
 }
