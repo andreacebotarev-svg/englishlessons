@@ -1025,4 +1025,426 @@
             if (data.colors[1]) root.setProperty('--s', data.colors[1]);
         }
         
-        // Класс тем
+        // Класс темы
+        if (data.theme) {
+            document.body.classList.add(`theme-${data.theme}`);
+        }
+
+        // 2. Сортировка контента по табам
+        const readingContent = [];
+        const vocabContent = [];
+        const quizContent = [];
+        
+        if (data.content && Array.isArray(data.content)) {
+            data.content.forEach(item => {
+                switch (item.type) {
+                    case 'block':
+                    case 'fact':
+                    case 'phrase':
+                        readingContent.push(item);
+                        break;
+                    case 'vocab':
+                        vocabContent.push(item);
+                        break;
+                    case 'quiz':
+                        quizContent.push(item);
+                        break;
+                    default:
+                        console.warn('Unknown block type:', item.type);
+                }
+            });
+        }
+
+        // 3. Генерация HTML
+        let html = '';
+
+        // Header
+        html += `
+            <header>
+                <h1 class="lesson-title">${data.title || 'Untitled Lesson'}</h1>
+                ${data.subtitle ? `<div class="lesson-subtitle">${data.subtitle}</div>` : ''}
+            </header>
+        `;
+
+        // Navigation Tabs
+        html += `
+            <div class="tabs-nav">
+                <div class="tabs-container">
+                    <button class="tab-btn ${readingContent.length ? 'active' : ''}" data-tab="read">Read & Learn</button>
+                    <button class="tab-btn ${vocabContent.length ? '' : 'disabled'}" data-tab="vocab">Vocabulary</button>
+                    <button class="tab-btn ${quizContent.length ? '' : 'disabled'}" data-tab="quiz">Practice</button>
+                </div>
+            </div>
+        `;
+
+        // Content Sections
+        html += `<div class="content-wrapper">`;
+        
+        // Read & Learn Tab
+        if (readingContent.length > 0) {
+            html += `<div id="tab-read" class="tab-content active">`;
+            readingContent.forEach((item, index) => {
+                const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
+                
+                switch (item.type) {
+                    case 'block':
+                        html += generateBlock(item, delayStyle);
+                        break;
+                    case 'fact':
+                        html += generateFact(item, delayStyle);
+                        break;
+                    case 'phrase':
+                        html += generatePhrases(item, delayStyle);
+                        break;
+                }
+            });
+            html += `</div>`;
+        }
+
+        // Vocabulary Tab
+        if (vocabContent.length > 0) {
+            html += `<div id="tab-vocab" class="tab-content">`;
+            html += `<button class="btn" onclick="toggleVocabGame()">🎮 Play Game</button>`;
+            html += `<div class="vocab-list">`;
+            vocabContent.forEach((item, index) => {
+                const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
+                html += generateVocab(item, delayStyle);
+            });
+            html += `</div>`;
+            
+            // Game Container
+            html += `<div class="game-container" id="vocab-game">`;
+            html += `<button class="btn btn--ghost" onclick="toggleVocabGame()">← Back to List</button>`;
+            html += `<div class="game-grid" id="game-grid"></div>`;
+            html += `<div class="win-message" id="win-message">🎉 Congratulations! You matched all pairs!</div>`;
+            html += `<div class="game-controls">`;
+            html += `<button class="btn" onclick="resetGame()">🔄 Restart Game</button>`;
+            html += `</div>`;
+            html += `</div>`;
+            
+            html += `</div>`;
+        }
+
+        // Practice Tab
+        if (quizContent.length > 0) {
+            html += `<div id="tab-quiz" class="tab-content">`;
+            quizContent.forEach((item, index) => {
+                const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
+                html += generateQuiz(item, delayStyle);
+            });
+            html += `</div>`;
+        }
+        
+        html += `</div>`;
+
+        // 3. Вставка в DOM
+        const app = document.getElementById('app');
+        app.innerHTML = html;
+        
+        // Добавляем обработчики вкладок
+        setupTabHandlers();
+        
+        // Плавное появление
+        requestAnimationFrame(() => app.classList.add('loaded'));
+    }
+
+    // --- TAB HANDLERS ---
+    function setupTabHandlers() {
+        const tabBtns = document.querySelectorAll('.tab-btn:not(.disabled)');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Сброс активных классов
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Установка активных классов
+                btn.classList.add('active');
+                const tabId = btn.dataset.tab;
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            });
+        });
+    }
+
+    // --- VOCAB GAME LOGIC ---
+    let gamePairs = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let canFlip = true;
+
+    function toggleVocabGame() {
+        const vocabList = document.querySelector('.vocab-list');
+        const gameContainer = document.getElementById('vocab-game');
+        
+        if (gameContainer.classList.contains('active')) {
+            // Скрыть игру, показать список
+            gameContainer.classList.remove('active');
+            vocabList.style.display = 'block';
+        } else {
+            // Скрыть список, показать игру
+            vocabList.style.display = 'none';
+            gameContainer.classList.add('active');
+            // Инициализировать игру
+            initializeGame();
+        }
+    }
+
+    function initializeGame() {
+        // Собрать все слова из всех vocab блоков
+        const allVocabItems = [];
+        document.querySelectorAll('.v-item').forEach(item => {
+            const en = item.querySelector('.en').textContent;
+            const ru = item.querySelector('.ru').textContent;
+            allVocabItems.push({ en, ru });
+        });
+        
+        if (allVocabItems.length === 0) return;
+        
+        // Создать пары (EN + RU)
+        gamePairs = [];
+        allVocabItems.forEach(item => {
+            gamePairs.push({ text: item.en, type: 'en', original: item.ru });
+            gamePairs.push({ text: item.ru, type: 'ru', original: item.en });
+        });
+        
+        // Перемешать
+        shuffleArray(gamePairs);
+        
+        // Очистить игровое поле
+        const grid = document.getElementById('game-grid');
+        grid.innerHTML = '';
+        
+        // Сбросить состояние игры
+        flippedCards = [];
+        matchedPairs = 0;
+        canFlip = true;
+        document.getElementById('win-message').classList.remove('active');
+        
+        // Создать карточки
+        gamePairs.forEach((pair, index) => {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.dataset.index = index;
+            card.dataset.type = pair.type;
+            card.dataset.original = pair.original;
+            card.textContent = pair.text;
+            card.addEventListener('click', () => flipCard(card));
+            grid.appendChild(card);
+        });
+    }
+
+    function flipCard(card) {
+        if (!canFlip) return;
+        if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        
+        card.classList.add('flipped');
+        flippedCards.push(card);
+        
+        if (flippedCards.length === 2) {
+            canFlip = false;
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const [card1, card2] = flippedCards;
+        const isMatch = 
+            (card1.dataset.type !== card2.dataset.type) && 
+            (card1.textContent === card2.dataset.original || card2.textContent === card1.dataset.original);
+        
+        if (isMatch) {
+            // Правильная пара
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            flippedCards = [];
+            matchedPairs++;
+            
+            // Проверить победу
+            if (matchedPairs === gamePairs.length / 2) {
+                setTimeout(() => {
+                    document.getElementById('win-message').classList.add('active');
+                }, 500);
+            }
+            
+            canFlip = true;
+        } else {
+            // Неправильная пара
+            card1.classList.add('error');
+            card2.classList.add('error');
+            
+            setTimeout(() => {
+                card1.classList.remove('flipped', 'error');
+                card2.classList.remove('flipped', 'error');
+                flippedCards = [];
+                canFlip = true;
+            }, 1000);
+        }
+    }
+
+    function resetGame() {
+        initializeGame();
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // --- GENERATORS ---
+
+    function generateBlock(item, style) {
+        return `
+            <div class="block" ${style}>
+                <div class="block-header">
+                    <h3 class="block-title">${item.title || ''}</h3>
+                    <button class="listen-btn" onclick="readBlock(this)">▶ Listen</button>
+                </div>
+                <div class="reading-text interactive-text">
+                    ${processText(item.text || '')}
+                </div>
+            </div>
+        `;
+    }
+
+    function generateFact(item, style) {
+        return `
+            <div class="block block--fact" ${style}>
+                <div class="fact-box">
+                    <div class="fact-box__title">FACT</div>
+                    <div class="fact-box__text interactive-text">
+                        ${processText(item.text || '')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function generateVocab(item, style) {
+        if (!item.items || item.items.length === 0) return '';
+        
+        const cards = item.items.map(word => `
+            <div class="v-item" onclick="speakVocab(this)">
+                <span class="en">${word.en}</span>
+                <span class="ru">${word.ru}</span>
+            </div>
+        `).join('');
+
+        return `
+            <div class="block" ${style}>
+                <h3 class="block-title">Vocabulary</h3>
+                <div class="grid">
+                    ${cards}
+                </div>
+            </div>
+        `;
+    }
+
+    function generatePhrases(item, style) {
+        if (!item.items || item.items.length === 0) return '';
+
+        const rows = item.items.map(phrase => `
+            <div class="p-item" onclick="speakPhrase(this)">
+                <div class="p-text-group">
+                    <div class="p-en">${phrase.en}</div>
+                    <div class="p-ru">${phrase.ru}</div>
+                </div>
+                <div class="p-icon">▶</div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="block" ${style}>
+                <h3 class="block-title">Phrases</h3>
+                <div class="p-list">
+                    ${rows}
+                </div>
+            </div>
+        `;
+    }
+
+    function generateQuiz(item, style) {
+        // Создаем кнопки вариантов
+        const optionsHtml = item.options.map((opt, idx) => `
+            <button class="opt-btn" 
+                    data-index="${idx}" 
+                    onclick="checkQuizOption(this, ${item.answer})">
+                ${opt}
+            </button>
+        `).join('');
+
+        // Скрытый фидбек
+        // Сохраняем текст фидбека в data-атрибуте контейнера, чтобы JS мог его достать
+        const feedbackText = (item.feedback || '').replace(/"/g, '&quot;');
+
+        return `
+            <div class="q-item" ${style} data-feedback="${feedbackText}">
+                <span class="q-txt">${item.question}</span>
+                <div class="opts">
+                    ${optionsHtml}
+                </div>
+                <div class="fb" style="display:none;"></div>
+            </div>
+        `;
+    }
+
+    /* --- TEXT PROCESSING (The Magic Part) --- */
+
+    /**
+     * Превращает "Hello world [hl]grammar[/hl]" в интерактивный HTML
+     */
+    function processText(rawText) {
+        if (!rawText) return '';
+        
+        // 1. Замена спец-тегов [hl]...[/hl] на временные маркеры, чтобы не сломать их при разбивке слов
+        // Мы используем уникальные токены, которые точно не встретятся в тексте
+        let processed = rawText
+            .replace(/\[hl\]/g, '___HL_START___')
+            .replace(/\[\/hl\]/g, '___HL_END___');
+
+        // 2. Разбивка на слова и оборачивание
+        // Регулярка ищет слова (буквы, цифры, апострофы), сохраняя знаки препинания
+        processed = processed.split(/(\s+|[.,!?;:()"])/).map(token => {
+            // Если токен пустой или пробел - возвращаем как есть
+            if (!token.trim()) return token;
+            
+            // Если токен это наши маркеры - возвращаем как есть
+            if (token.includes('___HL_')) return token;
+
+            // Если это слово (содержит буквы) - оборачиваем
+            if (/[a-zA-Z0-9]/.test(token)) {
+                // Экранируем кавычки для onclick
+                const safeWord = token.replace(/'/g, "\\'");
+                return `<span class="word" onclick="speakWord('${safeWord}', this)">${token}</span>`;
+            }
+            
+            return token;
+        }).join('');
+
+        // 3. Восстановление [hl] уже в виде HTML тегов
+        processed = processed
+            .replace(/___HL_START___/g, '<span class="hl">')
+            .replace(/___HL_END___/g, '</span>');
+
+        return processed;
+    }
+    
+    /* --- INTERACTIVITY & TTS --- */
+
+    // Глобальная очередь для TTS
+    let currentUtterance = null;
+
+    function speak(text, onEndCallback) {
+        if (!window.speechSynthesis) return;
+        
+        // Остановить текущее
+        window.speechSynthesis.cancel();
+
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US'; // Можно поменять на en-GB
+        u.rate = 0.95;    // Чуть замедленно для обучения
+        
+        // Попытка найти хороший голос
+        const voices
