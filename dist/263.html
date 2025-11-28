@@ -9,21 +9,959 @@
     <!-- Временный заголовок, изменится JS-ом -->
     <title>Loading lesson...</title>
     
-    <!-- Подключение глобальных стилей -->
-    <link rel="stylesheet" href="../style.css">
-    
     <style>
-        /* Fallback styles if CSS fails or loads late */
-        body { margin: 0; font-family: sans-serif; background: #f5f5f7; }
-        .loading-container { 
-            display: flex; justify-content: center; align-items: center; 
-            height: 80vh; color: #999; font-weight: 500; 
+        /* --------------------------------------------------------------------------
+           1. CSS VARIABLES & ROOT SETTINGS
+           -------------------------------------------------------------------------- */
+        :root {
+            /* Типографика */
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                         "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: "SF Mono", Menlo, Consolas, monospace;
+            --font-size-base: 16px;
+            --font-size-sm:   0.875rem;
+            --font-size-lg:   1.125rem;
+            --line-height-base: 1.6;
+
+            /* Цвета (по умолчанию, затем могут переопределяться темой/JSON) */
+            --accent: #0A84FF;
+            --accent-soft: rgba(10, 132, 255, 0.08);
+            --accent-strong: rgba(10, 132, 255, 0.18);
+
+            --bg-page: #F5F5F7;
+            --bg-card: #FFFFFF;
+            --bg-elevated: #FFFFFF;
+            --bg-muted: #F0F0F3;
+
+            --text-main: #1D1D1F;
+            --text-sub: #86868B;
+            --text-invert: #FFFFFF;
+
+            --border-subtle: 1px solid rgba(0,0,0,0.06);
+            --border-strong: 1px solid rgba(0,0,0,0.12);
+
+            /* Радиусы и тени */
+            --radius-xs: 6px;
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-pill: 999px;
+
+            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.06);
+            --shadow-strong: 0 14px 45px rgba(0, 0, 0, 0.25);
+
+            /* Прочее */
+            --transition-fast: 0.15s ease-out;
+            --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+            --content-max-width: 760px;
+            
+            /* Цвета для квиза */
+            --accent-success: #34C759;
+            --accent-success-bg: #E8F8EA;
+            --accent-error: #FF3B30;
+            --accent-error-bg: #FFF0F0;
+            --accent-warning: #FF9500;
+            
+            /* Переменные для темы */
+            --p: #007AFF; /* Primary Fallback */
+            --s: #5856D6; /* Secondary Fallback */
+            
+            /* Spacing */
+            --gap: 16px;
+            
+            /* Transition Curves */
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+            
+            /* Тени */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
         }
-        .error-msg { color: #e53935; text-align: center; margin-top: 50px; padding: 20px; }
+
+        /* Темная тема по умолчанию */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #000000;
+                --bg-card: #1C1C1E;
+                --bg-muted: #151515;
+                --text-main: #F5F5F7;
+                --text-sub: #9E9EA4;
+                --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.85);
+                --border-subtle: 1px solid #2C2C2E;
+                --accent-success-bg: rgba(52, 199, 89, 0.2);
+                --accent-error-bg: rgba(255, 59, 48, 0.2);
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+                --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        /* --------------------------------------------------------------------------
+           2. RESET / BASE
+           -------------------------------------------------------------------------- */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-feature-settings: "cv11", "ss01"; /* Лучший рендеринг шрифтов */
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            font-family: var(--font-main);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height-base);
+            color: var(--text-main);
+            background-color: var(--bg-page);
+            padding: 20px;
+            padding-bottom: 96px;
+            transition:
+                background-color var(--transition-smooth),
+                color var(--transition-smooth);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Базовые элементы */
+        h1, h2, h3, h4 {
+            margin: 0 0 0.5em;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin: 0 0 0.9em;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Обязательный фокус для доступности */
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        /* --------------------------------------------------------------------------
+           3. LAYOUT & CONTAINER
+           -------------------------------------------------------------------------- */
+        .container {
+            max-width: var(--content-max-width);
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* --------------------------------------------------------------------------
+           4. HEADER & HERO SECTION
+           -------------------------------------------------------------------------- */
+        header {
+            position: relative;
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: white;
+            padding: 30px 20px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeInDown var(--transition-smooth) forwards;
+        }
+
+        /* Декоративный круг для заголовка */
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            transform: rotate(-15deg);
+            pointer-events: none;
+        }
+
+        .lesson-title {
+            font-size: 2.3rem;
+            color: var(--accent);
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .lesson-subtitle {
+            font-size: 1rem;
+            color: var(--text-sub);
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* --------------------------------------------------------------------------
+           5. TAB NAVIGATION
+           -------------------------------------------------------------------------- */
+        .tabs-nav {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.0);
+            margin-bottom: 25px;
+            padding: 5px 5px 15px 5px;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tabs-container::-webkit-scrollbar { 
+            display: none; 
+        }
+
+        .tab-btn {
+            background: var(--bg-card);
+            padding: 12px 24px;
+            border-radius: 100px; /* Капсульная форма */
+            border: 1px solid var(--text-tertiary, #CECED2);
+            font-weight: 600;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            color: var(--text-secondary, #86868B);
+            cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tab-btn.active {
+            background: var(--p);
+            color: white;
+            border-color: var(--p);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* --------------------------------------------------------------------------
+           6. TAB CONTENT
+           -------------------------------------------------------------------------- */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s var(--ease-bounce);
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --------------------------------------------------------------------------
+           7. CONTENT BLOCKS / CARDS
+           -------------------------------------------------------------------------- */
+        .block {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-soft);
+            border: var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeInUp var(--transition-smooth) forwards;
+            transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+        }
+        .block:hover { 
+            transform: translateY(-2px); 
+        }
+
+        .block:nth-child(1) { animation-delay: 0.05s; }
+        .block:nth-child(2) { animation-delay: 0.12s; }
+        .block:nth-child(3) { animation-delay: 0.19s; }
+        .block:nth-child(4) { animation-delay: 0.26s; }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            border-bottom: var(--border-subtle);
+            padding-bottom: 8px;
+        }
+
+        .block-title {
+            font-size: 1.25rem;
+            color: var(--accent);
+        }
+
+        /* Вариация блока для фактов / заметок */
+        .block--fact {
+            background: var(--bg-muted);
+            border-left: 4px solid var(--accent);
+            border-radius: var(--radius-md);
+            box-shadow: none;
+        }
+
+        /* --------------------------------------------------------------------------
+           8. READING VIEW & INTERACTIVE TEXT
+           -------------------------------------------------------------------------- */
+        .reading-section {
+            max-width: 800px; 
+            margin: 0 auto;
+        }
+
+        .reading-text {
+            font-size: var(--font-size-lg);
+            line-height: 1.8;
+            color: var(--text-main);
+        }
+
+        .reading-text p { 
+            margin-bottom: 20px; 
+        }
+
+        /* Интерактивные слова */
+        .word,
+        .w {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 0 1px;
+            transition:
+                background-color 0.1s ease-out,
+                color 0.1s ease-out;
+        }
+
+        .word:hover,
+        .w:hover {
+            background-color: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .word.active,
+        .w.playing {
+            background-color: var(--accent);
+            color: var(--text-invert);
+            box-shadow: 0 2px 8px var(--accent-strong);
+        }
+
+        /* Выделение ключевых слов */
+        .word--strong {
+            font-weight: 700;
+        }
+
+        /* Magic Highlights */
+        .hl {
+            background: transparent;
+            border-bottom: 2px solid var(--p);
+            color: var(--text-main);
+            padding: 2px 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .hl:active {
+            background: var(--p);
+            color: white;
+            transform: scale(0.96);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* --------------------------------------------------------------------------
+           9. INFO / FACT BOXES
+           -------------------------------------------------------------------------- */
+        .fact-box,
+        .profile {
+            background-color: var(--bg-muted);
+            border-left: 4px solid var(--accent);
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            margin-top: 16px;
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        .fact-box__title {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile {
+            background: var(--bg-page) !important;
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .profile p {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--text-tertiary);
+        }
+        .profile p:last-child { 
+            border-bottom: none; 
+            padding-bottom: 0; 
+        }
+        .profile strong { 
+            color: var(--text-main); 
+        }
+
+        .profile::before {
+            content: '💡';
+            position: absolute; 
+            top: -10px; 
+            right: -10px;
+            font-size: 1.5rem;
+            background: white;
+            border-radius: 50%;
+            padding: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* --------------------------------------------------------------------------
+           10. VOCABULARY GRID (Squircle Icons)
+           -------------------------------------------------------------------------- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+        }
+
+        .v-item {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 20px; /* Squircle-like rounded corners */
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.3s var(--ease-bounce);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Эффект нажатия "вглубь" */
+        .v-item:active {
+            transform: scale(0.92);
+            background: var(--bg-page);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .en {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 6px;
+        }
+        .ru {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        /* Icon Play (появляется при наведении на десктопе или при тапе) */
+        .v-item::after {
+            content: '🔊';
+            position: absolute;
+            top: 10px; right: 10px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: 0.2s;
+        }
+        .v-item:active::after { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+
+        /* --------------------------------------------------------------------------
+           11. PHRASES & LISTS (iOS Table View)
+           -------------------------------------------------------------------------- */
+        .p-list {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .p-item {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        /* Линия-разделитель, которая не доходит до левого края (как в iOS) */
+        .p-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: calc(100% - 20px);
+            height: 1px;
+            background: var(--text-tertiary);
+            opacity: 0.3;
+        }
+
+        .p-item:active {
+            background: var(--bg-muted);
+        }
+
+        .p-text-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+        }
+        .p-en { 
+            font-weight: 600; 
+            color: var(--text-main); 
+            font-size: 1rem; 
+        }
+        .p-ru { 
+            color: var(--text-sub); 
+            font-size: 0.85rem; 
+        }
+
+        .p-icon {
+            width: 32px; 
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-muted);
+            color: var(--accent);
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .p-item:active .p-icon {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* --------------------------------------------------------------------------
+           12. BUTTONS & CONTROLS
+           -------------------------------------------------------------------------- */
+        .btn,
+        .listen-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+
+            border-radius: var(--radius-pill);
+            border: none;
+            padding: 8px 18px;
+
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+
+            background: var(--accent-soft);
+            color: var(--accent);
+
+            transition:
+                background-color var(--transition-fast),
+                color var(--transition-fast),
+                transform var(--transition-fast),
+                box-shadow var(--transition-fast);
+        }
+
+        .btn:hover,
+        .listen-btn:hover {
+            background: var(--accent-strong);
+        }
+
+        .btn:active,
+        .listen-btn:active {
+            transform: translateY(1px) scale(0.99);
+        }
+
+        /* Активный режим воспроизведения */
+        .listen-btn.playing {
+            background: var(--accent);
+            color: var(--text-invert);
+            box-shadow: 0 4px 12px var(--accent-strong);
+        }
+
+        /* Вторичная кнопка */
+        .btn--ghost {
+            background: transparent;
+            border: 1px solid var(--accent);
+        }
+
+        /* Кнопка действия в квизе / игре */
+        .btn--primary {
+            background: var(--accent);
+            color: var(--text-invert);
+        }
+
+        /* --------------------------------------------------------------------------
+           13. QUIZ & INTERACTION
+           -------------------------------------------------------------------------- */
+        .quiz-card,
+        .q-item {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .quiz-question,
+        .q-txt {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .quiz-options,
+        .opts {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quiz-option,
+        .opt-btn {
+            border-radius: var(--radius-pill);
+            border: var(--border-subtle);
+            padding: 8px 14px;
+            cursor: pointer;
+            background: var(--bg-muted);
+            transition: background-color var(--transition-fast),
+                        transform var(--transition-fast);
+            width: 100%;
+            padding: 16px;
+            border: 2px solid transparent;
+            background: var(--bg-page);
+            color: var(--text-main);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s var(--ease-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-option:hover,
+        .opt-btn:hover {
+            background: var(--accent-soft);
+        }
+
+        .quiz-option:active,
+        .opt-btn:active { 
+            transform: scale(0.98); 
+        }
+
+        .quiz-option--correct,
+        .opt-btn.good {
+            background: var(--accent-success-bg);
+            border-color: var(--accent-success);
+            color: #15803d;
+        }
+
+        .quiz-option--correct::after,
+        .opt-btn.good::after {
+            content: '✓';
+            position: absolute; 
+            right: 20px;
+            font-weight: bold;
+        }
+
+        .quiz-option--wrong,
+        .opt-btn.bad {
+            background: var(--accent-error-bg);
+            border-color: var(--accent-error);
+            color: #b91c1c;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Animation Shake (для ошибки) */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Feedback Text */
+        .fb {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: none;
+            animation: fadeUp 0.3s ease-out;
+        }
+
+        @keyframes fadeUp { 
+            from { 
+                opacity:0; 
+                transform:translateY(5px); 
+            } 
+            to { 
+                opacity:1; 
+                transform:translateY(0); 
+            } 
+        }
+
+        /* --------------------------------------------------------------------------
+           14. VOCAB GAME STYLES
+           -------------------------------------------------------------------------- */
+        .game-container {
+            display: none;
+        }
         
-        /* Скрытие контента до загрузки данных */
-        #app { opacity: 0; transition: opacity 0.4s ease; }
-        #app.loaded { opacity: 1; }
+        .game-container.active {
+            display: block;
+        }
+        
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .game-card {
+            background: var(--bg-card);
+            border: 2px solid var(--text-tertiary);
+            border-radius: var(--radius-md);
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .game-card.flipped {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .game-card.matched {
+            background: var(--accent-success-bg);
+            border-color: var(--accent-success);
+            color: #15803d;
+            cursor: default;
+            opacity: 0.7;
+        }
+        
+        .game-card.error {
+            background: var(--accent-error-bg);
+            border-color: var(--accent-error);
+            color: #b91c1c;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        .game-controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .win-message {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            color: var(--accent-success);
+            font-weight: bold;
+            display: none;
+        }
+        
+        .win-message.active {
+            display: block;
+        }
+
+        /* --------------------------------------------------------------------------
+           15. UTILITY CLASSES (Spacing, Layout, Text)
+           -------------------------------------------------------------------------- */
+        /* Отступы (margin bottom) */
+        .u-mb-0   { margin-bottom: 0 !important; }
+        .u-mb-xs  { margin-bottom: 4px !important; }
+        .u-mb-sm  { margin-bottom: 8px !important; }
+        .u-mb-md  { margin-bottom: 16px !important; }
+        .u-mb-lg  { margin-bottom: 24px !important; }
+        .u-mb-xl  { margin-bottom: 40px !important; }
+
+        /* Центровка и флекс-хелперы */
+        .u-flex     { display: flex !important; }
+        .u-inline   { display: inline-flex !important; }
+        .u-center   { justify-content: center !important; align-items: center !important; }
+        .u-space-b  { justify-content: space-between !important; }
+        .u-col      { flex-direction: column !important; }
+
+        /* Текстовые утилиты */
+        .u-text-center { text-align: center !important; }
+        .u-text-right  { text-align: right !important; }
+        .u-muted       { color: var(--text-sub) !important; }
+        .u-accent      { color: var(--accent) !important; }
+
+        /* --------------------------------------------------------------------------
+           16. THEME VARIANTS
+           -------------------------------------------------------------------------- */
+        /* DARK THEME */
+        body.theme-dark {
+            --bg-page: #000000;
+            --bg-card: #1C1C1E;
+            --bg-muted: #151515;
+            --text-main: #F5F5F7;
+            --text-sub: #9E9EA4;
+            --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.85);
+            --border-subtle: 1px solid #2C2C2E;
+        }
+
+        /* PAPER THEME */
+        body.theme-paper {
+            --bg-page: #F4EFE3;
+            --bg-card: #FDFBF7;
+            --bg-muted: #EFE6D9;
+            --text-main: #2C241B;
+            --text-sub: #6D4C41;
+            --font-main: "Georgia", "Times New Roman", serif;
+
+            --radius-md: 4px;
+            --shadow-soft: 2px 2px 0 rgba(44, 36, 27, 0.15);
+            --border-subtle: 1px solid #D7CCC8;
+        }
+        body.theme-paper h1 {
+            font-style: italic;
+        }
+
+        /* PLAYFUL THEME */
+        body.theme-playful {
+            --bg-page: #FFFDE7;
+            --bg-card: #FFFFFF;
+            --bg-muted: #FFF3E0;
+            --text-main: #3E2723;
+            --text-sub: #6D4C41;
+            --font-main: "Comic Sans MS", "Chalkboard SE", system-ui;
+
+            --radius-md: 26px;
+            --shadow-soft: 0 10px 0 rgba(0, 0, 0, 0.14);
+            --border-subtle: 3px solid #3E2723;
+        }
+        body.theme-playful .block:nth-child(odd) {
+            transform: rotate(-1deg);
+        }
+        body.theme-playful .block:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        /* =========================================
+        17. SECTIONS & ANIMATIONS
+        ========================================= */
+        .section {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s var(--ease-bounce);
+        }
+
+        .section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Loading Skeleton Animation */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+        .skeleton {
+            background: var(--text-tertiary);
+            border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        /* =========================================
+        18. ANIMATIONS
+        ========================================= */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================================
+        19. MEDIA QUERIES
+        ========================================= */
+        @media (max-width: 600px) {
+            body {
+                padding: 14px;
+                padding-bottom: 80px;
+            }
+            .lesson-title {
+                font-size: 1.8rem;
+            }
+            .block {
+                padding: 18px;
+            }
+            .reading-text {
+                font-size: 1rem;
+            }
+            header h1 {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -39,8 +977,8 @@
 
 <script>
     /**
-     * EDUCATIONAL APP ENGINE v3.1
-     * Handles JSON fetching, rendering, and interactivity.
+     * EDUCATIONAL APP ENGINE v4.0
+     * Handles JSON fetching, rendering, tabs, and interactivity.
      */
     
     // 1. Определение ID урока из имени файла (263.html -> 263)
@@ -67,7 +1005,7 @@
             document.getElementById('app').innerHTML = `
                 <div class="error-msg">
                     <h3>Error loading lesson</h3>
-                    <p>Could not load data from de>${dataUrl}</code></p>
+                    <p>Could not load data from <code>${dataUrl}</code></p>
                     <p><small>Make sure you are running this via a Local Server (http://), not file://</small></p>
                 </div>
             `;
@@ -87,343 +1025,4 @@
             if (data.colors[1]) root.setProperty('--s', data.colors[1]);
         }
         
-        // Класс темы
-        if (data.theme) {
-            document.body.classList.add(`theme-${data.theme}`);
-        }
-
-        // 2. Генерация HTML
-        let html = '';
-
-        // Header
-        html += `
-            <header>
-                <h1 class="lesson-title">${data.title || 'Untitled Lesson'}</h1>
-                ${data.subtitle ? `<div class="lesson-subtitle">${data.subtitle}</div>` : ''}
-            </header>
-        `;
-
-        // Content Blocks
-        if (data.content && Array.isArray(data.content)) {
-            data.content.forEach((item, index) => {
-                // Добавляем задержку анимации для красоты
-                const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
-                
-                switch (item.type) {
-                    case 'block':
-                        html += generateBlock(item, delayStyle);
-                        break;
-                    case 'fact':
-                        html += generateFact(item, delayStyle);
-                        break;
-                    case 'vocab':
-                        html += generateVocab(item, delayStyle);
-                        break;
-                    case 'phrase':
-                        html += generatePhrases(item, delayStyle);
-                        break;
-                    case 'quiz':
-                        html += generateQuiz(item, delayStyle);
-                        break;
-                    default:
-                        console.warn('Unknown block type:', item.type);
-                        html += `<div class="block" ${delayStyle}><p style="color:red">Unsupported block type: ${item.type}</p></div>`;
-                }
-            });
-        } else {
-            html += '<div class="block"><p>No content available.</p></div>';
-        }
-
-        // 3. Вставка в DOM
-        const app = document.getElementById('app');
-        app.innerHTML = html;
-        
-        // Плавное появление
-        requestAnimationFrame(() => app.classList.add('loaded'));
-    }
-
-    // --- GENERATORS ---
-
-    function generateBlock(item, style) {
-        return `
-            <div class="block" ${style}>
-                <div class="block-header">
-                    <h3 class="block-title">${item.title || ''}</h3>
-                    <button class="listen-btn" onclick="readBlock(this)">▶ Listen</button>
-                </div>
-                <div class="reading-text interactive-text">
-                    ${processText(item.text || '')}
-                </div>
-            </div>
-        `;
-    }
-
-    function generateFact(item, style) {
-        return `
-            <div class="block block--fact" ${style}>
-                <div class="fact-box">
-                    <div class="fact-box__title">FACT</div>
-                    <div class="fact-box__text interactive-text">
-                        ${processText(item.text || '')}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    function generateVocab(item, style) {
-        if (!item.items || item.items.length === 0) return '';
-        
-        const cards = item.items.map(word => `
-            <div class="v-item" onclick="speakVocab(this)">
-                <span class="en">${word.en}</span>
-                <span class="ru">${word.ru}</span>
-            </div>
-        `).join('');
-
-        return `
-            <div class="block" ${style}>
-                <h3 class="block-title">Vocabulary</h3>
-                <div class="grid">
-                    ${cards}
-                </div>
-            </div>
-        `;
-    }
-
-    function generatePhrases(item, style) {
-        if (!item.items || item.items.length === 0) return '';
-
-        const rows = item.items.map(phrase => `
-            <div class="p-item" onclick="speakPhrase(this)">
-                <div class="p-text-group">
-                    <div class="p-en">${phrase.en}</div>
-                    <div class="p-ru">${phrase.ru}</div>
-                </div>
-                <div class="p-icon">▶</div>
-            </div>
-        `).join('');
-
-        return `
-            <div class="block" ${style}>
-                <h3 class="block-title">Phrases</h3>
-                <div class="p-list">
-                    ${rows}
-                </div>
-            </div>
-        `;
-    }
-
-    function generateQuiz(item, style) {
-        // Создаем кнопки вариантов
-        const optionsHtml = item.options.map((opt, idx) => `
-            <button class="opt-btn" 
-                    data-index="${idx}" 
-                    onclick="checkQuizOption(this, ${item.answer})">
-                ${opt}
-            </button>
-        `).join('');
-
-        // Скрытый фидбек
-        // Сохраняем текст фидбека в data-атрибуте контейнера, чтобы JS мог его достать
-        const feedbackText = (item.feedback || '').replace(/"/g, '&quot;');
-
-        return `
-            <div class="q-item" ${style} data-feedback="${feedbackText}">
-                <span class="q-txt">${item.question}</span>
-                <div class="opts">
-                    ${optionsHtml}
-                </div>
-                <div class="fb" style="display:none;"></div>
-            </div>
-        `;
-    }
-
-    /* --- TEXT PROCESSING (The Magic Part) --- */
-
-    /**
-     * Превращает "Hello world [hl]grammar[/hl]" в интерактивный HTML
-     */
-    function processText(rawText) {
-        if (!rawText) return '';
-        
-        // 1. Замена спец-тегов [hl]...[/hl] на временные маркеры, чтобы не сломать их при разбивке слов
-        // Мы используем уникальные токены, которые точно не встретятся в тексте
-        let processed = rawText
-            .replace(/\[hl\]/g, '___HL_START___')
-            .replace(/\[\/hl\]/g, '___HL_END___');
-
-        // 2. Разбивка на слова и оборачивание
-        // Регулярка ищет слова (буквы, цифры, апострофы), сохраняя знаки препинания
-        processed = processed.split(/(\s+|[.,!?;:()"])/).map(token => {
-            // Если токен пустой или пробел - возвращаем как есть
-            if (!token.trim()) return token;
-            
-            // Если токен это наши маркеры - возвращаем как есть
-            if (token.includes('___HL_')) return token;
-
-            // Если это слово (содержит буквы) - оборачиваем
-            if (/[a-zA-Z0-9]/.test(token)) {
-                // Экранируем кавычки для onclick
-                const safeWord = token.replace(/'/g, "\\'");
-                return `<span class="word" onclick="speakWord('${safeWord}', this)">${token}</span>`;
-            }
-            
-            return token;
-        }).join('');
-
-        // 3. Восстановление [hl] уже в виде HTML тегов
-        processed = processed
-            .replace(/___HL_START___/g, '<span class="hl">')
-            .replace(/___HL_END___/g, '</span>');
-
-        return processed;
-    }
-    /* --- INTERACTIVITY & TTS --- */
-
-    // Глобальная очередь для TTS
-    let currentUtterance = null;
-
-    function speak(text, onEndCallback) {
-        if (!window.speechSynthesis) return;
-        
-        // Остановить текущее
-        window.speechSynthesis.cancel();
-
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US'; // Можно поменять на en-GB
-        u.rate = 0.95;    // Чуть замедленно для обучения
-        
-        // Попытка найти хороший голос
-        const voices = window.speechSynthesis.getVoices();
-        const preferredVoice = voices.find(v => v.name.includes('Google US English')) 
-                            || voices.find(v => v.name.includes('Samantha'))
-                            || voices.find(v => v.lang.startsWith('en'));
-        
-        if (preferredVoice) u.voice = preferredVoice;
-
-        if (onEndCallback) {
-            u.onend = onEndCallback;
-        }
-
-        u.onerror = (e) => console.error('TTS Error:', e);
-        
-        window.speechSynthesis.speak(u);
-        currentUtterance = u;
-    }
-
-    // 1. Озвучка отдельного слова
-    window.speakWord = function(word, el) {
-        // Визуальный эффект
-        document.querySelectorAll('.word.active').forEach(w => w.classList.remove('active'));
-        if (el) el.classList.add('active');
-
-        speak(word, () => {
-            if (el) setTimeout(() => el.classList.remove('active'), 200);
-        });
-    };
-
-    // 2. Озвучка блока текста
-    window.readBlock = function(btn) {
-        const block = btn.closest('.block');
-        // Берем чистый текст без HTML тегов
-        const textContainer = block.querySelector('.reading-text');
-        const text = textContainer.innerText;
-
-        if (btn.classList.contains('playing')) {
-            window.speechSynthesis.cancel();
-            btn.classList.remove('playing');
-            btn.innerHTML = '▶ Listen';
-            return;
-        }
-
-        // Сброс других кнопок
-        document.querySelectorAll('.listen-btn').forEach(b => {
-            b.classList.remove('playing');
-            b.innerHTML = '▶ Listen';
-        });
-
-        btn.classList.add('playing');
-        btn.innerHTML = '⏹ Stop';
-
-        speak(text, () => {
-            btn.classList.remove('playing');
-            btn.innerHTML = '▶ Listen';
-        });
-    };
-
-    // 3. Озвучка Vocab Card
-    window.speakVocab = function(el) {
-        const enText = el.querySelector('.en').innerText;
-        
-        // Анимация нажатия
-        el.style.transform = 'scale(0.95)';
-        setTimeout(() => el.style.transform = '', 150);
-        
-        speak(enText);
-    };
-
-    // 4. Озвучка Phrase Item
-    window.speakPhrase = function(el) {
-        const enText = el.querySelector('.p-en').innerText;
-        const icon = el.querySelector('.p-icon');
-        
-        const originalIcon = icon.innerText;
-        icon.innerText = '🔊';
-        el.style.background = 'var(--bg-muted, #eee)'; // Подсветка
-
-        speak(enText, () => {
-            icon.innerText = originalIcon;
-            el.style.background = '';
-        });
-    };
-
-    /* --- QUIZ LOGIC --- */
-
-    window.checkQuizOption = function(btn, correctIndex) {
-        const parent = btn.closest('.q-item');
-        const allBtns = parent.querySelectorAll('.opt-btn');
-        const feedbackEl = parent.querySelector('.fb');
-        const selectedIndex = parseInt(btn.dataset.index);
-        
-        // Блокируем повторные нажатия, если уже угадали? (Опционально)
-        // Здесь разрешаем менять ответ, просто сбрасываем стили
-        
-        allBtns.forEach(b => {
-            b.classList.remove('good', 'bad');
-            // b.disabled = true; // Если хотим блокировать после первого клика
-        });
-
-        feedbackEl.style.display = 'block';
-        feedbackEl.className = 'fb'; // Сброс анимации
-
-        if (selectedIndex === correctIndex) {
-            btn.classList.add('good');
-            
-            // Берем текст фидбека из data-атрибута (он там спрятан)
-            const fbText = parent.dataset.feedback || 'Correct! Well done.';
-            feedbackEl.innerText = fbText;
-            feedbackEl.style.color = 'var(--accent-success, #34C759)';
-            feedbackEl.style.background = 'var(--accent-success-bg, #E8F8EA)';
-            
-            // Звук успеха (опционально, можно системный бип)
-        } else {
-            btn.classList.add('bad');
-            feedbackEl.innerText = 'Try again!';
-            feedbackEl.style.color = 'var(--accent-error, #FF3B30)';
-            feedbackEl.style.background = 'var(--accent-error-bg, #FFF0F0)';
-            
-            // Вибрация на мобильных
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
-
-    // Fix for Chrome voice loading async issue
-    if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = () => {
-            window.speechSynthesis.getVoices();
-        };
-    }
-
-</script>
-</body>
-</html>
+        // Класс тем
