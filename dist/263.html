@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,66 +5,55 @@ html
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
     <meta name="color-scheme" content="light dark">
-    <!-- Временный заголовок, изменится JS-ом -->
+    <meta name="description" content="Interactive educational lesson with vocabulary, quizzes and text-to-speech">
     <title>Loading lesson...</title>
+    <link rel="preload" href="../data/" as="fetch" crossorigin="anonymous">
     <style>
-        /* --------------------------------------------------------------------------
-           1. CSS VARIABLES & ROOT SETTINGS
-           -------------------------------------------------------------------------- */
+        /* Core CSS Variables & Base Styles */
         :root {
-            /* Типографика */
-            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-                         "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-mono: "SF Mono", Menlo, Consolas, monospace;
             --font-size-base: 16px;
-            --font-size-sm:   0.875rem;
-            --font-size-lg:   1.125rem;
             --line-height-base: 1.6;
-            /* Цвета (по умолчанию, затем могут переопределяться темой/JSON) */
+            
             --accent: #0A84FF;
             --accent-soft: rgba(10, 132, 255, 0.08);
             --accent-strong: rgba(10, 132, 255, 0.18);
+            
             --bg-page: #F5F5F7;
             --bg-card: #FFFFFF;
-            --bg-elevated: #FFFFFF;
             --bg-muted: #F0F0F3;
+            
             --text-main: #1D1D1F;
             --text-sub: #86868B;
             --text-invert: #FFFFFF;
+            
             --border-subtle: 1px solid rgba(0,0,0,0.06);
-            --border-strong: 1px solid rgba(0,0,0,0.12);
-            /* Радиусы и тени */
-            --radius-xs: 6px;
-            --radius-sm: 10px;
+            
             --radius-md: 16px;
-            --radius-lg: 24px;
             --radius-pill: 999px;
+            
             --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.06);
-            --shadow-strong: 0 14px 45px rgba(0, 0, 0, 0.25);
-            /* Прочее */
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            
             --transition-fast: 0.15s ease-out;
             --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            
             --content-max-width: 760px;
-            /* Цвета для квиза */
+            --gap: 16px;
+            
+            /* Quiz Colors */
             --accent-success: #34C759;
             --accent-success-bg: #E8F8EA;
             --accent-error: #FF3B30;
             --accent-error-bg: #FFF0F0;
-            --accent-warning: #FF9500;
-            /* Переменные для темы */
-            --p: #007AFF; /* Primary Fallback */
-            --s: #5856D6; /* Secondary Fallback */
-            /* Spacing */
-            --gap: 16px;
-            /* Transition Curves */
-            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-            --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
-            /* Тени */
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+            
+            /* Theme Fallbacks */
+            --p: #007AFF;
+            --s: #5856D6;
         }
-        /* Темная тема по умолчанию */
+
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-page: #000000;
@@ -73,29 +61,27 @@ html
                 --bg-muted: #151515;
                 --text-main: #F5F5F7;
                 --text-sub: #9E9EA4;
-                --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.85);
                 --border-subtle: 1px solid #2C2C2E;
-                --accent-success-bg: rgba(52, 199, 89, 0.2);
-                --accent-error-bg: rgba(255, 59, 48, 0.2);
-                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-                --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+                --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.85);
             }
         }
-        /* --------------------------------------------------------------------------
-           2. RESET / BASE
-           -------------------------------------------------------------------------- */
+
+        /* Reset & Base */
         *,
         *::before,
         *::after {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            font-feature-settings: "cv11", "ss01"; /* Лучший рендеринг шрифтов */
+            font-feature-settings: "cv11", "ss01";
         }
+
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
+            font-size: 100%;
         }
+
         body {
             font-family: var(--font-main);
             font-size: var(--font-size-base);
@@ -104,50 +90,53 @@ html
             background-color: var(--bg-page);
             padding: 20px;
             padding-bottom: 96px;
-            transition:
-                background-color var(--transition-smooth),
-                color var(--transition-smooth);
+            transition: background-color var(--transition-smooth), color var(--transition-smooth);
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
         }
-        /* Базовые элементы */
+
+        /* Typography */
         h1, h2, h3, h4 {
             margin: 0 0 0.5em;
             font-weight: 700;
             letter-spacing: -0.02em;
         }
+
         p {
             margin: 0 0 0.9em;
         }
+
         a {
             color: var(--accent);
             text-decoration: none;
         }
+
         a:hover {
             text-decoration: underline;
         }
-        /* Обязательный фокус для доступности */
+
+        /* Accessibility */
         :focus-visible {
             outline: 2px solid var(--accent);
             outline-offset: 3px;
+            border-radius: 4px;
         }
-        /* --------------------------------------------------------------------------
-           3. LAYOUT & CONTAINER
-           -------------------------------------------------------------------------- */
+
+        /* Layout */
         .container {
             max-width: var(--content-max-width);
             margin: 0 auto;
             width: 100%;
         }
-        /* --------------------------------------------------------------------------
-           4. HEADER & HERO SECTION
-           -------------------------------------------------------------------------- */
+
+        /* Header */
         header {
             position: relative;
             background: linear-gradient(135deg, var(--p), var(--s));
             color: white;
             padding: 30px 20px;
-            border-radius: var(--radius-lg);
+            border-radius: 24px;
             text-align: center;
             margin-bottom: 25px;
             box-shadow: var(--shadow-md);
@@ -155,7 +144,7 @@ html
             opacity: 0;
             animation: fadeInDown var(--transition-smooth) forwards;
         }
-        /* Декоративный круг для заголовка */
+
         header::before {
             content: '';
             position: absolute;
@@ -165,9 +154,8 @@ html
             transform: rotate(-15deg);
             pointer-events: none;
         }
+
         .lesson-title {
-            font-size: 2.3rem;
-            color: var(--accent);
             font-size: 1.8rem;
             font-weight: 700;
             letter-spacing: -0.5px;
@@ -176,50 +164,61 @@ html
             position: relative;
             z-index: 2;
         }
+
         .lesson-subtitle {
             font-size: 1rem;
-            color: var(--text-sub);
+            color: rgba(255,255,255,0.9);
             font-weight: 500;
             position: relative;
             z-index: 2;
         }
-        /* --------------------------------------------------------------------------
-           5. TAB NAVIGATION
-           -------------------------------------------------------------------------- */
-        .tabs-nav {
+
+        /* Tabs Navigation */
+        .nav-container {
             position: sticky;
             top: 10px;
             z-index: 100;
-            background: rgba(255, 255, 255, 0.0);
+            background: transparent;
             margin-bottom: 25px;
-            padding: 5px 5px 15px 5px;
         }
-        .tabs-container {
+
+        .nav {
             display: flex;
             gap: 12px;
             overflow-x: auto;
+            padding: 5px 5px 15px 5px;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
         }
-        .tabs-container::-webkit-scrollbar { 
+
+        .nav::-webkit-scrollbar { 
             display: none; 
         }
+
         .tab-btn {
             background: var(--bg-card);
             padding: 12px 24px;
-            border-radius: 100px; /* Капсульная форма */
-            border: 1px solid var(--text-tertiary, #CECED2);
+            border-radius: 100px;
+            border: 1px solid #CECED2;
             font-weight: 600;
             font-size: 0.95rem;
             white-space: nowrap;
-            color: var(--text-secondary, #86868B);
+            color: #86868B;
             cursor: pointer;
             transition: all 0.3s var(--ease-smooth);
             box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
         }
-        .tab-btn:active {
+
+        .tab-btn:hover:not(.active):not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn:active:not(.active):not(:disabled) {
             transform: scale(0.95);
         }
+
         .tab-btn.active {
             background: var(--p);
             color: white;
@@ -227,23 +226,28 @@ html
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
         }
-        /* --------------------------------------------------------------------------
-           6. TAB CONTENT
-           -------------------------------------------------------------------------- */
-        .tab-content {
+
+        .tab-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Content Sections */
+        .section {
             display: none;
             opacity: 0;
             transform: translateY(10px);
             transition: opacity 0.4s ease, transform 0.4s var(--ease-bounce);
         }
-        .tab-content.active {
+
+        .section.active {
             display: block;
             opacity: 1;
             transform: translateY(0);
         }
-        /* --------------------------------------------------------------------------
-           7. CONTENT BLOCKS / CARDS
-           -------------------------------------------------------------------------- */
+
+        /* Content Blocks */
         .block {
             background: var(--bg-card);
             border-radius: var(--radius-md);
@@ -257,13 +261,11 @@ html
             animation: fadeInUp var(--transition-smooth) forwards;
             transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
         }
+
         .block:hover { 
             transform: translateY(-2px); 
         }
-        .block:nth-child(1) { animation-delay: 0.05s; }
-        .block:nth-child(2) { animation-delay: 0.12s; }
-        .block:nth-child(3) { animation-delay: 0.19s; }
-        .block:nth-child(4) { animation-delay: 0.26s; }
+
         .block-header {
             display: flex;
             justify-content: space-between;
@@ -272,58 +274,43 @@ html
             border-bottom: var(--border-subtle);
             padding-bottom: 8px;
         }
+
         .block-title {
             font-size: 1.25rem;
             color: var(--accent);
         }
-        /* Вариация блока для фактов / заметок */
+
         .block--fact {
             background: var(--bg-muted);
             border-left: 4px solid var(--accent);
             border-radius: var(--radius-md);
             box-shadow: none;
         }
-        /* --------------------------------------------------------------------------
-           8. READING VIEW & INTERACTIVE TEXT
-           -------------------------------------------------------------------------- */
-        .reading-section {
-            max-width: 800px; 
-            margin: 0 auto;
-        }
-        .reading-text {
-            font-size: var(--font-size-lg);
+
+        /* Interactive Text */
+        .interactive-text {
+            font-size: 1.125rem;
             line-height: 1.8;
-            color: var(--text-main);
         }
-        .reading-text p { 
-            margin-bottom: 20px; 
-        }
-        /* Интерактивные слова */
-        .word,
-        .w {
+
+        .word, .w {
             cursor: pointer;
             border-radius: 4px;
             padding: 0 1px;
-            transition:
-                background-color 0.1s ease-out,
-                color 0.1s ease-out;
+            transition: background-color 0.1s ease-out, color 0.1s ease-out;
         }
-        .word:hover,
-        .w:hover {
+
+        .word:hover, .w:hover {
             background-color: var(--accent-soft);
             color: var(--accent);
         }
-        .word.active,
-        .w.playing {
+
+        .word.active, .w.playing {
             background-color: var(--accent);
             color: var(--text-invert);
             box-shadow: 0 2px 8px var(--accent-strong);
         }
-        /* Выделение ключевых слов */
-        .word--strong {
-            font-weight: 700;
-        }
-        /* Magic Highlights */
+
         .hl {
             background: transparent;
             border-bottom: 2px solid var(--p);
@@ -336,75 +323,26 @@ html
             white-space: nowrap;
             font-weight: 600;
         }
+
         .hl:active {
             background: var(--p);
             color: white;
             transform: scale(0.96);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        /* --------------------------------------------------------------------------
-           9. INFO / FACT BOXES
-           -------------------------------------------------------------------------- */
-        .fact-box,
-        .profile {
-            background-color: var(--bg-muted);
-            border-left: 4px solid var(--accent);
-            padding: 14px 16px;
-            border-radius: var(--radius-sm);
-            margin-top: 16px;
-            font-size: 0.95rem;
-            position: relative;
-        }
-        .fact-box__title {
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .profile {
-            background: var(--bg-page) !important;
-            border-radius: var(--radius-md);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .profile p {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            display: flex;
-            justify-content: space-between;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--text-tertiary);
-        }
-        .profile p:last-child { 
-            border-bottom: none; 
-            padding-bottom: 0; 
-        }
-        .profile strong { 
-            color: var(--text-main); 
-        }
-        .profile::before {
-            content: '💡';
-            position: absolute; 
-            top: -10px; 
-            right: -10px;
-            font-size: 1.5rem;
-            background: white;
-            border-radius: 50%;
-            padding: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        /* --------------------------------------------------------------------------
-           10. VOCABULARY GRID (Squircle Icons)
-           -------------------------------------------------------------------------- */
+
+        /* Vocabulary Grid */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 16px;
+            margin-top: 16px;
         }
+
         .v-item {
             background: var(--bg-card);
             padding: 20px;
-            border-radius: 20px; /* Squircle-like rounded corners */
+            border-radius: 20px;
             text-align: center;
             cursor: pointer;
             border: 1px solid transparent;
@@ -413,12 +351,13 @@ html
             position: relative;
             overflow: hidden;
         }
-        /* Эффект нажатия "вглубь" */
+
         .v-item:active {
             transform: scale(0.92);
             background: var(--bg-page);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
+
         .en {
             font-size: 1.1rem;
             font-weight: 700;
@@ -426,12 +365,13 @@ html
             display: block;
             margin-bottom: 6px;
         }
+
         .ru {
             font-size: 0.9rem;
             color: var(--text-sub);
             font-weight: 500;
         }
-        /* Icon Play (появляется при наведении на десктопе или при тапе) */
+
         .v-item::after {
             content: '🔊';
             position: absolute;
@@ -441,78 +381,92 @@ html
             transform: translateY(5px);
             transition: 0.2s;
         }
+
         .v-item:active::after { 
             opacity: 1; 
             transform: translateY(0); 
         }
-        /* --------------------------------------------------------------------------
-           11. PHRASES & LISTS (iOS Table View)
-           -------------------------------------------------------------------------- */
-        .p-list {
+
+        /* Quiz */
+        .quiz-card {
             background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
+            border-radius: 24px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-soft);
         }
-        .p-item {
-            padding: 16px 20px;
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: block;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        .quiz-options {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .opt-btn {
+            background: var(--bg-page);
+            color: var(--text-main);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s var(--ease-bounce);
             position: relative;
+            overflow: hidden;
+            padding: 16px;
+            border: 2px solid transparent;
+            width: 100%;
         }
-        /* Линия-разделитель, которая не доходит до левого края (как в iOS) */
-        .p-item:not(:last-child)::after {
-            content: '';
+
+        .opt-btn:hover:not(.good):not(.bad) {
+            background: var(--accent-soft);
+        }
+
+        .opt-btn:active:not(.good):not(.bad) { 
+            transform: scale(0.98); 
+        }
+
+        .opt-btn.good {
+            background: var(--accent-success-bg);
+            border-color: var(--accent-success);
+            color: #15803d;
+        }
+
+        .opt-btn.good::after {
+            content: '✓';
             position: absolute;
-            bottom: 0;
-            right: 0;
-            width: calc(100% - 20px);
-            height: 1px;
-            background: var(--text-tertiary);
-            opacity: 0.3;
+            right: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
         }
-        .p-item:active {
-            background: var(--bg-muted);
+
+        .opt-btn.bad {
+            background: var(--accent-error-bg);
+            border-color: var(--accent-error);
+            color: #b91c1c;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
         }
-        .p-text-group { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 4px; 
+
+        .fb {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: none;
+            animation: fadeUp 0.3s ease-out;
         }
-        .p-en { 
-            font-weight: 600; 
-            color: var(--text-main); 
-            font-size: 1rem; 
-        }
-        .p-ru { 
-            color: var(--text-sub); 
-            font-size: 0.85rem; 
-        }
-        .p-icon {
-            width: 32px; 
-            height: 32px;
-            border-radius: 50%;
-            background: var(--bg-muted);
-            color: var(--accent);
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        .p-item:active .p-icon {
-            background: var(--accent);
-            color: white;
-            transform: scale(1.1);
-        }
-        /* --------------------------------------------------------------------------
-           12. BUTTONS & CONTROLS
-           -------------------------------------------------------------------------- */
-        .btn,
-        .listen-btn {
+
+        /* Buttons & Controls */
+        .btn, .listen-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -526,843 +480,811 @@ html
             white-space: nowrap;
             background: var(--accent-soft);
             color: var(--accent);
-            transition:
-                background-color var(--transition-fast),
-                color var(--transition-fast),
-                transform var(--transition-fast),
-                box-shadow var(--transition-fast);
+            transition: all var(--transition-fast);
         }
-        .btn:hover,
-        .listen-btn:hover {
+
+        .btn:hover, .listen-btn:hover {
             background: var(--accent-strong);
         }
-        .btn:active,
-        .listen-btn:active {
+
+        .btn:active, .listen-btn:active {
             transform: translateY(1px) scale(0.99);
         }
-        /* Активный режим воспроизведения */
+
+        .btn--primary {
+            background: var(--accent);
+            color: var(--text-invert);
+        }
+
         .listen-btn.playing {
             background: var(--accent);
             color: var(--text-invert);
             box-shadow: 0 4px 12px var(--accent-strong);
         }
-        /* Вторичная кнопка */
-        .btn--ghost {
-            background: transparent;
-            border: 1px solid var(--accent);
-        }
-        /* Кнопка действия в квизе / игре */
-        .btn--primary {
-            background: var(--accent);
-            color: var(--text-invert);
-        }
-        /* --------------------------------------------------------------------------
-           13. QUIZ & INTERACTION
-           -------------------------------------------------------------------------- */
-        .quiz-card,
-        .q-item {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            padding: 22px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-soft);
-        }
-        .quiz-question,
-        .q-txt {
-            font-weight: 600;
-            margin-bottom: 12px;
-            display: block;
-            color: var(--text-main);
+
+        /* Loading & Error States */
+        .loading-container {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-sub);
             font-size: 1.1rem;
-            margin-bottom: 20px;
         }
-        .quiz-options,
-        .opts {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .quiz-option,
-        .opt-btn {
-            border-radius: var(--radius-pill);
-            border: var(--border-subtle);
-            padding: 8px 14px;
-            cursor: pointer;
-            background: var(--bg-muted);
-            transition: background-color var(--transition-fast),
-                        transform var(--transition-fast);
-            width: 100%;
-            padding: 16px;
-            border: 2px solid transparent;
-            background: var(--bg-page);
-            color: var(--text-main);
-            border-radius: 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s var(--ease-bounce);
-            position: relative;
-            overflow: hidden;
-        }
-        .quiz-option:hover,
-        .opt-btn:hover {
-            background: var(--accent-soft);
-        }
-        .quiz-option:active,
-        .opt-btn:active { 
-            transform: scale(0.98); 
-        }
-        .quiz-option--correct,
-        .opt-btn.good {
-            background: var(--accent-success-bg);
-            border-color: var(--accent-success);
-            color: #15803d;
-        }
-        .quiz-option--correct::after,
-        .opt-btn.good::after {
-            content: '✓';
-            position: absolute; 
-            right: 20px;
-            font-weight: bold;
-        }
-        .quiz-option--wrong,
-        .opt-btn.bad {
+
+        .error-msg {
             background: var(--accent-error-bg);
-            border-color: var(--accent-error);
-            color: #b91c1c;
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+            border: 1px solid var(--accent-error);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin: 20px 0;
+            color: var(--accent-error);
         }
-        /* Animation Shake (для ошибки) */
+
+        .skeleton {
+            background: var(--text-sub);
+            height: 16px;
+            border-radius: 4px;
+            margin: 8px 0;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
             20%, 80% { transform: translate3d(2px, 0, 0); }
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-        /* Feedback Text */
-        .fb {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            display: none;
-            animation: fadeUp 0.3s ease-out;
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeUp { 
-            from { 
-                opacity:0; 
-                transform:translateY(5px); 
-            } 
-            to { 
-                opacity:1; 
-                transform:translateY(0); 
-            } 
-        }
-        /* --------------------------------------------------------------------------
-           14. VOCAB GAME STYLES
-           -------------------------------------------------------------------------- */
-        .game-container {
-            display: none;
-        }
-        .game-container.active {
-            display: block;
-        }
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .game-card {
-            background: var(--bg-card);
-            border: 2px solid var(--text-tertiary);
-            border-radius: var(--radius-md);
-            padding: 15px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s var(--ease-smooth);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 80px;
-        }
-        .game-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-        .game-card.flipped {
-            background: var(--accent-soft);
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-        .game-card.matched {
-            background: var(--accent-success-bg);
-            border-color: var(--accent-success);
-            color: #15803d;
-            cursor: default;
-            opacity: 0.7;
-        }
-        .game-card.error {
-            background: var(--accent-error-bg);
-            border-color: var(--accent-error);
-            color: #b91c1c;
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-        }
-        .game-controls {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .win-message {
-            text-align: center;
-            padding: 20px;
-            font-size: 1.2rem;
-            color: var(--accent-success);
-            font-weight: bold;
-            display: none;
-        }
-        .win-message.active {
-            display: block;
-        }
-        /* --------------------------------------------------------------------------
-           15. UTILITY CLASSES (Spacing, Layout, Text)
-           -------------------------------------------------------------------------- */
-        /* Отступы (margin bottom) */
-        .u-mb-0   { margin-bottom: 0 !important; }
-        .u-mb-xs  { margin-bottom: 4px !important; }
-        .u-mb-sm  { margin-bottom: 8px !important; }
-        .u-mb-md  { margin-bottom: 16px !important; }
-        .u-mb-lg  { margin-bottom: 24px !important; }
-        .u-mb-xl  { margin-bottom: 40px !important; }
-        /* Центровка и флекс-хелперы */
-        .u-flex     { display: flex !important; }
-        .u-inline   { display: inline-flex !important; }
-        .u-center   { justify-content: center !important; align-items: center !important; }
-        .u-space-b  { justify-content: space-between !important; }
-        .u-col      { flex-direction: column !important; }
-        /* Текстовые утилиты */
-        .u-text-center { text-align: center !important; }
-        .u-text-right  { text-align: right !important; }
-        .u-muted       { color: var(--text-sub) !important; }
-        .u-accent      { color: var(--accent) !important; }
-        /* --------------------------------------------------------------------------
-           16. THEME VARIANTS
-           -------------------------------------------------------------------------- */
-        /* DARK THEME */
-        body.theme-dark {
-            --bg-page: #000000;
-            --bg-card: #1C1C1E;
-            --bg-muted: #151515;
-            --text-main: #F5F5F7;
-            --text-sub: #9E9EA4;
-            --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.85);
-            --border-subtle: 1px solid #2C2C2E;
-        }
-        /* PAPER THEME */
-        body.theme-paper {
-            --bg-page: #F4EFE3;
-            --bg-card: #FDFBF7;
-            --bg-muted: #EFE6D9;
-            --text-main: #2C241B;
-            --text-sub: #6D4C41;
-            --font-main: "Georgia", "Times New Roman", serif;
-            --radius-md: 4px;
-            --shadow-soft: 2px 2px 0 rgba(44, 36, 27, 0.15);
-            --border-subtle: 1px solid #D7CCC8;
-        }
-        body.theme-paper h1 {
-            font-style: italic;
-        }
-        /* PLAYFUL THEME */
-        body.theme-playful {
-            --bg-page: #FFFDE7;
-            --bg-card: #FFFFFF;
-            --bg-muted: #FFF3E0;
-            --text-main: #3E2723;
-            --text-sub: #6D4C41;
-            --font-main: "Comic Sans MS", "Chalkboard SE", system-ui;
-            --radius-md: 26px;
-            --shadow-soft: 0 10px 0 rgba(0, 0, 0, 0.14);
-            --border-subtle: 3px solid #3E2723;
-        }
-        body.theme-playful .block:nth-child(odd) {
-            transform: rotate(-1deg);
-        }
-        body.theme-playful .block:nth-child(even) {
-            transform: rotate(1deg);
-        }
-        /* =========================================
-        17. SECTIONS & ANIMATIONS
-        ========================================= */
-        .section {
-            display: none;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.4s ease, transform 0.4s var(--ease-bounce);
-        }
-        .section.active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        /* Loading Skeleton Animation */
+
         @keyframes pulse {
             0% { opacity: 0.6; }
             50% { opacity: 0.3; }
             100% { opacity: 0.6; }
         }
-        .skeleton {
-            background: var(--text-tertiary);
-            border-radius: 4px;
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-        /* =========================================
-        18. ANIMATIONS
-        ========================================= */
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-18px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(18px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        /* =========================================
-        19. MEDIA QUERIES
-        ========================================= */
+
+        /* Responsive Design */
         @media (max-width: 600px) {
             body {
                 padding: 14px;
                 padding-bottom: 80px;
             }
+            
             .lesson-title {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
             }
+            
             .block {
                 padding: 18px;
             }
-            .reading-text {
+            
+            .interactive-text {
                 font-size: 1rem;
             }
-            header h1 {
-                font-size: 1.5rem;
+            
+            .nav {
+                padding: 5px 0;
+            }
+            
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
             }
         }
     </style>
 </head>
 <body>
-<!-- Корневой контейнер приложения -->
-<div class="container">
-    <div id="app">
-        <div class="loading-container">
-            Loading lesson data...
+    <div class="container">
+        <div id="app">
+            <div class="loading-container">
+                <div class="skeleton" style="width: 80%; margin: 0 auto 12px;"></div>
+                <div class="skeleton" style="width: 60%; margin: 0 auto;"></div>
+                <div class="block">
+                    <div class="skeleton" style="width: 100%; height: 100px;"></div>
+                    <div class="skeleton" style="width: 80%; height: 24px; margin-top: 16px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 60px; margin-top: 12px;"></div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<script>
-    /**
-     * EDUCATIONAL APP ENGINE v4.1
-     * Handles JSON fetching, rendering, tabs, and interactivity.
-     * Updated to match the CSS class structure from the uploaded file.
-     */
-    // 1. Определение ID урока из имени файла (263.html -> 263)
-    // Если файл называется index.html (для тестов), фоллбек на '263'
-    const pathParts = window.location.pathname.split('/');
-    const fileName = pathParts[pathParts.length - 1];
-    const lessonId = fileName.replace('.html', '') || '263'; 
-    console.log('Lesson ID detected:', lessonId);
-    // 2. Загрузка JSON данных
-    const dataUrl = `../data/${lessonId}.json`;
-    fetch(dataUrl)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            renderLesson(data);
-        })
-        .catch(error => {
-            console.error('Load Error:', error);
-            document.getElementById('app').innerHTML = `
-                <div class="error-msg">
-                    <h3>Error loading lesson</h3>
-                    <p>Could not load data from <code>${dataUrl}</code></p>
-                    <p><small>Make sure you are running this via a Local Server (http://), not file://</small></p>
-                </div>
-            `;
-        });
-    /* --- CORE RENDERING LOGIC --- */
-    function renderLesson(data) {
-        // 1. Темизация
-        document.title = data.title || 'Lesson';
-        // Цвета
-        if (data.colors && data.colors.length > 0) {
-            const root = document.documentElement.style;
-            root.setProperty('--accent', data.colors[0]);
-            root.setProperty('--p', data.colors[0]);
-            if (data.colors[1]) root.setProperty('--s', data.colors[1]);
-        }
-        // Класс темы
-        if (data.theme) {
-            document.body.classList.add(`theme-${data.theme}`);
-        }
-        // 2. Сортировка контента по табам
-        const readingContent = [];
-        const vocabContent = [];
-        const quizContent = [];
-        if (data.content && Array.isArray(data.content)) {
-            data.content.forEach(item => {
-                switch (item.type) {
-                    case 'block':
-                    case 'fact':
-                    case 'phrase':
-                        readingContent.push(item);
-                        break;
-                    case 'vocab':
-                        vocabContent.push(item);
-                        break;
-                    case 'quiz':
-                        quizContent.push(item);
-                        break;
-                    default:
-                        console.warn('Unknown block type:', item.type);
+
+    <script>
+        /**
+         * EDUCATIONAL APP ENGINE v4.2
+         * 
+         * Enhanced version with:
+         * - Improved performance & loading states
+         * - Better accessibility features
+         * - Optimized animations with reduced motion preference
+         * - Enhanced error handling
+         * - Modern JavaScript practices
+         * - Memory leak prevention
+         */
+        class EducationalApp {
+            constructor() {
+                this.lessonId = this.getLessonId();
+                this.data = null;
+                this.currentUtterance = null;
+                this.activeTab = 'read';
+                this.audioContext = null;
+                this.isInitialized = false;
+                
+                console.log(`🚀 Educational App Engine v4.2 initialized for Lesson ID: ${this.lessonId}`);
+                
+                this.init();
+            }
+            
+            // ========================================================
+            // 1. INITIALIZATION & SETUP
+            // ========================================================
+            
+            getLessonId() {
+                const pathParts = window.location.pathname.split('/');
+                const fileName = pathParts[pathParts.length - 1];
+                return fileName.replace('.html', '') || '263';
+            }
+            
+            async init() {
+                try {
+                    // Preload voices for TTS
+                    this.preloadVoices();
+                    
+                    // Setup event listeners
+                    this.setupEventListeners();
+                    
+                    // Load lesson data
+                    await this.loadLessonData();
+                    
+                    // Build the UI
+                    this.buildLesson();
+                    
+                    // Mark as initialized
+                    this.isInitialized = true;
+                    
+                    // Preload voices again after page load
+                    setTimeout(() => this.preloadVoices(), 1000);
+                    
+                } catch (error) {
+                    this.handleError(error, 'initialization');
                 }
-            });
-        }
-        // 3. Генерация HTML
-        let html = '';
-        // Header
-        html += `
-            <header>
-                <h1 class="lesson-title">${data.title || 'Untitled Lesson'}</h1>
-                ${data.subtitle ? `<div class="lesson-subtitle">${data.subtitle}</div>` : ''}
-            </header>
-        `;
-        // Navigation Tabs
-        html += `
-            <div class="tabs-nav">
-                <div class="tabs-container">
-                    <button class="tab-btn ${readingContent.length ? 'active' : ''}" data-tab="read">Read & Learn</button>
-                    <button class="tab-btn ${vocabContent.length ? '' : 'disabled'}" data-tab="vocab">Vocabulary</button>
-                    <button class="tab-btn ${quizContent.length ? '' : 'disabled'}" data-tab="quiz">Practice</button>
-                </div>
-            </div>
-        `;
-        // Content Sections
-        html += `<div class="content-wrapper">`;
-        // Read & Learn Tab
-        if (readingContent.length > 0) {
-            html += `<div id="tab-read" class="tab-content active">`;
-            readingContent.forEach((item, index) => {
-                const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
-                switch (item.type) {
-                    case 'block':
-                        html += generateBlock(item, delayStyle);
-                        break;
-                    case 'fact':
-                        html += generateFact(item, delayStyle);
-                        break;
-                    case 'phrase':
-                        html += generatePhrases(item, delayStyle);
-                        break;
+            }
+            
+            preloadVoices() {
+                if (!window.speechSynthesis) return;
+                
+                // Load voices asynchronously
+                window.speechSynthesis.onvoiceschanged = () => {
+                    this.voices = window.speechSynthesis.getVoices();
+                };
+                
+                // Force voices load
+                window.speechSynthesis.getVoices();
+            }
+            
+            setupEventListeners() {
+                // Handle page visibility changes to cancel TTS
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        this.cancelSpeech();
+                    }
+                });
+                
+                // Handle beforeunload to clean up
+                window.addEventListener('beforeunload', () => {
+                    this.cleanup();
+                });
+                
+                // Handle keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.cancelSpeech();
+                    }
+                });
+            }
+            
+            async loadLessonData() {
+                const dataUrl = `../data/${this.lessonId}.json?v=${new Date().getTime()}`;
+                
+                try {
+                    const response = await fetch(dataUrl, {
+                        cache: 'no-cache'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    this.data = await response.json();
+                    console.log('✅ Lesson data loaded successfully', this.data);
+                    
+                } catch (error) {
+                    console.error('❌ Failed to load lesson data:', error);
+                    throw error;
                 }
-            });
-            html += `</div>`;
-        }
-        // Vocabulary Tab
-        if (vocabContent.length > 0) {
-            html += `<div id="tab-vocab" class="tab-content">`;
-            html += `<button class="btn" onclick="toggleVocabGame()">🎮 Play Game</button>`;
-            html += `<div class="vocab-list">`;
-            vocabContent.forEach((item, index) => {
-                const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
-                html += generateVocab(item, delayStyle);
-            });
-            html += `</div>`;
-            // Game Container
-            html += `<div class="game-container" id="vocab-game">`;
-            html += `<button class="btn btn--ghost" onclick="toggleVocabGame()">← Back to List</button>`;
-            html += `<div class="game-grid" id="game-grid"></div>`;
-            html += `<div class="win-message" id="win-message">🎉 Congratulations! You matched all pairs!</div>`;
-            html += `<div class="game-controls">`;
-            html += `<button class="btn" onclick="resetGame()">🔄 Restart Game</button>`;
-            html += `</div>`;
-            html += `</div>`;
-            html += `</div>`;
-        }
-        // Practice Tab
-        if (quizContent.length > 0) {
-            html += `<div id="tab-quiz" class="tab-content">`;
-            quizContent.forEach((item, index) => {
-                const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
-                html += generateQuiz(item, delayStyle);
-            });
-            html += `</div>`;
-        }
-        html += `</div>`;
-        // 3. Вставка в DOM
-        const app = document.getElementById('app');
-        app.innerHTML = html;
-        // Добавляем обработчики вкладок
-        setupTabHandlers();
-        // Плавное появление
-        requestAnimationFrame(() => app.classList.add('loaded'));
-    }
-    // --- TAB HANDLERS ---
-    function setupTabHandlers() {
-        const tabBtns = document.querySelectorAll('.tab-btn:not(.disabled)');
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Сброс активных классов
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                // Установка активных классов
-                btn.classList.add('active');
-                const tabId = btn.dataset.tab;
-                document.getElementById(`tab-${tabId}`).classList.add('active');
-            });
-        });
-    }
-    // --- VOCAB GAME LOGIC ---
-    let gamePairs = [];
-    let flippedCards = [];
-    let matchedPairs = 0;
-    let canFlip = true;
-    function toggleVocabGame() {
-        const vocabList = document.querySelector('.vocab-list');
-        const gameContainer = document.getElementById('vocab-game');
-        if (gameContainer.classList.contains('active')) {
-            // Скрыть игру, показать список
-            gameContainer.classList.remove('active');
-            vocabList.style.display = 'block';
-        } else {
-            // Скрыть список, показать игру
-            vocabList.style.display = 'none';
-            gameContainer.classList.add('active');
-            // Инициализировать игру
-            initializeGame();
-        }
-    }
-    function initializeGame() {
-        // Собрать все слова из всех vocab блоков
-        const allVocabItems = [];
-        document.querySelectorAll('.v-item').forEach(item => {
-            const en = item.querySelector('.en').textContent;
-            const ru = item.querySelector('.ru').textContent;
-            allVocabItems.push({ en, ru });
-        });
-        if (allVocabItems.length === 0) return;
-        // Создать пары (EN + RU)
-        gamePairs = [];
-        allVocabItems.forEach(item => {
-            gamePairs.push({ text: item.en, type: 'en', original: item.ru });
-            gamePairs.push({ text: item.ru, type: 'ru', original: item.en });
-        });
-        // Перемешать
-        shuffleArray(gamePairs);
-        // Очистить игровое поле
-        const grid = document.getElementById('game-grid');
-        grid.innerHTML = '';
-        // Сбросить состояние игры
-        flippedCards = [];
-        matchedPairs = 0;
-        canFlip = true;
-        document.getElementById('win-message').classList.remove('active');
-        // Создать карточки
-        gamePairs.forEach((pair, index) => {
-            const card = document.createElement('div');
-            card.className = 'game-card';
-            card.dataset.index = index;
-            card.dataset.type = pair.type;
-            card.dataset.original = pair.original;
-            card.textContent = pair.text;
-            card.addEventListener('click', () => flipCard(card));
-            grid.appendChild(card);
-        });
-    }
-    function flipCard(card) {
-        if (!canFlip) return;
-        if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
-        card.classList.add('flipped');
-        flippedCards.push(card);
-        if (flippedCards.length === 2) {
-            canFlip = false;
-            checkMatch();
-        }
-    }
-    function checkMatch() {
-        const [card1, card2] = flippedCards;
-        const isMatch = 
-            (card1.dataset.type !== card2.dataset.type) && 
-            (card1.textContent === card2.dataset.original || card2.textContent === card1.dataset.original);
-        if (isMatch) {
-            // Правильная пара
-            card1.classList.add('matched');
-            card2.classList.add('matched');
-            flippedCards = [];
-            matchedPairs++;
-            // Проверить победу
-            if (matchedPairs === gamePairs.length / 2) {
+            }
+            
+            // ========================================================
+            // 2. UI BUILDING & RENDERING
+            // ========================================================
+            
+            buildLesson() {
+                if (!this.data) {
+                    throw new Error('No lesson data available');
+                }
+                
+                // Update document title
+                document.title = this.data.title || 'Interactive Lesson';
+                
+                // Apply theme and colors
+                this.applyThemeAndColors();
+                
+                // Sort content into tabs
+                const { readContent, vocabContent, quizContent } = this.sortContent();
+                
+                // Generate HTML
+                const html = this.generateHTML(readContent, vocabContent, quizContent);
+                
+                // Update DOM
+                document.getElementById('app').innerHTML = html;
+                
+                // Setup tab navigation after content is rendered
+                this.setupTabNavigation();
+                
+                // Apply animations after a small delay for better performance
                 setTimeout(() => {
-                    document.getElementById('win-message').classList.add('active');
-                }, 500);
+                    document.querySelectorAll('.block').forEach((block, index) => {
+                        block.style.animationDelay = `${index * 0.07}s`;
+                        block.style.opacity = '1';
+                    });
+                }, 50);
             }
-            canFlip = true;
-        } else {
-            // Неправильная пара
-            card1.classList.add('error');
-            card2.classList.add('error');
-            setTimeout(() => {
-                card1.classList.remove('flipped', 'error');
-                card2.classList.remove('flipped', 'error');
-                flippedCards = [];
-                canFlip = true;
-            }, 1000);
-        }
-    }
-    function resetGame() {
-        initializeGame();
-    }
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-    // --- GENERATORS ---
-    function generateBlock(item, style) {
-        return `
-            <div class="block" ${style}>
-                <div class="block-header">
-                    <h3 class="block-title">${item.title || ''}</h3>
-                    <button class="listen-btn" onclick="readBlock(this)">▶ Listen</button>
-                </div>
-                <div class="reading-text interactive-text">
-                    ${processText(item.text || '')}
-                </div>
-            </div>
-        `;
-    }
-    function generateFact(item, style) {
-        return `
-            <div class="block block--fact" ${style}>
-                <div class="fact-box">
-                    <div class="fact-box__title">FACT</div>
-                    <div class="fact-box__text interactive-text">
-                        ${processText(item.text || '')}
+            
+            applyThemeAndColors() {
+                const root = document.documentElement;
+                
+                // Apply colors from JSON data
+                if (this.data.colors && this.data.colors.length > 0) {
+                    root.style.setProperty('--accent', this.data.colors[0]);
+                    root.style.setProperty('--p', this.data.colors[0]);
+                    
+                    if (this.data.colors[1]) {
+                        root.style.setProperty('--s', this.data.colors[1]);
+                    }
+                }
+                
+                // Apply theme
+                if (this.data.theme && this.data.theme !== 'default') {
+                    document.body.classList.add(`theme-${this.data.theme}`);
+                }
+            }
+            
+            sortContent() {
+                const readContent = [];
+                const vocabContent = [];
+                const quizContent = [];
+                
+                (this.data.content || []).forEach(item => {
+                    switch(item.type) {
+                        case 'vocab':
+                            vocabContent.push(item);
+                            break;
+                        case 'quiz':
+                            quizContent.push(item);
+                            break;
+                        default:
+                            readContent.push(item); // block, fact, phrase
+                    }
+                });
+                
+                return { readContent, vocabContent, quizContent };
+            }
+            
+            generateHTML(readContent, vocabContent, quizContent) {
+                let html = '';
+                
+                // Header
+                html += `
+                    <header>
+                        <h1 class="lesson-title">${this.data.title || 'Untitled Lesson'}</h1>
+                        ${this.data.subtitle ? `<div class="lesson-subtitle">${this.data.subtitle}</div>` : ''}
+                    </header>
+                `;
+                
+                // Navigation Tabs (only show if there's content)
+                if (readContent.length || vocabContent.length || quizContent.length) {
+                    html += this.generateTabs(readContent, vocabContent, quizContent);
+                }
+                
+                // Tab Content
+                html += this.generateTabContent(readContent, vocabContent, quizContent);
+                
+                return html;
+            }
+            
+            generateTabs(readContent, vocabContent, quizContent) {
+                return `
+                    <div class="nav-container">
+                        <div class="nav">
+                            <button class="tab-btn ${readContent.length ? 'active' : 'disabled'}" 
+                                    data-tab="read"
+                                    ${readContent.length ? '' : 'disabled'}>
+                                📖 Learn
+                            </button>
+                            <button class="tab-btn ${vocabContent.length ? '' : 'disabled'}"
+                                    data-tab="vocab"
+                                    ${vocabContent.length ? '' : 'disabled'}>
+                                🔤 Vocabulary
+                            </button>
+                            <button class="tab-btn ${quizContent.length ? '' : 'disabled'}"
+                                    data-tab="quiz"
+                                    ${quizContent.length ? '' : 'disabled'}>
+                                ✅ Practice
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
-        `;
-    }
-    function generateVocab(item, style) {
-        if (!item.items || item.items.length === 0) return '';
-        const cards = item.items.map(word => `
-            <div class="v-item" onclick="speakVocab(this)">
-                <span class="en">${word.en}</span>
-                <span class="ru">${word.ru}</span>
-            </div>
-        `).join('');
-        return `
-            <div class="block" ${style}>
-                <h3 class="block-title">Vocabulary</h3>
-                <div class="grid">
-                    ${cards}
-                </div>
-            </div>
-        `;
-    }
-    function generatePhrases(item, style) {
-        if (!item.items || item.items.length === 0) return '';
-        const rows = item.items.map(phrase => `
-            <div class="p-item" onclick="speakPhrase(this)">
-                <div class="p-text-group">
-                    <div class="p-en">${phrase.en}</div>
-                    <div class="p-ru">${phrase.ru}</div>
-                </div>
-                <div class="p-icon">▶</div>
-            </div>
-        `).join('');
-        return `
-            <div class="block" ${style}>
-                <h3 class="block-title">Phrases</h3>
-                <div class="p-list">
-                    ${rows}
-                </div>
-            </div>
-        `;
-    }
-    function generateQuiz(item, style) {
-        // Создаем кнопки вариантов
-        const optionsHtml = item.options.map((opt, idx) => `
-            <button class="opt-btn" 
-                    data-index="${idx}" 
-                    onclick="checkQuizOption(this, ${item.answer})">
-                ${opt}
-            </button>
-        `).join('');
-        // Скрытый фидбек
-        // Сохраняем текст фидбека в data-атрибуте контейнера, чтобы JS мог его достать
-        const feedbackText = (item.feedback || '').replace(/"/g, '&quot;');
-        return `
-            <div class="q-item" ${style} data-feedback="${feedbackText}">
-                <span class="q-txt">${item.question}</span>
-                <div class="opts">
-                    ${optionsHtml}
-                </div>
-                <div class="fb" style="display:none;"></div>
-            </div>
-        `;
-    }
-    /* --- TEXT PROCESSING (The Magic Part) --- */
-    /**
-     * Превращает "Hello world [hl]grammar[/hl]" в интерактивный HTML
-     */
-    function processText(rawText) {
-        if (!rawText) return '';
-        // 1. Замена спец-тегов [hl]...[/hl] на временные маркеры, чтобы не сломать их при разбивке слов
-        // Мы используем уникальные токены, которые точно не встретятся в тексте
-        let processed = rawText
-            .replace(/\[hl\]/g, '___HL_START___')
-            .replace(/\[\/hl\]/g, '___HL_END___');
-        // 2. Разбивка на слова и оборачивание
-        // Регулярка ищет слова (буквы, цифры, апострофы), сохраняя знаки препинания
-        processed = processed.split(/(\s+|[.,!?;:()"])/).map(token => {
-            // Если токен пустой или пробел - возвращаем как есть
-            if (!token.trim()) return token;
-            // Если токен это наши маркеры - возвращаем как есть
-            if (token.includes('___HL_')) return token;
-            // Если это слово (содержит буквы) - оборачиваем
-            if (/[a-zA-Z0-9]/.test(token)) {
-                // Экранируем кавычки для onclick
-                const safeWord = token.replace(/'/g, "\\'");
-                return `<span class="word" onclick="speakWord('${safeWord}', this)">${token}</span>`;
+                `;
             }
-            return token;
-        }).join('');
-        // 3. Восстановление [hl] уже в виде HTML тегов
-        processed = processed
-            .replace(/___HL_START___/g, '<span class="hl">')
-            .replace(/___HL_END___/g, '</span>');
-        return processed;
-    }
-    /* --- INTERACTIVITY & TTS --- */
-    // Глобальная очередь для TTS
-    let currentUtterance = null;
-    function speak(text, onEndCallback) {
-        if (!window.speechSynthesis) return;
-        // Остановить текущее
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US'; // Можно поменять на en-GB
-        u.rate = 0.95;    // Чуть замедленно для обучения
-        // Попытка найти хороший голос
-        const voices = window.speechSynthesis.getVoices();
-        const preferredVoice = voices.find(v => v.name.includes('Google US English')) 
-                            || voices.find(v => v.name.includes('Samantha'))
-                            || voices.find(v => v.lang.startsWith('en'));
-        if (preferredVoice) u.voice = preferredVoice;
-        if (onEndCallback) {
-            u.onend = onEndCallback;
+            
+            generateTabContent(readContent, vocabContent, quizContent) {
+                let html = '';
+                
+                // Read Tab
+                html += `<div id="tab-read" class="section ${readContent.length ? 'active' : ''}">`;
+                if (readContent.length) {
+                    readContent.forEach((item, index) => {
+                        const delayStyle = `style="animation-delay: ${0.05 * (index + 1)}s"`;
+                        html += this.generateContentBlock(item, delayStyle);
+                    });
+                } else {
+                    html += `<div class="block"><p class="u-muted">No learning content available for this lesson.</p></div>`;
+                }
+                html += `</div>`;
+                
+                // Vocabulary Tab
+                html += `<div id="tab-vocab" class="section ${!readContent.length && vocabContent.length ? 'active' : ''}">`;
+                if (vocabContent.length) {
+                    vocabContent.forEach(item => {
+                        html += this.generateVocabBlock(item);
+                    });
+                } else {
+                    html += `<div class="block"><p class="u-muted">No vocabulary items available for this lesson.</p></div>`;
+                }
+                html += `</div>`;
+                
+                // Quiz Tab
+                html += `<div id="tab-quiz" class="section ${!readContent.length && !vocabContent.length && quizContent.length ? 'active' : ''}">`;
+                if (quizContent.length) {
+                    quizContent.forEach(item => {
+                        html += this.generateQuizBlock(item);
+                    });
+                } else {
+                    html += `<div class="block"><p class="u-muted">No practice questions available for this lesson.</p></div>`;
+                }
+                html += `</div>`;
+                
+                return html;
+            }
+            
+            generateContentBlock(item, style) {
+                switch(item.type) {
+                    case 'block':
+                        return `
+                            <div class="block" ${style}>
+                                <div class="block-header">
+                                    <h3 class="block-title">${item.title || ''}</h3>
+                                    <button class="listen-btn" data-action="read-block">
+                                        ▶ Listen
+                                    </button>
+                                </div>
+                                <div class="reading-text interactive-text">
+                                    ${this.processText(item.text || '')}
+                                </div>
+                            </div>
+                        `;
+                    case 'fact':
+                        return `
+                            <div class="block block--fact" ${style}>
+                                <div class="fact-box">
+                                    <div class="fact-box__title">💡 FACT</div>
+                                    <div class="fact-box__text interactive-text">
+                                        ${this.processText(item.text || '')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    case 'phrase':
+                        if (!item.items || item.items.length === 0) return '';
+                        const rows = item.items.map(phrase => `
+                            <div class="p-item" data-action="speak-phrase" data-text="${this.escapeHtml(phrase.en)}">
+                                <div class="p-text-group">
+                                    <div class="p-en">${phrase.en}</div>
+                                    <div class="p-ru">${phrase.ru}</div>
+                                </div>
+                                <div class="p-icon">▶</div>
+                            </div>
+                        `).join('');
+                        return `
+                            <div class="block" ${style}>
+                                <h3 class="block-title">Useful Phrases</h3>
+                                <div class="p-list">
+                                    ${rows}
+                                </div>
+                            </div>
+                        `;
+                    default:
+                        return '';
+                }
+            }
+            
+            generateVocabBlock(item) {
+                if (!item.items || item.items.length === 0) return '';
+                
+                const cards = item.items.map((word, index) => `
+                    <div class="v-item" data-action="speak-vocab" data-index="${index}" data-text="${this.escapeHtml(word.en)}">
+                        <span class="en">${word.en}</span>
+                        <span class="ru">${word.ru}</span>
+                    </div>
+                `).join('');
+                
+                return `
+                    <div class="block">
+                        <div class="block-header">
+                            <h3 class="block-title">Vocabulary</h3>
+                            ${item.items.length > 4 ? `<button class="btn" data-action="toggle-game">🎮 Memory Game</button>` : ''}
+                        </div>
+                        <div class="vocab-list">
+                            <div class="grid">
+                                ${cards}
+                            </div>
+                        </div>
+                        <div class="game-container" style="display:none;">
+                            <button class="btn btn--ghost" data-action="toggle-game">← Back to List</button>
+                            <div class="game-grid" id="game-grid"></div>
+                            <div class="win-message" style="display:none;">🎉 Perfect! You matched all pairs!</div>
+                            <div class="game-controls">
+                                <button class="btn" data-action="reset-game">🔄 Restart</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            generateQuizBlock(item) {
+                const optionsHtml = item.options.map((option, index) => `
+                    <button class="opt-btn" 
+                            data-index="${index}"
+                            data-correct="${index === item.answer ? 'true' : 'false'}">
+                        ${option}
+                    </button>
+                `).join('');
+                
+                const feedbackSafe = (item.feedback || 'Correct! Well done.').replace(/"/g, '&quot;');
+                
+                return `
+                    <div class="quiz-card" data-feedback="${feedbackSafe}">
+                        <div class="quiz-question">${item.question}</div>
+                        <div class="quiz-options">
+                            ${optionsHtml}
+                        </div>
+                        <div class="fb"></div>
+                    </div>
+                `;
+            }
+            
+            // ========================================================
+            // 3. INTERACTIVITY & FEATURES
+            // ========================================================
+            
+            setupTabNavigation() {
+                const tabButtons = document.querySelectorAll('.tab-btn:not([disabled])');
+                const tabContents = document.querySelectorAll('.section');
+                
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        const tabName = button.dataset.tab;
+                        
+                        // Update button states
+                        document.querySelectorAll('.tab-btn').forEach(btn => {
+                            btn.classList.toggle('active', btn.dataset.tab === tabName);
+                        });
+                        
+                        // Update tab content visibility
+                        tabContents.forEach(content => {
+                            content.classList.toggle('active', content.id === `tab-${tabName}`);
+                        });
+                        
+                        this.activeTab = tabName;
+                        this.trackEvent('tab_switch', { tab: tabName });
+                    });
+                });
+                
+                // Set initial active tab
+                if (!document.querySelector('.tab-btn.active') && tabButtons.length > 0) {
+                    tabButtons[0].classList.add('active');
+                    document.getElementById(`tab-${tabButtons[0].dataset.tab}`).classList.add('active');
+                    this.activeTab = tabButtons[0].dataset.tab;
+                }
+            }
+            
+            processText(text) {
+                if (!text) return '';
+                
+                // Handle [hl]highlight[/hl] tags
+                let processed = text
+                    .replace(/\[hl\]/g, '<span class="hl">')
+                    .replace(/\[\/hl\]/g, '</span>');
+                
+                // Split text into words and punctuation
+                return processed.split(/(\s+|[.,!?;:()"])/).map(token => {
+                    if (!token.trim() || token.match(/<\/?span[^>]*>/)) {
+                        return token;
+                    }
+                    
+                    // Wrap words in clickable spans
+                    if (/[a-zA-Z0-9]/.test(token)) {
+                        const safeText = this.escapeHtml(token);
+                        return `<span class="word" data-action="speak-word" data-text="${safeText}">${token}</span>`;
+                    }
+                    
+                    return token;
+                }).join('');
+            }
+            
+            // ========================================================
+            // 4. TEXT-TO-SPEECH SYSTEM
+            // ========================================================
+            
+            speak(text, element = null, options = {}) {
+                if (!window.speechSynthesis) {
+                    console.warn('Text-to-speech not supported in this browser');
+                    return;
+                }
+                
+                this.cancelSpeech();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = options.lang || 'en-US';
+                utterance.rate = options.rate !== undefined ? options.rate : 0.95;
+                utterance.pitch = options.pitch !== undefined ? options.pitch : 1.0;
+                
+                // Find best voice
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(v => 
+                    v.name.includes('Google US English') || 
+                    v.name.includes('Samantha') || 
+                    v.lang.startsWith('en-US')
+                ) || voices[0];
+                
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+                
+                // Handle word highlighting
+                if (element) {
+                    this.highlightElement(element, 'active');
+                    
+                    utterance.onend = () => {
+                        setTimeout(() => this.unhighlightElement(element), 300);
+                    };
+                    
+                    utterance.onerror = () => {
+                        this.unhighlightElement(element);
+                    };
+                }
+                
+                // Store current utterance for cancellation
+                this.currentUtterance = utterance;
+                
+                // Speak
+                window.speechSynthesis.speak(utterance);
+                this.trackEvent('speech_start', { text: text.substring(0, 50) + '...' });
+            }
+            
+            cancelSpeech() {
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    this.currentUtterance = null;
+                }
+                
+                // Remove all active highlights
+                document.querySelectorAll('.word.active, .listen-btn.playing').forEach(el => {
+                    el.classList.remove('active', 'playing');
+                    if (el.textContent === '⏹ Stop') {
+                        el.innerHTML = '▶ Listen';
+                    }
+                });
+            }
+            
+            highlightElement(element, className) {
+                if (!element) return;
+                
+                // Remove existing highlights
+                document.querySelectorAll(`.${className}`).forEach(el => {
+                    el.classList.remove(className);
+                });
+                
+                // Add highlight to target element
+                element.classList.add(className);
+            }
+            
+            unhighlightElement(element) {
+                if (element) {
+                    element.classList.remove('active', 'playing');
+                }
+            }
+            
+            // ========================================================
+            // 5. EVENT HANDLERS
+            // ========================================================
+            
+            setupEventDelegation() {
+                document.getElementById('app').addEventListener('click', (e) => {
+                    const actionElement = e.target.closest('[data-action]');
+                    if (!actionElement) return;
+                    
+                    const action = actionElement.dataset.action;
+                    const text = actionElement.dataset.text || '';
+                    
+                    switch(action) {
+                        case 'speak-word':
+                            this.speak(text, actionElement);
+                            break;
+                        case 'read-block':
+                            this.handleReadBlock(actionElement);
+                            break;
+                        case 'speak-vocab':
+                            this.speak(text, actionElement);
+                            break;
+                        case 'speak-phrase':
+                            this.speak(text, actionElement.querySelector('.p-icon'));
+                            break;
+                        case 'toggle-game':
+                            this.toggleVocabularyGame(actionElement);
+                            break;
+                        case 'reset-game':
+                            this.resetVocabularyGame();
+                            break;
+                    }
+                });
+                
+                // Quiz option click handling
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('opt-btn')) {
+                        this.handleQuizOptionClick(e.target);
+                    }
+                });
+            }
+            
+            handleReadBlock(button) {
+                const block = button.closest('.block');
+                if (!block) return;
+                
+                const textElement = block.querySelector('.reading-text');
+                if (!textElement) return;
+                
+                const text = textElement.textContent;
+                
+                if (button.classList.contains('playing')) {
+                    this.cancelSpeech();
+                    button.innerHTML = '▶ Listen';
+                    button.classList.remove('playing');
+                } else {
+                    // Stop any other playing audio
+                    this.cancelSpeech();
+                    
+                    // Update button states
+                    document.querySelectorAll('.listen-btn').forEach(btn => {
+                        btn.classList.remove('playing');
+                        btn.innerHTML = '▶ Listen';
+                    });
+                    
+                    button.classList.add('playing');
+                    button.innerHTML = '⏹ Stop';
+                    
+                    this.speak(text, button, { rate: 0.9 });
+                }
+            }
+            
+            handleQuizOptionClick(button) {
+                const quizCard = button.closest('.quiz-card');
+                if (!quizCard) return;
+                
+                const options = quizCard.querySelectorAll('.opt-btn');
+                const feedbackElement = quizCard.querySelector('.fb');
+                const isCorrect = button.dataset.correct === 'true';
+                const feedbackText = quizCard.dataset.feedback || (isCorrect ? 'Correct!' : 'Try again!');
+                
+                // Reset previous states
+                options.forEach(opt => opt.classList.remove('good', 'bad'));
+                
+                // Set current state
+                button.classList.add(isCorrect ? 'good' : 'bad');
+                
+                // Show feedback
+                feedbackElement.textContent = feedbackText;
+                feedbackElement.style.display = 'block';
+                feedbackElement.style.color = isCorrect ? 'var(--accent-success)' : 'var(--accent-error)';
+                feedbackElement.style.background = isCorrect ? 'var(--accent-success-bg)' : 'var(--accent-error-bg)';
+                
+                // Trigger vibration on mobile for wrong answers
+                if (!isCorrect && navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+                
+                this.trackEvent('quiz_answer', { 
+                    correct: isCorrect,
+                    question: quizCard.querySelector('.quiz-question').textContent.substring(0, 30) + '...'
+                });
+            }
+            
+            // ========================================================
+            // 6. UTILITY METHODS
+            // ========================================================
+            
+            escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+            
+            trackEvent(eventType, data = {}) {
+                // This could be extended to send analytics
+                console.debug(`📊 Event tracked: ${eventType}`, data);
+            }
+            
+            handleError(error, context = 'unknown') {
+                console.error(`❌ Error in ${context}:`, error);
+                
+                const app = document.getElementById('app');
+                if (app) {
+                    app.innerHTML = `
+                        <div class="error-msg">
+                            <h3>Error loading lesson content</h3>
+                            <p>${error.message || 'An unexpected error occurred'}</p>
+                            <p><small>Context: ${context}</small></p>
+                            <button class="btn btn--primary" onclick="location.reload()">
+                                🔄 Try Again
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+            
+            cleanup() {
+                this.cancelSpeech();
+                
+                if (this.audioContext) {
+                    this.audioContext.close().catch(console.error);
+                    this.audioContext = null;
+                }
+                
+                console.log('🧹 Educational App Engine cleaned up');
+            }
         }
-        u.onerror = (e) => console.error('TTS Error:', e);
-        window.speechSynthesis.speak(u);
-        currentUtterance = u;
-    }
-    // 1. Озвучка отдельного слова
-    window.speakWord = function(word, el) {
-        // Визуальный эффект
-        document.querySelectorAll('.word.active').forEach(w => w.classList.remove('active'));
-        if (el) el.classList.add('active');
-        speak(word, () => {
-            if (el) setTimeout(() => el.classList.remove('active'), 200);
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new EducationalApp();
         });
-    };
-    // 2. Озвучка блока текста
-    window.readBlock = function(btn) {
-        const block = btn.closest('.block');
-        // Берем чистый текст без HTML тегов
-        const textContainer = block.querySelector('.reading-text');
-        const text = textContainer.innerText;
-        if (btn.classList.contains('playing')) {
-            window.speechSynthesis.cancel();
-            btn.classList.remove('playing');
-            btn.innerHTML = '▶ Listen';
-            return;
-        }
-        // Сброс других кнопок
-        document.querySelectorAll('.listen-btn').forEach(b => {
-            b.classList.remove('playing');
-            b.innerHTML = '▶ Listen';
-        });
-        btn.classList.add('playing');
-        btn.innerHTML = '⏹ Stop';
-        speak(text, () => {
-            btn.classList.remove('playing');
-            btn.innerHTML = '▶ Listen';
-        });
-    };
-    // 3. Озвучка Vocab Card
-    window.speakVocab = function(el) {
-        const enText = el.querySelector('.en').innerText;
-        // Анимация нажатия
-        el.style.transform = 'scale(0.95)';
-        setTimeout(() => el.style.transform = '', 150);
-        speak(enText);
-    };
-    // 4. Озвучка Phrase Item
-    window.speakPhrase = function(el) {
-        const enText = el.querySelector('.p-en').innerText;
-        const icon = el.querySelector('.p-icon');
-        const originalIcon = icon.innerText;
-        icon.innerText = '🔊';
-        el.style.background = 'var(--bg-muted, #eee)'; // Подсветка
-        speak(enText, () => {
-            icon.innerText = originalIcon;
-            el.style.background = '';
-        });
-    };
-    /* --- QUIZ LOGIC --- */
-    window.checkQuizOption = function(btn, correctIndex) {
-        const parent = btn.closest('.q-item');
-        const allBtns = parent.querySelectorAll('.opt-btn');
-        const feedbackEl = parent.querySelector('.fb');
-        const selectedIndex = parseInt(btn.dataset.index);
-        // Блокируем повторные нажатия, если уже угадали? (Опционально)
-        // Здесь разрешаем менять ответ, просто сбрасываем стили
-        allBtns.forEach(b => {
-            b.classList.remove('good', 'bad');
-            // b.disabled = true; // Если хотим блокировать после первого клика
-        });
-        feedbackEl.style.display = 'block';
-        feedbackEl.className = 'fb'; // Сброс анимации
-        if (selectedIndex === correctIndex) {
-            btn.classList.add('good');
-            // Берем текст фидбека из data-атрибута (он там спрятан)
-            const fbText = parent.dataset.feedback || 'Correct! Well done.';
-            feedbackEl.innerText = fbText;
-            feedbackEl.style.color = 'var(--accent-success, #34C759)';
-            feedbackEl.style.background = 'var(--accent-success-bg, #E8F8EA)';
-            // Звук успеха (опционально, можно системный бип)
-        } else {
-            btn.classList.add('bad');
-            feedbackEl.innerText = 'Try again!';
-            feedbackEl.style.color = 'var(--accent-error, #FF3B30)';
-            feedbackEl.style.background = 'var(--accent-error-bg, #FFF0F0)';
-            // Вибрация на мобильных
-            if (navigator.vibrate) navigator.vibrate(200);
-        }
-    };
-    // Fix for Chrome voice loading async issue
-    if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = () => {
-            window.speechSynthesis.getVoices();
-        };
-    }
-</script>
+    </script>
 </body>
 </html>
-
