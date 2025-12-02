@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <meta name="color-scheme" content="light dark">
+    <title>REAL TIME - Asking for directions</title>
+    <style>
+        :root {
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: "SF Mono", Menlo, Consolas, monospace;
+            --font-size-base: 16px;
+            --font-size-sm: 0.875rem;
+            --font-size-lg: 1.125rem;
+            --line-height-base: 1.6;
+            --accent: #FFB300;
+            --accent-soft: rgba(255, 179, 0, 0.08);
+            --accent-strong: rgba(255, 179, 0, 0.18);
+            --bg-page: #F5F5F7;
+            --bg-card: #FFFFFF;
+            --bg-elevated: #FFFFFF;
+            --bg-muted: #FFF8E1;
+            --text-main: #1D1D1F;
+            --text-sub: #86868B;
+            --text-invert: #FFFFFF;
+            --text-tertiary: #CECED2;
+            --border-subtle: 1px solid rgba(0,0,0,0.06);
+            --border-strong: 1px solid rgba(0,0,0,0.12);
+            --radius-xs: 6px;
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-pill: 999px;
+            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.06);
+            --shadow-strong: 0 14px 45px rgba(0, 0, 0, 0.25);
+            --transition-fast: 0.15s ease-out;
+            --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            --content-max-width: 760px;
+            --accent-success: #34C759;
+            --accent-success-bg: #E8F8EA;
+            --accent-error: #FF3B30;
+            --accent-error-bg: #FFF0F0;
+            --accent-warning: #FF9500;
+            --p: #FFB300;
+            --s: #0288D1;
+            --gap: 16px;
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-page: #000000;
+                --bg-card: #1C1C1E;
+                --bg-muted: #2C2817;
+                --text-main: #F5F5F7;
+                --text-sub: #9E9EA4;
+                --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.85);
+                --border-subtle: 1px solid #2C2C2E;
+                --accent-success-bg: rgba(52, 199, 89, 0.2);
+                --accent-error-bg: rgba(255, 59, 48, 0.2);
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+                --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-feature-settings: "cv11", "ss01";
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            font-family: var(--font-main);
+            font-size: var(--font-size-base);
+            line-height: var(--line-height-base);
+            color: var(--text-main);
+            background-color: var(--bg-page);
+            padding: 20px;
+            padding-bottom: 96px;
+            transition: background-color var(--transition-smooth), color var(--transition-smooth);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            margin: 0 0 0.5em;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin: 0 0 0.9em;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        .container {
+            max-width: var(--content-max-width);
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            position: relative;
+            background: linear-gradient(135deg, var(--p), var(--s));
+            color: white;
+            padding: 30px 20px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeInDown var(--transition-smooth) forwards;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            transform: rotate(-15deg);
+            pointer-events: none;
+        }
+
+        .lesson-title {
+            font-size: 2.3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .lesson-subtitle {
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+            opacity: 0.9;
+        }
+
+        .tabs-nav {
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.0);
+            margin-bottom: 25px;
+            padding: 5px 5px 15px 5px;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            background: var(--bg-card);
+            padding: 12px 24px;
+            border-radius: 100px;
+            border: 1px solid var(--text-tertiary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tab-btn.active {
+            background: var(--p);
+            color: white;
+            border-color: var(--p);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s var(--ease-bounce);
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .block {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-soft);
+            border: var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeInUp var(--transition-smooth) forwards;
+            transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+        }
+
+        .block:hover {
+            transform: translateY(-2px);
+        }
+
+        .block:nth-child(1) { animation-delay: 0.05s; }
+        .block:nth-child(2) { animation-delay: 0.12s; }
+        .block:nth-child(3) { animation-delay: 0.19s; }
+        .block:nth-child(4) { animation-delay: 0.26s; }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            border-bottom: var(--border-subtle);
+            padding-bottom: 8px;
+        }
+
+        .block-title {
+            font-size: 1.25rem;
+            color: var(--p);
+        }
+
+        .block--fact {
+            background: var(--bg-muted);
+            border-left: 4px solid var(--accent);
+            border-radius: var(--radius-md);
+            box-shadow: none;
+        }
+
+        .reading-section {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .reading-text {
+            font-size: var(--font-size-lg);
+            line-height: 1.8;
+            color: var(--text-main);
+        }
+
+        .reading-text p {
+            margin-bottom: 20px;
+        }
+
+        .word, .w {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 0 1px;
+            transition: background-color 0.1s ease-out, color 0.1s ease-out;
+        }
+
+        .word:hover, .w:hover {
+            background-color: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .word.active, .w.playing {
+            background-color: var(--accent);
+            color: var(--text-invert);
+            box-shadow: 0 2px 8px var(--accent-strong);
+        }
+
+        .hl {
+            background: transparent;
+            border-bottom: 2px solid var(--p);
+            color: var(--text-main);
+            padding: 2px 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .hl:active {
+            background: var(--p);
+            color: white;
+            transform: scale(0.96);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .profile {
+            background: var(--bg-muted) !important;
+            border-left: 4px solid var(--p);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .profile strong {
+            color: var(--p);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .profile p {
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+        }
+
+        .v-item {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.3s var(--ease-bounce);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .v-item:active {
+            transform: scale(0.92);
+            background: var(--bg-page);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .en {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .ru {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .v-item::after {
+            content: '🔊';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transform: translateY(5px);
+            transition: 0.2s;
+        }
+
+        .v-item:active::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .p-list {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .p-item {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .p-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: calc(100% - 20px);
+            height: 1px;
+            background: var(--text-tertiary);
+            opacity: 0.3;
+        }
+
+        .p-item:active {
+            background: var(--bg-muted);
+        }
+
+        .p-text-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .p-en {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .p-ru {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+        }
+
+        .p-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-muted);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .p-item:active .p-icon {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .btn, .listen-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: var(--radius-pill);
+            border: none;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            background: var(--accent-soft);
+            color: var(--accent);
+            transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .btn:hover, .listen-btn:hover {
+            background: var(--accent-strong);
+        }
+
+        .btn:active, .listen-btn:active {
+            transform: translateY(1px) scale(0.99);
+        }
+
+        .listen-btn.playing {
+            background: var(--accent);
+            color: var(--text-invert);
+            box-shadow: 0 4px 12px var(--accent-strong);
+        }
+
+        .quiz-card, .q-item {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .quiz-question, .q-txt {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .quiz-options, .opts {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quiz-option, .opt-btn {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid transparent;
+            background: var(--bg-page);
+            color: var(--text-main);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s var(--ease-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-option:hover, .opt-btn:hover {
+            background: var(--accent-soft);
+        }
+
+        .quiz-option:active, .opt-btn:active {
+            transform: scale(0.98);
+        }
+
+        .quiz-option--correct, .opt-btn.good {
+            background: var(--accent-success-bg);
+            border-color: var(--accent-success);
+            color: #15803d;
+        }
+
+        .quiz-option--correct::after, .opt-btn.good::after {
+            content: '✓';
+            position: absolute;
+            right: 20px;
+            font-weight: bold;
+        }
+
+        .quiz-option--wrong, .opt-btn.bad {
+            background: var(--accent-error-bg);
+            border-color: var(--accent-error);
+            color: #b91c1c;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .fb {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: none;
+            animation: fadeUp 0.3s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 14px;
+                padding-bottom: 80px;
+            }
+            .lesson-title {
+                font-size: 1.8rem;
+            }
+            .block {
+                padding: 18px;
+            }
+            .reading-text {
+                font-size: 1rem;
+            }
+        }
+
+        .map-container {
+            background: var(--bg-muted);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .map-placeholder {
+            background: #E3F2FD;
+            padding: 40px 20px;
+            border-radius: 12px;
+            border: 2px dashed var(--s);
+            color: var(--s);
+            font-weight: 600;
+        }
+
+        .direction-icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--p);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            margin: 0 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1 class="lesson-title">REAL TIME</h1>
+        <div class="lesson-subtitle">Asking for directions</div>
+    </header>
+
+    <div class="tabs-nav">
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="read">📖 Read & Learn</button>
+            <button class="tab-btn" data-tab="vocab">📚 Vocabulary</button>
+            <button class="tab-btn" data-tab="phrases">💬 Phrases</button>
+            <button class="tab-btn" data-tab="quiz">✏️ Practice</button>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <!-- TAB 1: READING -->
+        <div id="tab-read" class="tab-content active">
+            <div class="block">
+                <div class="block-header">
+                    <h3 class="block-title">Where is Lena?</h3>
+                    <button class="listen-btn" onclick="readBlock(this)">▶ Listen</button>
+                </div>
+                <div class="reading-text">
+                    <p>Jessica and Luke are at <span class="hl" onclick="speakWord('Urbis', this)">Urbis</span>, Manchester's <span class="hl" onclick="speakWord('museum', this)">museum</span> of city life. But where is Lena?</p>
+                    
+                    <div class="profile">
+                        <strong>📱 Text Message</strong>
+                        <p>From: Jessica<br>To: Lena<br>"Where R U? U R L8!"</p>
+                    </div>
+
+                    <h3 style="color: var(--p); margin-top: 30px;">Lena asks for directions</h3>
+                    
+                    <p><strong>Lena:</strong> Excuse me. How do I get to the Urbis <span class="hl" onclick="speakWord('museum', this)">museum</span>?</p>
+                    
+                    <p><strong>Woman:</strong> Um. Let me see. You go <span class="hl" onclick="speakWord('straight on', this)">straight on</span> into Market Street. Then you take the <span class="hl" onclick="speakWord('second left', this)">second left</span> into Cross Street. Go straight on. Urbis is on the <span class="hl" onclick="speakWord('left', this)">left</span> near Exchange Square. You can't miss it! It's a big glass triangle!</p>
+                    
+                    <p><strong>Lena:</strong> Thank you very much.</p>
+
+                    <div class="map-container">
+                        <div class="map-placeholder">
+                            📍 Map: Stevenson's Square → Market Street → Cross Street → Urbis
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block">
+                <div class="block-header">
+                    <h3 class="block-title">Jessica's Note</h3>
+                </div>
+                <div class="reading-text">
+                    <div class="profile">
+                        <strong>✉️ To: Lena</strong>
+                        <p>Let's go to the <span class="hl" onclick="speakWord('cinema', this)">cinema</span> this afternoon. There's a good film on at the <span class="hl" onclick="speakWord('Embassy', this)">Embassy</span> in Oxford Road.</p>
+                        <p>See you at the cinema at <strong>4.00 p.m.</strong></p>
+                        <p>Can you come? Send me a text!</p>
+                        <p>Here's a <span class="hl" onclick="speakWord('map', this)">map</span>.</p>
+                        <p style="text-align: right;">Jessica</p>
+                    </div>
+
+                    <div class="map-container">
+                        <div class="map-placeholder">
+                            🗺️ Map: Piccadilly Train Station → Portland Street → Cinema (Embassy)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: VOCABULARY -->
+        <div id="tab-vocab" class="tab-content">
+            <div class="block">
+                <h3 class="block-title">Key Words</h3>
+                <div class="grid">
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">directions</span>
+                        <span class="ru">указания (как пройти)</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">straight on</span>
+                        <span class="ru">прямо</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">turn left</span>
+                        <span class="ru">повернуть налево</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">turn right</span>
+                        <span class="ru">повернуть направо</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">take the second left</span>
+                        <span class="ru">второй поворот налево</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">take the third right</span>
+                        <span class="ru">третий поворот направо</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">can't miss it</span>
+                        <span class="ru">невозможно не заметить</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">cinema</span>
+                        <span class="ru">кинотеатр</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">museum</span>
+                        <span class="ru">музей</span>
+                    </div>
+                    <div class="v-item" onclick="speakVocab(this)">
+                        <span class="en">map</span>
+                        <span class="ru">карта</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block">
+                <h3 class="block-title">Direction Icons</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px;">
+                    <div style="text-align: center;">
+                        <div class="direction-icon">←</div>
+                        <div style="font-size: 0.85rem; margin-top: 5px;">turn left</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="direction-icon">→</div>
+                        <div style="font-size: 0.85rem; margin-top: 5px;">turn right</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="direction-icon">↑</div>
+                        <div style="font-size: 0.85rem; margin-top: 5px;">straight on</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="direction-icon">⤺</div>
+                        <div style="font-size: 0.85rem; margin-top: 5px;">second left</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PHRASES -->
+        <div id="tab-phrases" class="tab-content">
+            <div class="block">
+                <h3 class="block-title">Phrases2know - Asking for directions</h3>
+                <div class="p-list">
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Excuse me, how do I get to the Urbis museum?</div>
+                            <div class="p-ru">Извините, как мне добраться до музея Урбис?</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Is the Urbis museum near here?</div>
+                            <div class="p-ru">Музей Урбис рядом?</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Can you say that again, please?</div>
+                            <div class="p-ru">Не могли бы вы повторить?</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Thank you very much.</div>
+                            <div class="p-ru">Большое спасибо.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block">
+                <h3 class="block-title">Phrases2know - Giving directions</h3>
+                <div class="p-list">
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Turn left into Market Street.</div>
+                            <div class="p-ru">Поверните налево на Маркет-стрит.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Go straight on.</div>
+                            <div class="p-ru">Идите прямо.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Take the second left into Cross Street.</div>
+                            <div class="p-ru">Поверните на втором повороте налево на Кросс-стрит.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Urbis is on the left.</div>
+                            <div class="p-ru">Урбис находится слева.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">You can't miss it!</div>
+                            <div class="p-ru">Вы не пропустите!</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block">
+                <h3 class="block-title">Making suggestions</h3>
+                <div class="p-list">
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Let's go to the cinema.</div>
+                            <div class="p-ru">Давай пойдем в кино.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">Let's watch a DVD.</div>
+                            <div class="p-ru">Давай посмотрим DVD.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">See you at the cinema.</div>
+                            <div class="p-ru">Увидимся в кинотеатре.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                    <div class="p-item" onclick="speakPhrase(this)">
+                        <div class="p-text-group">
+                            <div class="p-en">See you at 4.00 p.m.</div>
+                            <div class="p-ru">Увидимся в 16:00.</div>
+                        </div>
+                        <div class="p-icon">▶</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: QUIZ -->
+        <div id="tab-quiz" class="tab-content">
+            <div class="q-item" data-feedback="Correct! They are at Urbis, Manchester's museum of city life.">
+                <span class="q-txt">Where are Jessica and Luke?</span>
+                <div class="opts">
+                    <button class="opt-btn" data-index="0" onclick="checkQuizOption(this, 0)">At Urbis museum</button>
+                    <button class="opt-btn" data-index="1" onclick="checkQuizOption(this, 0)">At the cinema</button>
+                </div>
+                <div class="fb" style="display:none;"></div>
+            </div>
+
+            <div class="q-item" data-feedback="The woman tells her to take the second left into Cross Street.">
+                <span class="q-txt">How does Lena get to Urbis from Market Street?</span>
+                <div class="opts">
+                    <button class="opt-btn" data-index="0" onclick="checkQuizOption(this, 0)">She takes the second left into Cross Street.</button>
+                    <button class="opt-btn" data-index="1" onclick="checkQuizOption(this, 0)">She takes the third right into Cross Street.</button>
+                </div>
+                <div class="fb" style="display:none;"></div>
+            </div>
+
+            <div class="q-item" data-feedback="Jessica writes that there is a good film at the Embassy cinema.">
+                <span class="q-txt">Where does Jessica want to meet Lena in the afternoon?</span>
+                <div class="opts">
+                    <button class="opt-btn" data-index="0" onclick="checkQuizOption(this, 0)">At the Embassy cinema</button>
+                    <button class="opt-btn" data-index="1" onclick="checkQuizOption(this, 0)">At the museum</button>
+                </div>
+                <div class="fb" style="display:none;"></div>
+            </div>
+
+            <div class="q-item" data-feedback="In the note Jessica says: See you at the cinema at 4.00 p.m.">
+                <span class="q-txt">What time does Jessica want to meet at the cinema?</span>
+                <div class="opts">
+                    <button class="opt-btn" data-index="0" onclick="checkQuizOption(this, 0)">At 4.00 p.m.</button>
+                    <button class="opt-btn" data-index="1" onclick="checkQuizOption(this, 0)">At 6.00 p.m.</button>
+                </div>
+                <div class="fb" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab switching logic
+    function setupTabHandlers() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                btn.classList.add('active');
+                const tabId = btn.dataset.tab;
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            });
+        });
+    }
+
+    let currentUtterance = null;
+
+    function speak(text, onEndCallback) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        u.rate = 0.9;
+        
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => v.name.includes('Google US English')) 
+                            || voices.find(v => v.name.includes('Samantha'))
+                            || voices.find(v => v.lang.startsWith('en'));
+        if (preferredVoice) u.voice = preferredVoice;
+        
+        if (onEndCallback) u.onend = onEndCallback;
+        u.onerror = (e) => console.error('TTS Error:', e);
+        
+        window.speechSynthesis.speak(u);
+        currentUtterance = u;
+    }
+
+    window.speakWord = function(word, el) {
+        document.querySelectorAll('.word.active, .hl.active').forEach(w => w.classList.remove('active'));
+        if (el) el.classList.add('active');
+        speak(word, () => {
+            if (el) setTimeout(() => el.classList.remove('active'), 200);
+        });
+    };
+
+    window.readBlock = function(btn) {
+        const block = btn.closest('.block');
+        const textContainer = block.querySelector('.reading-text');
+        const text = textContainer.innerText;
+        
+        if (btn.classList.contains('playing')) {
+            window.speechSynthesis.cancel();
+            btn.classList.remove('playing');
+            btn.innerHTML = '▶ Listen';
+            return;
+        }
+        
+        document.querySelectorAll('.listen-btn').forEach(b => {
+            b.classList.remove('playing');
+            b.innerHTML = '▶ Listen';
+        });
+        
+        btn.classList.add('playing');
+        btn.innerHTML = '⏹ Stop';
+        
+        speak(text, () => {
+            btn.classList.remove('playing');
+            btn.innerHTML = '▶ Listen';
+        });
+    };
+
+    window.speakVocab = function(el) {
+        const enText = el.querySelector('.en').innerText;
+        el.style.transform = 'scale(0.95)';
+        setTimeout(() => el.style.transform = '', 150);
+        speak(enText);
+    };
+
+    window.speakPhrase = function(el) {
+        const enText = el.querySelector('.p-en').innerText;
+        const icon = el.querySelector('.p-icon');
+        const originalIcon = icon.innerText;
+        icon.innerText = '🔊';
+        el.style.background = 'var(--bg-muted)';
+        
+        speak(enText, () => {
+            icon.innerText = originalIcon;
+            el.style.background = '';
+        });
+    };
+
+    window.checkQuizOption = function(btn, correctIndex) {
+        const parent = btn.closest('.q-item');
+        const allBtns = parent.querySelectorAll('.opt-btn');
+        const feedbackEl = parent.querySelector('.fb');
+        const selectedIndex = parseInt(btn.dataset.index);
+        
+        allBtns.forEach(b => b.classList.remove('good', 'bad'));
+        
+        feedbackEl.style.display = 'block';
+        feedbackEl.className = 'fb';
+        
+        if (selectedIndex === correctIndex) {
+            btn.classList.add('good');
+            const fbText = parent.dataset.feedback || 'Correct! Well done.';
+            feedbackEl.innerText = fbText;
+            feedbackEl.style.color = 'var(--accent-success)';
+            feedbackEl.style.background = 'var(--accent-success-bg)';
+        } else {
+            btn.classList.add('bad');
+            feedbackEl.innerText = 'Try again!';
+            feedbackEl.style.color = 'var(--accent-error)';
+            feedbackEl.style.background = 'var(--accent-error-bg)';
+            if (navigator.vibrate) navigator.vibrate(200);
+        }
+    };
+
+    if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+    }
+
+    setupTabHandlers();
+</script>
+</body>
+</html>
