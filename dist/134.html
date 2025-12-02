@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="referrer" content="no-referrer">
-    <title>Loading lesson...</title>
+    <meta name="color-scheme" content="light dark">
+    <title>REAL TIME – Asking for directions</title>
+
     <style>
         :root {
-            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                         "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-size-base: 16px;
-            --font-size-lg: 1.125rem;
             --line-height-base: 1.6;
+
             --accent: #FFB300;
             --accent-soft: rgba(255, 179, 0, 0.08);
             --accent-strong: rgba(255, 179, 0, 0.18);
@@ -19,27 +21,24 @@
             --bg-muted: #FFF8E1;
             --text-main: #1D1D1F;
             --text-sub: #86868B;
-            --text-invert: #FFFFFF;
             --text-tertiary: #CECED2;
-            --border-subtle: 1px solid rgba(0,0,0,0.06);
-            --radius-sm: 10px;
-            --radius-md: 16px;
-            --radius-lg: 24px;
-            --radius-pill: 999px;
-            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.06);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --transition-fast: 0.15s ease-out;
-            --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            --content-max-width: 760px;
+            --text-invert: #FFFFFF;
+
             --accent-success: #34C759;
             --accent-success-bg: #E8F8EA;
             --accent-error: #FF3B30;
             --accent-error-bg: #FFF0F0;
+
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-pill: 999px;
+
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
+
             --p: #FFB300;
             --s: #0288D1;
-            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-            --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -49,10 +48,9 @@
                 --bg-muted: #2C2817;
                 --text-main: #F5F5F7;
                 --text-sub: #9E9EA4;
-                --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.85);
-                --border-subtle: 1px solid #2C2C2E;
-                --accent-success-bg: rgba(52, 199, 89, 0.2);
-                --accent-error-bg: rgba(255, 59, 48, 0.2);
+                --text-tertiary: #3A3A3C;
+                --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+                --shadow-md: 0 8px 24px rgba(0,0,0,0.7);
             }
         }
 
@@ -74,10 +72,10 @@
             color: var(--text-main);
             background-color: var(--bg-page);
             padding: 20px;
-            padding-bottom: 96px;
-            transition: background-color var(--transition-smooth), color var(--transition-smooth);
+            padding-bottom: 80px;
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         h1, h2, h3, h4 {
@@ -86,12 +84,15 @@
             letter-spacing: -0.02em;
         }
 
-        p {
-            margin: 0 0 0.9em;
+        p { margin: 0 0 0.9em; }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
         }
 
         .container {
-            max-width: var(--content-max-width);
+            max-width: 760px;
             margin: 0 auto;
             width: 100%;
         }
@@ -100,98 +101,87 @@
             position: relative;
             background: linear-gradient(135deg, var(--p), var(--s));
             color: white;
-            padding: 30px 20px;
+            padding: 26px 20px;
             border-radius: var(--radius-lg);
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 24px;
             box-shadow: var(--shadow-md);
             overflow: hidden;
-            opacity: 0;
-            animation: fadeInDown var(--transition-smooth) forwards;
         }
 
         header::before {
-            content: '';
+            content: "";
             position: absolute;
             top: -50%;
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
             transform: rotate(-15deg);
             pointer-events: none;
         }
 
         .lesson-title {
-            font-size: 2.3rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 1.9rem;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             position: relative;
-            z-index: 2;
+            z-index: 1;
         }
 
         .lesson-subtitle {
             font-size: 1rem;
-            font-weight: 500;
-            position: relative;
-            z-index: 2;
             opacity: 0.9;
+            position: relative;
+            z-index: 1;
         }
 
         .tabs-nav {
             position: sticky;
             top: 10px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.0);
-            margin-bottom: 25px;
-            padding: 5px 5px 15px 5px;
+            z-index: 50;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            background: linear-gradient(to bottom, rgba(245,245,247,1), rgba(245,245,247,0));
         }
 
         .tabs-container {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             overflow-x: auto;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
         }
 
-        .tabs-container::-webkit-scrollbar {
-            display: none;
-        }
+        .tabs-container::-webkit-scrollbar { display: none; }
 
         .tab-btn {
             background: var(--bg-card);
-            padding: 12px 24px;
-            border-radius: 100px;
+            padding: 10px 20px;
+            border-radius: var(--radius-pill);
             border: 1px solid var(--text-tertiary);
+            font-size: 0.9rem;
             font-weight: 600;
-            font-size: 0.95rem;
-            white-space: nowrap;
             color: var(--text-sub);
             cursor: pointer;
-            transition: all 0.3s var(--ease-smooth);
+            white-space: nowrap;
             box-shadow: var(--shadow-sm);
-        }
-
-        .tab-btn:active {
-            transform: scale(0.95);
+            transition: all 0.25s ease;
         }
 
         .tab-btn.active {
             background: var(--p);
             color: white;
             border-color: var(--p);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.18);
         }
 
         .tab-content {
             display: none;
             opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.4s ease, transform 0.4s var(--ease-bounce);
+            transform: translateY(8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
         .tab-content.active {
@@ -203,138 +193,112 @@
         .block {
             background: var(--bg-card);
             border-radius: var(--radius-md);
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow-soft);
-            border: var(--border-subtle);
-            position: relative;
-            overflow: hidden;
-            opacity: 0;
-            animation: fadeInUp var(--transition-smooth) forwards;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.04);
         }
-
-        .block:nth-child(1) { animation-delay: 0.05s; }
-        .block:nth-child(2) { animation-delay: 0.12s; }
-        .block:nth-child(3) { animation-delay: 0.19s; }
-        .block:nth-child(4) { animation-delay: 0.26s; }
 
         .block-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
-            border-bottom: var(--border-subtle);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             padding-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .block-title {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             color: var(--p);
         }
 
         .reading-text {
-            font-size: var(--font-size-lg);
+            font-size: 1.05rem;
             line-height: 1.8;
-            color: var(--text-main);
+        }
+
+        .map-container {
+            background: var(--bg-muted);
+            padding: 14px;
+            border-radius: var(--radius-md);
+            margin-top: 12px;
+        }
+
+        .map-placeholder {
+            border-radius: 10px;
+            border: 2px dashed var(--s);
+            padding: 20px 14px;
+            text-align: center;
+            color: var(--s);
+            font-weight: 600;
+            background: #E3F2FD;
+        }
+
+        .profile {
+            background: var(--bg-muted);
+            border-left: 4px solid var(--p);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            margin: 12px 0;
+        }
+
+        .profile strong {
+            color: var(--p);
         }
 
         .hl {
             background: transparent;
             border-bottom: 2px solid var(--p);
-            color: var(--text-main);
-            padding: 2px 4px;
-            border-radius: 6px;
+            padding: 0 2px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-            font-weight: 600;
         }
 
         .hl:active {
             background: var(--p);
             color: white;
-            transform: scale(0.96);
-        }
-
-        .profile {
-            background: var(--bg-muted) !important;
-            border-left: 4px solid var(--p);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin: 16px 0;
-            position: relative;
-        }
-
-        .profile strong {
-            color: var(--p);
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .map-container {
-            background: var(--bg-muted);
-            padding: 20px;
-            border-radius: var(--radius-md);
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .map-placeholder {
-            background: #E3F2FD;
-            padding: 40px 20px;
-            border-radius: 12px;
-            border: 2px dashed var(--s);
-            color: var(--s);
-            font-weight: 600;
         }
 
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 16px;
+            gap: 14px;
         }
 
         .v-item {
             background: var(--bg-card);
-            padding: 20px;
-            border-radius: 20px;
+            border-radius: 18px;
+            padding: 16px 10px;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s var(--ease-bounce);
             box-shadow: var(--shadow-sm);
+            cursor: pointer;
             position: relative;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
 
         .v-item:active {
-            transform: scale(0.92);
-            background: var(--bg-page);
+            transform: scale(0.96);
+            box-shadow: none;
         }
 
-        .en {
-            font-size: 1.1rem;
+        .v-item .en {
             font-weight: 700;
-            color: var(--text-main);
-            display: block;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
-        .ru {
+        .v-item .ru {
             font-size: 0.9rem;
             color: var(--text-sub);
-            font-weight: 500;
         }
 
         .v-item::after {
-            content: '🔊';
+            content: "🔊";
             position: absolute;
-            top: 10px;
+            top: 8px;
             right: 10px;
             font-size: 0.8rem;
-            opacity: 0;
-            transition: 0.2s;
-        }
-
-        .v-item:active::after {
-            opacity: 1;
+            opacity: 0.7;
         }
 
         .p-list {
@@ -345,29 +309,26 @@
         }
 
         .p-item {
-            padding: 16px 20px;
+            padding: 14px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            transition: background 0.2s;
             position: relative;
         }
 
         .p-item:not(:last-child)::after {
-            content: '';
+            content: "";
             position: absolute;
             bottom: 0;
             right: 0;
-            width: calc(100% - 20px);
+            width: calc(100% - 16px);
             height: 1px;
             background: var(--text-tertiary);
-            opacity: 0.3;
+            opacity: 0.35;
         }
 
-        .p-item:active {
-            background: var(--bg-muted);
-        }
+        .p-item:active { background: var(--bg-muted); }
 
         .p-text-group {
             display: flex;
@@ -375,69 +336,47 @@
             gap: 4px;
         }
 
-        .p-en {
-            font-weight: 600;
-            color: var(--text-main);
-            font-size: 1rem;
-        }
-
-        .p-ru {
-            color: var(--text-sub);
-            font-size: 0.85rem;
-        }
+        .p-en { font-weight: 600; }
+        .p-ru { font-size: 0.86rem; color: var(--text-sub); }
 
         .p-icon {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background: var(--bg-muted);
-            color: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.9rem;
-            transition: 0.2s;
         }
 
-        .p-item:active .p-icon {
-            background: var(--accent);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .btn, .listen-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+        .listen-btn {
             border-radius: var(--radius-pill);
             border: none;
-            padding: 8px 18px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
             background: var(--accent-soft);
             color: var(--accent);
-            transition: all var(--transition-fast);
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
         }
 
-        .btn:active, .listen-btn:active {
-            transform: translateY(1px) scale(0.99);
+        .listen-btn.playing {
+            background: var(--accent);
+            color: white;
         }
 
         .q-item {
             background: var(--bg-card);
             border-radius: var(--radius-lg);
-            padding: 22px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-soft);
+            padding: 18px 16px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-sm);
         }
 
         .q-txt {
             font-weight: 600;
-            display: block;
-            color: var(--text-main);
-            font-size: 1.1rem;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .opts {
@@ -448,324 +387,318 @@
 
         .opt-btn {
             width: 100%;
-            padding: 16px;
-            border: 2px solid transparent;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.06);
             background: var(--bg-page);
-            color: var(--text-main);
-            border-radius: 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: left;
             cursor: pointer;
-            transition: all 0.2s var(--ease-bounce);
-            position: relative;
+            text-align: left;
+            font-weight: 500;
+            transition: background 0.15s ease, transform 0.15s ease;
         }
 
-        .opt-btn:hover {
-            background: var(--accent-soft);
-        }
+        .opt-btn:hover { background: var(--accent-soft); }
 
         .opt-btn:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
 
         .opt-btn.good {
             background: var(--accent-success-bg);
             border-color: var(--accent-success);
-            color: #15803d;
-        }
-
-        .opt-btn.good::after {
-            content: '✓';
-            position: absolute;
-            right: 20px;
-            font-weight: bold;
+            color: #1b5e20;
         }
 
         .opt-btn.bad {
             background: var(--accent-error-bg);
             border-color: var(--accent-error);
-            color: #b91c1c;
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97);
-        }
-
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            color: #b71c1c;
         }
 
         .fb {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 500;
             display: none;
-            animation: fadeUp 0.3s ease-out;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-18px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(18px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .loading-container {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-sub);
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
         }
 
         @media (max-width: 600px) {
-            body { padding: 14px; padding-bottom: 80px; }
-            .lesson-title { font-size: 1.8rem; }
-            .block { padding: 18px; }
+            body { padding: 14px; padding-bottom: 70px; }
+            .lesson-title { font-size: 1.6rem; }
+            .block { padding: 16px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div id="app">
-        <div class="loading-container">📚 Loading lesson data...</div>
+    <header>
+        <h1 class="lesson-title" id="lesson-title">REAL TIME</h1>
+        <div class="lesson-subtitle" id="lesson-subtitle">Asking for directions</div>
+    </header>
+
+    <div class="tabs-nav">
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="read">📖 Reading</button>
+            <button class="tab-btn" data-tab="vocab">📚 Vocabulary</button>
+            <button class="tab-btn" data-tab="phrases">💬 Phrases</button>
+            <button class="tab-btn" data-tab="quiz">✏️ Quiz</button>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div id="tab-read" class="tab-content active"></div>
+        <div id="tab-vocab" class="tab-content"></div>
+        <div id="tab-phrases" class="tab-content"></div>
+        <div id="tab-quiz" class="tab-content"></div>
     </div>
 </div>
 
 <script>
-    const dataUrl = 'data/134.json';
+(function() {
+    // Определяем ID урока из имени файла (ожидается 134.html)
+    const pathParts = window.location.pathname.split("/");
+    const fileName = pathParts[pathParts.length - 1] || "134.html";
+    const lessonId = fileName.replace(".html", "") || "134";
+
+    const dataUrl = "../data/" + lessonId + ".json";
 
     fetch(dataUrl)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
+        .then(r => {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
         })
         .then(data => renderLesson(data))
-        .catch(error => {
-            document.getElementById('app').innerHTML = `
-                <div style="text-align:center; padding:40px; color:var(--accent-error);">
-                    <h3>⚠️ Error loading lesson</h3>
-                    <p>Could not load de>${dataUrl}</code></p>
-                    <p><small>Make sure you're running via Local Server (http://)</small></p>
-                </div>
-            `;
+        .catch(err => {
+            console.error(err);
+            document.getElementById("tab-read").innerHTML =
+                "<div class='block'><p>Ошибка загрузки данных урока из " + dataUrl + ".</p></div>";
         });
 
     function renderLesson(data) {
-        document.title = data.title || 'Lesson';
-        
-        if (data.colors && data.colors.length > 0) {
-            document.documentElement.style.setProperty('--accent', data.colors[0]);
-            document.documentElement.style.setProperty('--p', data.colors[0]);
-            if (data.colors[1]) document.documentElement.style.setProperty('--s', data.colors[1]);
+        // Заголовок и цвета
+        document.title = (data.title || "Lesson") + " – " + (data.subtitle || "");
+        document.getElementById("lesson-title").textContent = data.title || "Lesson";
+        document.getElementById("lesson-subtitle").textContent = data.subtitle || "";
+
+        if (data.colors && data.colors.length) {
+            const root = document.documentElement.style;
+            root.setProperty("--accent", data.colors[0]);
+            root.setProperty("--p", data.colors[0]);
+            if (data.colors[1]) root.setProperty("--s", data.colors[1]);
         }
 
-        const readingBlocks = [];
-        const vocabBlocks = [];
-        const phraseBlocks = [];
-        const quizBlocks = [];
+        const reading = [];
+        const vocab = [];
+        const phrases = [];
+        const quizzes = [];
 
-        data.content.forEach(item => {
-            if (item.type === 'block') readingBlocks.push(item);
-            else if (item.type === 'vocab') vocabBlocks.push(item);
-            else if (item.type === 'phrase') phraseBlocks.push(item);
-            else if (item.type === 'quiz') quizBlocks.push(item);
+        (data.content || []).forEach(item => {
+            if (item.type === "block") reading.push(item);
+            else if (item.type === "vocab") vocab.push(item);
+            else if (item.type === "phrase") phrases.push(item);
+            else if (item.type === "quiz") quizzes.push(item);
         });
 
-        let html = `
-            <header>
-                <h1 class="lesson-title">${data.title || 'Untitled'}</h1>
-                ${data.subtitle ? `<div class="lesson-subtitle">${data.subtitle}</div>` : ''}
-            </header>
-            <div class="tabs-nav">
-                <div class="tabs-container">
-                    <button class="tab-btn active" data-tab="read">📖 Read</button>
-                    <button class="tab-btn" data-tab="vocab">📚 Vocabulary</button>
-                    <button class="tab-btn" data-tab="phrases">💬 Phrases</button>
-                    <button class="tab-btn" data-tab="quiz">✏️ Practice</button>
-                </div>
-            </div>
-            <div class="content-wrapper">
-        `;
+        renderReading(reading);
+        renderVocab(vocab);
+        renderPhrases(phrases);
+        renderQuiz(quizzes);
 
-        // READ TAB
-        html += `<div id="tab-read" class="tab-content active">`;
-        readingBlocks.forEach((block, i) => {
-            html += `
-                <div class="block" style="animation-delay: ${0.05 * (i + 1)}s">
-                    <div class="block-header">
-                        <h3 class="block-title">${block.title}</h3>
-                        <button class="listen-btn" onclick="readBlock(this)">▶ Listen</button>
-                    </div>
-                    <div class="reading-text">${block.text}</div>
-                </div>
-            `;
-        });
-        html += `</div>`;
-
-        // VOCAB TAB
-        html += `<div id="tab-vocab" class="tab-content">`;
-        vocabBlocks.forEach((block, i) => {
-            html += `<div class="block" style="animation-delay: ${0.05 * (i + 1)}s">
-                <h3 class="block-title">Key Words</h3>
-                <div class="grid">`;
-            block.items.forEach(item => {
-                html += `
-                    <div class="v-item" onclick="speakVocab(this)">
-                        <span class="en">${item.en}</span>
-                        <span class="ru">${item.ru}</span>
-                    </div>
-                `;
-            });
-            html += `</div></div>`;
-        });
-        html += `</div>`;
-
-        // PHRASES TAB
-        html += `<div id="tab-phrases" class="tab-content">`;
-        phraseBlocks.forEach((block, i) => {
-            html += `<div class="block" style="animation-delay: ${0.05 * (i + 1)}s">
-                <h3 class="block-title">${block.title}</h3>
-                <div class="p-list">`;
-            block.items.forEach(item => {
-                html += `
-                    <div class="p-item" onclick="speakPhrase(this)">
-                        <div class="p-text-group">
-                            <div class="p-en">${item.en}</div>
-                            <div class="p-ru">${item.ru}</div>
-                        </div>
-                        <div class="p-icon">▶</div>
-                    </div>
-                `;
-            });
-            html += `</div></div>`;
-        });
-        html += `</div>`;
-
-        // QUIZ TAB
-        html += `<div id="tab-quiz" class="tab-content">`;
-        quizBlocks.forEach((q, i) => {
-            html += `
-                <div class="q-item" data-answer="${q.answer}" data-feedback="${q.feedback}" style="animation-delay: ${0.05 * (i + 1)}s">
-                    <span class="q-txt">${q.question}</span>
-                    <div class="opts">`;
-            q.options.forEach((opt, idx) => {
-                html += `<button class="opt-btn" data-index="${idx}" onclick="checkQuiz(this)">${opt}</button>`;
-            });
-            html += `</div>
-                    <div class="fb"></div>
-                </div>
-            `;
-        });
-        html += `</div>`;
-
-        html += `</div>`;
-        document.getElementById('app').innerHTML = html;
         setupTabs();
     }
 
+    function renderReading(blocks) {
+        const container = document.getElementById("tab-read");
+        if (!blocks.length) {
+            container.innerHTML = "<div class='block'><p>No reading content.</p></div>";
+            return;
+        }
+        let html = "";
+        blocks.forEach(block => {
+            html += "<div class='block'>";
+            html += "<div class='block-header'><h3 class='block-title'>" +
+                    (block.title || "") +
+                    "</h3><button class='listen-btn' onclick='readBlock(this)'>▶ Listen</button></div>";
+            html += "<div class='reading-text'>" + (block.text || "") + "</div>";
+            html += "</div>";
+        });
+        container.innerHTML = html;
+    }
+
+    function renderVocab(vocabBlocks) {
+        const container = document.getElementById("tab-vocab");
+        if (!vocabBlocks.length) {
+            container.innerHTML = "<div class='block'><p>No vocabulary.</p></div>";
+            return;
+        }
+        let html = "";
+        vocabBlocks.forEach(block => {
+            html += "<div class='block'><h3 class='block-title'>Key words</h3>";
+            html += "<div class='grid'>";
+            (block.items || []).forEach(item => {
+                html += "<div class='v-item' onclick='speakVocab(this)'>" +
+                        "<div class='en'>" + escapeHtml(item.en) + "</div>" +
+                        "<div class='ru'>" + escapeHtml(item.ru) + "</div>" +
+                        "</div>";
+            });
+            html += "</div></div>";
+        });
+        container.innerHTML = html;
+    }
+
+    function renderPhrases(phraseBlocks) {
+        const container = document.getElementById("tab-phrases");
+        if (!phraseBlocks.length) {
+            container.innerHTML = "<div class='block'><p>No phrases.</p></div>";
+            return;
+        }
+        let html = "";
+        phraseBlocks.forEach(block => {
+            html += "<div class='block'>";
+            html += "<div class='block-header'><h3 class='block-title'>" +
+                    escapeHtml(block.title || "Phrases") +
+                    "</h3></div>";
+            html += "<div class='p-list'>";
+            (block.items || []).forEach(item => {
+                html += "<div class='p-item' onclick='speakPhrase(this)'>" +
+                        "<div class='p-text-group'>" +
+                        "<div class='p-en'>" + escapeHtml(item.en) + "</div>" +
+                        "<div class='p-ru'>" + escapeHtml(item.ru) + "</div>" +
+                        "</div><div class='p-icon'>▶</div></div>";
+            });
+            html += "</div></div>";
+        });
+        container.innerHTML = html;
+    }
+
+    function renderQuiz(quizBlocks) {
+        const container = document.getElementById("tab-quiz");
+        if (!quizBlocks.length) {
+            container.innerHTML = "<div class='block'><p>No quiz yet.</p></div>";
+            return;
+        }
+        let html = "";
+        quizBlocks.forEach((q, idx) => {
+            html += "<div class='q-item' data-answer='" + q.answer + "' data-feedback=\"" +
+                    escapeAttr(q.feedback || "") + "\">";
+            html += "<div class='q-txt'>" + escapeHtml(q.question) + "</div>";
+            html += "<div class='opts'>";
+            (q.options || []).forEach((opt, i) => {
+                html += "<button class='opt-btn' data-index='" + i +
+                        "' onclick='checkQuizOption(this)'>" +
+                        escapeHtml(opt) + "</button>";
+            });
+            html += "</div><div class='fb'></div></div>";
+        });
+        container.innerHTML = html;
+    }
+
     function setupTabs() {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+        const btns = document.querySelectorAll(".tab-btn");
+        const tabs = document.querySelectorAll(".tab-content");
+        btns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                btns.forEach(b => b.classList.remove("active"));
+                tabs.forEach(t => t.classList.remove("active"));
+                btn.classList.add("active");
+                document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
             });
         });
     }
 
-    function speak(text, callback) {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US';
-        u.rate = 0.9;
-        if (callback) u.onend = callback;
-        window.speechSynthesis.speak(u);
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 
-    window.speakWord = function(word, el) {
-        document.querySelectorAll('.hl.active').forEach(w => w.classList.remove('active'));
-        if (el) el.classList.add('active');
-        speak(word, () => {
-            if (el) setTimeout(() => el.classList.remove('active'), 200);
-        });
-    };
+    function escapeAttr(str) {
+        return String(str).replace(/"/g, "&quot;");
+    }
+})();
 
-    window.readBlock = function(btn) {
-        const textEl = btn.closest('.block').querySelector('.reading-text');
-        const text = textEl.innerText;
-        
-        if (btn.classList.contains('playing')) {
-            window.speechSynthesis.cancel();
-            btn.classList.remove('playing');
-            btn.innerHTML = '▶ Listen';
-            return;
-        }
-        
-        document.querySelectorAll('.listen-btn').forEach(b => {
-            b.classList.remove('playing');
-            b.innerHTML = '▶ Listen';
-        });
-        
-        btn.classList.add('playing');
-        btn.innerHTML = '⏹ Stop';
-        speak(text, () => {
-            btn.classList.remove('playing');
-            btn.innerHTML = '▶ Listen';
-        });
-    };
+// ==== SPEECH & INTERACTION (глобальные функции) ====
 
-    window.speakVocab = function(el) {
-        const text = el.querySelector('.en').innerText;
-        el.style.transform = 'scale(0.95)';
-        setTimeout(() => el.style.transform = '', 150);
-        speak(text);
-    };
+let currentUtterance = null;
 
-    window.speakPhrase = function(el) {
-        const text = el.querySelector('.p-en').innerText;
-        const icon = el.querySelector('.p-icon');
-        icon.innerText = '🔊';
-        el.style.background = 'var(--bg-muted)';
-        speak(text, () => {
-            icon.innerText = '▶';
-            el.style.background = '';
-        });
-    };
+function speak(text, onEnd) {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.9;
+    if (onEnd) u.onend = onEnd;
+    window.speechSynthesis.speak(u);
+    currentUtterance = u;
+}
 
-    window.checkQuiz = function(btn) {
-        const parent = btn.closest('.q-item');
-        const correct = parseInt(parent.dataset.answer);
-        const selected = parseInt(btn.dataset.index);
-        const fb = parent.querySelector('.fb');
-        const allBtns = parent.querySelectorAll('.opt-btn');
-        
-        allBtns.forEach(b => b.classList.remove('good', 'bad'));
-        fb.style.display = 'block';
-        
-        if (selected === correct) {
-            btn.classList.add('good');
-            fb.innerText = parent.dataset.feedback;
-            fb.style.color = 'var(--accent-success)';
-            fb.style.background = 'var(--accent-success-bg)';
-        } else {
-            btn.classList.add('bad');
-            fb.innerText = 'Try again!';
-            fb.style.color = 'var(--accent-error)';
-            fb.style.background = 'var(--accent-error-bg)';
-        }
-    };
+function speakWord(word, el) {
+    if (el) {
+        el.classList.add("active");
+        setTimeout(() => el.classList.remove("active"), 300);
+    }
+    speak(word);
+}
+
+function readBlock(btn) {
+    const block = btn.closest(".block");
+    const text = block.querySelector(".reading-text").innerText;
+    if (btn.classList.contains("playing")) {
+        window.speechSynthesis.cancel();
+        btn.classList.remove("playing");
+        btn.textContent = "▶ Listen";
+        return;
+    }
+    document.querySelectorAll(".listen-btn").forEach(b => {
+        b.classList.remove("playing");
+        b.textContent = "▶ Listen";
+    });
+    btn.classList.add("playing");
+    btn.textContent = "⏹ Stop";
+    speak(text, () => {
+        btn.classList.remove("playing");
+        btn.textContent = "▶ Listen";
+    });
+}
+
+function speakVocab(el) {
+    const en = el.querySelector(".en").innerText;
+    speak(en);
+}
+
+function speakPhrase(el) {
+    const en = el.querySelector(".p-en").innerText;
+    const icon = el.querySelector(".p-icon");
+    const prev = icon.textContent;
+    icon.textContent = "🔊";
+    speak(en, () => { icon.textContent = prev; });
+}
+
+function checkQuizOption(btn) {
+    const qItem = btn.closest(".q-item");
+    const correct = parseInt(qItem.dataset.answer, 10);
+    const index = parseInt(btn.dataset.index, 10);
+    const fb = qItem.querySelector(".fb");
+    const all = qItem.querySelectorAll(".opt-btn");
+
+    all.forEach(b => b.classList.remove("good", "bad"));
+    fb.style.display = "block";
+
+    if (index === correct) {
+        btn.classList.add("good");
+        fb.textContent = qItem.dataset.feedback || "Correct!";
+        fb.style.background = "var(--accent-success-bg)";
+        fb.style.color = "#1b5e20";
+    } else {
+        btn.classList.add("bad");
+        fb.textContent = "Try again!";
+        fb.style.background = "var(--accent-error-bg)";
+        fb.style.color = "#b71c1c";
+        if (navigator.vibrate) navigator.vibrate(150);
+    }
+}
 </script>
 </body>
 </html>
