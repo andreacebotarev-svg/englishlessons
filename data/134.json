@@ -2,104 +2,337 @@
   "title": "REAL TIME",
   "subtitle": "Asking for directions",
   "colors": ["#FFB300", "#0288D1"],
-  "meta": {
-    "level": "A2",
-    "tags": ["Directions", "City", "Everyday English"],
-    "reading_time": "2 min"
-  },
-  "story": {
-    "title": "Asking for directions in Manchester",
-    "content": "<h3 style=\"color:var(--p); margin-top:0;\">Asking for directions</h3><p>Jessica and Luke are at Urbis, Manchester's museum of city life. But where is Lena?</p><p>Text message on Lena's phone: \"Where R U? U R L8!\"</p><h3 style=\"color:var(--p);\">Lena asks for directions</h3><p>Lena: Excuse me. How do I get to the Urbis museum?<br>Woman: Um. Let me see. You go straight on into Market Street. Then you take the second left into Cross Street. Go straight on. Urbis is on the left near Exchange Square. You can't miss it! It's a big glass triangle!<br>Lena: Thank you very much.</p><div class=\"profile\"><strong>Phrases2know – Asking for directions</strong><p>Excuse me, how do I get to the Urbis museum?<br>Is the Urbis museum near here?<br>Can you say that again, please?<br>Thank you very much.</p></div><div class=\"profile\"><strong>Phrases2know – Giving directions</strong><p>Turn left into Market Street.<br>Turn right into Market Street.<br>Go straight on.<br>Take the second left into Cross Street.<br>Take the third right into Cross Street.<br>Go down Thomas Street.<br>Urbis is on the left.<br>Urbis is on the right.<br>You can't miss it!</p></div><h3 style=\"color:var(--p);\">Directions diagrams</h3><p>1. turn left. 2. turn right. 3. go straight on. 4. take the second left. 5. take the third right. 6. on the left. 7. on the right. 8. go straight on.</p><h3 style=\"color:var(--p);\">An informal note</h3><div class=\"profile\"><strong>Jessica's note to Lena</strong><p>Lena<br>Let's go to the cinema this afternoon. There's a good film on at the Embassy in Oxford Road. See you at the cinema at 4.00 p.m. Can you come? Send me a text! Here's a map.<br>Jessica</p></div><div class=\"profile\"><strong>Phrases2know – Making suggestions</strong><p>Let's go to the cinema.<br>Let's watch a DVD.</p><strong>Where to meet</strong><p>See you at the cinema.<br>See you at the Embassy.<br>See you at my house.<br>See you in the park.<br>Let's meet at the cinema.<br>Let's meet at the Embassy.<br>Let's meet after school.</p><strong>Time</strong><p>See you at four o'clock.<br>See you at 4.00 p.m.</p></div>"
-  },
-  "vocab": {
-    "words": [
-      {
-        "word_en": "directions",
-        "word_ru": "указания (как пройти)",
-        "context": "Asking for directions in the city.",
-        "highlight": true
-      },
-      {
-        "word_en": "straight on",
-        "word_ru": "прямо",
-        "context": "You go straight on into Market Street.",
-        "highlight": true
-      },
-      {
-        "word_en": "turn left",
-        "word_ru": "повернуть налево",
-        "context": "Turn left into Market Street.",
-        "highlight": true
-      },
-      {
-        "word_en": "take the second left",
-        "word_ru": "повернуть на второй поворот налево",
-        "context": "Then you take the second left.",
-        "highlight": true
-      },
-      {
-        "word_en": "cross street",
-        "word_ru": "перекрестная улица",
-        "context": "Into Cross Street. Go straight on.",
-        "highlight": true
-      },
-      {
-        "word_en": "can't miss it",
-        "word_ru": "невозможно не заметить",
-        "context": "You can't miss it! It's a big glass triangle!",
-        "highlight": true
-      },
-      {
-        "word_en": "cinema",
-        "word_ru": "кинотеатр",
-        "context": "Let's go to the cinema this afternoon.",
-        "highlight": true
-      },
-      {
-        "word_en": "Embassy",
-        "word_ru": "Эмбасси (название кинотеатра)",
-        "context": "There's a good film on at the Embassy.",
-        "highlight": true
-      },
-      {
-        "word_en": "map",
-        "word_ru": "карта",
-        "context": "Here's a map.",
-        "highlight": true
-      },
-      {
-        "word_en": "museum",
-        "word_ru": "музей",
-        "context": "How do I get to the Urbis museum?",
-        "highlight": true
-      }
-    ],
-    "phrases": []
-  },
-  "quiz": [
+  "theme": "default",
+  "content": [
     {
-      "q": "Where are Jessica and Luke?",
-      "opts": ["At Urbis museum", "At the cinema"],
-      "correct": 0,
-      "fb": "They are at Urbis, Manchester's museum of city life."
+      "type": "block",
+      "title": "Where is Lena?",
+      "text": "Jessica and Luke are at <span class=\"hl\" onclick=\"speakWord('Urbis', this)\">Urbis</span>, Manchester's <span class=\"hl\" onclick=\"speakWord('museum', this)\">museum</span> of city life. But where is Lena?<br><br><div class=\"profile\"><strong>📱 Text Message</strong><p>From: Jessica<br>To: Lena<br>\"Where R U? U R L8!\"</p></div><br><h3 style=\"color: var(--p); margin-top: 30px;\">Lena asks for directions</h3><p><strong>Lena:</strong> Excuse me. How do I get to the Urbis <span class=\"hl\" onclick=\"speakWord('museum', this)\">museum</span>?</p><p><strong>Woman:</strong> Um. Let me see. You go <span class=\"hl\" onclick=\"speakWord('straight on', this)\">straight on</span> into Market Street. Then you take the <span class=\"hl\" onclick=\"speakWord('second left', this)\">second left</span> into Cross Street. Go straight on. Urbis is on the <span class=\"hl\" onclick=\"speakWord('left', this)\">left</span> near Exchange Square. You can't miss it! It's a big glass triangle!</p><p><strong>Lena:</strong> Thank you very much.</p><div class=\"map-container\"><div class=\"map-placeholder\">📍 Map: Stevenson's Square → Market Street → Cross Street → Urbis</div></div>"
     },
     {
-      "q": "How does Lena get to Urbis from Market Street?",
-      "opts": ["She takes the second left into Cross Street.", "She takes the third right into Cross Street."],
-      "correct": 0,
-      "fb": "The woman tells her to take the second left into Cross Street."
+      "type": "block",
+      "title": "Jessica's Note",
+      "text": "<div class=\"profile\"><strong>✉️ To: Lena</strong><p>Let's go to the <span class=\"hl\" onclick=\"speakWord('cinema', this)\">cinema</span> this afternoon. There's a good film on at the <span class=\"hl\" onclick=\"speakWord('Embassy', this)\">Embassy</span> in Oxford Road.</p><p>See you at the cinema at <strong>4.00 p.m.</strong></p><p>Can you come? Send me a text!</p><p>Here's a <span class=\"hl\" onclick=\"speakWord('map', this)\">map</span>.</p><p style=\"text-align: right;\">Jessica</p></div><div class=\"map-container\"><div class=\"map-placeholder\">🗺️ Map: Piccadilly Train Station → Portland Street → Cinema (Embassy)</div></div>"
     },
     {
-      "q": "Where does Jessica want to meet Lena in the afternoon?",
-      "opts": ["At the Embassy cinema", "At the museum"],
-      "correct": 0,
-      "fb": "Jessica writes that there is a good film at the Embassy cinema."
+      "type": "block",
+      "title": "Where is Lena? (Copy)",
+      "text": "Jessica and Luke are at <span class=\"hl\" onclick=\"speakWord('Urbis', this)\">Urbis</span>, Manchester's <span class=\"hl\" onclick=\"speakWord('museum', this)\">museum</span> of city life. But where is Lena?<br><br><div class=\"profile\"><strong>📱 Text Message</strong><p>From: Jessica<br>To: Lena<br>\"Where R U? U R L8!\"</p></div><br><h3 style=\"color: var(--p); margin-top: 30px;\">Lena asks for directions</h3><p><strong>Lena:</strong> Excuse me. How do I get to the Urbis <span class=\"hl\" onclick=\"speakWord('museum', this)\">museum</span>?</p><p><strong>Woman:</strong> Um. Let me see. You go <span class=\"hl\" onclick=\"speakWord('straight on', this)\">straight on</span> into Market Street. Then you take the <span class=\"hl\" onclick=\"speakWord('second left', this)\">second left</span> into Cross Street. Go straight on. Urbis is on the <span class=\"hl\" onclick=\"speakWord('left', this)\">left</span> near Exchange Square. You can't miss it! It's a big glass triangle!</p><p><strong>Lena:</strong> Thank you very much.</p><div class=\"map-container\"><div class=\"map-placeholder\">📍 Map: Stevenson's Square → Market Street → Cross Street → Urbis</div></div>"
     },
     {
-      "q": "What time does Jessica want to meet at the cinema?",
-      "opts": ["At 4.00 p.m.", "At 6.00 p.m."],
-      "correct": 0,
-      "fb": "In the note Jessica says: See you at the cinema at 4.00 p.m."
+      "type": "block",
+      "title": "Jessica's Note (Copy)",
+      "text": "<div class=\"profile\"><strong>✉️ To: Lena</strong><p>Let's go to the <span class=\"hl\" onclick=\"speakWord('cinema', this)\">cinema</span> this afternoon. There's a good film on at the <span class=\"hl\" onclick=\"speakWord('Embassy', this)\">Embassy</span> in Oxford Road.</p><p>See you at the cinema at <strong>4.00 p.m.</strong></p><p>Can you come? Send me a text!</p><p>Here's a <span class=\"hl\" onclick=\"speakWord('map', this)\">map</span>.</p><p style=\"text-align: right;\">Jessica</p></div><div class=\"map-container\"><div class=\"map-placeholder\">🗺️ Map: Piccadilly Train Station → Portland Street → Cinema (Embassy)</div></div>"
+    },
+    {
+      "type": "vocab",
+      "items": [
+        {
+          "en": "directions",
+          "ru": "указания (как пройти)"
+        },
+        {
+          "en": "straight on",
+          "ru": "прямо"
+        },
+        {
+          "en": "turn left",
+          "ru": "повернуть налево"
+        },
+        {
+          "en": "turn right",
+          "ru": "повернуть направо"
+        },
+        {
+          "en": "take the second left",
+          "ru": "второй поворот налево"
+        },
+        {
+          "en": "take the third right",
+          "ru": "третий поворот направо"
+        },
+        {
+          "en": "can't miss it",
+          "ru": "невозможно не заметить"
+        },
+        {
+          "en": "cinema",
+          "ru": "кинотеатр"
+        },
+        {
+          "en": "museum",
+          "ru": "музей"
+        },
+        {
+          "en": "map",
+          "ru": "карта"
+        }
+      ]
+    },
+    {
+      "type": "vocab",
+      "items": [
+        {
+          "en": "directions",
+          "ru": "указания (как пройти)"
+        },
+        {
+          "en": "straight on",
+          "ru": "прямо"
+        },
+        {
+          "en": "turn left",
+          "ru": "повернуть налево"
+        },
+        {
+          "en": "turn right",
+          "ru": "повернуть направо"
+        },
+        {
+          "en": "take the second left",
+          "ru": "второй поворот налево"
+        },
+        {
+          "en": "take the third right",
+          "ru": "третий поворот направо"
+        },
+        {
+          "en": "can't miss it",
+          "ru": "невозможно не заметить"
+        },
+        {
+          "en": "cinema",
+          "ru": "кинотеатр"
+        },
+        {
+          "en": "museum",
+          "ru": "музей"
+        },
+        {
+          "en": "map",
+          "ru": "карта"
+        }
+      ]
+    },
+    {
+      "type": "phrase",
+      "title": "Phrases2know - Asking for directions",
+      "items": [
+        {
+          "en": "Excuse me, how do I get to the Urbis museum?",
+          "ru": "Извините, как мне добраться до музея Урбис?"
+        },
+        {
+          "en": "Is the Urbis museum near here?",
+          "ru": "Музей Урбис рядом?"
+        },
+        {
+          "en": "Can you say that again, please?",
+          "ru": "Не могли бы вы повторить?"
+        },
+        {
+          "en": "Thank you very much.",
+          "ru": "Большое спасибо."
+        }
+      ]
+    },
+    {
+      "type": "phrase",
+      "title": "Phrases2know - Giving directions",
+      "items": [
+        {
+          "en": "Turn left into Market Street.",
+          "ru": "Поверните налево на Маркет-стрит."
+        },
+        {
+          "en": "Go straight on.",
+          "ru": "Идите прямо."
+        },
+        {
+          "en": "Take the second left into Cross Street.",
+          "ru": "Поверните на втором повороте налево на Кросс-стрит."
+        },
+        {
+          "en": "Urbis is on the left.",
+          "ru": "Урбис находится слева."
+        },
+        {
+          "en": "You can't miss it!",
+          "ru": "Вы не пропустите!"
+        }
+      ]
+    },
+    {
+      "type": "phrase",
+      "title": "Making suggestions",
+      "items": [
+        {
+          "en": "Let's go to the cinema.",
+          "ru": "Давай пойдем в кино."
+        },
+        {
+          "en": "Let's watch a DVD.",
+          "ru": "Давай посмотрим DVD."
+        },
+        {
+          "en": "See you at the cinema.",
+          "ru": "Увидимся в кинотеатре."
+        },
+        {
+          "en": "See you at 4.00 p.m.",
+          "ru": "Увидимся в 16:00."
+        }
+      ]
+    },
+    {
+      "type": "phrase",
+      "title": "Phrases2know - Asking for directions (Copy)",
+      "items": [
+        {
+          "en": "Excuse me, how do I get to the Urbis museum?",
+          "ru": "Извините, как мне добраться до музея Урбис?"
+        },
+        {
+          "en": "Is the Urbis museum near here?",
+          "ru": "Музей Урбис рядом?"
+        },
+        {
+          "en": "Can you say that again, please?",
+          "ru": "Не могли бы вы повторить?"
+        },
+        {
+          "en": "Thank you very much.",
+          "ru": "Большое спасибо."
+        }
+      ]
+    },
+    {
+      "type": "phrase",
+      "title": "Phrases2know - Giving directions (Copy)",
+      "items": [
+        {
+          "en": "Turn left into Market Street.",
+          "ru": "Поверните налево на Маркет-стрит."
+        },
+        {
+          "en": "Go straight on.",
+          "ru": "Идите прямо."
+        },
+        {
+          "en": "Take the second left into Cross Street.",
+          "ru": "Поверните на втором повороте налево на Кросс-стрит."
+        },
+        {
+          "en": "Urbis is on the left.",
+          "ru": "Урбис находится слева."
+        },
+        {
+          "en": "You can't miss it!",
+          "ru": "Вы не пропустите!"
+        }
+      ]
+    },
+    {
+      "type": "phrase",
+      "title": "Making suggestions (Copy)",
+      "items": [
+        {
+          "en": "Let's go to the cinema.",
+          "ru": "Давай пойдем в кино."
+        },
+        {
+          "en": "Let's watch a DVD.",
+          "ru": "Давай посмотрим DVD."
+        },
+        {
+          "en": "See you at the cinema.",
+          "ru": "Увидимся в кинотеатре."
+        },
+        {
+          "en": "See you at 4.00 p.m.",
+          "ru": "Увидимся в 16:00."
+        }
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "Where are Jessica and Luke?",
+      "options": [
+        "At Urbis museum",
+        "At the cinema"
+      ],
+      "answer": 0,
+      "feedback": "Correct! They are at Urbis, Manchester's museum of city life."
+    },
+    {
+      "type": "quiz",
+      "question": "How does Lena get to Urbis from Market Street?",
+      "options": [
+        "She takes the second left into Cross Street.",
+        "She takes the third right into Cross Street."
+      ],
+      "answer": 0,
+      "feedback": "The woman tells her to take the second left into Cross Street."
+    },
+    {
+      "type": "quiz",
+      "question": "Where does Jessica want to meet Lena in the afternoon?",
+      "options": [
+        "At the Embassy cinema",
+        "At the museum"
+      ],
+      "answer": 0,
+      "feedback": "Jessica writes that there is a good film at the Embassy cinema."
+    },
+    {
+      "type": "quiz",
+      "question": "What time does Jessica want to meet at the cinema?",
+      "options": [
+        "At 4.00 p.m.",
+        "At 6.00 p.m."
+      ],
+      "answer": 0,
+      "feedback": "In the note Jessica says: See you at the cinema at 4.00 p.m."
+    },
+    {
+      "type": "quiz",
+      "question": "Where are Jessica and Luke? (Copy)",
+      "options": [
+        "At Urbis museum",
+        "At the cinema"
+      ],
+      "answer": 0,
+      "feedback": "Correct! They are at Urbis, Manchester's museum of city life."
+    },
+    {
+      "type": "quiz",
+      "question": "How does Lena get to Urbis from Market Street? (Copy)",
+      "options": [
+        "She takes the second left into Cross Street.",
+        "She takes the third right into Cross Street."
+      ],
+      "answer": 0,
+      "feedback": "The woman tells her to take the second left into Cross Street."
+    },
+    {
+      "type": "quiz",
+      "question": "Where does Jessica want to meet Lena in the afternoon? (Copy)",
+      "options": [
+        "At the Embassy cinema",
+        "At the museum"
+      ],
+      "answer": 0,
+      "feedback": "Jessica writes that there is a good film at the Embassy cinema."
+    },
+    {
+      "type": "quiz",
+      "question": "What time does Jessica want to meet at the cinema? (Copy)",
+      "options": [
+        "At 4.00 p.m.",
+        "At 6.00 p.m."
+      ],
+      "answer": 0,
+      "feedback": "In the note Jessica says: See you at the cinema at 4.00 p.m."
     }
   ]
 }
