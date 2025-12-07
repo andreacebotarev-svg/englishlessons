@@ -475,20 +475,26 @@
         let score = 0;
         let answered = false;
         let speechSynthesis = window.speechSynthesis;
-        let femaleVoice = null;
+        let selectedVoice = null;
 
         function loadVoices() {
             const voices = speechSynthesis.getVoices();
-            femaleVoice = voices.find(voice => 
-                voice.name.includes('Google US English') && voice.name.includes('Female')
+            // Ищем Google US English Female в первую очередь
+            selectedVoice = voices.find(voice => 
+                voice.name === 'Google US English' && voice.lang === 'en-US'
             ) || voices.find(voice => 
                 voice.lang === 'en-US' && voice.name.toLowerCase().includes('female')
             ) || voices.find(voice => 
-                voice.lang === 'en-US'
-            ) || voices[0];
+                voice.lang === 'en-US' && !voice.name.toLowerCase().includes('male')
+            ) || voices.find(voice => 
+                voice.lang.startsWith('en-')
+            );
         }
 
-        speechSynthesis.onvoiceschanged = loadVoices;
+        // Загружаем голоса при инициализации и при их изменении
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
         loadVoices();
 
         function saveState() {
@@ -539,15 +545,19 @@
             }
 
             const q = questions[currentQuestion];
-            const text = q.question.replace(/_____/g, 'blank');
+            // Убираем подчеркивания без замены на "blank"
+            const text = q.question.replace(/_____/g, '');
             
             const utterance = new SpeechSynthesisUtterance(text);
-            if (femaleVoice) {
-                utterance.voice = femaleVoice;
+            
+            // Если голос загружен, используем его
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
             }
+            
             utterance.lang = 'en-US';
             utterance.rate = 0.85;
-            utterance.pitch = 1.2;
+            utterance.pitch = 1.0;
             
             const speakerBtn = document.getElementById('speakerBtn');
             speakerBtn.classList.add('playing');
