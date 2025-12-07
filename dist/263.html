@@ -377,6 +377,7 @@ header::before {
 .reading-text .word.clickable {
     color: var(--accent-1);
     font-weight: var(--font-weight-semibold);
+    position: relative;
 }
 
 .reading-text .word.clickable:hover {
@@ -387,11 +388,8 @@ header::before {
 .reading-text .word.clickable:active {
     transform: translateY(0);
 }
-/* Tooltip для слов при наведении */
-.reading-text .word.clickable {
-    position: relative;
-}
 
+/* Tooltip для слов при наведении */
 .reading-text .word.clickable::after {
     content: attr(data-translation);
     position: absolute;
@@ -431,16 +429,6 @@ header::before {
     opacity: 1;
 }
 
-/* Адаптация tooltip для мобильных */
-@media (max-width: 768px) {
-    .reading-text .word.clickable::after {
-        font-size: var(--font-size-xs);
-        max-width: 200px;
-        white-space: normal;
-        text-align: center;
-    }
-}
-
 .listen-btn {
     display: inline-flex;
     align-items: center;
@@ -475,6 +463,7 @@ header::before {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
 }
+
 /* Изображения в Reading секции */
 .reading-image-container {
     margin: var(--space-xl) 0;
@@ -493,13 +482,6 @@ header::before {
 
 .reading-image:hover {
     transform: scale(1.02);
-}
-
-/* Адаптация изображений для мобильных */
-@media (max-width: 768px) {
-    .reading-image {
-        max-width: 100%;
-    }
 }
 
 /* ================================================================
@@ -1169,7 +1151,6 @@ header::before {
         right: -100%;
     }
     
-    /* ДОБАВЬТЕ ЭТИ СТРОКИ: */
     .reading-image {
         max-width: 100%;
     }
@@ -1179,48 +1160,6 @@ header::before {
         max-width: 200px;
         white-space: normal;
         text-align: center;
-    }
-}
-
-        @media (max-width: 768px) {
-    :root {
-        --font-size-3xl: 1.75rem;
-        --font-size-2xl: 1.25rem;
-        --font-size-xl: 1.125rem;
-    }
-    
-    header {
-        padding: var(--space-lg) var(--space-md);
-    }
-    
-    .lesson-title {
-        font-size: var(--font-size-2xl);
-    }
-    
-    .nav-tab {
-        padding: var(--space-sm) var(--space-md);
-        font-size: var(--font-size-sm);
-    }
-    
-    .content-section {
-        padding: var(--space-md);
-    }
-    
-    .vocab-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .flashcard {
-        height: 300px;
-    }
-    
-    .quiz-option {
-        padding: var(--space-md);
-    }
-    
-    .sidebar {
-        width: 100%;
-        right: -100%;
     }
 }
 
@@ -1242,67 +1181,62 @@ header::before {
     </style>
 </head>
 <body>
-    <!-- LOADER -->
+    <!-- ================================================================
+         LOADER
+         ================================================================ -->
     <div class="loader-container" id="loader">
         <div class="loader"></div>
         <div class="loader-text">Loading lesson...</div>
     </div>
-    
-    <!-- APP CONTAINER -->
+
+    <!-- ================================================================
+         MAIN APP CONTAINER
+         ================================================================ -->
     <div id="app"></div>
-    
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-content" id="sidebarContent">
-            <h2 style="color: var(--accent-1); margin-bottom: var(--space-lg);">💾 My Words</h2>
-            <div class="saved-words-list" id="savedWordsList"></div>
-        </div>
-    </aside>
-    
-    <!-- SIDEBAR TOGGLE BUTTON -->
+
+    <!-- ================================================================
+         SIDEBAR (MY WORDS)
+         ================================================================ -->
     <button class="sidebar-toggle" onclick="toggleSidebar()">
         💾 My Words (<span id="wordCount">0</span>)
     </button>
-    
-    <!-- NOTIFICATION -->
-    <div class="notification" id="notification"></div>
-    
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-content" id="sidebarContent">
+            <p class="no-words">No saved words yet. Click 💾 to save!</p>
+        </div>
+    </aside>
+
     <script>
 /* ================================================================
    1. GLOBAL VARIABLES
    ================================================================ */
 let lessonData = null;
+let lessonId = null;
 let myWords = [];
+let currentFlashcard = 0;
 let quizScore = { correct: 0, total: 0 };
-let currentCard = 0;
-let currentVocabMode = 'list';
 
 /* ================================================================
-   2. LESSON ID DETECTION
+   2. EXTRACT LESSON ID FROM URL
    ================================================================ */
-const lessonId = (() => {
-    const pathname = window.location.pathname;
-    const match = pathname.match(/(\d+)\.html$/);
-    return match ? match[1] : null;
+(function initLessonId() {
+    const match = window.location.pathname.match(/(\d+)\.html$/);
+    if (match) {
+        lessonId = match[1];
+    } else {
+        showError('Unable to determine lesson number from URL');
+    }
 })();
 
-if (!lessonId) {
-    document.getElementById('loader').innerHTML = `
-        <div class="error-container">
-            <div class="error-icon">⚠️</div>
-            <h2>Error</h2>
-            <p>Unable to determine lesson number from filename.</p>
-            <button onclick="window.location.reload()">Reload Page</button>
-        </div>
-    `;
-}
-
 /* ================================================================
-   3. JSON LOADING
+   3. LOAD LESSON DATA
    ================================================================ */
 async function loadLesson() {
-    if (!lessonId) return;
-    
+    if (!lessonId) {
+        showError('Lesson ID is not defined');
+        return;
+    }
+
     try {
         const response = await fetch(`../data/${lessonId}.json`);
         
@@ -1314,52 +1248,38 @@ async function loadLesson() {
         initLesson(lessonData);
         
     } catch (error) {
-        console.error('Failed to load lesson:', error);
-        showError(`Failed to load lesson ${lessonId}: ${error.message}`);
+        showError(`Failed to load lesson: ${error.message}`);
     }
 }
 
-function showError(message) {
-    const loader = document.getElementById('loader');
-    loader.innerHTML = `
-        <div class="error-container">
-            <div class="error-icon">⚠️</div>
-            <h2>Loading Error</h2>
-            <p>${escapeJS(message)}</p>
-            <button onclick="window.location.reload()">Try Again</button>
-        </div>
-    `;
-}
-
 /* ================================================================
-   4. INIT LESSON
+   4. INITIALIZE LESSON
    ================================================================ */
 function initLesson(data) {
-    // Установить заголовок страницы
-    document.title = data.title;
+    // Set document title
+    document.title = `${data.title} - English Lesson`;
     
-    // Применить цвета из JSON
+    // Apply accent colors from JSON
     if (data.colors && data.colors.length >= 2) {
         document.documentElement.style.setProperty('--accent-1', data.colors[0]);
         document.documentElement.style.setProperty('--accent-2', data.colors[1]);
     }
     
-    // Применить тему
-    if (data.meta?.theme) {
+    // Apply theme if specified
+    if (data.meta && data.meta.theme) {
         document.body.setAttribute('data-theme', data.meta.theme);
     }
     
-    // Построить интерфейс
+    // Build interface
     const app = document.getElementById('app');
     app.innerHTML = buildInterface(data);
     
-    // Загрузить сохранённые слова
+    // Load saved words
     loadMyWords();
     
-    // Скрыть loader
+    // Hide loader
     setTimeout(() => {
-        const loader = document.getElementById('loader');
-        loader.classList.add('hidden');
+        document.getElementById('loader').classList.add('hidden');
         app.classList.add('loaded');
     }, 300);
 }
@@ -1368,63 +1288,50 @@ function initLesson(data) {
    5. BUILD INTERFACE
    ================================================================ */
 function buildInterface(data) {
-    const hasGrammar = data.content.grammar && data.content.grammar.length > 0;
+    const hasGrammar = data.content.grammar && data.content.grammar.title;
     
     return `
         <header>
             <h1 class="lesson-title">${escapeJS(data.title)}</h1>
-            <p class="lesson-subtitle">${escapeJS(data.subtitle || '')}</p>
+            ${data.subtitle ? `<p class="lesson-subtitle">${escapeJS(data.subtitle)}</p>` : ''}
             <div class="lesson-meta">
-                <span class="badge">${escapeJS(data.meta.level || 'B1')}</span>
-                <span class="badge">${escapeJS(data.meta.duration || 30)} min</span>
+                ${data.meta.level ? `<span class="badge">${data.meta.level}</span>` : ''}
+                ${data.meta.duration ? `<span class="badge">${data.meta.duration} min</span>` : ''}
             </div>
         </header>
         
         <nav class="nav-container">
-            <button class="nav-tab active" onclick="switchTab('reading')">
-                📖 Reading
-            </button>
-            <button class="nav-tab" onclick="switchTab('vocabulary')">
-                📚 Vocabulary
-            </button>
-            ${hasGrammar ? `
-                <button class="nav-tab" onclick="switchTab('grammar')">
-                    ✏️ Grammar
-                </button>
-            ` : ''}
-            <button class="nav-tab" onclick="switchTab('quiz')">
-                🎯 Quiz
-            </button>
+            <button class="nav-tab active" onclick="switchTab('reading')">📖 Reading</button>
+            <button class="nav-tab" onclick="switchTab('vocabulary')">📚 Vocabulary</button>
+            ${hasGrammar ? `<button class="nav-tab" onclick="switchTab('grammar')">✏️ Grammar</button>` : ''}
+            <button class="nav-tab" onclick="switchTab('quiz')">⚡ Quiz</button>
         </nav>
         
         <main class="main-content">
-            <div id="reading" class="content-section active">
+            <section class="content-section active" id="section-reading">
                 ${renderReading(data.content.reading)}
-            </div>
+            </section>
             
-            <div id="vocabulary" class="content-section">
+            <section class="content-section" id="section-vocabulary">
                 ${renderVocabulary(data.content.vocabulary)}
-            </div>
+            </section>
             
             ${hasGrammar ? `
-                <div id="grammar" class="content-section">
+                <section class="content-section" id="section-grammar">
                     ${renderGrammar(data.content.grammar)}
-                </div>
+                </section>
             ` : ''}
             
-            <div id="quiz" class="content-section">
+            <section class="content-section" id="section-quiz">
                 ${renderQuiz(data.quiz)}
-            </div>
+            </section>
         </main>
     `;
 }
 
 /* ================================================================
-   6. RENDER FUNCTIONS
+   6. RENDER READING SECTION
    ================================================================ */
-
-// READING SECTION
-// READING SECTION
 function renderReading(readingData) {
     if (!readingData || readingData.length === 0) {
         return '<p class="text-center text-secondary">No reading content available.</p>';
@@ -1495,290 +1402,315 @@ function highlightWords(text, wordsToHighlight) {
     return result;
 }
 
-    
-    let result = escapeJS(text);
-    
-    wordsToHighlight.forEach(word => {
-        const regex = new RegExp(`\\b(${word})\\b`, 'gi');
-        result = result.replace(regex, '<span class="word clickable" onclick="speakWord(\'$1\')">$1</span>');
-    });
-    
-    return result;
-}
-
-// VOCABULARY SECTION
+/* ================================================================
+   7. RENDER VOCABULARY SECTION
+   ================================================================ */
 function renderVocabulary(vocabData) {
-    if (!vocabData || !vocabData.words || vocabData.words.length === 0) {
+    if (!vocabData || !vocabData.words) {
         return '<p class="text-center text-secondary">No vocabulary available.</p>';
     }
     
-    const words = vocabData.words;
+    const words = vocabData.words || [];
     const phrases = vocabData.phrases || [];
     
-    return `
+    let html = `
         <div class="vocab-controls">
-            <button class="mode-btn active" onclick="switchVocabMode('list')">
-                📋 List
-            </button>
-            <button class="mode-btn" onclick="switchVocabMode('flashcards')">
-                🎴 Flashcards
-            </button>
+            <button class="mode-btn active" onclick="switchVocabMode('list')">📝 List</button>
+            <button class="mode-btn" onclick="switchVocabMode('flashcards')">🎴 Flashcards</button>
         </div>
-        
-        <!-- LIST MODE -->
-        <div id="vocabList" class="vocab-mode active">
-            <div class="vocab-grid">
-                ${words.map((word, index) => `
-                    <div class="vocab-card" onclick="speakWord('${escapeJS(word.en).replace(/'/g, "\\'")}')">
-                        <div class="word-en">
-                            ${escapeJS(word.en)}
-                            ${word.transcription ? `<span class="phonetic">${escapeJS(word.transcription)}</span>` : ''}
-                        </div>
-                        <div class="word-ru">${escapeJS(word.ru)}</div>
-                        ${word.part_of_speech ? `
-                            <div class="word-meta">
-                                <span class="pos">${escapeJS(word.part_of_speech)}</span>
-                            </div>
-                        ` : ''}
-                        ${word.example ? `<div class="word-example">"${escapeJS(word.example)}"</div>` : ''}
-                        <button class="save-btn" onclick="event.stopPropagation(); saveWord('${escapeJS(word.en).replace(/'/g, "\\'")}', '${escapeJS(word.ru).replace(/'/g, "\\'")}', ${index})">
-                            💾 Save Word
-                        </button>
+    `;
+    
+    // ===== LIST MODE =====
+    html += '<div class="vocab-mode active" id="vocab-list"><div class="vocab-grid">';
+    
+    words.forEach((word, index) => {
+        html += `
+            <div class="vocab-card">
+                <div class="word-en" onclick="speakWord('${escapeJS(word.en).replace(/'/g, "\\'")}')">
+                    ${escapeJS(word.en)}
+                    ${word.transcription ? `<span class="phonetic">${escapeJS(word.transcription)}</span>` : ''}
+                </div>
+                <div class="word-ru">${escapeJS(word.ru)}</div>
+                ${word.example ? `<div class="word-example">"${escapeJS(word.example)}"</div>` : ''}
+                ${word.part_of_speech ? `
+                    <div class="word-meta">
+                        <span class="pos">${escapeJS(word.part_of_speech)}</span>
+                    </div>
+                ` : ''}
+                <button class="save-btn" onclick="saveWord('${escapeJS(word.en).replace(/'/g, "\\'")}', '${escapeJS(word.ru).replace(/'/g, "\\'")}', '${escapeJS(word.example || '').replace(/'/g, "\\'")}')">
+                    💾 Save
+                </button>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    
+    // ===== FLASHCARDS MODE =====
+    html += '<div class="vocab-mode" id="vocab-flashcards">';
+    
+    words.forEach((word, index) => {
+        html += `
+            <div class="flashcard ${index === 0 ? 'active' : ''}" data-index="${index}">
+                <div class="flashcard-inner" onclick="flipCard(${index})">
+                    <div class="flashcard-front">
+                        <div class="flashcard-word">${escapeJS(word.en)}</div>
+                        <div class="flashcard-hint">Click to reveal translation</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div class="flashcard-translation">${escapeJS(word.ru)}</div>
+                        ${word.example ? `<div class="flashcard-example">"${escapeJS(word.example)}"</div>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+        <div class="flashcard-controls">
+            <button onclick="previousCard()">← Previous</button>
+            <span id="cardCounter">1 / ${words.length}</span>
+            <button onclick="nextCard()">Next →</button>
+        </div>
+    `;
+    html += '</div>';
+    
+    // ===== PHRASES =====
+    if (phrases.length > 0) {
+        html += `
+            <div class="phrases-section">
+                <h3>📝 Useful Phrases</h3>
+                ${phrases.map(phrase => `
+                    <div class="phrase-item" onclick="speakPhrase(event, '${escapeJS(phrase.en).replace(/'/g, "\\'")}')">
+                        <div class="phrase-en">${escapeJS(phrase.en)}</div>
+                        <div class="phrase-ru">${escapeJS(phrase.ru)}</div>
+                        ${phrase.context ? `<div class="phrase-context">${escapeJS(phrase.context)}</div>` : ''}
                     </div>
                 `).join('')}
             </div>
-            
-           ${phrases.length > 0 ? `
-    <div class="phrases-section">
-        <h3>📝 Useful Phrases</h3>
-        ${phrases.map(phrase => `
-            <div class="phrase-item" onclick="speakPhrase(event, '${escapeJS(phrase.en).replace(/'/g, "\\'")}')">
-                            <div class="phrase-en">${escapeJS(phrase.en)}</div>
-                            <div class="phrase-ru">${escapeJS(phrase.ru)}</div>
-                            ${phrase.context ? `<div class="phrase-context">Context: ${escapeJS(phrase.context)}</div>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            ` : ''}
-        </div>
-        
-        <!-- FLASHCARDS MODE -->
-        <div id="vocabFlashcards" class="vocab-mode">
-            ${words.map((word, index) => `
-                <div class="flashcard ${index === 0 ? 'active' : ''}" id="card-${index}" onclick="flipCard(${index})">
-                    <div class="flashcard-inner">
-                        <div class="flashcard-front">
-                            <div class="flashcard-word">${escapeJS(word.en)}</div>
-                            ${word.transcription ? `<div class="flashcard-hint">${escapeJS(word.transcription)}</div>` : ''}
-                        </div>
-                        <div class="flashcard-back">
-                            <div class="flashcard-translation">${escapeJS(word.ru)}</div>
-                            ${word.example ? `<div class="flashcard-example">"${escapeJS(word.example)}"</div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            `).join('')}
-            
-            <div class="flashcard-controls">
-                <button onclick="prevCard()">⬅️ Previous</button>
-                <span id="cardCounter">1 / ${words.length}</span>
-                <button onclick="nextCard()">Next ➡️</button>
-            </div>
-        </div>
-    `;
-}
-
-// GRAMMAR SECTION
-function renderGrammar(grammarData) {
-    if (!grammarData || grammarData.length === 0) {
-        return '<p class="text-center text-secondary">No grammar content available.</p>';
+        `;
     }
     
-    return `
+    return html;
+}
+
+/* ================================================================
+   8. RENDER GRAMMAR SECTION
+   ================================================================ */
+function renderGrammar(grammar) {
+    if (!grammar || !grammar.title) {
+        return '<p class="text-center text-secondary">No grammar content for this lesson.</p>';
+    }
+    
+    let html = `
         <div class="grammar-container">
-            <h2>✏️ Grammar Focus</h2>
-            ${grammarData.map(rule => `
-                <div class="grammar-rule">
-                    ${rule.title ? `<h3>${escapeJS(rule.title)}</h3>` : ''}
-                    ${rule.pattern ? `<div class="rule-pattern">${escapeJS(rule.pattern)}</div>` : ''}
-                    ${rule.explanation ? `<div class="rule-description">${escapeJS(rule.explanation)}</div>` : ''}
+            <h2>${escapeJS(grammar.title)}</h2>
+            
+            ${grammar.explanation_ru ? `
+                <div class="reading-block">
+                    <h3>📖 Explanation</h3>
+                    <div class="reading-text">${escapeJS(grammar.explanation_ru)}</div>
+                </div>
+            ` : ''}
+    `;
+    
+    // Rules
+    if (grammar.rules && grammar.rules.length > 0) {
+        grammar.rules.forEach(rule => {
+            html += `
+                <div class="reading-block">
+                    <h3>${escapeJS(rule.pattern)}</h3>
+                    ${rule.description ? `<p class="text-secondary">${escapeJS(rule.description)}</p>` : ''}
                     
-                    ${rule.examples ? `
-                        <div class="examples-group">
-                            <h4>Examples:</h4>
-                            ${rule.examples.map(ex => `
-                                <div class="example">${escapeJS(ex)}</div>
+                    ${rule.examples_positive && rule.examples_positive.length > 0 ? `
+                        <div style="margin-top: var(--space-md);">
+                            <h4 style="color: var(--success); margin-bottom: var(--space-sm);">✅ Affirmative</h4>
+                            ${rule.examples_positive.map(ex => `
+                                <div style="padding: var(--space-sm); background: var(--bg-tertiary); 
+                                     border-radius: var(--border-radius-sm); margin-bottom: var(--space-xs);">
+                                    ${escapeJS(ex)}
+                                </div>
                             `).join('')}
                         </div>
                     ` : ''}
                     
-                    ${rule.mistakes ? `
-                        <div class="mistakes-section">
-                            <h3>⚠️ Common Mistakes</h3>
-                            ${rule.mistakes.map(mistake => `
-                                <div class="mistake-item">
-                                    <div class="mistake-wrong">❌ ${escapeJS(mistake.wrong)}</div>
-                                    <div class="mistake-correct">✅ ${escapeJS(mistake.correct)}</div>
-                                    ${mistake.why ? `<div class="mistake-why">${escapeJS(mistake.why)}</div>` : ''}
+                    ${rule.examples_negative && rule.examples_negative.length > 0 ? `
+                        <div style="margin-top: var(--space-md);">
+                            <h4 style="color: var(--error); margin-bottom: var(--space-sm);">❌ Negative</h4>
+                            ${rule.examples_negative.map(ex => `
+                                <div style="padding: var(--space-sm); background: var(--bg-tertiary); 
+                                     border-radius: var(--border-radius-sm); margin-bottom: var(--space-xs);">
+                                    ${escapeJS(ex)}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${rule.examples_question && rule.examples_question.length > 0 ? `
+                        <div style="margin-top: var(--space-md);">
+                            <h4 style="color: var(--info); margin-bottom: var(--space-sm);">❓ Questions</h4>
+                            ${rule.examples_question.map(ex => `
+                                <div style="padding: var(--space-sm); background: var(--bg-tertiary); 
+                                     border-radius: var(--border-radius-sm); margin-bottom: var(--space-xs);">
+                                    ${escapeJS(ex)}
                                 </div>
                             `).join('')}
                         </div>
                     ` : ''}
                 </div>
-            `).join('')}
-        </div>
-    `;
-}
-
-// QUIZ SECTION
-function renderQuiz(quizData) {
-    if (!quizData || quizData.length === 0) {
-        return '<p class="text-center text-secondary">No quiz available.</p>';
+            `;
+        });
     }
     
-    return `
+    // Common Mistakes
+    if (grammar.common_mistakes && grammar.common_mistakes.length > 0) {
+        html += `
+            <div class="reading-block">
+                <h3>⚠️ Common Mistakes</h3>
+                ${grammar.common_mistakes.map(mistake => `
+                    <div style="margin-bottom: var(--space-md);">
+                        <div style="color: var(--error); margin-bottom: var(--space-xs);">
+                            ❌ ${escapeJS(mistake.wrong)}
+                        </div>
+                        <div style="color: var(--success); margin-bottom: var(--space-xs);">
+                            ✅ ${escapeJS(mistake.correct)}
+                        </div>
+                        ${mistake.explanation ? `
+                            <div style="color: var(--text-secondary); font-size: var(--font-size-sm);">
+                                ${escapeJS(mistake.explanation)}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+/* ================================================================
+   9. RENDER QUIZ SECTION
+   ================================================================ */
+function renderQuiz(questions) {
+    if (!questions || questions.length === 0) {
+        return '<p class="text-center text-secondary">No quiz questions available.</p>';
+    }
+    
+    quizScore.total = questions.length;
+    
+    let html = `
         <div class="quiz-header">
-            <h2>🎯 Test Your Knowledge</h2>
+            <h2>Practice Quiz</h2>
             <div class="quiz-score">
-                Score: <span id="quizCorrect">0</span> / <span id="quizTotal">${quizData.length}</span>
+                Score: <span id="quizScore">0 / ${questions.length}</span>
             </div>
-        </div>
-        
-        ${quizData.map((question, qIndex) => `
-            <div class="quiz-question" id="question-${qIndex}">
-                <div class="question-number">Question ${qIndex + 1} of ${quizData.length}</div>
-                <div class="question-text">${escapeJS(question.q)}</div>
-                
-                <div class="question-options">
-                    ${question.opts.map((option, optIndex) => `
-                        <button class="quiz-option" 
-                                onclick="checkAnswer(${qIndex}, ${optIndex}, ${question.correct})"
-                                data-question="${qIndex}"
-                                data-option="${optIndex}">
-                            ${escapeJS(option)}
-                        </button>
-                    `).join('')}
-                </div>
-                
-                <div class="question-feedback" id="feedback-${qIndex}"></div>
-            </div>
-        `).join('')}
-        
-        <div style="text-align: center; margin-top: var(--space-xl);">
-            <button class="listen-btn" onclick="resetQuiz()">
-                🔄 Reset Quiz
-            </button>
         </div>
     `;
-}
-/* ================================================================
-   7. QUIZ LOGIC
-   ================================================================ */
-function checkAnswer(questionIndex, selectedOption, correctOption) {
-    const questionDiv = document.getElementById(`question-${questionIndex}`);
-    const buttons = questionDiv.querySelectorAll('.quiz-option');
-    const feedback = document.getElementById(`feedback-${questionIndex}`);
     
-    // Отключаем все кнопки для этого вопроса
-    buttons.forEach(btn => btn.disabled = true);
-    
-    // Проверяем ответ
-    const isCorrect = selectedOption === correctOption;
-    
-    // Подсвечиваем правильный и неправильный ответы
-    buttons.forEach((btn, index) => {
-        if (index === correctOption) {
-            btn.classList.add('correct');
-        }
-        if (index === selectedOption && !isCorrect) {
-            btn.classList.add('incorrect');
-        }
+    questions.forEach((q, qIndex) => {
+        html += `
+            <div class="quiz-question" id="question-${qIndex}">
+                <div class="question-number">Question ${qIndex + 1} / ${questions.length}</div>
+                <div class="question-text">${escapeJS(q.q)}</div>
+                <div class="question-options">
+        `;
+        
+        q.opts.forEach((option, oIndex) => {
+            html += `
+                <button class="quiz-option" onclick="checkAnswer(${qIndex}, ${oIndex}, ${q.correct})">
+                    ${escapeJS(option)}
+                </button>
+            `;
+        });
+        
+        html += `
+                </div>
+                <div class="question-feedback" id="feedback-${qIndex}"></div>
+            </div>
+        `;
     });
     
-    // Обновляем счёт
+    return html;
+}
+
+function checkAnswer(qIndex, selectedIndex, correctIndex) {
+    const questionEl = document.getElementById(`question-${qIndex}`);
+    const options = questionEl.querySelectorAll('.quiz-option');
+    const feedbackEl = document.getElementById(`feedback-${qIndex}`);
+    
+    // Disable all options
+    options.forEach(btn => btn.disabled = true);
+    
+    const isCorrect = (selectedIndex === correctIndex);
+    
     if (isCorrect) {
+        options[selectedIndex].classList.add('correct');
+        feedbackEl.innerHTML = `
+            <div class="feedback-correct">
+                ✅ ${escapeJS(lessonData.quiz[qIndex].fb || 'Correct!')}
+            </div>
+        `;
         quizScore.correct++;
         vibrate(200);
     } else {
+        options[selectedIndex].classList.add('incorrect');
+        options[correctIndex].classList.add('correct');
+        feedbackEl.innerHTML = `
+            <div class="feedback-incorrect">
+                ❌ ${escapeJS(lessonData.quiz[qIndex].fb || 'Incorrect. Try again!')}
+            </div>
+        `;
         vibrate([100, 50, 100]);
     }
     
-    quizScore.total++;
-    
-    // Обновляем отображение счёта
-    document.getElementById('quizCorrect').textContent = quizScore.correct;
-    
-    // Показываем feedback
-    const quizData = lessonData.quiz[questionIndex];
-    feedback.innerHTML = `
-        <div class="feedback-${isCorrect ? 'correct' : 'incorrect'}">
-            ${isCorrect ? '✅' : '❌'} ${escapeJS(quizData.fb || (isCorrect ? 'Correct!' : 'Incorrect.'))}
-        </div>
-    `;
-    feedback.classList.add('show');
-    
-    // Прокручиваем к следующему вопросу
-    setTimeout(() => {
-        const nextQuestion = document.getElementById(`question-${questionIndex + 1}`);
-        if (nextQuestion) {
-            nextQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }, 1500);
+    feedbackEl.classList.add('show');
+    updateQuizScore();
 }
 
-function resetQuiz() {
-    quizScore = { correct: 0, total: 0 };
-    
-    // Сбрасываем все вопросы
-    document.querySelectorAll('.quiz-question').forEach(questionDiv => {
-        const buttons = questionDiv.querySelectorAll('.quiz-option');
-        buttons.forEach(btn => {
-            btn.disabled = false;
-            btn.classList.remove('correct', 'incorrect');
-        });
-        
-        const feedback = questionDiv.querySelector('.question-feedback');
-        if (feedback) {
-            feedback.classList.remove('show');
-            feedback.innerHTML = '';
-        }
-    });
-    
-    // Обновляем счёт
-    document.getElementById('quizCorrect').textContent = '0';
-    
-    // Прокручиваем к началу
-    document.getElementById('question-0').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-    showNotification('Quiz reset! Good luck! 🍀');
+function updateQuizScore() {
+    const scoreEl = document.getElementById('quizScore');
+    if (scoreEl) {
+        scoreEl.textContent = `${quizScore.correct} / ${quizScore.total}`;
+    }
 }
 
 /* ================================================================
-   8. TEXT-TO-SPEECH (TTS)
+   10. TEXT-TO-SPEECH (TTS)
    ================================================================ */
-function speakWord(word) {
-    // Останавливаем предыдущее воспроизведение
-    if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
+function speakWord(text) {
+    const cleanText = text.trim();
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodeURIComponent(cleanText)}`;
     
-    const cleanWord = word.toLowerCase().trim();
-    
-    // Пробуем Google TTS API (работает благодаря meta referrer)
-    const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(cleanWord)}`);
-    
+    const audio = new Audio(audioUrl);
     audio.play().catch(err => {
-        console.warn('Google TTS failed, using Web Speech API fallback:', err);
-        speakWithBrowserAPI(cleanWord);
+        console.warn('Google TTS failed, using fallback:', err);
+        speakWithBrowserAPI(cleanText);
     });
-    
-    vibrate(50);
-}
-function speakText(text, button) {
-    // ... существующий код функции speakText ...
 }
 
-// НОВАЯ ФУНКЦИЯ - добавьте её сюда
+function speakText(text, button) {
+    const cleanText = text.trim();
+    
+    if (button) {
+        button.classList.add('playing');
+        setTimeout(() => button.classList.remove('playing'), 2000);
+    }
+    
+    if (cleanText.length > 200) {
+        speakWithBrowserAPI(cleanText, button);
+    } else {
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodeURIComponent(cleanText)}`;
+        const audio = new Audio(audioUrl);
+        
+        audio.play().catch(err => {
+            console.warn('Google TTS failed, using fallback:', err);
+            speakWithBrowserAPI(cleanText, button);
+        });
+    }
+}
+
 function speakPhrase(event, text) {
     event.stopPropagation(); // Предотвращаем всплытие события
     speakText(text);
@@ -1786,623 +1718,238 @@ function speakPhrase(event, text) {
 }
 
 function speakWithBrowserAPI(text, button) {
-    // ... существующий код ...
+    if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        
+        const voices = speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => 
+            v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google'))
+        );
+        
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+        
+        if (button) {
+            utterance.onend = () => button.classList.remove('playing');
+        }
+        
+        speechSynthesis.speak(utterance);
+    } else {
+        console.warn('Speech synthesis not supported');
+    }
 }
 
-function speakText(text, button) {
-    // Останавливаем предыдущее воспроизведение
-    if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
-    
-    // Если кнопка в состоянии "playing", останавливаем
-    if (button && button.classList.contains('playing')) {
-        button.classList.remove('playing');
-        button.innerHTML = '🔊 Listen';
-        return;
-    }
-    
-    const cleanText = text.trim();
-    
-    // Пробуем Google TTS API
-    const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(cleanText)}`);
-    
-    if (button) {
-        button.classList.add('playing');
-        button.innerHTML = '⏸️ Stop';
-    }
-    
-    audio.addEventListener('ended', () => {
-        if (button) {
-            button.classList.remove('playing');
-            button.innerHTML = '🔊 Listen';
-        }
-    });
-    
-    audio.addEventListener('error', () => {
-        console.warn('Google TTS failed, using Web Speech API fallback');
-        speakWithBrowserAPI(cleanText, button);
-    });
-    
-    audio.play();
-    vibrate(50);
-}
-
-function speakWithBrowserAPI(text, button) {
-    if (!window.speechSynthesis) {
-        showNotification('⚠️ Text-to-speech not supported in this browser');
-        return;
-    }
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    
-    utterance.onend = () => {
-        if (button) {
-            button.classList.remove('playing');
-            button.innerHTML = '🔊 Listen';
-        }
+// Initialize voices for Chrome
+if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
     };
-    
-    utterance.onerror = (e) => {
-        console.error('Speech synthesis error:', e);
-        if (button) {
-            button.classList.remove('playing');
-            button.innerHTML = '🔊 Listen';
-        }
-        showNotification('⚠️ Speech synthesis failed');
-    };
-    
-    window.speechSynthesis.speak(utterance);
 }
 
 /* ================================================================
-   9. MY WORDS (LocalStorage)
+   11. MY WORDS (LOCALSTORAGE)
    ================================================================ */
-function saveWord(en, ru, cardIndex) {
-    const word = { en, ru };
-    
-    // Проверяем, не сохранено ли уже
-    const exists = myWords.some(w => w.en.toLowerCase() === en.toLowerCase());
-    
-    if (exists) {
-        showNotification('⚠️ Word already saved!');
+function loadMyWords() {
+    const saved = localStorage.getItem('myWords');
+    myWords = saved ? JSON.parse(saved) : [];
+    updateWordsSidebar();
+}
+
+function saveWord(word, translation, example) {
+    if (myWords.some(w => w.word === word)) {
+        showNotification(`"${word}" already saved!`);
         return;
     }
     
-    // Добавляем слово
-    myWords.push(word);
+    const wordObj = {
+        id: `word_${Date.now()}`,
+        word: word,
+        translation: translation,
+        example: example,
+        savedAt: new Date().toISOString()
+    };
     
-    // Сохраняем в LocalStorage
-    try {
-        localStorage.setItem(`lesson_${lessonId}_words`, JSON.stringify(myWords));
-    } catch (e) {
-        console.error('Failed to save to localStorage:', e);
-    }
+    myWords.push(wordObj);
+    localStorage.setItem('myWords', JSON.stringify(myWords));
     
-    // Обновляем UI
-    updateSavedWordsUI();
-    
-    // Помечаем кнопку как сохранённую
-    const saveButtons = document.querySelectorAll('.save-btn');
-    if (saveButtons[cardIndex]) {
-        saveButtons[cardIndex].classList.add('saved');
-        saveButtons[cardIndex].innerHTML = '✅ Saved';
-    }
-    
-    showNotification(`💾 "${en}" saved!`);
+    updateWordsSidebar();
+    showNotification(`"${word}" saved!`);
     vibrate(100);
 }
 
-function loadMyWords() {
-    try {
-        const saved = localStorage.getItem(`lesson_${lessonId}_words`);
-        if (saved) {
-            myWords = JSON.parse(saved);
-        }
-    } catch (e) {
-        console.error('Failed to load from localStorage:', e);
-        myWords = [];
-    }
-    
-    updateSavedWordsUI();
+function removeWord(wordId) {
+    myWords = myWords.filter(w => w.id !== wordId);
+    localStorage.setItem('myWords', JSON.stringify(myWords));
+    updateWordsSidebar();
+    showNotification('Word removed');
 }
 
-function removeWord(en) {
-    myWords = myWords.filter(w => w.en.toLowerCase() !== en.toLowerCase());
+function updateWordsSidebar() {
+    const countEl = document.getElementById('wordCount');
+    const containerEl = document.getElementById('sidebarContent');
     
-    // Сохраняем в LocalStorage
-    try {
-        localStorage.setItem(`lesson_${lessonId}_words`, JSON.stringify(myWords));
-    } catch (e) {
-        console.error('Failed to save to localStorage:', e);
+    if (countEl) {
+        countEl.textContent = myWords.length;
     }
     
-    // Обновляем UI
-    updateSavedWordsUI();
-    
-    // Снимаем отметку "saved" с кнопки
-    const saveButtons = document.querySelectorAll('.save-btn');
-    saveButtons.forEach(btn => {
-        if (btn.textContent.includes('Saved') && btn.onclick.toString().includes(en)) {
-            btn.classList.remove('saved');
-            btn.innerHTML = '💾 Save Word';
-        }
-    });
-    
-    showNotification(`🗑️ "${en}" removed`);
-    vibrate(50);
-}
-
-function updateSavedWordsUI() {
-    const list = document.getElementById('savedWordsList');
-    const counter = document.getElementById('wordCount');
-    
-    if (!list) return;
-    
-    counter.textContent = myWords.length;
+    if (!containerEl) return;
     
     if (myWords.length === 0) {
-        list.innerHTML = '<div class="no-words">No saved words yet.<br>Start saving words from the Vocabulary section! 📚</div>';
+        containerEl.innerHTML = '<p class="no-words">No saved words yet. Click 💾 to save!</p>';
         return;
     }
     
-    list.innerHTML = myWords.map(word => `
-        <div class="saved-word">
-            <div class="saved-word-en" onclick="speakWord('${escapeJS(word.en).replace(/'/g, "\\'")}')">
-                ${escapeJS(word.en)}
+    let html = '<div class="saved-words-list">';
+    myWords.forEach(item => {
+        html += `
+            <div class="saved-word">
+                <div class="saved-word-en" onclick="speakWord('${escapeJS(item.word).replace(/'/g, "\\'")}')">
+                    ${escapeJS(item.word)}
+                </div>
+                <div class="saved-word-ru">${escapeJS(item.translation)}</div>
+                <button class="remove-word-btn" onclick="removeWord('${item.id}')">🗑️</button>
             </div>
-            <div class="saved-word-ru">${escapeJS(word.ru)}</div>
-            <button class="remove-word-btn" onclick="removeWord('${escapeJS(word.en).replace(/'/g, "\\'")}')">
-                ✕
-            </button>
-        </div>
-    `).join('');
+        `;
+    });
+    html += '</div>';
+    
+    containerEl.innerHTML = html;
 }
 
 /* ================================================================
-   10. NAVIGATION (переключение табов)
+   12. NAVIGATION & UI FUNCTIONS
    ================================================================ */
 function switchTab(tabName) {
-    // Останавливаем TTS при смене таба
-    if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
+    // Update tab buttons
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    const activeTab = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
+    if (activeTab) {
+        activeTab.classList.add('active');
     }
     
-    // Убираем все активные классы
-    document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
-    
-    // Добавляем активный класс к выбранному табу
-    event.target.classList.add('active');
-    
-    // Показываем соответствующую секцию
-    const section = document.getElementById(tabName);
-    if (section) {
-        section.classList.add('active');
+    // Update content sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    const activeSection = document.getElementById(`section-${tabName}`);
+    if (activeSection) {
+        activeSection.classList.add('active');
     }
-    
-    // Прокручиваем наверх
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    vibrate(30);
 }
 
 function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('open');
-    vibrate(50);
+    document.getElementById('sidebar').classList.toggle('open');
 }
 
-/* ================================================================
-   11. FLASHCARDS (режим карточек)
-   ================================================================ */
 function switchVocabMode(mode) {
-    currentVocabMode = mode;
-    
-    // Обновляем кнопки
-    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    // Переключаем режимы
-    document.querySelectorAll('.vocab-mode').forEach(m => m.classList.remove('active'));
-    
-    if (mode === 'list') {
-        document.getElementById('vocabList').classList.add('active');
-    } else {
-        document.getElementById('vocabFlashcards').classList.add('active');
-        currentCard = 0;
-        showCard(0);
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const activeBtn = document.querySelector(`[onclick="switchVocabMode('${mode}')"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
     }
     
-    vibrate(30);
+    if (mode === 'list') {
+        document.getElementById('vocab-list').classList.add('active');
+        document.getElementById('vocab-flashcards').classList.remove('active');
+    } else {
+        document.getElementById('vocab-list').classList.remove('active');
+        document.getElementById('vocab-flashcards').classList.add('active');
+    }
 }
 
 function flipCard(index) {
-    const card = document.getElementById(`card-${index}`);
+    const card = document.querySelector(`.flashcard[data-index="${index}"]`);
     if (card) {
         card.classList.toggle('flipped');
-        vibrate(30);
     }
-}
-
-function showCard(index) {
-    const totalCards = lessonData.content.vocabulary.words.length;
-    
-    if (index < 0 || index >= totalCards) return;
-    
-    // Скрываем все карточки
-    document.querySelectorAll('.flashcard').forEach(card => {
-        card.classList.remove('active', 'flipped');
-    });
-    
-    // Показываем нужную
-    const card = document.getElementById(`card-${index}`);
-    if (card) {
-        card.classList.add('active');
-    }
-    
-    // Обновляем счётчик
-    document.getElementById('cardCounter').textContent = `${index + 1} / ${totalCards}`;
-    
-    currentCard = index;
 }
 
 function nextCard() {
     const totalCards = lessonData.content.vocabulary.words.length;
-    if (currentCard < totalCards - 1) {
-        showCard(currentCard + 1);
-        vibrate(30);
-    } else {
-        showNotification('🎉 You reached the last card!');
-    }
+    currentFlashcard = (currentFlashcard + 1) % totalCards;
+    updateFlashcard();
 }
 
-function prevCard() {
-    if (currentCard > 0) {
-        showCard(currentCard - 1);
-        vibrate(30);
-    } else {
-        showNotification('📍 This is the first card');
-    }
+function previousCard() {
+    const totalCards = lessonData.content.vocabulary.words.length;
+    currentFlashcard = (currentFlashcard - 1 + totalCards) % totalCards;
+    updateFlashcard();
 }
-/* ================================================================
-   12. UTILITY FUNCTIONS (вспомогательные функции)
-   ================================================================ */
 
-// Экранирование HTML для предотвращения XSS
-function escapeJS(str) {
-    if (typeof str !== 'string') return '';
+function updateFlashcard() {
+    document.querySelectorAll('.flashcard').forEach((card, index) => {
+        card.classList.toggle('active', index === currentFlashcard);
+        card.classList.remove('flipped');
+    });
     
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+    const totalCards = lessonData.content.vocabulary.words.length;
+    const counterEl = document.getElementById('cardCounter');
+    if (counterEl) {
+        counterEl.textContent = `${currentFlashcard + 1} / ${totalCards}`;
+    }
 }
 
-// Вибрация (если поддерживается)
+/* ================================================================
+   13. UTILITY FUNCTIONS
+   ================================================================ */
+function escapeJS(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function vibrate(pattern) {
     if ('vibrate' in navigator) {
         navigator.vibrate(pattern);
     }
 }
 
-// Показ уведомлений
-function showNotification(message, duration = 2000) {
-    const notification = document.getElementById('notification');
-    if (!notification) return;
-    
-    notification.textContent = message;
-    notification.classList.add('show');
+function showNotification(message) {
+    const notif = document.createElement('div');
+    notif.className = 'notification';
+    notif.textContent = message;
+    document.body.appendChild(notif);
     
     setTimeout(() => {
-        notification.classList.remove('show');
-    }, duration);
+        notif.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        notif.classList.remove('show');
+        setTimeout(() => notif.remove(), 300);
+    }, 2000);
 }
 
-// Debounce функция для оптимизации
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+function showError(message) {
+    const loader = document.getElementById('loader');
+    loader.innerHTML = `
+        <div class="error-container">
+            <div class="error-icon">⚠️</div>
+            <h2>Error Loading Lesson</h2>
+            <p>${escapeJS(message)}</p>
+            <button onclick="location.reload()">Try Again</button>
+        </div>
+    `;
 }
 
 /* ================================================================
-   13. EVENT LISTENERS
+   14. INITIALIZATION
    ================================================================ */
-
-// Обработка клавиатуры для навигации
-document.addEventListener('keydown', (e) => {
-    // ESC - закрыть sidebar
-    if (e.key === 'Escape') {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar && sidebar.classList.contains('open')) {
-            sidebar.classList.remove('open');
-        }
-    }
-    
-    // Стрелки для flashcards (только если режим flashcards активен)
-    if (currentVocabMode === 'flashcards') {
-        if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            prevCard();
-        } else if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            nextCard();
-        } else if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            flipCard(currentCard);
-        }
-    }
-});
-
-// Закрытие sidebar при клике вне его
-document.addEventListener('click', (e) => {
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.querySelector('.sidebar-toggle');
-    
-    if (sidebar && sidebar.classList.contains('open')) {
-        if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
-            sidebar.classList.remove('open');
-        }
-    }
-});
-
-// Обработка видимости страницы (остановка TTS при скрытии)
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        
-        // Сбрасываем состояние кнопок
-        document.querySelectorAll('.listen-btn.playing').forEach(btn => {
-            btn.classList.remove('playing');
-            btn.innerHTML = '🔊 Listen';
-        });
-    }
-});
-
-// Предотвращение случайного закрытия при наличии прогресса в квизе
-window.addEventListener('beforeunload', (e) => {
-    if (quizScore.total > 0 && quizScore.total < (lessonData?.quiz?.length || 0)) {
-        e.preventDefault();
-        e.returnValue = 'You have unsaved quiz progress. Are you sure you want to leave?';
-        return e.returnValue;
-    }
-});
-
-// Обработка ошибок загрузки изображений (если будут добавлены)
-document.addEventListener('error', (e) => {
-    if (e.target.tagName === 'IMG') {
-        e.target.style.display = 'none';
-        console.warn('Image failed to load:', e.target.src);
-    }
-}, true);
-
-/* ================================================================
-   14. INITIALIZATION (запуск приложения)
-   ================================================================ */
-
-// Инициализация при загрузке DOM
-document.addEventListener('DOMContentLoaded', () => {
-    console.log(`%c📚 Lesson ${lessonId} Loading...`, 'color: #00838F; font-size: 16px; font-weight: bold;');
-    
-    // Проверка поддержки LocalStorage
-    try {
-        localStorage.setItem('test', 'test');
-        localStorage.removeItem('test');
-    } catch (e) {
-        console.warn('LocalStorage not available:', e);
-        showNotification('⚠️ Word saving may not work in this browser');
-    }
-    
-    // Проверка поддержки Web Speech API
-    if (!window.speechSynthesis) {
-        console.warn('Web Speech API not supported');
-    }
-    
-    // Загружаем урок
-    loadLesson();
-});
-
-// Логирование успешной загрузки
-window.addEventListener('load', () => {
-    if (lessonData) {
-        console.log(`%c✅ Lesson "${lessonData.title}" loaded successfully!`, 'color: #34C759; font-size: 14px; font-weight: bold;');
-        console.log(`📊 Stats:`, {
-            readingBlocks: lessonData.content.reading?.length || 0,
-            vocabularyWords: lessonData.content.vocabulary?.words?.length || 0,
-            phrases: lessonData.content.vocabulary?.phrases?.length || 0,
-            grammarRules: lessonData.content.grammar?.length || 0,
-            quizQuestions: lessonData.quiz?.length || 0
-        });
-    }
-});
-
-// Улучшенная обработка ошибок
-window.addEventListener('error', (e) => {
-    console.error('Global error:', e.error);
-    
-    // Не показываем уведомление для незначительных ошибок
-    if (e.error && e.error.message && !e.error.message.includes('ResizeObserver')) {
-        showNotification('⚠️ An error occurred. Check console for details.');
-    }
-});
-
-// Обработка необработанных промисов
-window.addEventListener('unhandledrejection', (e) => {
-    console.error('Unhandled promise rejection:', e.reason);
-    showNotification('⚠️ Network or loading error occurred');
-});
-
-// Service Worker для offline работы (опционально)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        // Регистрация SW отключена по умолчанию
-        // Раскомментируйте для PWA функциональности
-        /*
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('ServiceWorker registered:', reg))
-            .catch(err => console.log('ServiceWorker registration failed:', err));
-        */
-    });
-}
-
-// Оптимизация производительности: ленивая загрузка изображений
-if ('IntersectionObserver' in window) {
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                if (img.dataset.src) {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src');
-                    observer.unobserve(img);
-                }
-            }
-        });
-    });
-    
-    // Наблюдаем за изображениями (если будут добавлены)
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            imageObserver.observe(img);
-        });
-    });
-}
-
-// Автосохранение прогресса квиза в sessionStorage
-function saveQuizProgress() {
-    if (quizScore.total > 0) {
-        try {
-            sessionStorage.setItem(`lesson_${lessonId}_quiz_progress`, JSON.stringify({
-                score: quizScore,
-                timestamp: Date.now()
-            }));
-        } catch (e) {
-            console.warn('Failed to save quiz progress:', e);
-        }
-    }
-}
-
-// Восстановление прогресса квиза (опционально)
-function restoreQuizProgress() {
-    try {
-        const saved = sessionStorage.getItem(`lesson_${lessonId}_quiz_progress`);
-        if (saved) {
-            const data = JSON.parse(saved);
-            // Проверяем, что прогресс не старше 24 часов
-            if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
-                // Можно восстановить прогресс здесь
-                console.log('Quiz progress found:', data);
-            }
-        }
-    } catch (e) {
-        console.warn('Failed to restore quiz progress:', e);
-    }
-}
-
-// Периодическое сохранение прогресса
-setInterval(saveQuizProgress, 30000); // каждые 30 секунд
-
-/* ================================================================
-   15. ДОПОЛНИТЕЛЬНЫЕ УТИЛИТЫ
-   ================================================================ */
-
-// Копирование текста в буфер обмена
-function copyToClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text)
-            .then(() => showNotification('📋 Copied to clipboard!'))
-            .catch(err => console.error('Failed to copy:', err));
-    } else {
-        // Fallback для старых браузеров
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            showNotification('📋 Copied to clipboard!');
-        } catch (err) {
-            console.error('Failed to copy:', err);
-        }
-        document.body.removeChild(textarea);
-    }
-}
-
-// Экспорт сохранённых слов в текстовый файл
-function exportMyWords() {
-    if (myWords.length === 0) {
-        showNotification('⚠️ No words to export');
-        return;
-    }
-    
-    let content = `My Words - Lesson ${lessonId}\n`;
-    content += `Generated: ${new Date().toLocaleString()}\n\n`;
-    
-    myWords.forEach((word, index) => {
-        content += `${index + 1}. ${word.en} - ${word.ru}\n`;
-    });
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lesson_${lessonId}_vocabulary.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    showNotification('📥 Words exported!');
-}
-
-// Печать урока
-function printLesson() {
-    window.print();
-}
-
-// Поделиться результатами квиза
-function shareQuizResults() {
-    const score = quizScore.correct;
-    const total = lessonData.quiz.length;
-    const percentage = Math.round((score / total) * 100);
-    
-    const text = `I scored ${score}/${total} (${percentage}%) on "${lessonData.title}" lesson! 🎯`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: 'My Quiz Results',
-            text: text
-        }).catch(err => console.log('Share failed:', err));
-    } else {
-        copyToClipboard(text);
-    }
-}
-
-// Консольные команды для разработки (можно удалить в продакшене)
-window.debugLesson = {
-    data: () => lessonData,
-    words: () => myWords,
-    score: () => quizScore,
-    reset: () => {
-        localStorage.clear();
-        sessionStorage.clear();
-        location.reload();
-    },
-    export: exportMyWords
-};
-
-console.log('%c💡 Tip: Use window.debugLesson for debugging', 'color: #FF9500; font-size: 12px;');
-
+document.addEventListener('DOMContentLoaded', loadLesson);
     </script>
 </body>
 </html>
-
