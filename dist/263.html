@@ -2,616 +2,2223 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Lesson</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="#0f0f12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Loading Lesson...</title>
+    
     <style>
-        /* --- 1. DESIGN SYSTEM --- */
-        :root {
-            --bg: #F0F4F8;
-            --surface: #FFFFFF;
-            --sidebar-bg: #FFFFFF;
-            --text: #102A43;
-            --text-light: #627D98;
-            --accent: #00838F; /* Перезапишется JS */
-            --accent-light: rgba(0, 131, 143, 0.1);
-            --border: #D9E2EC;
-            --success: #00E676;
-            --error: #FF1744;
-            --radius: 16px;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-            --shadow-lg: 0 15px 30px rgba(0,0,0,0.1);
-            --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-            --font-read: "Merriweather", "Georgia", serif;
-            --nav-height: 70px;
-        }
+/* ================================================================
+   1. CSS VARIABLES
+   ================================================================ */
+:root {
+    /* ===== COLORS ===== */
+    /* Background */
+    --bg-primary: #0f0f12;
+    --bg-secondary: #1C1C1E;
+    --bg-tertiary: #2C2C2E;
+    
+    /* Text */
+    --text-primary: #E5E5EA;
+    --text-secondary: #8E8E93;
+    --text-muted: #636366;
+    
+    /* Accent colors (будут заменены из JSON) */
+    --accent-1: #00838F;
+    --accent-2: #E0F7FA;
+    
+    /* Semantic colors */
+    --success: #34C759;
+    --success-bg: rgba(52, 199, 89, 0.15);
+    --error: #FF3B30;
+    --error-bg: rgba(255, 59, 48, 0.15);
+    --warning: #FF9500;
+    --info: #0A84FF;
+    
+    /* ===== SPACING ===== */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-xxl: 3rem;
+    
+    /* ===== TYPOGRAPHY ===== */
+    --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", 
+                   "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+    
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    
+    /* ===== BORDERS ===== */
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+    --border-radius-xl: 20px;
+    --border-radius-full: 9999px;
+    
+    /* ===== SHADOWS ===== */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.5);
+    
+    /* ===== TRANSITIONS ===== */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    
+    /* ===== Z-INDEX ===== */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-sidebar: 300;
+    --z-modal: 400;
+    --z-loader: 500;
+}
 
-        [data-theme="dark"] {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --sidebar-bg: #1e293b;
-            --text: #f1f5f9;
-            --text-light: #94a3b8;
-            --border: #334155;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
-            --shadow-lg: 0 15px 30px rgba(0,0,0,0.4);
-        }
+/* ================================================================
+   2. RESET & BASE STYLES
+   ================================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        * { box-sizing: border-box; }
-        body {
-            font-family: var(--font-ui);
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding-bottom: 100px; /* Space for bottom nav on mobile */
-            transition: background 0.4s ease;
-        }
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
 
-        /* --- LAYOUT WITH TABS --- */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    overflow-x: hidden;
+    min-height: 100vh;
+}
 
-        /* Sidebar (Desktop Navigation) */
-        .sidebar {
-            width: 280px;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            position: fixed; height: 100vh;
-            padding: 30px; z-index: 100;
-            display: flex; flex-direction: column;
-            transition: transform 0.3s;
-        }
+*:focus:not(:focus-visible) {
+    outline: none;
+}
 
-        .logo { font-weight: 900; font-size: 1.5rem; color: var(--accent); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
-        
-        .nav-menu { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-        .nav-btn {
-            padding: 14px 20px; border-radius: 12px;
-            background: transparent; border: none;
-            color: var(--text-light); font-weight: 600; font-size: 1rem;
-            cursor: pointer; text-align: left; transition: 0.2s;
-            display: flex; align-items: center; gap: 12px;
-        }
-        .nav-btn:hover { background: var(--bg); color: var(--accent); }
-        .nav-btn.active { background: var(--accent-light); color: var(--accent); }
-        .nav-btn .badge { margin-left: auto; background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; }
+*:focus-visible {
+    outline: 2px solid var(--accent-1);
+    outline-offset: 2px;
+}
 
-        /* Mobile Bottom Nav */
-        .mobile-nav { display: none; }
+h1, h2, h3, h4, h5, h6 {
+    line-height: var(--line-height-tight);
+    font-weight: var(--font-weight-bold);
+}
 
-        /* Main Content Area */
-        .main-view {
-            flex: 1; margin-left: 280px; /* Sidebar width */
-            padding: 40px 60px;
-            max-width: 1000px;
-        }
+p {
+    margin-bottom: var(--space-md);
+}
 
-        /* Tab Views */
-        .tab-content { display: none; animation: fadeIn 0.4s ease; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+a {
+    color: var(--accent-1);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
 
-        /* --- HERO --- */
-        .hero {
-            background: linear-gradient(135deg, var(--accent), #1a202c);
-            border-radius: 24px; padding: 60px 40px;
-            color: white; margin-bottom: 50px;
-            box-shadow: var(--shadow-lg);
-            position: relative; overflow: hidden;
-        }
-        .hero::before {
-            content: ''; position: absolute; top: -50%; right: -20%;
-            width: 400px; height: 400px; background: white; opacity: 0.05;
-            border-radius: 50%; filter: blur(60px);
-        }
-        .hero-tag { 
-            background: rgba(255,255,255,0.2); padding: 6px 14px; 
-            border-radius: 20px; font-size: 0.85rem; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .lesson-title { font-size: 3rem; margin: 20px 0 10px; line-height: 1.1; font-weight: 800; }
-        
-        /* --- READING BLOCKS --- */
-        .block { margin-bottom: 60px; }
-        .block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .block-title { font-size: 1.8rem; font-weight: 800; margin: 0; position: relative; }
-        
-        .reading-text { 
-            font-family: var(--font-read); font-size: 1.35rem; 
-            line-height: 1.9; color: var(--text); 
-        }
+a:hover {
+    color: var(--accent-2);
+}
 
-        /* --- INTERACTIVE WORDS --- */
-        .word { 
-            cursor: pointer; border-bottom: 2px solid transparent; 
-            border-radius: 4px; transition: all 0.15s;
-        }
-        .word:hover { background: var(--accent-light); border-bottom-color: var(--accent); }
-        .word.active { background: var(--accent); color: white; box-shadow: 0 4px 10px var(--accent-light); }
-        .word.saved { border-bottom: 2px solid var(--success); }
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    -webkit-tap-highlight-color: transparent;
+}
 
-        /* --- TOOLTIP (Modern Glass) --- */
-        #tooltip {
-            position: absolute; z-index: 9999;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.6);
-            padding: 16px; border-radius: 16px;
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
-            min-width: 200px;
-            opacity: 0; pointer-events: none; transform: scale(0.95);
-            transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        [data-theme="dark"] #tooltip { background: rgba(30, 40, 50, 0.9); border-color: rgba(255,255,255,0.1); }
-        #tooltip.visible { opacity: 1; pointer-events: auto; transform: scale(1); }
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
 
-        .tt-word { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; text-transform: capitalize; }
-        .tt-trans { font-size: 1.1rem; color: var(--accent); margin-bottom: 12px; font-family: var(--font-ui); }
-        .tt-loading { font-size: 0.9rem; color: var(--text-light); font-style: italic; display: none; }
-        .tt-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        
-        .tt-btn {
-            padding: 8px; border-radius: 8px; border: 1px solid var(--border);
-            background: transparent; cursor: pointer; font-weight: 600; font-size: 0.85rem;
-            transition: 0.2s; color: var(--text); display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .tt-btn:hover { background: var(--bg); border-color: var(--text-light); }
-        .tt-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
-        .tt-btn.primary:hover { opacity: 0.9; }
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
 
-        /* --- VOCABULARY TAB --- */
-        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-        .v-card {
-            background: var(--surface); border-radius: 16px; padding: 25px;
-            border: 1px solid var(--border); position: relative; transition: 0.3s;
-            box-shadow: var(--shadow-sm); cursor: pointer;
-        }
-        .v-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
-        .v-card h3 { margin: 0 0 5px 0; font-size: 1.4rem; color: var(--accent); }
-        .v-card p { margin: 0; color: var(--text-light); font-size: 1rem; }
-        .v-delete { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--error); opacity: 0; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
-        .v-card:hover .v-delete { opacity: 1; }
+::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: var(--border-radius-full);
+}
 
-        /* --- FLASHCARDS --- */
-        .flashcard-container { 
-            max-width: 500px; margin: 40px auto; perspective: 1000px; height: 300px; cursor: pointer;
-        }
-        .flashcard-inner {
-            position: relative; width: 100%; height: 100%; text-align: center;
-            transition: transform 0.6s; transform-style: preserve-3d;
-            box-shadow: var(--shadow-lg); border-radius: 24px;
-        }
-        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
-        .fc-face {
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: var(--surface); border-radius: 24px; border: 2px solid var(--border);
-        }
-        .fc-front h2 { font-size: 2.5rem; color: var(--accent); margin: 0; }
-        .fc-back { transform: rotateY(180deg); background: var(--bg); }
-        .fc-back h2 { font-size: 2rem; color: var(--text); }
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
 
-        /* --- RESPONSIVE --- */
-        @media (max-width: 800px) {
-            .sidebar { display: none; }
-            .mobile-nav {
-                display: flex; position: fixed; bottom: 0; left: 0; width: 100%;
-                background: var(--surface); padding: 10px; border-top: 1px solid var(--border);
-                justify-content: space-around; z-index: 1000;
-            }
-            .nav-btn-mobile {
-                flex-direction: column; gap: 4px; font-size: 0.8rem; background: none; border: none; color: var(--text-light);
-            }
-            .nav-btn-mobile.active { color: var(--accent); }
-            .nav-btn-mobile svg { width: 24px; height: 24px; fill: currentColor; }
-            
-            .main-view { margin-left: 0; padding: 20px; padding-bottom: 90px; }
-            .reading-text { font-size: 1.1rem; }
-            .hero-title { font-size: 2rem; }
-        }
+/* ================================================================
+   3. LAYOUT
+   ================================================================ */
+#app {
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+}
 
-        /* --- LOADER --- */
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+#app.loaded {
+    opacity: 1;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+}
+
+.main-content {
+    padding-bottom: 80px;
+}
+
+/* ================================================================
+   4. HEADER
+   ================================================================ */
+header {
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    padding: var(--space-xl) var(--space-md);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: headerPulse 15s ease-in-out infinite;
+}
+
+@keyframes headerPulse {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(5%, 5%) scale(1.1); }
+}
+
+.lesson-title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: white;
+    margin-bottom: var(--space-sm);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.lesson-subtitle {
+    font-size: var(--font-size-lg);
+    color: rgba(255,255,255,0.9);
+    font-weight: var(--font-weight-medium);
+    position: relative;
+    z-index: 1;
+}
+
+.lesson-meta {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    margin-top: var(--space-md);
+    position: relative;
+    z-index: 1;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-xs) var(--space-md);
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* ================================================================
+   5. NAVIGATION TABS
+   ================================================================ */
+.nav-container {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--bg-tertiary);
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    backdrop-filter: blur(10px);
+    -webkit-overflow-scrolling: touch;
+}
+
+.nav-container::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-tab {
+    flex-shrink: 0;
+    padding: var(--space-sm) var(--space-lg);
+    background: transparent;
+    color: var(--text-secondary);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-base);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nav-tab:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.nav-tab.active {
+    background: var(--accent-1);
+    color: white;
+    border-color: var(--accent-1);
+    box-shadow: 0 4px 12px rgba(0, 131, 143, 0.3);
+}
+
+.nav-tab:active {
+    transform: scale(0.96);
+}
+
+/* ================================================================
+   6. CONTENT SECTIONS
+   ================================================================ */
+.content-section {
+    display: none;
+    padding: var(--space-lg);
+    animation: fadeInUp var(--transition-base);
+}
+
+.content-section.active {
+    display: block;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================================================================
+   7. READING SECTION
+   ================================================================ */
+.reading-block {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    border-left: 4px solid var(--accent-1);
+}
+
+.reading-block[data-type="fact"] {
+    background: linear-gradient(135deg, rgba(0,131,143,0.1), rgba(224,247,250,0.05));
+    border-left-color: var(--accent-2);
+}
+
+.reading-block h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-md);
+    color: var(--accent-1);
+}
+
+.reading-text {
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: var(--text-primary);
+}
+
+.reading-text .word {
+    display: inline;
+    padding: 2px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.reading-text .word.clickable {
+    color: var(--accent-1);
+    font-weight: var(--font-weight-semibold);
+}
+
+.reading-text .word.clickable:hover {
+    background: rgba(0,131,143,0.15);
+    transform: translateY(-1px);
+}
+
+.reading-text .word.clickable:active {
+    transform: translateY(0);
+}
+
+.listen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--accent-1);
+    color: white;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-md);
+    transition: all var(--transition-base);
+}
+
+.listen-btn:hover {
+    background: var(--accent-2);
+    color: #333;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.listen-btn:active {
+    transform: translateY(0);
+}
+
+.listen-btn.playing {
+    background: var(--error);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* ================================================================
+   8. VOCABULARY SECTION
+   ================================================================ */
+.vocab-controls {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    justify-content: center;
+}
+
+.mode-btn {
+    padding: var(--space-sm) var(--space-xl);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-base);
+}
+
+.mode-btn.active {
+    background: var(--accent-1);
+    color: white;
+}
+
+.vocab-mode {
+    display: none;
+}
+
+.vocab-mode.active {
+    display: block;
+}
+
+.vocab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-lg);
+}
+
+.vocab-card {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    border: 2px solid transparent;
+}
+
+.vocab-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent-1);
+}
+
+.word-en {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--accent-1);
+    margin-bottom: var(--space-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.phonetic {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-normal);
+}
+
+.word-ru {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+}
+
+.word-example {
+    font-size: var(--font-size-base);
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-md);
+    border-left: 2px solid var(--bg-tertiary);
+}
+
+.word-meta {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.pos {
+    display: inline-block;
+    padding: 2px var(--space-sm);
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.save-btn {
+    width: 100%;
+    padding: var(--space-sm);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-base);
+}
+
+.save-btn:hover {
+    background: var(--success);
+    color: white;
+}
+
+.save-btn.saved {
+    background: var(--success);
+    color: white;
+    pointer-events: none;
+}
+
+.flashcard {
+    display: none;
+    width: 100%;
+    max-width: 500px;
+    height: 350px;
+    margin: 0 auto var(--space-xl);
+    perspective: 1000px;
+}
+
+.flashcard.active {
+    display: block;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    cursor: pointer;
+}
+
+.flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--shadow-xl);
+}
+
+.flashcard-back {
+    transform: rotateY(180deg);
+}
+
+.flashcard-word {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--accent-1);
+    text-align: center;
+}
+
+.flashcard-hint {
+    margin-top: var(--space-md);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.flashcard-translation {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: var(--space-md);
+}
+
+.flashcard-example {
+    font-size: var(--font-size-base);
+    font-style: italic;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.flashcard-controls {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    align-items: center;
+}
+
+.flashcard-controls button {
+    padding: var(--space-md) var(--space-xl);
+    background: var(--accent-1);
+    color: white;
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-base);
+}
+
+.flashcard-controls button:hover {
+    background: var(--accent-2);
+    color: #333;
+    transform: scale(1.05);
+}
+
+#cardCounter {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.phrases-section {
+    margin-top: var(--space-xxl);
+}
+
+.phrases-section h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-lg);
+    color: var(--accent-1);
+}
+
+.phrase-item {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.phrase-item:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(5px);
+}
+
+.phrase-en {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--accent-1);
+    margin-bottom: var(--space-xs);
+}
+
+.phrase-ru {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+}
+
+.phrase-context {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+}
+
+/* ================================================================
+   9. QUIZ SECTION
+   ================================================================ */
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+}
+
+.quiz-header h2 {
+    font-size: var(--font-size-2xl);
+    color: var(--accent-1);
+}
+
+.quiz-score {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+}
+
+.quiz-question {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.question-number {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+.question-text {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-lg);
+    line-height: var(--line-height-relaxed);
+}
+
+.question-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.quiz-option {
+    width: 100%;
+    padding: var(--space-lg);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.quiz-option:hover:not(:disabled) {
+    background: var(--bg-primary);
+    border-color: var(--accent-1);
+    transform: translateX(5px);
+}
+
+.quiz-option:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.quiz-option:disabled {
+    cursor: not-allowed;
+}
+
+.quiz-option.correct {
+    background: var(--success-bg);
+    border-color: var(--success);
+    color: var(--success);
+    animation: correctAnswer 0.5s ease;
+}
+
+.quiz-option.incorrect {
+    background: var(--error-bg);
+    border-color: var(--error);
+    color: var(--error);
+    animation: shake 0.5s ease;
+}
+
+@keyframes correctAnswer {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.question-feedback {
+    display: none;
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    animation: fadeIn 0.3s ease;
+}
+
+.question-feedback.show {
+    display: block;
+}
+
+.feedback-correct {
+    background: var(--success-bg);
+    color: var(--success);
+    border-left: 4px solid var(--success);
+}
+
+.feedback-incorrect {
+    background: var(--error-bg);
+    color: var(--error);
+    border-left: 4px solid var(--error);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================================================================
+   10. SIDEBAR (MY WORDS)
+   ================================================================ */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -320px;
+    width: 320px;
+    height: 100vh;
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-xl);
+    transition: right var(--transition-base);
+    z-index: var(--z-sidebar);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.open {
+    right: 0;
+}
+
+.sidebar-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--accent-1);
+    color: white;
+    border-radius: var(--border-radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    box-shadow: var(--shadow-md);
+    z-index: var(--z-sidebar);
+    transition: all var(--transition-base);
+}
+
+.sidebar-toggle:hover {
+    background: var(--accent-2);
+    color: #333;
+    transform: scale(1.05);
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-xl) var(--space-lg);
+}
+
+.saved-words-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.saved-word {
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: var(--space-md);
+    position: relative;
+}
+
+.saved-word-en {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--accent-1);
+    margin-bottom: var(--space-xs);
+    cursor: pointer;
+}
+
+.saved-word-ru {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+}
+
+.remove-word-btn {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--error);
+    color: white;
+    border-radius: 50%;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.remove-word-btn:hover {
+    transform: scale(1.1);
+    background: #ff1a1a;
+}
+
+.no-words {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size-base);
+    padding: var(--space-xl);
+}
+
+/* ================================================================
+   11. LOADER
+   ================================================================ */
+.loader-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    z-index: var(--z-loader);
+    transition: opacity var(--transition-slow);
+}
+
+.loader-container.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top-color: var(--accent-1);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loader-text {
+    margin-top: var(--space-lg);
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.error-container {
+    text-align: center;
+    padding: var(--space-xl);
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-lg);
+}
+
+.error-container h2 {
+    font-size: var(--font-size-2xl);
+    color: var(--error);
+    margin-bottom: var(--space-md);
+}
+
+.error-container p {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xl);
+}
+
+.error-container button {
+    padding: var(--space-md) var(--space-xl);
+    background: var(--accent-1);
+    color: white;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-base);
+}
+
+.error-container button:hover {
+    background: var(--accent-2);
+    color: #333;
+    transform: scale(1.05);
+}
+
+/* ================================================================
+   12. UTILITY CLASSES
+   ================================================================ */
+.hidden { display: none !important; }
+.block { display: block !important; }
+.flex { display: flex !important; }
+.inline-flex { display: inline-flex !important; }
+
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-success { color: var(--success) !important; }
+.text-error { color: var(--error) !important; }
+
+.notification {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--space-md) var(--space-xl);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: var(--border-radius-full);
+    box-shadow: var(--shadow-xl);
+    z-index: var(--z-modal);
+    transition: bottom var(--transition-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+}
+
+.notification.show {
+    bottom: 20px;
+}
+
+/* ================================================================
+   13. RESPONSIVE DESIGN
+   ================================================================ */
+@media (max-width: 768px) {
+    :root {
+        --font-size-3xl: 1.75rem;
+        --font-size-2xl: 1.25rem;
+        --font-size-xl: 1.125rem;
+    }
+    
+    header {
+        padding: var(--space-lg) var(--space-md);
+    }
+    
+    .lesson-title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .nav-tab {
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--font-size-sm);
+    }
+    
+    .content-section {
+        padding: var(--space-md);
+    }
+    
+    .vocab-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .flashcard {
+        height: 300px;
+    }
+    
+    .quiz-option {
+        padding: var(--space-md);
+    }
+    
+    .sidebar {
+        width: 100%;
+        right: -100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .quiz-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+    }
+    
+    .flashcard {
+        height: 250px;
+    }
+    
+    .flashcard-word {
+        font-size: var(--font-size-2xl);
+    }
+}
     </style>
 </head>
 <body>
-
-<div class="app-container">
+    <!-- LOADER -->
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+        <div class="loader-text">Loading lesson...</div>
+    </div>
     
-    <!-- Desktop Sidebar -->
-    <aside class="sidebar">
-        <div class="logo">
-            <span style="font-size:2rem">⚡</span> LingoLearn
-        </div>
-        <nav class="nav-menu">
-            <button class="nav-btn active" onclick="switchTab('lesson')">
-                📖 Lesson Content
-            </button>
-            <button class="nav-btn" onclick="switchTab('vocab')">
-                🧠 My Vocabulary
-                <span class="badge" id="badge-count">0</span>
-            </button>
-            <button class="nav-btn" onclick="switchTab('practice')">
-                🎓 Flashcards
-            </button>
-        </nav>
-        <div style="margin-top: auto;">
-            <button class="nav-btn" onclick="toggleTheme()">◑ Toggle Theme</button>
+    <!-- APP CONTAINER -->
+    <div id="app"></div>
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-content" id="sidebarContent">
+            <h2 style="color: var(--accent-1); margin-bottom: var(--space-lg);">💾 My Words</h2>
+            <div class="saved-words-list" id="savedWordsList"></div>
         </div>
     </aside>
+    
+    <!-- SIDEBAR TOGGLE BUTTON -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        💾 My Words (<span id="wordCount">0</span>)
+    </button>
+    
+    <!-- NOTIFICATION -->
+    <div class="notification" id="notification"></div>
+    
+    <script>
+/* ================================================================
+   1. GLOBAL VARIABLES
+   ================================================================ */
+let lessonData = null;
+let myWords = [];
+let quizScore = { correct: 0, total: 0 };
+let currentCard = 0;
+let currentVocabMode = 'list';
 
-    <!-- Mobile Bottom Nav -->
-    <div class="mobile-nav">
-        <button class="nav-btn-mobile active" onclick="switchTab('lesson')">
-            <span>📖</span> Lesson
-        </button>
-        <button class="nav-btn-mobile" onclick="switchTab('vocab')">
-            <span>🧠</span> Vocab
-        </button>
-        <button class="nav-btn-mobile" onclick="switchTab('practice')">
-            <span>🎓</span> Practice
-        </button>
-    </div>
+/* ================================================================
+   2. LESSON ID DETECTION
+   ================================================================ */
+const lessonId = (() => {
+    const pathname = window.location.pathname;
+    const match = pathname.match(/(\d+)\.html$/);
+    return match ? match[1] : null;
+})();
 
-    <!-- Tooltip -->
-    <div id="tooltip">
-        <div class="tt-header" style="display:flex; justify-content:space-between;">
-            <div class="tt-word">Word</div>
-            <div class="tt-loading"><div class="loader"></div></div>
+if (!lessonId) {
+    document.getElementById('loader').innerHTML = `
+        <div class="error-container">
+            <div class="error-icon">⚠️</div>
+            <h2>Error</h2>
+            <p>Unable to determine lesson number from filename.</p>
+            <button onclick="window.location.reload()">Reload Page</button>
         </div>
-        <div class="tt-trans">Translation...</div>
-        <div class="tt-actions">
-            <button class="tt-btn primary" onclick="tooltipActions.play()">🔊 Listen</button>
-            <button class="tt-btn" id="tt-save" onclick="tooltipActions.toggleSave()">+ Save</button>
-        </div>
-    </div>
+    `;
+}
 
-    <!-- Main Content -->
-    <main class="main-view">
+/* ================================================================
+   3. JSON LOADING
+   ================================================================ */
+async function loadLesson() {
+    if (!lessonId) return;
+    
+    try {
+        const response = await fetch(`../data/${lessonId}.json`);
         
-        <!-- TAB 1: LESSON -->
-        <div id="tab-lesson" class="tab-content active">
-            <div class="hero" id="hero">
-                <span class="hero-tag">LESSON Loading...</span>
-                <h1 class="lesson-title">Loading Content...</h1>
-            </div>
-            <div id="lesson-body"></div>
-        </div>
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        lessonData = await response.json();
+        initLesson(lessonData);
+        
+    } catch (error) {
+        console.error('Failed to load lesson:', error);
+        showError(`Failed to load lesson ${lessonId}: ${error.message}`);
+    }
+}
 
-        <!-- TAB 2: VOCABULARY -->
-        <div id="tab-vocab" class="tab-content">
-            <h1 class="block-title" style="margin-bottom:30px;">My Vocabulary</h1>
-            <div id="vocab-list" class="vocab-grid">
-                <!-- Cards injected here -->
-            </div>
-            <div id="empty-vocab" style="text-align:center; margin-top:50px; display:none;">
-                <h3>No words saved yet</h3>
-                <p>Click on any word in the lesson text to translate and save it.</p>
-            </div>
+function showError(message) {
+    const loader = document.getElementById('loader');
+    loader.innerHTML = `
+        <div class="error-container">
+            <div class="error-icon">⚠️</div>
+            <h2>Loading Error</h2>
+            <p>${escapeJS(message)}</p>
+            <button onclick="window.location.reload()">Try Again</button>
         </div>
+    `;
+}
 
-        <!-- TAB 3: PRACTICE -->
-        <div id="tab-practice" class="tab-content">
-            <h1 class="block-title" style="text-align:center;">Flashcards</h1>
-            <div class="flashcard-container" onclick="this.classList.toggle('flipped')">
-                <div class="flashcard-inner">
-                    <div class="fc-face fc-front">
-                        <h2 id="fc-front-text">Start</h2>
-                        <p style="margin-top:20px; color:var(--text-light)">(Click to flip)</p>
-                    </div>
-                    <div class="fc-face fc-back">
-                        <h2 id="fc-back-text">...</h2>
-                    </div>
+/* ================================================================
+   4. INIT LESSON
+   ================================================================ */
+function initLesson(data) {
+    // Установить заголовок страницы
+    document.title = data.title;
+    
+    // Применить цвета из JSON
+    if (data.colors && data.colors.length >= 2) {
+        document.documentElement.style.setProperty('--accent-1', data.colors[0]);
+        document.documentElement.style.setProperty('--accent-2', data.colors[1]);
+    }
+    
+    // Применить тему
+    if (data.meta?.theme) {
+        document.body.setAttribute('data-theme', data.meta.theme);
+    }
+    
+    // Построить интерфейс
+    const app = document.getElementById('app');
+    app.innerHTML = buildInterface(data);
+    
+    // Загрузить сохранённые слова
+    loadMyWords();
+    
+    // Скрыть loader
+    setTimeout(() => {
+        const loader = document.getElementById('loader');
+        loader.classList.add('hidden');
+        app.classList.add('loaded');
+    }, 300);
+}
+
+/* ================================================================
+   5. BUILD INTERFACE
+   ================================================================ */
+function buildInterface(data) {
+    const hasGrammar = data.content.grammar && data.content.grammar.length > 0;
+    
+    return `
+        <header>
+            <h1 class="lesson-title">${escapeJS(data.title)}</h1>
+            <p class="lesson-subtitle">${escapeJS(data.subtitle || '')}</p>
+            <div class="lesson-meta">
+                <span class="badge">${escapeJS(data.meta.level || 'B1')}</span>
+                <span class="badge">${escapeJS(data.meta.duration || 30)} min</span>
+            </div>
+        </header>
+        
+        <nav class="nav-container">
+            <button class="nav-tab active" onclick="switchTab('reading')">
+                📖 Reading
+            </button>
+            <button class="nav-tab" onclick="switchTab('vocabulary')">
+                📚 Vocabulary
+            </button>
+            ${hasGrammar ? `
+                <button class="nav-tab" onclick="switchTab('grammar')">
+                    ✏️ Grammar
+                </button>
+            ` : ''}
+            <button class="nav-tab" onclick="switchTab('quiz')">
+                🎯 Quiz
+            </button>
+        </nav>
+        
+        <main class="main-content">
+            <div id="reading" class="content-section active">
+                ${renderReading(data.content.reading)}
+            </div>
+            
+            <div id="vocabulary" class="content-section">
+                ${renderVocabulary(data.content.vocabulary)}
+            </div>
+            
+            ${hasGrammar ? `
+                <div id="grammar" class="content-section">
+                    ${renderGrammar(data.content.grammar)}
+                </div>
+            ` : ''}
+            
+            <div id="quiz" class="content-section">
+                ${renderQuiz(data.quiz)}
+            </div>
+        </main>
+    `;
+}
+
+/* ================================================================
+   6. RENDER FUNCTIONS
+   ================================================================ */
+
+// READING SECTION
+function renderReading(readingData) {
+    if (!readingData || readingData.length === 0) {
+        return '<p class="text-center text-secondary">No reading content available.</p>';
+    }
+    
+    let html = '';
+    
+    readingData.forEach((block, index) => {
+        const blockType = block.type || 'paragraph';
+        const hasAudio = block.audio_paragraph === true;
+        
+        html += `
+            <div class="reading-block" data-type="${blockType}">
+                ${block.title ? `<h3>${escapeJS(block.title)}</h3>` : ''}
+                
+                ${hasAudio ? `
+                    <button class="listen-btn" onclick="speakText('${escapeJS(block.text).replace(/'/g, "\\'")}', this)">
+                        🔊 Listen
+                    </button>
+                ` : ''}
+                
+                <div class="reading-text">
+                    ${highlightWords(block.text, block.highlight || [])}
                 </div>
             </div>
-            <div style="text-align:center; margin-top:30px; display:flex; gap:20px; justify-content:center;">
-                <button class="tt-btn" style="padding:12px 24px; font-size:1.2rem;" onclick="flashcards.prev()">← Prev</button>
-                <button class="tt-btn primary" style="padding:12px 24px; font-size:1.2rem;" onclick="flashcards.next()">Next →</button>
+        `;
+    });
+    
+    return html;
+}
+
+function highlightWords(text, wordsToHighlight) {
+    if (!wordsToHighlight || wordsToHighlight.length === 0) {
+        return escapeJS(text);
+    }
+    
+    let result = escapeJS(text);
+    
+    wordsToHighlight.forEach(word => {
+        const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+        result = result.replace(regex, '<span class="word clickable" onclick="speakWord(\'$1\')">$1</span>');
+    });
+    
+    return result;
+}
+
+// VOCABULARY SECTION
+function renderVocabulary(vocabData) {
+    if (!vocabData || !vocabData.words || vocabData.words.length === 0) {
+        return '<p class="text-center text-secondary">No vocabulary available.</p>';
+    }
+    
+    const words = vocabData.words;
+    const phrases = vocabData.phrases || [];
+    
+    return `
+        <div class="vocab-controls">
+            <button class="mode-btn active" onclick="switchVocabMode('list')">
+                📋 List
+            </button>
+            <button class="mode-btn" onclick="switchVocabMode('flashcards')">
+                🎴 Flashcards
+            </button>
+        </div>
+        
+        <!-- LIST MODE -->
+        <div id="vocabList" class="vocab-mode active">
+            <div class="vocab-grid">
+                ${words.map((word, index) => `
+                    <div class="vocab-card" onclick="speakWord('${escapeJS(word.en).replace(/'/g, "\\'")}')">
+                        <div class="word-en">
+                            ${escapeJS(word.en)}
+                            ${word.transcription ? `<span class="phonetic">${escapeJS(word.transcription)}</span>` : ''}
+                        </div>
+                        <div class="word-ru">${escapeJS(word.ru)}</div>
+                        ${word.part_of_speech ? `
+                            <div class="word-meta">
+                                <span class="pos">${escapeJS(word.part_of_speech)}</span>
+                            </div>
+                        ` : ''}
+                        ${word.example ? `<div class="word-example">"${escapeJS(word.example)}"</div>` : ''}
+                        <button class="save-btn" onclick="event.stopPropagation(); saveWord('${escapeJS(word.en).replace(/'/g, "\\'")}', '${escapeJS(word.ru).replace(/'/g, "\\'")}', ${index})">
+                            💾 Save Word
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+            
+            ${phrases.length > 0 ? `
+                <div class="phrases-section">
+                    <h3>📝 Useful Phrases</h3>
+                    ${phrases.map(phrase => `
+                        <div class="phrase-item" onclick="speakText('${escapeJS(phrase.en).replace(/'/g, "\\'")}', this)">
+                            <div class="phrase-en">${escapeJS(phrase.en)}</div>
+                            <div class="phrase-ru">${escapeJS(phrase.ru)}</div>
+                            ${phrase.context ? `<div class="phrase-context">Context: ${escapeJS(phrase.context)}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+        
+        <!-- FLASHCARDS MODE -->
+        <div id="vocabFlashcards" class="vocab-mode">
+            ${words.map((word, index) => `
+                <div class="flashcard ${index === 0 ? 'active' : ''}" id="card-${index}" onclick="flipCard(${index})">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <div class="flashcard-word">${escapeJS(word.en)}</div>
+                            ${word.transcription ? `<div class="flashcard-hint">${escapeJS(word.transcription)}</div>` : ''}
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="flashcard-translation">${escapeJS(word.ru)}</div>
+                            ${word.example ? `<div class="flashcard-example">"${escapeJS(word.example)}"</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+            
+            <div class="flashcard-controls">
+                <button onclick="prevCard()">⬅️ Previous</button>
+                <span id="cardCounter">1 / ${words.length}</span>
+                <button onclick="nextCard()">Next ➡️</button>
             </div>
         </div>
+    `;
+}
 
-    </main>
-</div>
-<script>
-    // --- 1. CONFIG & STATE ---
-    const lessonId = window.location.pathname.split('/').pop().replace('.html', '') || '263';
-    const storageKey = `lingo_vocab_${lessonId}`;
-    
-    // App State
-    let savedWords = JSON.parse(localStorage.getItem(storageKey)) || [];
-    let currentTooltipWord = null;
-    
-    // --- 2. API INTEGRATIONS ---
-
-    // A. Google TTS Hack (Better Audio)
-    function speak(text) {
-        // Fallback to browser TTS if offline
-        if (!navigator.onLine) {
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'en-GB'; u.rate = 0.9;
-            window.speechSynthesis.speak(u);
-            return;
-        }
-        // Google TTS URL
-        const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`);
-        audio.play();
+// GRAMMAR SECTION
+function renderGrammar(grammarData) {
+    if (!grammarData || grammarData.length === 0) {
+        return '<p class="text-center text-secondary">No grammar content available.</p>';
     }
-
-    // B. Translation API (MyMemory - Free Tier)
-    async function fetchTranslation(text) {
-        try {
-            // Check if we already have it saved locally
-            const existing = savedWords.find(w => w.en.toLowerCase() === text.toLowerCase());
-            if (existing) return existing.ru;
-
-            const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ru`;
-            const res = await fetch(url);
-            const data = await res.json();
-            
-            if (data.responseData && data.responseData.translatedText) {
-                return data.responseData.translatedText;
-            }
-            return "No translation found";
-        } catch (e) {
-            console.error(e);
-            return "Error loading translation";
-        }
-    }
-
-    // --- 3. CORE LOGIC MANAGERS ---
-
-    const vocabManager = {
-        add(en, ru) {
-            const clean = en.toLowerCase();
-            if (savedWords.some(w => w.en.toLowerCase() === clean)) return; // exists
-            
-            savedWords.push({ id: Date.now(), en: clean, ru: ru });
-            this.save();
-            this.render();
-            updateUIState();
-        },
-        remove(id) {
-            savedWords = savedWords.filter(w => w.id !== id);
-            this.save();
-            this.render();
-            updateUIState();
-        },
-        save() {
-            localStorage.setItem(storageKey, JSON.stringify(savedWords));
-            updateBadge();
-        },
-        isSaved(word) {
-            return savedWords.some(w => w.en.toLowerCase() === word.toLowerCase());
-        },
-        render() {
-            const container = document.getElementById('vocab-list');
-            const emptyState = document.getElementById('empty-vocab');
-            
-            if (savedWords.length === 0) {
-                container.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-            
-            emptyState.style.display = 'none';
-            container.innerHTML = savedWords.map(w => `
-                <div class="v-card" onclick="speak('${w.en}')">
-                    <h3>${w.en}</h3>
-                    <p>${w.ru}</p>
-                    <button class="v-delete" onclick="event.stopPropagation(); vocabManager.remove(${w.id})">✕</button>
+    
+    return `
+        <div class="grammar-container">
+            <h2>✏️ Grammar Focus</h2>
+            ${grammarData.map(rule => `
+                <div class="grammar-rule">
+                    ${rule.title ? `<h3>${escapeJS(rule.title)}</h3>` : ''}
+                    ${rule.pattern ? `<div class="rule-pattern">${escapeJS(rule.pattern)}</div>` : ''}
+                    ${rule.explanation ? `<div class="rule-description">${escapeJS(rule.explanation)}</div>` : ''}
+                    
+                    ${rule.examples ? `
+                        <div class="examples-group">
+                            <h4>Examples:</h4>
+                            ${rule.examples.map(ex => `
+                                <div class="example">${escapeJS(ex)}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${rule.mistakes ? `
+                        <div class="mistakes-section">
+                            <h3>⚠️ Common Mistakes</h3>
+                            ${rule.mistakes.map(mistake => `
+                                <div class="mistake-item">
+                                    <div class="mistake-wrong">❌ ${escapeJS(mistake.wrong)}</div>
+                                    <div class="mistake-correct">✅ ${escapeJS(mistake.correct)}</div>
+                                    ${mistake.why ? `<div class="mistake-why">${escapeJS(mistake.why)}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
                 </div>
-            `).join('');
-            
-            // Also update flashcards
-            flashcards.init();
-        }
-    };
+            `).join('')}
+        </div>
+    `;
+}
 
-    const tooltipActions = {
-        el: document.getElementById('tooltip'),
-        wordEl: document.querySelector('.tt-word'),
-        transEl: document.querySelector('.tt-trans'),
-        loader: document.querySelector('.tt-loading'),
-        saveBtn: document.getElementById('tt-save'),
-        
-        async show(target, word) {
-            currentTooltipWord = word;
-            
-            // Reset UI
-            this.el.classList.remove('visible');
-            this.wordEl.innerText = word;
-            this.transEl.innerText = '';
-            this.loader.style.display = 'block';
-            this.updateSaveBtn();
-
-            // Calc Position
-            const rect = target.getBoundingClientRect();
-            const top = rect.top + window.scrollY - 10;
-            const left = rect.left + window.scrollX + (rect.width/2);
-            
-            this.el.style.top = `${top}px`; 
-            this.el.style.left = `${left}px`; 
-            this.el.style.transform = 'translate(-50%, -100%) scale(0.95)';
-            
-            // Show
-            requestAnimationFrame(() => {
-                this.el.classList.add('visible');
-                this.el.style.transform = 'translate(-50%, -110%) scale(1)';
-            });
-
-            // Fetch Data
-            const translation = await fetchTranslation(word);
-            this.transEl.innerText = translation;
-            this.loader.style.display = 'none';
-        },
-        
-        hide() {
-            this.el.classList.remove('visible');
-        },
-
-        play() {
-            if(currentTooltipWord) speak(currentTooltipWord);
-        },
-
-        toggleSave() {
-            const word = currentTooltipWord;
-            const trans = this.transEl.innerText;
-            
-            // Check if we are saving or removing
-            const existing = savedWords.find(w => w.en.toLowerCase() === word.toLowerCase());
-            
-            if (existing) {
-                vocabManager.remove(existing.id);
-            } else {
-                if (!trans || trans === 'Loading...') return;
-                vocabManager.add(word, trans);
-            }
-            this.updateSaveBtn();
-        },
-
-        updateSaveBtn() {
-            if (!currentTooltipWord) return;
-            const isSaved = vocabManager.isSaved(currentTooltipWord);
-            this.saveBtn.innerText = isSaved ? '✓ Saved' : '+ Save';
-            this.saveBtn.style.background = isSaved ? 'var(--success)' : 'transparent';
-            this.saveBtn.style.color = isSaved ? 'white' : 'var(--text)';
-            this.saveBtn.style.borderColor = isSaved ? 'var(--success)' : 'var(--border)';
-        }
-    };
-
-    const flashcards = {
-        idx: 0,
-        
-        init() {
-            if(savedWords.length > 0) this.render();
-            else {
-                document.getElementById('fc-front-text').innerText = 'Add words first';
-                document.getElementById('fc-back-text').innerText = 'Go to lesson tab';
-            }
-        },
-        
-        render() {
-            const item = savedWords[this.idx];
-            document.querySelector('.flashcard-container').classList.remove('flipped');
-            
-            // Small delay to hide swap
-            setTimeout(() => {
-                document.getElementById('fc-front-text').innerText = item.en;
-                document.getElementById('fc-back-text').innerText = item.ru;
-            }, 200);
-        },
-
-        next() {
-            if (savedWords.length === 0) return;
-            this.idx = (this.idx + 1) % savedWords.length;
-            this.render();
-        },
-
-        prev() {
-            if (savedWords.length === 0) return;
-            this.idx = (this.idx - 1 + savedWords.length) % savedWords.length;
-            this.render();
-        }
-    };
-
-    // --- 4. UI HELPERS ---
-
-    function switchTab(tabId) {
-        // Hide all
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-btn, .nav-btn-mobile').forEach(el => el.classList.remove('active'));
-        
-        // Show target
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        
-        // Update Buttons (Desktop & Mobile)
-        // Simple hack to highlight correct button based on index or logic
-        // For now, just re-render is easier or manually selecting
+// QUIZ SECTION
+function renderQuiz(quizData) {
+    if (!quizData || quizData.length === 0) {
+        return '<p class="text-center text-secondary">No quiz available.</p>';
     }
     
-    function updateBadge() {
-        document.getElementById('badge-count').innerText = savedWords.length;
-    }
-
-    function updateUIState() {
-        // Highlight saved words in text
-        document.querySelectorAll('.word').forEach(el => {
-            const w = el.innerText.toLowerCase().replace(/[^a-z]/g, '');
-            if (vocabManager.isSaved(w)) el.classList.add('saved');
-            else el.classList.remove('saved');
-        });
-    }
-
-    function processText(text) {
-        return text.split(/(\s+|[.,!?;:()"])/).map(part => {
-            if (part.trim().length === 0 || !/[a-zA-Z]/.test(part)) return part;
-            const clean = part.toLowerCase().replace(/[^a-z]/g, '');
-            const isSaved = vocabManager.isSaved(clean) ? 'saved' : '';
-            return `<span class="word ${isSaved}" onclick="handleWordClick(this)">${part}</span>`;
-        }).join('');
-    }
-
-    window.handleWordClick = function(el) {
-        const word = el.innerText.replace(/[^a-zA-Z]/g, "");
-        tooltipActions.show(el, word);
-    };
-
-    // Close tooltip on outside click
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#tooltip') && !e.target.closest('.word')) {
-            tooltipActions.hide();
+    return `
+        <div class="quiz-header">
+            <h2>🎯 Test Your Knowledge</h2>
+            <div class="quiz-score">
+                Score: <span id="quizCorrect">0</span> / <span id="quizTotal">${quizData.length}</span>
+            </div>
+        </div>
+        
+        ${quizData.map((question, qIndex) => `
+            <div class="quiz-question" id="question-${qIndex}">
+                <div class="question-number">Question ${qIndex + 1} of ${quizData.length}</div>
+                <div class="question-text">${escapeJS(question.q)}</div>
+                
+                <div class="question-options">
+                    ${question.opts.map((option, optIndex) => `
+                        <button class="quiz-option" 
+                                onclick="checkAnswer(${qIndex}, ${optIndex}, ${question.correct})"
+                                data-question="${qIndex}"
+                                data-option="${optIndex}">
+                            ${escapeJS(option)}
+                        </button>
+                    `).join('')}
+                </div>
+                
+                <div class="question-feedback" id="feedback-${qIndex}"></div>
+            </div>
+        `).join('')}
+        
+        <div style="text-align: center; margin-top: var(--space-xl);">
+            <button class="listen-btn" onclick="resetQuiz()">
+                🔄 Reset Quiz
+            </button>
+        </div>
+    `;
+}
+/* ================================================================
+   7. QUIZ LOGIC
+   ================================================================ */
+function checkAnswer(questionIndex, selectedOption, correctOption) {
+    const questionDiv = document.getElementById(`question-${questionIndex}`);
+    const buttons = questionDiv.querySelectorAll('.quiz-option');
+    const feedback = document.getElementById(`feedback-${questionIndex}`);
+    
+    // Отключаем все кнопки для этого вопроса
+    buttons.forEach(btn => btn.disabled = true);
+    
+    // Проверяем ответ
+    const isCorrect = selectedOption === correctOption;
+    
+    // Подсвечиваем правильный и неправильный ответы
+    buttons.forEach((btn, index) => {
+        if (index === correctOption) {
+            btn.classList.add('correct');
+        }
+        if (index === selectedOption && !isCorrect) {
+            btn.classList.add('incorrect');
         }
     });
-
-    function toggleTheme() {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    }
-
-
-    // --- 5. INIT LOADER ---
     
-    fetch(`../data/${lessonId}.json`)
-        .then(r => r.json())
-        .then(data => {
-            // Render Lesson
-            document.title = data.title;
-            document.documentElement.style.setProperty('--accent', data.colors?.[0] || '#00838F');
-            
-            document.querySelector('.hero-tag').innerText = `LESSON ${data.id}`;
-            document.querySelector('.lesson-title').innerText = data.title;
-
-            let html = '';
-            data.content.forEach(block => {
-                if (block.type === 'block') {
-                    html += `
-                    <div class="block">
-                        <div class="block-header">
-                            <h2 class="block-title">${block.title || ''}</h2>
-                            <button class="tt-btn" onclick="speakBlock(this)">🔊 Listen</button>
-                        </div>
-                        <div class="reading-text">${processText(block.text)}</div>
-                    </div>`;
-                }
-                // ... (Add other block types here: facts, etc. similar to previous versions)
-            });
-            
-            document.getElementById('lesson-body').innerHTML = html;
-            
-            // Init State
-            updateBadge();
-            vocabManager.render();
-            updateUIState();
-        })
-        .catch(err => console.error(err));
-
-    function speakBlock(btn) {
-        const txt = btn.closest('.block').querySelector('.reading-text').innerText;
-        speak(txt);
+    // Обновляем счёт
+    if (isCorrect) {
+        quizScore.correct++;
+        vibrate(200);
+    } else {
+        vibrate([100, 50, 100]);
     }
+    
+    quizScore.total++;
+    
+    // Обновляем отображение счёта
+    document.getElementById('quizCorrect').textContent = quizScore.correct;
+    
+    // Показываем feedback
+    const quizData = lessonData.quiz[questionIndex];
+    feedback.innerHTML = `
+        <div class="feedback-${isCorrect ? 'correct' : 'incorrect'}">
+            ${isCorrect ? '✅' : '❌'} ${escapeJS(quizData.fb || (isCorrect ? 'Correct!' : 'Incorrect.'))}
+        </div>
+    `;
+    feedback.classList.add('show');
+    
+    // Прокручиваем к следующему вопросу
+    setTimeout(() => {
+        const nextQuestion = document.getElementById(`question-${questionIndex + 1}`);
+        if (nextQuestion) {
+            nextQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 1500);
+}
 
-</script>
+function resetQuiz() {
+    quizScore = { correct: 0, total: 0 };
+    
+    // Сбрасываем все вопросы
+    document.querySelectorAll('.quiz-question').forEach(questionDiv => {
+        const buttons = questionDiv.querySelectorAll('.quiz-option');
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('correct', 'incorrect');
+        });
+        
+        const feedback = questionDiv.querySelector('.question-feedback');
+        if (feedback) {
+            feedback.classList.remove('show');
+            feedback.innerHTML = '';
+        }
+    });
+    
+    // Обновляем счёт
+    document.getElementById('quizCorrect').textContent = '0';
+    
+    // Прокручиваем к началу
+    document.getElementById('question-0').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    showNotification('Quiz reset! Good luck! 🍀');
+}
+
+/* ================================================================
+   8. TEXT-TO-SPEECH (TTS)
+   ================================================================ */
+function speakWord(word) {
+    // Останавливаем предыдущее воспроизведение
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+    
+    const cleanWord = word.toLowerCase().trim();
+    
+    // Пробуем Google TTS API (работает благодаря meta referrer)
+    const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(cleanWord)}`);
+    
+    audio.play().catch(err => {
+        console.warn('Google TTS failed, using Web Speech API fallback:', err);
+        speakWithBrowserAPI(cleanWord);
+    });
+    
+    vibrate(50);
+}
+
+function speakText(text, button) {
+    // Останавливаем предыдущее воспроизведение
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+    
+    // Если кнопка в состоянии "playing", останавливаем
+    if (button && button.classList.contains('playing')) {
+        button.classList.remove('playing');
+        button.innerHTML = '🔊 Listen';
+        return;
+    }
+    
+    const cleanText = text.trim();
+    
+    // Пробуем Google TTS API
+    const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(cleanText)}`);
+    
+    if (button) {
+        button.classList.add('playing');
+        button.innerHTML = '⏸️ Stop';
+    }
+    
+    audio.addEventListener('ended', () => {
+        if (button) {
+            button.classList.remove('playing');
+            button.innerHTML = '🔊 Listen';
+        }
+    });
+    
+    audio.addEventListener('error', () => {
+        console.warn('Google TTS failed, using Web Speech API fallback');
+        speakWithBrowserAPI(cleanText, button);
+    });
+    
+    audio.play();
+    vibrate(50);
+}
+
+function speakWithBrowserAPI(text, button) {
+    if (!window.speechSynthesis) {
+        showNotification('⚠️ Text-to-speech not supported in this browser');
+        return;
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    
+    utterance.onend = () => {
+        if (button) {
+            button.classList.remove('playing');
+            button.innerHTML = '🔊 Listen';
+        }
+    };
+    
+    utterance.onerror = (e) => {
+        console.error('Speech synthesis error:', e);
+        if (button) {
+            button.classList.remove('playing');
+            button.innerHTML = '🔊 Listen';
+        }
+        showNotification('⚠️ Speech synthesis failed');
+    };
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+/* ================================================================
+   9. MY WORDS (LocalStorage)
+   ================================================================ */
+function saveWord(en, ru, cardIndex) {
+    const word = { en, ru };
+    
+    // Проверяем, не сохранено ли уже
+    const exists = myWords.some(w => w.en.toLowerCase() === en.toLowerCase());
+    
+    if (exists) {
+        showNotification('⚠️ Word already saved!');
+        return;
+    }
+    
+    // Добавляем слово
+    myWords.push(word);
+    
+    // Сохраняем в LocalStorage
+    try {
+        localStorage.setItem(`lesson_${lessonId}_words`, JSON.stringify(myWords));
+    } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+    }
+    
+    // Обновляем UI
+    updateSavedWordsUI();
+    
+    // Помечаем кнопку как сохранённую
+    const saveButtons = document.querySelectorAll('.save-btn');
+    if (saveButtons[cardIndex]) {
+        saveButtons[cardIndex].classList.add('saved');
+        saveButtons[cardIndex].innerHTML = '✅ Saved';
+    }
+    
+    showNotification(`💾 "${en}" saved!`);
+    vibrate(100);
+}
+
+function loadMyWords() {
+    try {
+        const saved = localStorage.getItem(`lesson_${lessonId}_words`);
+        if (saved) {
+            myWords = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('Failed to load from localStorage:', e);
+        myWords = [];
+    }
+    
+    updateSavedWordsUI();
+}
+
+function removeWord(en) {
+    myWords = myWords.filter(w => w.en.toLowerCase() !== en.toLowerCase());
+    
+    // Сохраняем в LocalStorage
+    try {
+        localStorage.setItem(`lesson_${lessonId}_words`, JSON.stringify(myWords));
+    } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+    }
+    
+    // Обновляем UI
+    updateSavedWordsUI();
+    
+    // Снимаем отметку "saved" с кнопки
+    const saveButtons = document.querySelectorAll('.save-btn');
+    saveButtons.forEach(btn => {
+        if (btn.textContent.includes('Saved') && btn.onclick.toString().includes(en)) {
+            btn.classList.remove('saved');
+            btn.innerHTML = '💾 Save Word';
+        }
+    });
+    
+    showNotification(`🗑️ "${en}" removed`);
+    vibrate(50);
+}
+
+function updateSavedWordsUI() {
+    const list = document.getElementById('savedWordsList');
+    const counter = document.getElementById('wordCount');
+    
+    if (!list) return;
+    
+    counter.textContent = myWords.length;
+    
+    if (myWords.length === 0) {
+        list.innerHTML = '<div class="no-words">No saved words yet.<br>Start saving words from the Vocabulary section! 📚</div>';
+        return;
+    }
+    
+    list.innerHTML = myWords.map(word => `
+        <div class="saved-word">
+            <div class="saved-word-en" onclick="speakWord('${escapeJS(word.en).replace(/'/g, "\\'")}')">
+                ${escapeJS(word.en)}
+            </div>
+            <div class="saved-word-ru">${escapeJS(word.ru)}</div>
+            <button class="remove-word-btn" onclick="removeWord('${escapeJS(word.en).replace(/'/g, "\\'")}')">
+                ✕
+            </button>
+        </div>
+    `).join('');
+}
+
+/* ================================================================
+   10. NAVIGATION (переключение табов)
+   ================================================================ */
+function switchTab(tabName) {
+    // Останавливаем TTS при смене таба
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+    
+    // Убираем все активные классы
+    document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+    
+    // Добавляем активный класс к выбранному табу
+    event.target.classList.add('active');
+    
+    // Показываем соответствующую секцию
+    const section = document.getElementById(tabName);
+    if (section) {
+        section.classList.add('active');
+    }
+    
+    // Прокручиваем наверх
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    vibrate(30);
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('open');
+    vibrate(50);
+}
+
+/* ================================================================
+   11. FLASHCARDS (режим карточек)
+   ================================================================ */
+function switchVocabMode(mode) {
+    currentVocabMode = mode;
+    
+    // Обновляем кнопки
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Переключаем режимы
+    document.querySelectorAll('.vocab-mode').forEach(m => m.classList.remove('active'));
+    
+    if (mode === 'list') {
+        document.getElementById('vocabList').classList.add('active');
+    } else {
+        document.getElementById('vocabFlashcards').classList.add('active');
+        currentCard = 0;
+        showCard(0);
+    }
+    
+    vibrate(30);
+}
+
+function flipCard(index) {
+    const card = document.getElementById(`card-${index}`);
+    if (card) {
+        card.classList.toggle('flipped');
+        vibrate(30);
+    }
+}
+
+function showCard(index) {
+    const totalCards = lessonData.content.vocabulary.words.length;
+    
+    if (index < 0 || index >= totalCards) return;
+    
+    // Скрываем все карточки
+    document.querySelectorAll('.flashcard').forEach(card => {
+        card.classList.remove('active', 'flipped');
+    });
+    
+    // Показываем нужную
+    const card = document.getElementById(`card-${index}`);
+    if (card) {
+        card.classList.add('active');
+    }
+    
+    // Обновляем счётчик
+    document.getElementById('cardCounter').textContent = `${index + 1} / ${totalCards}`;
+    
+    currentCard = index;
+}
+
+function nextCard() {
+    const totalCards = lessonData.content.vocabulary.words.length;
+    if (currentCard < totalCards - 1) {
+        showCard(currentCard + 1);
+        vibrate(30);
+    } else {
+        showNotification('🎉 You reached the last card!');
+    }
+}
+
+function prevCard() {
+    if (currentCard > 0) {
+        showCard(currentCard - 1);
+        vibrate(30);
+    } else {
+        showNotification('📍 This is the first card');
+    }
+}
+/* ================================================================
+   12. UTILITY FUNCTIONS (вспомогательные функции)
+   ================================================================ */
+
+// Экранирование HTML для предотвращения XSS
+function escapeJS(str) {
+    if (typeof str !== 'string') return '';
+    
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Вибрация (если поддерживается)
+function vibrate(pattern) {
+    if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+    }
+}
+
+// Показ уведомлений
+function showNotification(message, duration = 2000) {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, duration);
+}
+
+// Debounce функция для оптимизации
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/* ================================================================
+   13. EVENT LISTENERS
+   ================================================================ */
+
+// Обработка клавиатуры для навигации
+document.addEventListener('keydown', (e) => {
+    // ESC - закрыть sidebar
+    if (e.key === 'Escape') {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
+    }
+    
+    // Стрелки для flashcards (только если режим flashcards активен)
+    if (currentVocabMode === 'flashcards') {
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            prevCard();
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            nextCard();
+        } else if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            flipCard(currentCard);
+        }
+    }
+});
+
+// Закрытие sidebar при клике вне его
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.querySelector('.sidebar-toggle');
+    
+    if (sidebar && sidebar.classList.contains('open')) {
+        if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+            sidebar.classList.remove('open');
+        }
+    }
+});
+
+// Обработка видимости страницы (остановка TTS при скрытии)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        
+        // Сбрасываем состояние кнопок
+        document.querySelectorAll('.listen-btn.playing').forEach(btn => {
+            btn.classList.remove('playing');
+            btn.innerHTML = '🔊 Listen';
+        });
+    }
+});
+
+// Предотвращение случайного закрытия при наличии прогресса в квизе
+window.addEventListener('beforeunload', (e) => {
+    if (quizScore.total > 0 && quizScore.total < (lessonData?.quiz?.length || 0)) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved quiz progress. Are you sure you want to leave?';
+        return e.returnValue;
+    }
+});
+
+// Обработка ошибок загрузки изображений (если будут добавлены)
+document.addEventListener('error', (e) => {
+    if (e.target.tagName === 'IMG') {
+        e.target.style.display = 'none';
+        console.warn('Image failed to load:', e.target.src);
+    }
+}, true);
+
+/* ================================================================
+   14. INITIALIZATION (запуск приложения)
+   ================================================================ */
+
+// Инициализация при загрузке DOM
+document.addEventListener('DOMContentLoaded', () => {
+    console.log(`%c📚 Lesson ${lessonId} Loading...`, 'color: #00838F; font-size: 16px; font-weight: bold;');
+    
+    // Проверка поддержки LocalStorage
+    try {
+        localStorage.setItem('test', 'test');
+        localStorage.removeItem('test');
+    } catch (e) {
+        console.warn('LocalStorage not available:', e);
+        showNotification('⚠️ Word saving may not work in this browser');
+    }
+    
+    // Проверка поддержки Web Speech API
+    if (!window.speechSynthesis) {
+        console.warn('Web Speech API not supported');
+    }
+    
+    // Загружаем урок
+    loadLesson();
+});
+
+// Логирование успешной загрузки
+window.addEventListener('load', () => {
+    if (lessonData) {
+        console.log(`%c✅ Lesson "${lessonData.title}" loaded successfully!`, 'color: #34C759; font-size: 14px; font-weight: bold;');
+        console.log(`📊 Stats:`, {
+            readingBlocks: lessonData.content.reading?.length || 0,
+            vocabularyWords: lessonData.content.vocabulary?.words?.length || 0,
+            phrases: lessonData.content.vocabulary?.phrases?.length || 0,
+            grammarRules: lessonData.content.grammar?.length || 0,
+            quizQuestions: lessonData.quiz?.length || 0
+        });
+    }
+});
+
+// Улучшенная обработка ошибок
+window.addEventListener('error', (e) => {
+    console.error('Global error:', e.error);
+    
+    // Не показываем уведомление для незначительных ошибок
+    if (e.error && e.error.message && !e.error.message.includes('ResizeObserver')) {
+        showNotification('⚠️ An error occurred. Check console for details.');
+    }
+});
+
+// Обработка необработанных промисов
+window.addEventListener('unhandledrejection', (e) => {
+    console.error('Unhandled promise rejection:', e.reason);
+    showNotification('⚠️ Network or loading error occurred');
+});
+
+// Service Worker для offline работы (опционально)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        // Регистрация SW отключена по умолчанию
+        // Раскомментируйте для PWA функциональности
+        /*
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('ServiceWorker registered:', reg))
+            .catch(err => console.log('ServiceWorker registration failed:', err));
+        */
+    });
+}
+
+// Оптимизация производительности: ленивая загрузка изображений
+if ('IntersectionObserver' in window) {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            }
+        });
+    });
+    
+    // Наблюдаем за изображениями (если будут добавлены)
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    });
+}
+
+// Автосохранение прогресса квиза в sessionStorage
+function saveQuizProgress() {
+    if (quizScore.total > 0) {
+        try {
+            sessionStorage.setItem(`lesson_${lessonId}_quiz_progress`, JSON.stringify({
+                score: quizScore,
+                timestamp: Date.now()
+            }));
+        } catch (e) {
+            console.warn('Failed to save quiz progress:', e);
+        }
+    }
+}
+
+// Восстановление прогресса квиза (опционально)
+function restoreQuizProgress() {
+    try {
+        const saved = sessionStorage.getItem(`lesson_${lessonId}_quiz_progress`);
+        if (saved) {
+            const data = JSON.parse(saved);
+            // Проверяем, что прогресс не старше 24 часов
+            if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+                // Можно восстановить прогресс здесь
+                console.log('Quiz progress found:', data);
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to restore quiz progress:', e);
+    }
+}
+
+// Периодическое сохранение прогресса
+setInterval(saveQuizProgress, 30000); // каждые 30 секунд
+
+/* ================================================================
+   15. ДОПОЛНИТЕЛЬНЫЕ УТИЛИТЫ
+   ================================================================ */
+
+// Копирование текста в буфер обмена
+function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(() => showNotification('📋 Copied to clipboard!'))
+            .catch(err => console.error('Failed to copy:', err));
+    } else {
+        // Fallback для старых браузеров
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showNotification('📋 Copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+        document.body.removeChild(textarea);
+    }
+}
+
+// Экспорт сохранённых слов в текстовый файл
+function exportMyWords() {
+    if (myWords.length === 0) {
+        showNotification('⚠️ No words to export');
+        return;
+    }
+    
+    let content = `My Words - Lesson ${lessonId}\n`;
+    content += `Generated: ${new Date().toLocaleString()}\n\n`;
+    
+    myWords.forEach((word, index) => {
+        content += `${index + 1}. ${word.en} - ${word.ru}\n`;
+    });
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lesson_${lessonId}_vocabulary.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showNotification('📥 Words exported!');
+}
+
+// Печать урока
+function printLesson() {
+    window.print();
+}
+
+// Поделиться результатами квиза
+function shareQuizResults() {
+    const score = quizScore.correct;
+    const total = lessonData.quiz.length;
+    const percentage = Math.round((score / total) * 100);
+    
+    const text = `I scored ${score}/${total} (${percentage}%) on "${lessonData.title}" lesson! 🎯`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Quiz Results',
+            text: text
+        }).catch(err => console.log('Share failed:', err));
+    } else {
+        copyToClipboard(text);
+    }
+}
+
+// Консольные команды для разработки (можно удалить в продакшене)
+window.debugLesson = {
+    data: () => lessonData,
+    words: () => myWords,
+    score: () => quizScore,
+    reset: () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        location.reload();
+    },
+    export: exportMyWords
+};
+
+console.log('%c💡 Tip: Use window.debugLesson for debugging', 'color: #FF9500; font-size: 12px;');
+
+    </script>
 </body>
 </html>
