@@ -387,6 +387,59 @@ header::before {
 .reading-text .word.clickable:active {
     transform: translateY(0);
 }
+/* Tooltip для слов при наведении */
+.reading-text .word.clickable {
+    position: relative;
+}
+
+.reading-text .word.clickable::after {
+    content: attr(data-translation);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+    z-index: 10;
+    box-shadow: var(--shadow-md);
+}
+
+.reading-text .word.clickable::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-2px);
+    border: 5px solid transparent;
+    border-top-color: var(--bg-tertiary);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+    z-index: 10;
+}
+
+.reading-text .word.clickable:hover::after,
+.reading-text .word.clickable:hover::before {
+    opacity: 1;
+}
+
+/* Адаптация tooltip для мобильных */
+@media (max-width: 768px) {
+    .reading-text .word.clickable::after {
+        font-size: var(--font-size-xs);
+        max-width: 200px;
+        white-space: normal;
+        text-align: center;
+    }
+}
 
 .listen-btn {
     display: inline-flex;
@@ -421,6 +474,32 @@ header::before {
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
+}
+/* Изображения в Reading секции */
+.reading-image-container {
+    margin: var(--space-xl) 0;
+}
+
+.reading-image {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: var(--border-radius-lg);
+    margin: 0 auto;
+    display: block;
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--transition-base);
+}
+
+.reading-image:hover {
+    transform: scale(1.02);
+}
+
+/* Адаптация изображений для мобильных */
+@media (max-width: 768px) {
+    .reading-image {
+        max-width: 100%;
+    }
 }
 
 /* ================================================================
@@ -1089,6 +1168,60 @@ header::before {
         width: 100%;
         right: -100%;
     }
+    
+    /* ДОБАВЬТЕ ЭТИ СТРОКИ: */
+    .reading-image {
+        max-width: 100%;
+    }
+    
+    .reading-text .word.clickable::after {
+        font-size: var(--font-size-xs);
+        max-width: 200px;
+        white-space: normal;
+        text-align: center;
+    }
+}
+
+        @media (max-width: 768px) {
+    :root {
+        --font-size-3xl: 1.75rem;
+        --font-size-2xl: 1.25rem;
+        --font-size-xl: 1.125rem;
+    }
+    
+    header {
+        padding: var(--space-lg) var(--space-md);
+    }
+    
+    .lesson-title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .nav-tab {
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--font-size-sm);
+    }
+    
+    .content-section {
+        padding: var(--space-md);
+    }
+    
+    .vocab-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .flashcard {
+        height: 300px;
+    }
+    
+    .quiz-option {
+        padding: var(--space-md);
+    }
+    
+    .sidebar {
+        width: 100%;
+        right: -100%;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1291,12 +1424,14 @@ function buildInterface(data) {
    ================================================================ */
 
 // READING SECTION
+// READING SECTION
 function renderReading(readingData) {
     if (!readingData || readingData.length === 0) {
         return '<p class="text-center text-secondary">No reading content available.</p>';
     }
     
     let html = '';
+    let imageCounter = 1; // Счётчик изображений
     
     readingData.forEach((block, index) => {
         const blockType = block.type || 'paragraph';
@@ -1317,6 +1452,20 @@ function renderReading(readingData) {
                 </div>
             </div>
         `;
+        
+        // Вставляем изображение ТОЛЬКО после параграфов (не фактов)
+        if (blockType === 'paragraph') {
+            html += `
+                <div class="reading-image-container">
+                    <img class="reading-image" 
+                         src="../images/${lessonId}(${imageCounter}).jpg" 
+                         alt="Illustration ${imageCounter}"
+                         onerror="this.parentElement.style.display='none'"
+                         loading="lazy">
+                </div>
+            `;
+            imageCounter++;
+        }
     });
     
     return html;
@@ -1326,6 +1475,26 @@ function highlightWords(text, wordsToHighlight) {
     if (!wordsToHighlight || wordsToHighlight.length === 0) {
         return escapeJS(text);
     }
+    
+    let result = escapeJS(text);
+    
+    // Получаем словарь для переводов
+    const vocabulary = lessonData?.content?.vocabulary?.words || [];
+    
+    wordsToHighlight.forEach(word => {
+        // Ищем перевод слова в словаре
+        const vocabEntry = vocabulary.find(v => v.en.toLowerCase() === word.toLowerCase());
+        const translation = vocabEntry ? vocabEntry.ru : '';
+        
+        const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+        result = result.replace(regex, 
+            `<span class="word clickable" data-translation="${translation}" onclick="speakWord('$1')">$1</span>`
+        );
+    });
+    
+    return result;
+}
+
     
     let result = escapeJS(text);
     
@@ -1379,11 +1548,11 @@ function renderVocabulary(vocabData) {
                 `).join('')}
             </div>
             
-            ${phrases.length > 0 ? `
-                <div class="phrases-section">
-                    <h3>📝 Useful Phrases</h3>
-                    ${phrases.map(phrase => `
-                        <div class="phrase-item" onclick="speakText('${escapeJS(phrase.en).replace(/'/g, "\\'")}', this)">
+           ${phrases.length > 0 ? `
+    <div class="phrases-section">
+        <h3>📝 Useful Phrases</h3>
+        ${phrases.map(phrase => `
+            <div class="phrase-item" onclick="speakPhrase(event, '${escapeJS(phrase.en).replace(/'/g, "\\'")}')">
                             <div class="phrase-en">${escapeJS(phrase.en)}</div>
                             <div class="phrase-ru">${escapeJS(phrase.ru)}</div>
                             ${phrase.context ? `<div class="phrase-context">Context: ${escapeJS(phrase.context)}</div>` : ''}
@@ -1604,6 +1773,20 @@ function speakWord(word) {
     });
     
     vibrate(50);
+}
+function speakText(text, button) {
+    // ... существующий код функции speakText ...
+}
+
+// НОВАЯ ФУНКЦИЯ - добавьте её сюда
+function speakPhrase(event, text) {
+    event.stopPropagation(); // Предотвращаем всплытие события
+    speakText(text);
+    vibrate(50);
+}
+
+function speakWithBrowserAPI(text, button) {
+    // ... существующий код ...
 }
 
 function speakText(text, button) {
@@ -2222,3 +2405,4 @@ console.log('%c💡 Tip: Use window.debugLesson for debugging', 'color: #FF9500;
     </script>
 </body>
 </html>
+
