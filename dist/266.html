@@ -430,7 +430,6 @@
         // Load female voice
         function loadVoices() {
             const voices = speechSynthesis.getVoices();
-            // Try to find Google US English Female voice
             femaleVoice = voices.find(voice => 
                 voice.name.includes('Google US English') && voice.name.includes('Female')
             ) || voices.find(voice => 
@@ -440,7 +439,6 @@
             ) || voices[0];
         }
 
-        // Load voices on page load and when voices change
         speechSynthesis.onvoiceschanged = loadVoices;
         loadVoices();
 
@@ -450,6 +448,19 @@
                 currentQuestion,
                 score,
                 answered,
+                completed: false,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('englishTestState', JSON.stringify(state));
+        }
+
+        // Save completion state
+        function saveCompletionState() {
+            const state = {
+                currentQuestion,
+                score,
+                answered: false,
+                completed: true,
                 timestamp: Date.now()
             };
             localStorage.setItem('englishTestState', JSON.stringify(state));
@@ -465,10 +476,10 @@
                     currentQuestion = state.currentQuestion;
                     score = state.score;
                     answered = state.answered;
-                    return true;
+                    return state;
                 }
             }
-            return false;
+            return null;
         }
 
         // Clear saved state
@@ -607,7 +618,7 @@
             }
             
             document.getElementById('score-text').textContent = `${percentage}% - ${message}`;
-            clearState();
+            saveCompletionState();
         }
 
         function resetTest() {
@@ -630,9 +641,24 @@
         }
 
         // Initialize quiz
-        if (loadState() && currentQuestion < questions.length) {
-            loadQuestion();
+        const savedState = loadState();
+        if (savedState) {
+            if (savedState.completed) {
+                // Show results
+                showResults();
+            } else if (savedState.currentQuestion < questions.length) {
+                // Continue test
+                loadQuestion();
+            } else {
+                // Start over
+                currentQuestion = 0;
+                score = 0;
+                answered = false;
+                clearState();
+                loadQuestion();
+            }
         } else {
+            // First run
             currentQuestion = 0;
             score = 0;
             answered = false;
