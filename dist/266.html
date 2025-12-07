@@ -3,660 +3,642 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Зачёт: Present Simple, Continuous, Perfect (B1)</title>
+    <meta name="referrer" content="no-referrer">
+    <title>English Tenses Test - B1 Level</title>
     <style>
-        :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --bg: #f4f7f6;
-            --text: #333;
-            --white: #ffffff;
-            --success: #4CAF50;
-            --error: #f44336;
-            --radius: 16px;
-            --shadow: 0 4px 20px rgba(0,0,0,0.08);
-            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
         body {
-            font-family: var(--font-main);
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        /* --- Loader --- */
-        .loader-container {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--white);
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s;
         }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- Layout --- */
-        #app {
+        .container {
             max-width: 800px;
-            width: 95%;
-            margin: 20px auto;
-            background: var(--white);
-            border-radius: var(--radius);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-container {
+            margin: 30px 0;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speaker-btn {
+            background: #667eea;
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+
+        .speaker-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .speaker-btn:active {
+            transform: scale(0.95);
+        }
+
+        .speaker-btn.playing {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .options {
             display: flex;
             flex-direction: column;
-            min-height: 80vh;
-            overflow: hidden;
-            position: relative;
+            gap: 12px;
         }
 
-        header {
-            padding: 25px;
+        .option {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: #e8e8e8;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #764ba2;
+        }
+
+        .option.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #45a049;
+        }
+
+        .option.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #da190b;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results {
             text-align: center;
-            border-bottom: 1px solid #eee;
+            padding: 40px 20px;
         }
-        h1 { color: var(--primary); margin-bottom: 5px; font-size: 1.5rem; }
-        .subtitle { color: #666; font-size: 0.9rem; }
-        .meta-tags { display: flex; gap: 10px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
-        .tag { background: #eee; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; color: #555; }
 
-        /* --- Tabs --- */
-        .tabs { display: flex; border-bottom: 1px solid #eee; overflow-x: auto; }
-        .tab-btn {
-            flex: 1; padding: 15px; border: none; background: none;
-            font-weight: 600; color: #888; cursor: pointer;
-            transition: 0.3s; white-space: nowrap;
+        .score {
+            font-size: 48px;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
         }
-        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f9f9fff0; }
-        .tab-content { padding: 20px; display: none; animation: fadeIn 0.4s; }
-        .tab-content.active { display: block; }
 
-        /* --- Reading --- */
-        .reading-text p { margin-bottom: 15px; line-height: 1.8; font-size: 1.1rem; }
-        .highlight { color: var(--primary); font-weight: bold; cursor: pointer; border-bottom: 1px dashed var(--primary); }
-        .highlight:hover { background: #eff3ff; }
+        .score-text {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 30px;
+        }
 
-        /* --- Vocabulary --- */
-        .vocab-controls { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .vocab-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--primary); background: none; color: var(--primary); cursor: pointer; }
-        .vocab-btn.active { background: var(--primary); color: white; }
-        
-        .word-list { display: grid; gap: 10px; }
-        .word-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9f9f9; border-radius: 10px; }
-        .word-main { display: flex; flex-direction: column; }
-        .en-word { font-weight: bold; color: var(--text); font-size: 1.1rem; cursor: pointer; }
-        .ru-word { color: #777; font-size: 0.9rem; }
-        .btn-icon { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #aaa; margin-left: 10px; transition: 0.2s; }
-        .btn-icon:hover { color: var(--primary); transform: scale(1.1); }
-        
-        /* Flashcards */
-        .flashcard-container { perspective: 1000px; height: 300px; cursor: pointer; display: none; }
-        .flashcard-container.active { display: block; }
-        .flashcard {
-            width: 100%; height: 100%; position: relative;
-            transform-style: preserve-3d; transition: transform 0.6s;
-            border-radius: var(--radius); box-shadow: var(--shadow);
+        .reset-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
         }
-        .flashcard.flipped { transform: rotateY(180deg); }
-        .front, .back {
-            position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden; display: flex;
-            flex-direction: column; justify-content: center; align-items: center;
-            background: white; border-radius: var(--radius); padding: 20px; text-align: center;
-        }
-        .back { transform: rotateY(180deg); background: #fdfdfd; border: 2px solid var(--primary); }
 
-        /* --- Grammar --- */
-        .grammar-box { background: #fff8e1; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-        .rule-title { font-weight: bold; margin-bottom: 5px; color: #d39e00; }
-        .example-list li { margin-bottom: 8px; list-style: none; padding-left: 20px; position: relative; }
-        .example-list li::before { content: "•"; color: var(--primary); position: absolute; left: 0; font-weight: bold; }
+        .reset-input {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-right: 10px;
+            width: 150px;
+            text-align: center;
+        }
 
-        /* --- Quiz --- */
-        .quiz-question { font-size: 1.2rem; margin-bottom: 20px; font-weight: 500; }
-        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-        @media (min-width: 600px) { .options-grid { grid-template-columns: 1fr 1fr; } }
-        .option-btn {
-            padding: 15px; background: #f5f5f5; border: 2px solid transparent;
-            border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s;
-            font-size: 1rem;
+        .btn-reset {
+            background: #f44336;
+            color: white;
         }
-        .option-btn:hover:not(:disabled) { background: #eef2ff; border-color: #cbd5e0; }
-        .option-btn.correct { background: #e8f5e9; border-color: var(--success); color: #2e7d32; }
-        .option-btn.wrong { background: #ffebee; border-color: var(--error); color: #c62828; }
-        .feedback { margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 0.95rem; display: none; }
-        .feedback.show { display: block; animation: slideDown 0.3s; }
 
-        /* --- Sidebar --- */
-        .sidebar {
-            position: fixed; top: 0; right: -300px; width: 300px; height: 100%;
-            background: white; box-shadow: -5px 0 20px rgba(0,0,0,0.1);
-            transition: 0.3s; z-index: 2000; padding: 20px;
-            overflow-y: auto;
+        .btn-reset:hover {
+            background: #da190b;
         }
-        .sidebar.open { right: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .sidebar-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1500; display: none;
-        }
-        .sidebar-overlay.active { display: block; }
-        .my-word-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; }
 
-        /* --- Utilities --- */
-        .fab {
-            position: fixed; bottom: 30px; right: 30px;
-            width: 56px; height: 56px; border-radius: 50%;
-            background: var(--primary); color: white;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
-            cursor: pointer; z-index: 1400; font-size: 24px; border: none;
+        .hidden {
+            display: none;
         }
-        .notification {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: #333; color: white; padding: 10px 20px; border-radius: 30px;
-            font-size: 0.9rem; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000;
-        }
-        .notification.show { opacity: 1; bottom: 40px; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .auto-play-toggle {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .auto-play-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div class="loader-container" id="loader">
-        <div class="spinner"></div>
-    </div>
-
-    <div id="app" style="display: none;">
-        <header>
-            <h1 id="lesson-title">Loading...</h1>
-            <div class="subtitle" id="lesson-subtitle"></div>
-            <div class="meta-tags" id="meta-tags"></div>
-        </header>
-
-        <nav class="tabs">
-            <button class="tab-btn active" onclick="switchTab('reading')">Reading</button>
-            <button class="tab-btn" onclick="switchTab('vocabulary')">Vocabulary</button>
-            <button class="tab-btn" onclick="switchTab('grammar')">Grammar</button>
-            <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
-        </nav>
-
-        <main>
-            <div id="reading" class="tab-content active"></div>
-            <div id="vocabulary" class="tab-content"></div>
-            <div id="grammar" class="tab-content"></div>
-            <div id="quiz" class="tab-content"></div>
-        </main>
-    </div>
-
-    <!-- Sidebar & Utilities -->
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3>My Words <span id="saved-count">(0)</span></h3>
-            <button class="btn-icon" onclick="toggleSidebar()">✕</button>
+    <div class="container">
+        <div class="header">
+            <h1>English Tenses Test</h1>
+            <div class="subtitle">Present Simple, Present Continuous, Present Perfect (B1 Level)</div>
+            <div class="auto-play-toggle">
+                <input type="checkbox" id="autoPlayToggle" checked>
+                <label for="autoPlayToggle">Auto-play questions</label>
+            </div>
         </div>
-        <div id="my-words-list"></div>
-    </aside>
 
-    <button class="fab" onclick="toggleSidebar()">★</button>
-    <div class="notification" id="notification">Notification</div>
+        <div id="quiz-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div class="question-container">
+                <div class="question-number" id="question-number">
+                    <button class="speaker-btn" id="speakerBtn" onclick="speakQuestion()" title="Listen to question">
+                        🔊
+                    </button>
+                </div>
+                <div class="question-text" id="question-text"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback hidden" id="feedback"></div>
+            </div>
+
+            <div class="button-container">
+                <button class="btn-next" id="next-btn" onclick="nextQuestion()">Next Question</button>
+            </div>
+        </div>
+
+        <div id="results-section" class="results hidden">
+            <h2>Test Completed!</h2>
+            <div class="score" id="final-score"></div>
+            <div class="score-text" id="score-text"></div>
+
+            <div class="reset-section">
+                <p style="margin-bottom: 15px; color: #666;">Enter code to reset the test:</p>
+                <input type="text" class="reset-input" id="reset-code" placeholder="Code">
+                <button class="btn-reset" onclick="resetTest()">Reset</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- DATA & STATE ---
-        const LESSON_ID = '263';
-        let lessonData = null;
-        let myWords = JSON.parse(localStorage.getItem(`myWords_${LESSON_ID}`) || '[]');
-        let currentQuizIndex = 0;
-        let quizScore = 0;
+        const questions = [
+            {
+                question: "She _____ to the gym three times a week.",
+                options: ["go", "goes", "is going", "has gone"],
+                correct: 1,
+                explanation: "Present Simple is used for regular habits and routines. With 'she' (3rd person singular), we add -es to the verb."
+            },
+            {
+                question: "Look! The cat _____ the tree.",
+                options: ["climbs", "is climbing", "has climbed", "climbed"],
+                correct: 1,
+                explanation: "Present Continuous is used for actions happening right now. The word 'Look!' indicates an action in progress."
+            },
+            {
+                question: "I _____ this book yet.",
+                options: ["don't finish", "am not finishing", "haven't finished", "didn't finish"],
+                correct: 2,
+                explanation: "Present Perfect with 'yet' is used to talk about actions that haven't been completed up to now."
+            },
+            {
+                question: "Water _____ at 100 degrees Celsius.",
+                options: ["boils", "is boiling", "has boiled", "boil"],
+                correct: 0,
+                explanation: "Present Simple is used for general truths and scientific facts."
+            },
+            {
+                question: "They _____ in London since 2015.",
+                options: ["live", "are living", "have lived", "lived"],
+                correct: 2,
+                explanation: "Present Perfect with 'since' is used to describe actions that started in the past and continue to the present."
+            },
+            {
+                question: "Why _____ you _____ sunglasses? It's cloudy today.",
+                options: ["do / wear", "are / wearing", "have / worn", "did / wear"],
+                correct: 1,
+                explanation: "Present Continuous is used for temporary situations happening now. The question form uses 'are you wearing'."
+            },
+            {
+                question: "My brother _____ as a doctor in a local hospital.",
+                options: ["work", "works", "is working", "has worked"],
+                correct: 1,
+                explanation: "Present Simple is used for permanent situations and jobs."
+            },
+            {
+                question: "I can't find my keys. I _____ them somewhere.",
+                options: ["lose", "am losing", "have lost", "lost"],
+                correct: 2,
+                explanation: "Present Perfect is used when the exact time is not important, but the result affects the present (can't find keys now)."
+            },
+            {
+                question: "The Earth _____ around the Sun.",
+                options: ["moves", "is moving", "has moved", "move"],
+                correct: 0,
+                explanation: "Present Simple is used for permanent truths and natural phenomena."
+            },
+            {
+                question: "Shh! The baby _____.",
+                options: ["sleeps", "is sleeping", "has slept", "sleep"],
+                correct: 1,
+                explanation: "Present Continuous is used for actions happening at the moment of speaking. 'Shh!' indicates this."
+            },
+            {
+                question: "How long _____ you _____ English?",
+                options: ["do / study", "are / studying", "have / studied", "did / study"],
+                correct: 2,
+                explanation: "Present Perfect with 'How long' asks about the duration of an action from the past until now."
+            },
+            {
+                question: "He _____ coffee, he prefers tea.",
+                options: ["doesn't drink", "isn't drinking", "hasn't drunk", "don't drink"],
+                correct: 0,
+                explanation: "Present Simple (negative) is used to express preferences and general habits."
+            },
+            {
+                question: "We _____ about moving to a bigger apartment.",
+                options: ["think", "are thinking", "have thought", "thinks"],
+                correct: 1,
+                explanation: "Present Continuous with 'think about' is used for temporary considerations and plans in progress."
+            },
+            {
+                question: "She _____ three countries this year.",
+                options: ["visits", "is visiting", "has visited", "visit"],
+                correct: 2,
+                explanation: "Present Perfect is used with time periods that aren't finished yet ('this year')."
+            },
+            {
+                question: "I _____ what you mean.",
+                options: ["don't understand", "am not understanding", "haven't understood", "doesn't understand"],
+                correct: 0,
+                explanation: "Stative verbs like 'understand' are typically used in Present Simple, not Continuous."
+            }
+        ];
 
-        // Fallback data if JSON fetch fails (makes file autonomous)
-        const EMBEDDED_DATA = {
-  "title": "Зачёт: Present Simple, Continuous, Perfect",
-  "subtitle": "B1 Level Test",
-  "colors": ["#667eea", "#764ba2"],
-  "meta": { "level": "B1", "tags": ["grammar", "test", "present tenses"], "theme": "light", "duration": 20 },
-  "content": {
-    "reading": [
-      { "type": "paragraph", "text": "Complete the sentences choosing the correct form of the verb.", "highlight": ["gym", "climb", "boil", "sunglasses", "noise", "prefer"] },
-      { "type": "list", "text": "1. Present Simple\n2. Present Continuous\n3. Present Perfect" },
-      { "type": "fact", "text": "Read the context carefully to determine the correct tense." }
-    ]
-  },
-  "vocabulary": {
-    "words": [
-      { "en": "gym", "ru": "спортзал", "transcription": "dʒɪm", "example": "She goes to the gym three times a week." },
-      { "en": "climb", "ru": "взбираться", "transcription": "klaɪm", "example": "The cat is climbing the tree right now." },
-      { "en": "boil", "ru": "кипеть", "transcription": "bɔɪl", "example": "Water boils at 100 degrees Celsius." },
-      { "en": "sunglasses", "ru": "солнцезащитные очки", "transcription": "ˈsʌnɡlɑːsɪz", "example": "Why are you wearing sunglasses?" },
-      { "en": "cloudy", "ru": "облачный", "transcription": "ˈklaʊdi", "example": "It's cloudy today." },
-      { "en": "key", "ru": "ключ", "transcription": "kiː", "example": "I can't find my keys." },
-      { "en": "earth", "ru": "Земля", "transcription": "ɜːθ", "example": "The Earth moves around the Sun." },
-      { "en": "noise", "ru": "шум", "transcription": "nɔɪz", "example": "Don't make noise!" },
-      { "en": "prefer", "ru": "предпочитать", "transcription": "prɪˈfɜː(r)", "example": "He prefers tea." },
-      { "en": "knock", "ru": "стучать", "transcription": "nɒk", "example": "Someone is knocking at the door." }
-    ],
-    "phrases": [
-      { "en": "three times a week", "ru": "три раза в неделю", "example": "She goes to the gym three times a week." },
-      { "en": "right now", "ru": "прямо сейчас", "example": "The cat is climbing the tree right now." },
-      { "en": "make noise", "ru": "шуметь", "example": "Don't make noise!" },
-      { "en": "for a living", "ru": "на жизнь (зарабатывать)", "example": "What do you do for a living?" },
-      { "en": "go out", "ru": "выходить (в свет, гулять)", "example": "Can I go out now?" }
-    ]
-  },
-  "grammar": {
-    "rule": "Использование времен Present зависит от характера действия: регулярность (Simple), процесс в моменте (Continuous) или результат (Perfect).",
-    "pattern": "Simple: V/V-s | Continuous: am/is/are + V-ing | Perfect: have/has + V3/ed",
-    "examples": ["+ She goes to the gym. (Регулярно)", "- I haven't finished yet. (Результат к моменту)", "? Why are you wearing sunglasses? (Временная ситуация)"],
-    "common_mistakes": ["Использование Continuous с глаголами состояния (I am knowing -> I know).", "Использование Past Simple вместо Perfect с 'yet' или 'since'.", "Забывание окончания -s в 3-м лице ед.ч. Present Simple."]
-  },
-  "quiz": [
-    { "question": "Look! The cat _____ the tree right now.", "options": ["climbs", "is climbing", "has climbed", "climbed"], "correct": 1, "fb": "Correct! 'Look!' and 'right now' indicate an action happening at the moment of speech (Present Continuous)." },
-    { "question": "Shh! The baby _____. Don't make noise!", "options": ["sleeps", "is sleeping", "has slept", "sleep"], "correct": 1, "fb": "Correct! 'Shh!' creates a context of 'right now', requiring Present Continuous." },
-    { "question": "Why _____ you _____ sunglasses? It's cloudy today.", "options": ["do / wear", "are / wearing", "have / worn", "did / wear"], "correct": 1, "fb": "Correct! This is a temporary situation happening around now, contrasting with the weather." },
-    { "question": "We _____ about moving to a bigger apartment these days.", "options": ["think", "are thinking", "have thought", "thinks"], "correct": 1, "fb": "Correct! 'These days' suggests a temporary process or consideration, allowing 'think' in Continuous." },
-    { "question": "You look tired! _____ you _____ all night?", "options": ["Do / work", "Are / working", "Have / worked", "Did / work"], "correct": 2, "fb": "Correct! We see the result now (tiredness) from an action in the past." },
-    { "question": "Listen! Someone _____ at the door.", "options": ["knocks", "is knocking", "has knocked", "knocked"], "correct": 1, "fb": "Correct! 'Listen!' is a sensory marker for an action happening immediately." },
-    { "question": "I _____ my homework. Can I go out now?", "options": ["finish", "am finishing", "have finished", "finished"], "correct": 2, "fb": "Correct! The action is complete, and the result is relevant now (permission to go out)." },
-    { "question": "My parents _____ married for 25 years now.", "options": ["are", "are being", "have been", "were"], "correct": 2, "fb": "Correct! A state starting in the past and continuing until now." },
-    { "question": "I _____ this book yet.", "options": ["don't finish", "am not finishing", "haven't finished", "didn't finish"], "correct": 2, "fb": "Correct! 'Yet' is a strong marker for Present Perfect in negative sentences." },
-    { "question": "They _____ in London since 2015.", "options": ["live", "are living", "have lived", "lived"], "correct": 2, "fb": "Correct! 'Since' followed by a date indicates Present Perfect." },
-    { "question": "How long _____ you _____ English?", "options": ["do / study", "are / studying", "have / studied", "did / study"], "correct": 2, "fb": "Correct! 'How long' is a typical question marker for Present Perfect (duration)." },
-    { "question": "She _____ three countries this year.", "options": ["visits", "is visiting", "has visited", "visit"], "correct": 2, "fb": "Correct! 'This year' is an unfinished time period requiring Present Perfect." },
-    { "question": "I can't find my keys. I _____ them somewhere.", "options": ["lose", "am losing", "have lost", "lost"], "correct": 2, "fb": "Correct! 'Lost' implies a result relevant to the present." },
-    { "question": "She _____ to the gym three times a week.", "options": ["go", "goes", "is going", "has gone"], "correct": 1, "fb": "Correct! Present Simple is used for regular habits and routines." },
-    { "question": "Water _____ at 100 degrees Celsius.", "options": ["boils", "is boiling", "has boiled", "boil"], "correct": 0, "fb": "Correct! Scientific facts and general truths take Present Simple." },
-    { "question": "My brother _____ as a doctor in a local hospital.", "options": ["work", "works", "is working", "has worked"], "correct": 1, "fb": "Correct! Permanent situations and professions use Present Simple." },
-    { "question": "The Earth _____ around the Sun.", "options": ["moves", "is moving", "has moved", "move"], "correct": 0, "fb": "Correct! This is a universal truth, requiring Present Simple." },
-    { "question": "He _____ coffee. He prefers tea.", "options": ["doesn't drink", "isn't drinking", "hasn't drunk", "don't drink"], "correct": 0, "fb": "Correct! Preferences are general states, not temporary actions." },
-    { "question": "I _____ what you mean. Can you explain again?", "options": ["don't understand", "am not understanding", "haven't understood", "doesn't understand"], "correct": 0, "fb": "Correct! Stative verbs like 'understand' are rarely used in Continuous forms." },
-    { "question": "What _____ you _____ for a living?", "options": ["do / do", "are / doing", "have / done", "does / do"], "correct": 0, "fb": "Correct! Questions about permanent jobs use Present Simple." }
-  ]
-};
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+        let speechSynthesis = window.speechSynthesis;
+        let femaleVoice = null;
 
-        async function initLesson() {
-            try {
-                // Simulate fetch with timeout to show loader
-                await new Promise(r => setTimeout(r, 800));
-                
-                // Try fetching (will fail in local file mode without server)
-                // In production: const response = await fetch(`../data/${LESSON_ID}.json`);
-                // if(response.ok) lessonData = await response.json();
-                
-                // For this standalone demo, we use embedded data
-                if (!lessonData) lessonData = EMBEDDED_DATA;
-                
-                renderHeader();
-                renderReading();
-                renderVocabulary();
-                renderGrammar();
-                renderQuiz();
-                updateMyWordsList();
-                
-                // Apply colors from JSON
-                document.documentElement.style.setProperty('--primary', lessonData.colors[0]);
-                document.documentElement.style.setProperty('--secondary', lessonData.colors[1]);
-                
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('app').style.display = 'flex';
-                }, 500);
+        // Load female voice
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            // Try to find Google US English Female voice
+            femaleVoice = voices.find(voice => 
+                voice.name.includes('Google US English') && voice.name.includes('Female')
+            ) || voices.find(voice => 
+                voice.lang === 'en-US' && voice.name.toLowerCase().includes('female')
+            ) || voices.find(voice => 
+                voice.lang === 'en-US'
+            ) || voices[0];
+        }
 
-            } catch (e) {
-                console.error("Init Error", e);
-                alert("Ошибка загрузки урока");
+        // Load voices on page load and when voices change
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        // Save state to localStorage
+        function saveState() {
+            const state = {
+                currentQuestion,
+                score,
+                answered,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('englishTestState', JSON.stringify(state));
+        }
+
+        // Load state from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('englishTestState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                // Check if state is less than 24 hours old
+                if (Date.now() - state.timestamp < 24 * 60 * 60 * 1000) {
+                    currentQuestion = state.currentQuestion;
+                    score = state.score;
+                    answered = state.answered;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Clear saved state
+        function clearState() {
+            localStorage.removeItem('englishTestState');
+        }
+
+        function speakQuestion() {
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+                document.getElementById('speakerBtn').classList.remove('playing');
+                return;
+            }
+
+            const q = questions[currentQuestion];
+            const text = q.question.replace(/_____/g, 'blank');
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            
+            const speakerBtn = document.getElementById('speakerBtn');
+            speakerBtn.classList.add('playing');
+            
+            utterance.onend = () => {
+                speakerBtn.classList.remove('playing');
+            };
+            
+            utterance.onerror = () => {
+                speakerBtn.classList.remove('playing');
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('question-number').innerHTML = 
+                `<button class="speaker-btn" id="speakerBtn" onclick="speakQuestion()" title="Listen to question">🔊</button>
+                Question ${currentQuestion + 1} of ${questions.length}`;
+            
+            document.getElementById('question-text').textContent = q.question;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-btn').disabled = true;
+            answered = false;
+            updateProgress();
+            saveState();
+
+            // Auto-play if enabled
+            if (document.getElementById('autoPlayToggle').checked) {
+                setTimeout(() => speakQuestion(), 300);
             }
         }
 
-        function renderHeader() {
-            document.getElementById('lesson-title').textContent = lessonData.title;
-            document.getElementById('lesson-subtitle').textContent = lessonData.subtitle;
-            const metaHtml = lessonData.meta.tags.map(t => `<span class="tag">#${t}</span>`).join('') + 
-                           `<span class="tag">⏱ ${lessonData.meta.duration} min</span>` +
-                           `<span class="tag">📊 ${lessonData.meta.level}</span>`;
-            document.getElementById('meta-tags').innerHTML = metaHtml;
-        }
-        function renderReading() {
-            const container = document.getElementById('reading');
-            let html = '<div class="reading-text">';
+        function selectOption(selected) {
+            if (answered) return;
+
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
             
-            lessonData.content.reading.forEach(block => {
-                if (block.type === 'paragraph') {
-                    let text = escapeJS(block.text);
-                    if (block.highlight) {
-                        block.highlight.forEach(word => {
-                            // Regex to highlight whole words case-insensitive
-                            const regex = new RegExp(`\\b${word}\\b`, 'gi');
-                            text = text.replace(regex, match => 
-                                `<span class="highlight" onclick="speakText('${match}')">${match}</span>`);
-                        });
-                    }
-                    html += `<p>${text}</p>`;
-                } else if (block.type === 'list') {
-                    html += `<ul style="margin: 15px 30px; color: #555;">${escapeJS(block.text).split('\n').map(l => `<li>${l}</li>`).join('')}</ul>`;
-                } else if (block.type === 'fact') {
-                    html += `<div style="background:#e3f2fd; padding:15px; border-radius:8px; margin:10px 0;">💡 ${escapeJS(block.text)}</div>`;
+            answered = true;
+            
+            options.forEach((option, index) => {
+                option.classList.add('disabled');
+                if (index === q.correct) {
+                    option.classList.add('correct');
+                }
+                if (index === selected && selected !== q.correct) {
+                    option.classList.add('incorrect');
                 }
             });
+
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('hidden');
             
-            html += `<button onclick="speakText('${lessonData.content.reading[0].text}')" style="margin-top:20px; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:20px; cursor:pointer;">🔊 Listen to Text</button>`;
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function renderVocabulary() {
-            const container = document.getElementById('vocabulary');
-            const words = lessonData.vocabulary.words;
-            
-            let html = `
-                <div class="vocab-controls">
-                    <button class="vocab-btn active" id="btn-list" onclick="setVocabView('list')">List</button>
-                    <button class="vocab-btn" id="btn-cards" onclick="setVocabView('cards')">Flashcards</button>
-                </div>
-                
-                <div id="vocab-list-view" class="word-list">
-                    ${words.map((w, i) => `
-                        <div class="word-item">
-                            <div class="word-main">
-                                <span class="en-word" onclick="speakText('${w.en}')">${w.en}</span>
-                                <span class="ru-word">[${w.transcription}] ${w.ru}</span>
-                            </div>
-                            <div>
-                                <button class="btn-icon" onclick="speakText('${w.en}')">🔊</button>
-                                <button class="btn-icon" onclick="toggleSaveWord(${i})">${isSaved(w.en) ? '★' : '☆'}</button>
-                            </div>
-                        </div>
-                    `).join('')}
-                    <h3 style="margin:20px 0 10px;">Phrases</h3>
-                    ${lessonData.vocabulary.phrases.map(p => `
-                        <div class="word-item">
-                            <div class="word-main">
-                                <span class="en-word" onclick="speakText('${p.en}')">${p.en}</span>
-                                <span class="ru-word">${p.ru}</span>
-                            </div>
-                            <button class="btn-icon" onclick="speakText('${p.en}')">🔊</button>
-                        </div>
-                    `).join('')}
-                </div>
-
-                <div id="vocab-card-view" class="flashcard-container" onclick="flipCard(this)">
-                    <div class="flashcard" id="current-flashcard">
-                        <!-- Injected via JS -->
-                    </div>
-                    <div style="text-align:center; margin-top:20px;">
-                        <button class="vocab-btn" onclick="event.stopPropagation(); prevCard()">←</button>
-                        <span id="card-counter" style="margin:0 15px;">1/${words.length}</span>
-                        <button class="vocab-btn" onclick="event.stopPropagation(); nextCard()">→</button>
-                    </div>
-                </div>
-            `;
-            container.innerHTML = html;
-            updateFlashcard(0);
-        }
-
-        function renderGrammar() {
-            const g = lessonData.grammar;
-            const html = `
-                <div class="grammar-box">
-                    <div class="rule-title">THE RULE</div>
-                    <p>${g.rule}</p>
-                </div>
-                <div style="margin-bottom:20px;">
-                    <div class="rule-title" style="color:var(--secondary)">PATTERN</div>
-                    de style="background:#333; color:#fff; padding:5px 10px; border-radius:4px; display:block; margin-top:5px;">${g.pattern}</code>
-                </div>
-                <div style="margin-bottom:20px;">
-                    <div class="rule-title">EXAMPLES</div>
-                    <ul class="example-list">
-                        ${g.examples.map(ex => `<li>${ex}</li>`).join('')}
-                    </ul>
-                </div>
-                <div>
-                    <div class="rule-title" style="color:var(--error)">COMMON MISTAKES</div>
-                    <ul class="example-list">
-                        ${g.common_mistakes.map(m => `<li>${m}</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-            document.getElementById('grammar').innerHTML = html;
-        }
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz');
-            if (currentQuizIndex >= lessonData.quiz.length) {
-                const pct = Math.round((quizScore / lessonData.quiz.length) * 100);
-                container.innerHTML = `
-                    <div style="text-align:center; padding:40px;">
-                        <div style="font-size:3rem; margin-bottom:10px;">${pct >= 80 ? '🏆' : pct >= 50 ? '🙂' : '📚'}</div>
-                        <h2>Quiz Complete!</h2>
-                        <p style="font-size:1.5rem; margin:10px 0; color:var(--primary);">${quizScore} / ${lessonData.quiz.length}</p>
-                        <p>${pct}% Correct</p>
-                        <button class="tab-btn active" style="margin-top:20px; border-radius:20px;" onclick="restartQuiz()">Try Again</button>
-                    </div>
-                `;
-                return;
-            }
-
-            const q = lessonData.quiz[currentQuizIndex];
-            const html = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:0.9rem; color:#888;">
-                    <span>Question ${currentQuizIndex + 1} of ${lessonData.quiz.length}</span>
-                    <span>Score: ${quizScore}</span>
-                </div>
-                <div class="quiz-question">${q.question}</div>
-                <div class="options-grid">
-                    ${q.options.map((opt, i) => `
-                        <button class="option-btn" onclick="checkAnswer(${i}, this)" id="opt-${i}">${opt}</button>
-                    `).join('')}
-                </div>
-                <div class="feedback" id="quiz-feedback"></div>
-                <button id="next-q-btn" style="display:none; width:100%; margin-top:20px; padding:15px; background:var(--primary); color:white; border:none; border-radius:10px; font-size:1rem; cursor:pointer;" onclick="nextQuestion()">Next Question →</button>
-            `;
-            container.innerHTML = html;
-        }
-
-        function checkAnswer(selectedIndex, btn) {
-            // Disable all buttons
-            const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(b => b.disabled = true);
-            
-            const q = lessonData.quiz[currentQuizIndex];
-            const isCorrect = selectedIndex === q.correct;
-            const fb = document.getElementById('quiz-feedback');
-            
-            if (isCorrect) {
-                btn.classList.add('correct');
-                quizScore++;
-                playSound('success');
-                fb.innerHTML = `<strong>Correct!</strong> ${q.fb}`;
-                fb.style.background = "#e8f5e9";
-                fb.style.color = "#2e7d32";
+            if (selected === q.correct) {
+                score++;
+                feedback.className = 'feedback correct';
+                feedback.innerHTML = `<strong>✓ Correct!</strong><br>${q.explanation}`;
             } else {
-                btn.classList.add('wrong');
-                document.getElementById(`opt-${q.correct}`).classList.add('correct');
-                playSound('error');
-                fb.innerHTML = `<strong>Incorrect.</strong> ${q.fb}`;
-                fb.style.background = "#ffebee";
-                fb.style.color = "#c62828";
+                feedback.className = 'feedback incorrect';
+                feedback.innerHTML = `<strong>✗ Incorrect.</strong><br>${q.explanation}`;
             }
-            
-            fb.classList.add('show');
-            document.getElementById('next-q-btn').style.display = 'block';
-        }
-        // --- UTILS & LOGIC ---
-        
-        // Tab System
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+
+            document.getElementById('next-btn').disabled = false;
+            saveState();
         }
 
-        // Vocabulary Logic
-        let currentCardIndex = 0;
-        function setVocabView(mode) {
-            document.getElementById('btn-list').classList.toggle('active', mode === 'list');
-            document.getElementById('btn-cards').classList.toggle('active', mode === 'cards');
-            document.getElementById('vocab-list-view').style.display = mode === 'list' ? 'grid' : 'none';
-            document.getElementById('vocab-card-view').style.display = mode === 'cards' ? 'block' : 'none';
-        }
-
-        function updateFlashcard(index) {
-            const w = lessonData.vocabulary.words[index];
-            const cardHtml = `
-                <div class="front">
-                    <div style="font-size:2rem; font-weight:bold; color:var(--primary);">${w.en}</div>
-                    <div style="color:#999; margin-top:10px;">[${w.transcription}]</div>
-                    <div style="font-size:0.8rem; color:#ccc; margin-top:20px;">Tap to flip</div>
-                </div>
-                <div class="back">
-                    <div style="font-size:1.5rem; margin-bottom:10px;">${w.ru}</div>
-                    <div style="font-style:italic; color:#666;">"${w.example}"</div>
-                </div>
-            `;
-            document.getElementById('current-flashcard').innerHTML = cardHtml;
-            document.getElementById('current-flashcard').classList.remove('flipped');
-            document.getElementById('card-counter').textContent = `${index + 1}/${lessonData.vocabulary.words.length}`;
-        }
-
-        function flipCard(el) {
-            el.querySelector('.flashcard').classList.toggle('flipped');
-            const w = lessonData.vocabulary.words[currentCardIndex];
-            // Speak English side if showing front
-            if(!el.querySelector('.flashcard').classList.contains('flipped')) {
-                speakText(w.en);
-            }
-        }
-
-        function nextCard() {
-            if(currentCardIndex < lessonData.vocabulary.words.length - 1) {
-                currentCardIndex++;
-                updateFlashcard(currentCardIndex);
-            }
-        }
-        function prevCard() {
-            if(currentCardIndex > 0) {
-                currentCardIndex--;
-                updateFlashcard(currentCardIndex);
-            }
-        }
-
-        // Quiz Logic
         function nextQuestion() {
-            currentQuizIndex++;
-            renderQuiz();
-        }
-        function restartQuiz() {
-            currentQuizIndex = 0;
-            quizScore = 0;
-            renderQuiz();
-        }
-
-        // My Words / LocalStorage
-        function isSaved(word) {
-            return myWords.some(w => w.en === word);
-        }
-
-        function toggleSaveWord(index) {
-            const wordObj = lessonData.vocabulary.words[index];
-            if(isSaved(wordObj.en)) {
-                myWords = myWords.filter(w => w.en !== wordObj.en);
-                showNotification("Removed from My Words");
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                loadQuestion();
             } else {
-                myWords.push(wordObj);
-                showNotification("Saved to My Words");
+                showResults();
             }
-            saveMyWords();
-            renderVocabulary(); // Re-render to update icon
-            updateMyWordsList();
         }
 
-        function saveMyWords() {
-            localStorage.setItem(`myWords_${LESSON_ID}`, JSON.stringify(myWords));
+        function updateProgress() {
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
         }
 
-        function updateMyWordsList() {
-            document.getElementById('saved-count').textContent = `(${myWords.length})`;
-            const container = document.getElementById('my-words-list');
-            if(myWords.length === 0) {
-                container.innerHTML = '<div style="padding:20px; color:#999; text-align:center;">No words saved yet.</div>';
-                return;
-            }
-            container.innerHTML = myWords.map(w => `
-                <div class="my-word-item">
-                    <div>
-                        <div style="font-weight:bold;">${w.en}</div>
-                        <div style="font-size:0.8rem; color:#666;">${w.ru}</div>
-                    </div>
-                    <button class="btn-icon" onclick="removeFromSidebar('${w.en}')" style="color:var(--error);">✕</button>
-                </div>
-            `).join('');
-        }
-
-        function removeFromSidebar(wordEn) {
-            myWords = myWords.filter(w => w.en !== wordEn);
-            saveMyWords();
-            updateMyWordsList();
-            renderVocabulary(); // Update stars in main list
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.querySelector('.sidebar-overlay').classList.toggle('active');
-        }
-
-        // TTS & Helpers
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Stop previous
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US';
-                utterance.rate = 0.9;
-                window.speechSynthesis.speak(utterance);
+        function showResults() {
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('results-section').classList.remove('hidden');
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('final-score').textContent = `${score}/${questions.length}`;
+            
+            let message = '';
+            if (percentage >= 90) {
+                message = 'Excellent! You have mastered these tenses!';
+            } else if (percentage >= 70) {
+                message = 'Good job! You have a solid understanding.';
+            } else if (percentage >= 50) {
+                message = 'Not bad, but more practice is needed.';
             } else {
-                showNotification("TTS not supported");
+                message = 'Keep practicing. You\'ll improve!';
+            }
+            
+            document.getElementById('score-text').textContent = `${percentage}% - ${message}`;
+            clearState();
+        }
+
+        function resetTest() {
+            const code = document.getElementById('reset-code').value;
+            
+            if (code === '263') {
+                currentQuestion = 0;
+                score = 0;
+                answered = false;
+                
+                document.getElementById('quiz-section').classList.remove('hidden');
+                document.getElementById('results-section').classList.add('hidden');
+                document.getElementById('reset-code').value = '';
+                
+                clearState();
+                loadQuestion();
+            } else {
+                alert('Incorrect code. Please try again.');
             }
         }
 
-        function playSound(type) {
-            // Simple audio feedback via Web Audio API could go here, 
-            // but for simplicity we'll rely on visual feedback or simple beep logic
-            if('vibrate' in navigator) navigator.vibrate(type === 'success' ? 50 : 200);
+        // Initialize quiz
+        if (loadState() && currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+            clearState();
+            loadQuestion();
         }
-
-        function showNotification(msg) {
-            const n = document.getElementById('notification');
-            n.textContent = msg;
-            n.classList.add('show');
-            setTimeout(() => n.classList.remove('show'), 2000);
-        }
-
-        function escapeJS(str) {
-            if(!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-
-        // Init
-        document.addEventListener('DOMContentLoaded', initLesson);
     </script>
 </body>
 </html>
