@@ -1,158 +1,497 @@
 {
-  "id": "266",
   "title": "How does the law affect you?",
-  "subtitle": "10... 14... 16... 18... 21",
-  "theme": "default",
-  "colors": ["#00838F", "#F5F5F7"],
-  "content": [
-    {
-      "type": "block",
-      "title": "1 Voting",
-      "text": "In most countries around the world, including Britain, you can vote from the age of eighteen. In some countries, like Argentina, you have to vote – if you don't, you can go to prison! The youngest voters in the world are in Iran. You can vote there from the age of fifteen. Some politicians in Britain want to change the voting age to sixteen, to involve young people more in politics."
-    },
-    {
-      "type": "fact",
-      "text": "FACT! New Zealand was the first country to give women the vote – in 1893."
-    },
-    {
-      "type": "block",
-      "title": "2 Marriage",
-      "text": "In most of Europe, you are allowed to marry at eighteen (sixteen with your parents' permission). In China, couples need to be more patient – men can't marry before the age of twenty-two and women before twenty."
-    },
-    {
-      "type": "fact",
-      "text": "FACT! In Scotland, young people can marry at sixteen without their parents' permission. That's why, traditionally, young couples run away to Gretna Green (on the English/Scottish border) for 'quickie' weddings."
-    },
-    {
-      "type": "block",
-      "title": "3 Military Service",
-      "text": "In many European countries, young men have to do military service, usually for between three and eighteen months. In Switzerland, men have to go back into the army every year for three weeks. In Britain, there is only a professional army. You can join the army from the age of sixteen."
-    },
-    {
-      "type": "fact",
-      "text": "FACT! If you drop out of high school in Egypt, you have to do four years military service instead!"
-    },
-    {
-      "type": "block",
-      "title": "4 Criminal responsibility",
-      "text": "In Britain, you become responsible for crimes you commit from the age of ten. Before that, the law says that you are too young to understand your actions, whether you spray graffiti on a wall, steal sweets or commit murder! In parts of the USA and Australia, this age is just six, while in most European countries, it is fifteen or sixteen."
-    },
-    {
-      "type": "fact",
-      "text": "FACT! Until recently, many US states used the death penalty for criminals under eighteen. Between 1990 and 2005, nineteen young people died in this way."
-    },
-    {
-      "type": "block",
-      "title": "5 Smoking and drinking",
-      "text": "In the UK, it's illegal to buy alcohol until you are eighteen years old (although you're allowed to drink alcohol at home from the age of five!). In the USA, you're not allowed to buy alcohol until you're twenty-one and they are very strict about ID."
-    },
-    {
-      "type": "fact",
-      "text": "FACT! In most US states and in the UK, smoking is banned inside bars and nightclubs and you're not allowed to drink alcohol outside them!"
-    },
-    {
-      "type": "block",
-      "title": "6 Driving",
-      "text": "According to UK law, you are not allowed to drive until you are seventeen, while in most of Europe it is eighteen. In the USA, you can drive much younger, in some states from the age of just fourteen!"
-    },
-    {
-      "type": "fact",
-      "text": "FACT! Until 1935, you didn't have to take a driving test in the UK – you could just buy a car and drive away!"
-    },
-    {
-      "type": "vocab",
-      "items": [
-        { "en": "to join the army", "ru": "пойти в армию" },
-        { "en": "to steal", "ru": "красть" },
-        { "en": "to vote", "ru": "голосовать" },
-        { "en": "to take a driving test", "ru": "сдавать экзамен по вождению" },
-        { "en": "the death penalty", "ru": "смертная казнь" },
-        { "en": "to go to prison", "ru": "сесть в тюрьму" },
-        { "en": "to commit a crime/a murder", "ru": "совершить преступление/убийство" },
-        { "en": "ID", "ru": "удостоверение личности" },
-        { "en": "to be banned", "ru": "быть запрещённым" },
-        { "en": "to be illegal", "ru": "быть незаконным" }
+  "subtitle": "Ages and Rights",
+  "colors": ["#00838F", "#E0F7FA"],
+  
+  "meta": {
+    "level": "B1",
+    "tags": ["reading", "vocabulary", "law"],
+    "theme": "dark",
+    "duration": 35,
+    "source": "English File Pre-Intermediate (4th edition)"
+  },
+  
+  "content": {
+    "reading": [
+      {
+        "type": "paragraph",
+        "title": "1 Voting",
+        "text": "In most countries around the world, including Britain, you can vote from the age of eighteen. In some countries, like Argentina, you have to vote – if you don't, you can go to prison! The youngest voters in the world are in Iran. You can vote there from the age of fifteen. Some politicians in Britain want to change the voting age to sixteen, to involve young people more in politics.",
+        "highlight": ["vote", "prison", "politician", "politics", "age"],
+        "audio_paragraph": true
+      },
+      {
+        "type": "fact",
+        "title": "FACT!",
+        "text": "New Zealand was the first country to give women the vote – in 1893.",
+        "highlight": [],
+        "audio_paragraph": false
+      },
+      {
+        "type": "paragraph",
+        "title": "2 Marriage",
+        "text": "In most of Europe, you are allowed to marry at eighteen (sixteen with your parents' permission). In China, couples need to be more patient – men can't marry before the age of twenty-two and women before twenty.",
+        "highlight": ["marry", "permission", "couple"],
+        "audio_paragraph": true
+      },
+      {
+        "type": "fact",
+        "title": "FACT!",
+        "text": "In Scotland, young people can marry at sixteen without their parents' permission. That's why, traditionally, young couples run away to Gretna Green (on the English/Scottish border) for 'quickie' weddings.",
+        "highlight": [],
+        "audio_paragraph": false
+      },
+      {
+        "type": "paragraph",
+        "title": "3 Military Service",
+        "text": "In many European countries, young men have to do military service, usually for between three and eighteen months. In Switzerland, men have to go back into the army every year for three weeks. In Britain, there is only a professional army. You can join the army from the age of sixteen.",
+        "highlight": ["military", "army", "professional"],
+        "audio_paragraph": true
+      },
+      {
+        "type": "fact",
+        "title": "FACT!",
+        "text": "If you drop out of high school in Egypt, you have to do four years military service instead!",
+        "highlight": [],
+        "audio_paragraph": false
+      },
+      {
+        "type": "paragraph",
+        "title": "4 Criminal responsibility",
+        "text": "In Britain, you become responsible for crimes you commit from the age of ten. Before that, the law says that you are too young to understand your actions, whether you spray graffiti on a wall, steal sweets or commit murder! In parts of the USA and Australia, this age is just six, while in most European countries, it is fifteen or sixteen.",
+        "highlight": ["responsible", "crime", "commit", "graffiti", "steal", "murder"],
+        "audio_paragraph": true
+      },
+      {
+        "type": "fact",
+        "title": "FACT!",
+        "text": "Until recently, many US states used the death penalty for criminals under eighteen. Between 1990 and 2005, nineteen young people died in this way.",
+        "highlight": ["death penalty", "criminal"],
+        "audio_paragraph": false
+      },
+      {
+        "type": "paragraph",
+        "title": "5 Smoking and drinking",
+        "text": "In the UK, it's illegal to buy alcohol until you are eighteen years old (although you're allowed to drink alcohol at home from the age of five!). In the USA, you're not allowed to buy alcohol until you're twenty-one and they are very strict about ID.",
+        "highlight": ["illegal", "alcohol", "strict"],
+        "audio_paragraph": true
+      },
+      {
+        "type": "fact",
+        "title": "FACT!",
+        "text": "In most US states and in the UK, smoking is banned inside bars and nightclubs and you're not allowed to drink alcohol outside them!",
+        "highlight": ["banned", "bar", "nightclub"],
+        "audio_paragraph": false
+      },
+      {
+        "type": "paragraph",
+        "title": "6 Driving",
+        "text": "According to UK law, you are not allowed to drive until you are seventeen, while in most of Europe it is eighteen. In the USA, you can drive much younger, in some states from the age of just fourteen!",
+        "highlight": ["drive", "law"],
+        "audio_paragraph": true
+      },
+      {
+        "type": "fact",
+        "title": "FACT!",
+        "text": "Until 1935, you didn't have to take a driving test in the UK – you could just buy a car and drive away!",
+        "highlight": [],
+        "audio_paragraph": false
+      }
+    ],
+    
+    "vocabulary": {
+      "words": [
+        {
+          "en": "vote",
+          "ru": "голосовать",
+          "transcription": "[vəʊt]",
+          "example": "You can vote from the age of eighteen.",
+          "part_of_speech": "verb"
+        },
+        {
+          "en": "prison",
+          "ru": "тюрьма",
+          "transcription": "[ˈprɪzən]",
+          "example": "If you don't vote, you can go to prison.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "politician",
+          "ru": "политик",
+          "transcription": "[ˌpɒləˈtɪʃən]",
+          "example": "Some politicians want to change the voting age.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "marry",
+          "ru": "жениться/выходить замуж",
+          "transcription": "[ˈmæri]",
+          "example": "You are allowed to marry at eighteen.",
+          "part_of_speech": "verb"
+        },
+        {
+          "en": "permission",
+          "ru": "разрешение",
+          "transcription": "[pəˈmɪʃən]",
+          "example": "You can marry at sixteen with your parents' permission.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "couple",
+          "ru": "пара",
+          "transcription": "[ˈkʌpəl]",
+          "example": "Young couples run away to Gretna Green.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "military",
+          "ru": "военный",
+          "transcription": "[ˈmɪlətəri]",
+          "example": "Young men have to do military service.",
+          "part_of_speech": "adjective"
+        },
+        {
+          "en": "army",
+          "ru": "армия",
+          "transcription": "[ˈɑːmi]",
+          "example": "You can join the army from the age of sixteen.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "professional",
+          "ru": "профессиональный",
+          "transcription": "[prəˈfeʃənəl]",
+          "example": "In Britain, there is only a professional army.",
+          "part_of_speech": "adjective"
+        },
+        {
+          "en": "responsible",
+          "ru": "ответственный",
+          "transcription": "[rɪˈspɒnsəbəl]",
+          "example": "You become responsible for crimes from the age of ten.",
+          "part_of_speech": "adjective"
+        },
+        {
+          "en": "crime",
+          "ru": "преступление",
+          "transcription": "[kraɪm]",
+          "example": "You become responsible for crimes you commit.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "commit",
+          "ru": "совершать",
+          "transcription": "[kəˈmɪt]",
+          "example": "You spray graffiti or commit murder.",
+          "part_of_speech": "verb"
+        },
+        {
+          "en": "graffiti",
+          "ru": "граффити",
+          "transcription": "[ɡrəˈfiːti]",
+          "example": "Whether you spray graffiti on a wall.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "steal",
+          "ru": "красть",
+          "transcription": "[stiːl]",
+          "example": "You steal sweets or commit murder.",
+          "part_of_speech": "verb"
+        },
+        {
+          "en": "murder",
+          "ru": "убийство",
+          "transcription": "[ˈmɜːdə(r)]",
+          "example": "You steal sweets or commit murder.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "criminal",
+          "ru": "преступник",
+          "transcription": "[ˈkrɪmɪnəl]",
+          "example": "Many US states used the death penalty for criminals.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "illegal",
+          "ru": "незаконный",
+          "transcription": "[ɪˈliːɡəl]",
+          "example": "It's illegal to buy alcohol until you are eighteen.",
+          "part_of_speech": "adjective"
+        },
+        {
+          "en": "alcohol",
+          "ru": "алкоголь",
+          "transcription": "[ˈælkəhɒl]",
+          "example": "You're allowed to drink alcohol at home.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "strict",
+          "ru": "строгий",
+          "transcription": "[strɪkt]",
+          "example": "They are very strict about ID.",
+          "part_of_speech": "adjective"
+        },
+        {
+          "en": "banned",
+          "ru": "запрещённый",
+          "transcription": "[bænd]",
+          "example": "Smoking is banned inside bars.",
+          "part_of_speech": "adjective"
+        },
+        {
+          "en": "bar",
+          "ru": "бар",
+          "transcription": "[bɑː(r)]",
+          "example": "Smoking is banned inside bars.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "nightclub",
+          "ru": "ночной клуб",
+          "transcription": "[ˈnaɪtklʌb]",
+          "example": "Smoking is banned inside nightclubs.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "drive",
+          "ru": "водить машину",
+          "transcription": "[draɪv]",
+          "example": "You are not allowed to drive until you are seventeen.",
+          "part_of_speech": "verb"
+        },
+        {
+          "en": "law",
+          "ru": "закон",
+          "transcription": "[lɔː]",
+          "example": "According to UK law, you are not allowed to drive.",
+          "part_of_speech": "noun"
+        },
+        {
+          "en": "politics",
+          "ru": "политика",
+          "transcription": "[ˈpɒlətɪks]",
+          "example": "To involve young people more in politics.",
+          "part_of_speech": "noun"
+        }
+      ],
+      "phrases": [
+        {
+          "en": "go to prison",
+          "ru": "попасть в тюрьму",
+          "context": "Legal consequences"
+        },
+        {
+          "en": "join the army",
+          "ru": "пойти в армию",
+          "context": "Military service"
+        },
+        {
+          "en": "death penalty",
+          "ru": "смертная казнь",
+          "context": "Criminal punishment"
+        },
+        {
+          "en": "drop out of",
+          "ru": "бросить (учёбу)",
+          "context": "Education"
+        },
+        {
+          "en": "run away",
+          "ru": "убежать",
+          "context": "Actions"
+        },
+        {
+          "en": "take a driving test",
+          "ru": "сдавать экзамен на вождение",
+          "context": "Driving"
+        },
+        {
+          "en": "commit a crime",
+          "ru": "совершить преступление",
+          "context": "Criminal actions"
+        },
+        {
+          "en": "become responsible",
+          "ru": "стать ответственным",
+          "context": "Legal responsibility"
+        }
       ]
+    }
+  },
+  
+  "quiz": [
+    {
+      "q": "At what age can you vote in most countries?",
+      "opts": ["15", "16", "18", "21"],
+      "correct": 2,
+      "fb": "Correct! In most countries, you can vote from the age of eighteen.",
+      "type": "comprehension"
     },
     {
-      "type": "phrase",
-      "items": [
-        { "en": "Personally, I think that's a really good idea!", "ru": "Лично я думаю, что это действительно хорошая идея!" },
-        { "en": "I completely agree with that.", "ru": "Я полностью согласен с этим." },
-        { "en": "I'm not sure about that.", "ru": "Я не уверен насчет этого." },
-        { "en": "I don't really agree with that.", "ru": "Я не совсем согласен с этим." },
-        { "en": "Sorry, but I don't think that's a very good idea!", "ru": "Извини, но я не думаю, что это очень хорошая идея!" }
-      ]
+      "q": "Which country was the first to give women the vote?",
+      "opts": ["Britain", "USA", "New Zealand", "Argentina"],
+      "correct": 2,
+      "fb": "Correct! New Zealand was the first country to give women the vote in 1893.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "At what age can you vote in Iran?",
-      "options": ["Eighteen", "Sixteen", "Fifteen"],
-      "answer": 2,
-      "feedback": "Correct! Iran has the youngest voters in the world at age 15."
+      "q": "In China, at what age can men get married?",
+      "opts": ["18", "20", "22", "25"],
+      "correct": 2,
+      "fb": "Correct! In China, men can't marry before the age of twenty-two.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "What happens if you don't vote in Argentina?",
-      "options": ["Nothing happens", "You can go to prison", "You pay a fine"],
-      "answer": 1,
-      "feedback": "That's right! Voting is compulsory in Argentina."
+      "q": "Where can young couples go for 'quickie' weddings in the UK?",
+      "opts": ["London", "Manchester", "Gretna Green", "Edinburgh"],
+      "correct": 2,
+      "fb": "Correct! Young couples traditionally run away to Gretna Green on the English/Scottish border.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "At what age do you become responsible for crimes in Britain?",
-      "options": ["Six", "Ten", "Sixteen"],
-      "answer": 1,
-      "feedback": "Correct! In Britain, criminal responsibility starts at age 10."
+      "q": "How long do Swiss men have to go back into the army each year?",
+      "opts": ["One week", "Two weeks", "Three weeks", "Four weeks"],
+      "correct": 2,
+      "fb": "Correct! In Switzerland, men have to go back into the army every year for three weeks.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "In which country can you marry at sixteen without parental permission?",
-      "options": ["UK", "China", "Scotland"],
-      "answer": 2,
-      "feedback": "Correct! Scotland allows marriage at 16 without parental consent."
+      "q": "At what age do you become responsible for crimes in Britain?",
+      "opts": ["6", "10", "15", "18"],
+      "correct": 1,
+      "fb": "Correct! In Britain, you become responsible for crimes from the age of ten.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "What is the legal drinking age in the USA?",
-      "options": ["Eighteen", "Twenty", "Twenty-one"],
-      "answer": 2,
-      "feedback": "Correct! In the USA, you must be 21 to buy alcohol."
+      "q": "What is the age of criminal responsibility in most European countries?",
+      "opts": ["6", "10", "15 or 16", "18"],
+      "correct": 2,
+      "fb": "Correct! In most European countries, the age of criminal responsibility is fifteen or sixteen.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "At what age can you join the army in Britain?",
-      "options": ["Sixteen", "Eighteen", "Seventeen"],
-      "answer": 0,
-      "feedback": "Correct! You can join the British army from age 16."
+      "q": "At what age can you buy alcohol in the USA?",
+      "opts": ["18", "19", "20", "21"],
+      "correct": 3,
+      "fb": "Correct! In the USA, you're not allowed to buy alcohol until you're twenty-one.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "In which country do men return to the army every year for three weeks?",
-      "options": ["UK", "USA", "Switzerland"],
-      "answer": 2,
-      "feedback": "Correct! This is a Swiss military obligation."
+      "q": "From what age can you drink alcohol at home in the UK?",
+      "opts": ["5", "10", "16", "18"],
+      "correct": 0,
+      "fb": "Correct! In the UK, you're allowed to drink alcohol at home from the age of five!",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "At what age is it legal to drive in most of Europe?",
-      "options": ["Sixteen", "Seventeen", "Eighteen"],
-      "answer": 2,
-      "feedback": "Correct! The driving age in most of Europe is 18."
+      "q": "At what age can you drive in the UK?",
+      "opts": ["14", "16", "17", "18"],
+      "correct": 2,
+      "fb": "Correct! According to UK law, you are not allowed to drive until you are seventeen.",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "What was the driving law in the UK until 1935?",
-      "options": ["You had to take a driving test", "You could drive at age 14", "You could just buy a car and drive away"],
-      "answer": 2,
-      "feedback": "Correct! No test was required before 1935 in the UK."
+      "q": "In some US states, from what age can you drive?",
+      "opts": ["12", "14", "16", "18"],
+      "correct": 1,
+      "fb": "Correct! In some US states, you can drive from the age of just fourteen!",
+      "type": "comprehension"
     },
     {
-      "type": "quiz",
-      "question": "In which country must you be 22 (men) or 20 (women) to marry?",
-      "options": ["UK", "China", "USA"],
-      "answer": 1,
-      "feedback": "Correct! These are the marriage ages in China."
+      "q": "What does 'vote' mean?",
+      "opts": [
+        "To choose a leader in an election",
+        "To make a speech",
+        "To create a law",
+        "To go to court"
+      ],
+      "correct": 0,
+      "fb": "Correct! 'Vote' means to choose a leader or make a choice in an election.",
+      "type": "vocabulary"
+    },
+    {
+      "q": "What does 'permission' mean?",
+      "opts": [
+        "A document",
+        "Official approval to do something",
+        "A type of law",
+        "A punishment"
+      ],
+      "correct": 1,
+      "fb": "Correct! 'Permission' means official approval or consent to do something.",
+      "type": "vocabulary"
+    },
+    {
+      "q": "What does 'commit' mean in the phrase 'commit a crime'?",
+      "opts": [
+        "To report",
+        "To prevent",
+        "To do or carry out",
+        "To punish"
+      ],
+      "correct": 2,
+      "fb": "Correct! 'Commit' means to do or carry out an action, especially a crime.",
+      "type": "vocabulary"
+    },
+    {
+      "q": "What does 'banned' mean?",
+      "opts": [
+        "Allowed",
+        "Officially prohibited",
+        "Recommended",
+        "Popular"
+      ],
+      "correct": 1,
+      "fb": "Correct! 'Banned' means officially prohibited or forbidden by law.",
+      "type": "vocabulary"
+    },
+    {
+      "q": "Choose the correct word: You can ____ in the election at 18.",
+      "opts": ["vote", "voting", "voted", "votes"],
+      "correct": 0,
+      "fb": "Correct! After 'can' we use the base form of the verb: 'vote'.",
+      "type": "vocabulary"
+    },
+    {
+      "q": "What is a 'politician'?",
+      "opts": [
+        "A police officer",
+        "A person involved in politics",
+        "A lawyer",
+        "A judge"
+      ],
+      "correct": 1,
+      "fb": "Correct! A 'politician' is a person who is professionally involved in politics.",
+      "type": "vocabulary"
+    },
+    {
+      "q": "Complete: You are not ____ to drive until you are 17.",
+      "opts": ["allowed", "allow", "allowing", "allows"],
+      "correct": 0,
+      "fb": "Correct! We use 'allowed' in the passive structure 'be allowed to'.",
+      "type": "grammar"
+    },
+    {
+      "q": "Which sentence is correct?",
+      "opts": [
+        "You have to do military service.",
+        "You have do military service.",
+        "You have doing military service.",
+        "You have does military service."
+      ],
+      "correct": 0,
+      "fb": "Correct! After 'have to' we use the base form of the verb: 'do'.",
+      "type": "grammar"
+    },
+    {
+      "q": "Make a negative: You ____ buy alcohol at 16 in the UK.",
+      "opts": ["can't", "can", "must", "have to"],
+      "correct": 0,
+      "fb": "Correct! 'Can't' is used to express that something is not allowed or not possible.",
+      "type": "grammar"
     }
   ]
 }
