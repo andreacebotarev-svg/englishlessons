@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Зачёт: Present Simple, Continuous, Perfect (B1)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .timer {
+            font-size: 14px;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .question-container {
+            margin: 30px 0;
+            min-height: 300px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .tense-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+            color: white;
+        }
+
+        .tag-simple { background: #2196F3; }
+        .tag-continuous { background: #FF9800; }
+        .tag-perfect { background: #4CAF50; }
+        .tag-mixed { background: #9C27B0; }
+
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .question-text .blank {
+            display: inline-block;
+            min-width: 100px;
+            border-bottom: 2px dashed #667eea;
+            margin: 0 5px;
+            padding: 0 10px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .option {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .option:hover:not(.disabled) {
+            background: #e8e8e8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #764ba2;
+        }
+
+        .option.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #45a049;
+        }
+
+        .option.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #da190b;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-prev {
+            background: #9e9e9e;
+            color: white;
+        }
+
+        .btn-prev:hover:not(:disabled) {
+            background: #757575;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .feedback.incorrect {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .feedback strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .results {
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .score-excellent { background: linear-gradient(135deg, #4CAF50, #45a049); }
+        .score-good { background: linear-gradient(135deg, #2196F3, #1976D2); }
+        .score-average { background: linear-gradient(135deg, #FF9800, #F57C00); }
+        .score-poor { background: linear-gradient(135deg, #f44336, #da190b); }
+
+        .score-label {
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        .score-text {
+            font-size: 20px;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .detailed-results {
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .detailed-results h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ddd;
+        }
+
+        .result-item.correct-answer {
+            border-left-color: #4caf50;
+        }
+
+        .result-item.wrong-answer {
+            border-left-color: #f44336;
+        }
+
+        .result-question {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .result-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .result-your-answer {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .result-correct-answer {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .reset-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .reset-input {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-right: 10px;
+            width: 150px;
+            text-align: center;
+        }
+
+        .btn-reset {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #da190b;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .question-text {
+                font-size: 16px;
+            }
+
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+            .button-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Зачёт по временам Present</h1>
+            <div class="subtitle">Present Simple • Present Continuous • Present Perfect (B1 Level)</div>
+        </div>
+
+        <div id="quiz-section">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress"></div>
+                </div>
+                <div class="progress-text" id="progress-text"></div>
+            </div>
+
+            <div class="question-container">
+                <div class="question-number" id="question-number"></div>
+                <div class="question-text" id="question-text"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback hidden" id="feedback"></div>
+            </div>
+
+            <div class="button-container">
+                <button class="btn-prev" id="prev-btn" onclick="prevQuestion()">← Назад</button>
+                <button class="btn-next" id="next-btn" onclick="nextQuestion()">Далее →</button>
+            </div>
+        </div>
+
+        <div id="results-section" class="results hidden">
+            <h2>Зачёт завершён!</h2>
+            <div class="score-circle" id="score-circle">
+                <div>
+                    <span id="final-score"></span>
+                    <div class="score-label" id="score-label"></div>
+                </div>
+            </div>
+            <div class="score-text" id="score-text"></div>
+
+            <div class="detailed-results">
+                <h3>Детальные результаты:</h3>
+                <div id="detailed-list"></div>
+            </div>
+
+            <div class="reset-section">
+                <p style="margin-bottom: 15px; color: #666; text-align: center;">
+                    Введите код для сброса зачёта:
+                </p>
+                <div style="text-align: center;">
+                    <input type="text" class="reset-input" id="reset-code" placeholder="Код">
+                    <button class="btn-reset" onclick="resetTest()">Сбросить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "She _____ to the gym three times a week.",
+                options: ["go", "goes", "is going", "has gone"],
+                correct: 1,
+                explanation: "Правильный ответ: <strong>goes</strong>. Present Simple используется для регулярных действий и привычек. С местоимением 'she' (3-е лицо ед.ч.) к глаголу добавляется окончание -es.",
+                category: "simple"
+            },
+            {
+                question: "Look! The cat _____ the tree right now.",
+                options: ["climbs", "is climbing", "has climbed", "climbed"],
+                correct: 1,
+                explanation: "Правильный ответ: <strong>is climbing</strong>. Present Continuous используется для действий, происходящих в момент речи. Слово 'Look!' указывает на действие прямо сейчас.",
+                category: "continuous"
+            },
+            {
+                question: "I _____ this book yet.",
+                options: ["don't finish", "am not finishing", "haven't finished", "didn't finish"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>haven't finished</strong>. Present Perfect с 'yet' используется для действий, которые не завершились к настоящему моменту. 'Yet' всегда требует Present Perfect.",
+                category: "perfect"
+            },
+            {
+                question: "Water _____ at 100 degrees Celsius.",
+                options: ["boils", "is boiling", "has boiled", "boil"],
+                correct: 0,
+                explanation: "Правильный ответ: <strong>boils</strong>. Present Simple используется для общих истин и научных фактов, которые всегда верны.",
+                category: "simple"
+            },
+            {
+                question: "They _____ in London since 2015.",
+                options: ["live", "are living", "have lived", "lived"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>have lived</strong>. Present Perfect с 'since' описывает действие, которое началось в прошлом и продолжается до настоящего момента.",
+                category: "perfect"
+            },
+            {
+                question: "Why _____ you _____ sunglasses? It's cloudy today.",
+                options: ["do / wear", "are / wearing", "have / worn", "did / wear"],
+                correct: 1,
+                explanation: "Правильный ответ: <strong>are wearing</strong>. Present Continuous используется для временных ситуаций, происходящих сейчас. Вопрос о действии в данный момент.",
+                category: "continuous"
+            },
+            {
+                question: "My brother _____ as a doctor in a local hospital.",
+                options: ["work", "works", "is working", "has worked"],
+                correct: 1,
+                explanation: "Правильный ответ: <strong>works</strong>. Present Simple используется для постоянных ситуаций и профессий. Это не временная работа.",
+                category: "simple"
+            },
+            {
+                question: "I can't find my keys. I _____ them somewhere.",
+                options: ["lose", "am losing", "have lost", "lost"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>have lost</strong>. Present Perfect используется, когда точное время не важно, но результат влияет на настоящее (не могу найти ключи сейчас).",
+                category: "perfect"
+            },
+            {
+                question: "The Earth _____ around the Sun.",
+                options: ["moves", "is moving", "has moved", "move"],
+                correct: 0,
+                explanation: "Правильный ответ: <strong>moves</strong>. Present Simple используется для постоянных истин и природных явлений.",
+                category: "simple"
+            },
+            {
+                question: "Shh! The baby _____. Don't make noise!",
+                options: ["sleeps", "is sleeping", "has slept", "sleep"],
+                correct: 1,
+                explanation: "Правильный ответ: <strong>is sleeping</strong>. Present Continuous для действия в момент речи. 'Shh!' указывает на это.",
+                category: "continuous"
+            },
+            {
+                question: "How long _____ you _____ English?",
+                options: ["do / study", "are / studying", "have / studied", "did / study"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>have studied</strong>. Вопрос 'How long' спрашивает о длительности действия от прошлого до настоящего. Это типичный случай для Present Perfect.",
+                category: "perfect"
+            },
+            {
+                question: "He _____ coffee. He prefers tea.",
+                options: ["doesn't drink", "isn't drinking", "hasn't drunk", "don't drink"],
+                correct: 0,
+                explanation: "Правильный ответ: <strong>doesn't drink</strong>. Present Simple (отрицание) для выражения предпочтений и общих привычек. Это постоянная ситуация, а не временная.",
+                category: "simple"
+            },
+            {
+                question: "We _____ about moving to a bigger apartment these days.",
+                options: ["think", "are thinking", "have thought", "thinks"],
+                correct: 1,
+                explanation: "Правильный ответ: <strong>are thinking</strong>. Present Continuous с глаголом 'think about' используется для временных размышлений и планов в процессе. 'These days' усиливает временность.",
+                category: "continuous"
+            },
+            {
+                question: "She _____ three countries this year.",
+                options: ["visits", "is visiting", "has visited", "visit"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>has visited</strong>. Present Perfect с периодами времени, которые ещё не закончились ('this year'). Год ещё идёт, возможны ещё поездки.",
+                category: "perfect"
+            },
+            {
+                question: "I _____ what you mean. Can you explain again?",
+                options: ["don't understand", "am not understanding", "haven't understood", "doesn't understand"],
+                correct: 0,
+                explanation: "Правильный ответ: <strong>don't understand</strong>. Глаголы состояния (understand, know, like, want) обычно используются в Present Simple, а не в Continuous.",
+                category: "simple"
+            },
+            {
+                question: "My parents _____ married for 25 years now.",
+                options: ["are", "are being", "have been", "were"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>have been</strong>. Present Perfect с 'for' для состояния, продолжающегося определённый период до настоящего момента.",
+                category: "perfect"
+            },
+            {
+                question: "What _____ you _____ for a living?",
+                options: ["do / do", "are / doing", "have / done", "does / do"],
+                correct: 0,
+                explanation: "Правильный ответ: <strong>do do</strong>. Вопрос о профессии всегда в Present Simple. 'For a living' означает постоянную работу, а не временную.",
+                category: "simple"
+            },
+            {
+                question: "You look tired! _____ you _____ all night?",
+                options: ["Do / work", "Are / working", "Have / worked", "Did / work"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>Have worked</strong>. Present Perfect для действия в прошлом, результат которого виден сейчас (выглядишь уставшим). 'All night' показывает длительность до настоящего момента.",
+                category: "perfect"
+            },
+            {
+                question: "Listen! Someone _____ at the door.",
+                options: ["knocks", "is knocking", "has knocked", "knocked"],
+                correct: 1,
+                explanation: "Правильный ответ: <strong>is knocking</strong>. Present Continuous для действия, происходящего в момент речи. 'Listen!' указывает на действие прямо сейчас.",
+                category: "continuous"
+            },
+            {
+                question: "I _____ my homework. Can I go out now?",
+                options: ["finish", "am finishing", "have finished", "finished"],
+                correct: 2,
+                explanation: "Правильный ответ: <strong>have finished</strong>. Present Perfect показывает завершённое действие, результат которого важен для настоящего (поэтому можно идти гулять).",
+                category: "perfect"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let userAnswers = [];
+        let answered = false;
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            
+            document.getElementById('question-number').innerHTML = 
+                `Вопрос ${currentQuestion + 1} из ${questions.length}` +
+                `<span class="tense-tag tag-${q.category}">${getCategoryName(q.category)}</span>`;
+            
+            document.getElementById('question-text').textContent = q.question;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectOption(index);
+                
+                // Restore previous answer if exists
+                if (userAnswers[currentQuestion] !== undefined) {
+                    if (userAnswers[currentQuestion] === index) {
+                        optionDiv.classList.add('selected');
+                    }
+                }
+                
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            
+            // Update next button text
+            const nextBtn = document.getElementById('next-btn');
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.textContent = 'Завершить зачёт';
+            } else {
+                nextBtn.textContent = 'Далее →';
+            }
+            
+            updateProgress();
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'simple': 'Present Simple',
+                'continuous': 'Present Continuous',
+                'perfect': 'Present Perfect',
+                'mixed': 'Mixed'
+            };
+            return names[category] || '';
+        }
+
+        function selectOption(selected) {
+            const options = document.querySelectorAll('.option');
+            
+            // Remove previous selection
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add new selection
+            options[selected].classList.add('selected');
+            
+            // Save answer
+            userAnswers[currentQuestion] = selected;
+        }
+
+        function nextQuestion() {
+            if (userAnswers[currentQuestion] === undefined) {
+                alert('Пожалуйста, выберите ответ перед тем, как продолжить.');
+                return;
+            }
+            
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = 
+                `Пройдено: ${currentQuestion + 1} из ${questions.length} вопросов`;
+        }
+
+        function showResults() {
+            let score = 0;
+            const detailedResults = [];
+            
+            questions.forEach((q, index) => {
+                const isCorrect = userAnswers[index] === q.correct;
+                if (isCorrect) score++;
+                
+                detailedResults.push({
+                    question: q.question,
+                    userAnswer: q.options[userAnswers[index]],
+                    correctAnswer: q.options[q.correct],
+                    isCorrect: isCorrect,
+                    explanation: q.explanation
+                });
+            });
+            
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('results-section').classList.remove('hidden');
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            const scoreCircle = document.getElementById('score-circle');
+            
+            document.getElementById('final-score').textContent = `${score}/${questions.length}`;
+            
+            let message = '';
+            let grade = '';
+            
+            if (percentage >= 90) {
+                message = 'Отлично! Вы великолепно владеете этими временами!';
+                grade = 'Отлично';
+                scoreCircle.className = 'score-circle score-excellent';
+            } else if (percentage >= 75) {
+                message = 'Хорошо! У вас твёрдое понимание материала.';
+                grade = 'Хорошо';
+                scoreCircle.className = 'score-circle score-good';
+            } else if (percentage >= 60) {
+                message = 'Удовлетворительно. Нужно ещё немного практики.';
+                grade = 'Удовл.';
+                scoreCircle.className = 'score-circle score-average';
+            } else {
+                message = 'Требуется дополнительная работа. Продолжайте практиковаться!';
+                grade = 'Неудовл.';
+                scoreCircle.className = 'score-circle score-poor';
+            }
+            
+            document.getElementById('score-label').textContent = grade;
+            document.getElementById('score-text').textContent = `${percentage}% — ${message}`;
+            
+            // Display detailed results
+            const detailedList = document.getElementById('detailed-list');
+            detailedList.innerHTML = '';
+            
+            detailedResults.forEach((result, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `result-item ${result.isCorrect ? 'correct-answer' : 'wrong-answer'}`;
+                
+                let html = `
+                    <div class="result-question">${index + 1}. ${result.question}</div>
+                    <div class="result-details">
+                        ${!result.isCorrect ? `
+                            <div>Ваш ответ: <span class="result-your-answer">${result.userAnswer}</span></div>
+                        ` : ''}
+                        <div>Правильный ответ: <span class="result-correct-answer">${result.correctAnswer}</span></div>
+                        <div style="margin-top: 8px;">${result.explanation}</div>
+                    </div>
+                `;
+                
+                itemDiv.innerHTML = html;
+                detailedList.appendChild(itemDiv);
+            });
+        }
+
+        function resetTest() {
+            const code = document.getElementById('reset-code').value;
+            
+            if (code === '263') {
+                currentQuestion = 0;
+                userAnswers = [];
+                answered = false;
+                
+                document.getElementById('quiz-section').classList.remove('hidden');
+                document.getElementById('results-section').classList.add('hidden');
+                document.getElementById('reset-code').value = '';
+                
+                loadQuestion();
+            } else {
+                alert('Неверный код. Попробуйте снова.');
+            }
+        }
+
+        // Initialize quiz
+        loadQuestion();
+    </script>
+</body>
+</html>
