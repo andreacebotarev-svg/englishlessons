@@ -4,57 +4,108 @@
    Зависимости: variables.css
    ============================================ */
 
-/* === FLOOR === */
+/* ============================================
+   WORLD OBJECTS (Стены, пол, потолок)
+   ============================================ */
+
+/* === ПОЛ === */
 .floor {
     position: absolute;
     width: 2000px;
-    height: 100000px;
-    background: var(--floor-texture);
-    background-size: 500px;
-    background-repeat: repeat;
-    top: 50%;
+    height: 50000px;
+    bottom: -500px;
     left: 50%;
-    transform: translate(-50%, -50%) rotateX(90deg) translateZ(-200px);
-    filter: brightness(0.5) contrast(1.1);
-    will-change: transform;
+    transform: translateX(-50%) rotateX(85deg);
+    background: 
+        linear-gradient(180deg, 
+            rgba(40, 40, 40, 0.9) 0%,
+            rgba(20, 20, 20, 0.95) 100%),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 100px,
+            rgba(255, 214, 10, 0.05) 100px,
+            rgba(255, 214, 10, 0.05) 102px
+        );
+    box-shadow: 
+        0 -10px 100px rgba(255, 214, 10, 0.1) inset,
+        0 10px 200px rgba(0, 0, 0, 0.9);
+    transform-style: preserve-3d;
+    pointer-events: none;
 }
 
-/* === WALLS === */
-.wall-left, 
+/* === ЛЕВАЯ СТЕНА === */
+.wall-left {
+    position: absolute;
+    width: 800px;
+    height: 50000px;
+    left: -700px;
+    top: -25000px;
+    background: 
+        linear-gradient(90deg,
+            rgba(30, 30, 30, 0.95) 0%,
+            rgba(40, 40, 40, 0.9) 50%,
+            rgba(30, 30, 30, 0.85) 100%),
+        repeating-linear-gradient(
+            180deg,
+            transparent,
+            transparent 150px,
+            rgba(255, 214, 10, 0.03) 150px,
+            rgba(255, 214, 10, 0.03) 152px
+        );
+    transform: rotateY(30deg);
+    transform-style: preserve-3d;
+    box-shadow: 
+        inset -20px 0 80px rgba(0, 0, 0, 0.8),
+        inset 20px 0 40px rgba(255, 214, 10, 0.05);
+    pointer-events: none;
+    border-right: 2px solid rgba(255, 214, 10, 0.1);
+}
+
+/* === ПРАВАЯ СТЕНА === */
 .wall-right {
     position: absolute;
-    width: 100000px;
-    height: 1000px;
-    background: var(--wall-texture);
-    background-size: 800px;
-    top: 50%;
-    transform-origin: center;
-    filter: brightness(0.3) contrast(1.2);
-    will-change: transform;
+    width: 800px;
+    height: 50000px;
+    right: -700px;
+    top: -25000px;
+    background: 
+        linear-gradient(270deg,
+            rgba(30, 30, 30, 0.95) 0%,
+            rgba(40, 40, 40, 0.9) 50%,
+            rgba(30, 30, 30, 0.85) 100%),
+        repeating-linear-gradient(
+            180deg,
+            transparent,
+            transparent 150px,
+            rgba(255, 214, 10, 0.03) 150px,
+            rgba(255, 214, 10, 0.03) 152px
+        );
+    transform: rotateY(-30deg);
+    transform-style: preserve-3d;
+    box-shadow: 
+        inset 20px 0 80px rgba(0, 0, 0, 0.8),
+        inset -20px 0 40px rgba(255, 214, 10, 0.05);
+    pointer-events: none;
+    border-left: 2px solid rgba(255, 214, 10, 0.1);
 }
 
-.wall-left {
-    left: 50%;
-    transform: translate(-50%, -50%) rotateY(90deg) translateZ(-300px);
-}
-
-.wall-right {
-    left: 50%;
-    transform: translate(-50%, -50%) rotateY(90deg) translateZ(300px);
-}
-
-/* === WALL AMBIENT LIGHTING === */
+/* === ДЕКОРАТИВНЫЕ ЭЛЕМЕНТЫ НА СТЕНАХ === */
 .wall-left::before,
 .wall-right::before {
     content: '';
     position: absolute;
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0;
-    background: linear-gradient(180deg, 
-        rgba(255, 214, 10, 0.05) 0%, 
-        transparent 50%, 
-        rgba(0, 0, 0, 0.3) 100%);
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 800px,
+        rgba(255, 214, 10, 0.08) 800px,
+        rgba(255, 214, 10, 0.08) 802px,
+        transparent 802px,
+        transparent 1600px
+    );
     pointer-events: none;
 }
+
