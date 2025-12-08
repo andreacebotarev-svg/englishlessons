@@ -23,13 +23,13 @@
     box-sizing: border-box;
     cursor: pointer;
     backface-visibility: hidden;
+    transform-style: preserve-3d; /* ДОБАВЛЕНО: для 3D трансформаций */
     transition: all var(--transition-slow) var(--easing);
     box-shadow: 
         0 8px 32px rgba(0, 0, 0, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.1) inset,
         0 0 20px rgba(255, 214, 10, 0.1);
-    top: 50%;
-    left: 50%;
+    /* УДАЛЕНО: top: 50%; left: 50%; - позиции задаются через JS */
     will-change: transform;
 }
 
