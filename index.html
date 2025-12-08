@@ -8,8 +8,9 @@
     <title>Access Portal</title>
     <style>
         :root {
-            --accent: #0A84FF;
-            --hw-accent: #BF5AF2;
+            --accent: #0A84FF;       /* Lesson Blue */
+            --hw-accent: #BF5AF2;    /* Homework Purple */
+            --palace-accent: #FFD60A; /* Palace Gold */
         }
 
         body {
@@ -59,6 +60,7 @@
             position: relative;
             border: 1px solid rgba(255,255,255,0.08);
         }
+        /* Увеличили ширину фона переключателя для поддержки 3 кнопок */
         .switch-bg {
             position: absolute; left: 4px; top: 4px; height: 32px; width: 80px;
             background: rgba(255,255,255,0.15);
@@ -121,6 +123,8 @@
         <div class="switch-bg" id="switchBg"></div>
         <div class="switch-btn active" onclick="setMode('lesson')">Lesson</div>
         <div class="switch-btn" onclick="setMode('hw')">H.Work</div>
+        <!-- Новая кнопка Palace -->
+        <div class="switch-btn" onclick="setMode('palace')">Palace</div>
     </div>
     
     <div class="inputs-wrapper" id="inputContainer">
@@ -142,6 +146,9 @@
     const inputs = document.querySelectorAll('.digit-box');
     const goBtn = document.getElementById('goBtn');
     const card = document.getElementById('card');
+    const btns = document.querySelectorAll('.switch-btn');
+    const bg = document.getElementById('switchBg');
+    const container = document.getElementById('inputContainer');
 
     // Авто-фокус и переход между полями
     inputs.forEach((inp, i) => {
@@ -159,27 +166,35 @@
 
     function setMode(m) {
         mode = m;
-        const bg = document.getElementById('switchBg');
-        const btns = document.querySelectorAll('.switch-btn');
-        const container = document.getElementById('inputContainer');
         
+        // Сброс полей
         inputs.forEach(i => i.value = '');
         inputs[0].focus();
         
+        // Сброс активных классов кнопок
+        btns.forEach(b => b.classList.remove('active'));
+
         if(m === 'lesson') {
             bg.style.transform = 'translateX(0)';
             btns[0].classList.add('active');
-            btns[1].classList.remove('active');
             container.classList.remove('hw-visible');
             card.classList.remove('expanded');
             document.documentElement.style.setProperty('--accent', '#0A84FF');
-        } else {
-            bg.style.transform = 'translateX(80px)';
-            btns[0].classList.remove('active');
+        } 
+        else if (m === 'hw') {
+            bg.style.transform = 'translateX(80px)'; // Сдвиг на 1 кнопку
             btns[1].classList.add('active');
             container.classList.add('hw-visible');
             card.classList.add('expanded');
             document.documentElement.style.setProperty('--accent', '#BF5AF2');
+        }
+        else if (m === 'palace') {
+            bg.style.transform = 'translateX(160px)'; // Сдвиг на 2 кнопки
+            btns[2].classList.add('active');
+            // Palace использует только 3 цифры, как и Lesson
+            container.classList.remove('hw-visible');
+            card.classList.remove('expanded');
+            document.documentElement.style.setProperty('--accent', '#FFD60A');
         }
         check();
     }
@@ -187,11 +202,24 @@
     function check() {
         const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
         const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
-        let valid = (mode === 'lesson') ? core.length === 3 : (core.length === 3 && hw.length === 2);
+        
+        // Для lesson и palace нужно 3 цифры, для hw нужно 3+2
+        let valid = false;
+        if (mode === 'lesson' || mode === 'palace') {
+            valid = core.length === 3;
+        } else {
+            valid = core.length === 3 && hw.length === 2;
+        }
 
         if(valid) {
             goBtn.classList.add('ready');
-            goBtn.innerText = "Launch Module";
+            
+            if(mode === 'palace') {
+                goBtn.innerText = "Enter Palace";
+            } else {
+                goBtn.innerText = "Launch Module";
+            }
+            
             goBtn.style.pointerEvents = "auto";
         } else {
             goBtn.classList.remove('ready');
@@ -204,11 +232,16 @@
         const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
         const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
         
-        // ВАЖНО: Формируем имя файла и указываем папку dist
-        // 263 -> ./dist/263.html
-        const filename = (mode === 'lesson') ? `${core}.html` : `${core}_hw${hw}.html`;
-        
-        window.location.assign(`./dist/${filename}`);
+        if (mode === 'lesson') {
+            window.location.assign(`./dist/${core}.html`);
+        } 
+        else if (mode === 'hw') {
+            window.location.assign(`./dist/${core}_hw${hw}.html`);
+        }
+        else if (mode === 'palace') {
+            // Ведем в новую папку с параметром
+            window.location.assign(`./palace_engine/index.html?lesson=${core}`);
+        }
     }
     
     check();
