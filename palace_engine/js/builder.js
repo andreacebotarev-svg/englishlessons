@@ -42,12 +42,12 @@ const Builder = {
             const rotateY = side === 'left' ? '25deg' : '-25deg';
             card.style.transform = `translateZ(${z}px) rotateY(${rotateY})`;
             
-            // Контент
+            // ✅ НОВЫЙ КОНТЕНТ: английское слово + транскрипция всегда видны
+            // русский перевод появляется при hover
             card.innerHTML = `
                 <h2>${wordObj.en}</h2>
-                <p>${wordObj.ru}</p>
                 ${wordObj.transcription ? `<span class="transcription">${wordObj.transcription}</span>` : ''}
-                ${wordObj.example ? `<p class="example">${wordObj.example}</p>` : ''}
+                <p class="translation">${wordObj.ru}</p>
             `;
             
             // Обработчик клика
