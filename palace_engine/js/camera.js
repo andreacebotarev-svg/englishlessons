@@ -1,206 +1,63 @@
 /* ============================================
-   CAMERA CONTROLLER
-   Описание: Управление движением камеры в 3D пространстве
-   Зависимости: config.js, utils.js
+   CAMERA CONTROLLER - SIMPLIFIED VERSION
+   Описание: Управление камерой с принципом направления
    ============================================ */
 
-class Camera {
-    constructor() {
-        this.depth = CONFIG.camera.minDepth;
-        this.targetDepth = this.depth;
-        this.isMoving = false;
-        this.animationFrame = null;
-        
-        // Привязка контекста
-        this.update = this.update.bind(this);
-        this.handleWheel = this.handleWheel.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleKeyUp = this.handleKeyUp.bind(this);
-        
-        this.init();
-    }
+const Camera = {
+    z: 0, // Текущая позиция
+    speed: 50, // Скорость движения
+    maxZ: 0, // Граница коридора (установит Builder)
     
-    /**
-     * Инициализация камеры
-     */
     init() {
-        this.updateCSS();
-        this.bindEvents();
-        this.startLoop();
-        Utils.log('Camera initialized', 'success');
-    }
-    
-    /**
-     * Привязка событий управления
-     */
-    bindEvents() {
-        // Колесико мыши
-        window.addEventListener('wheel', this.handleWheel, { passive: false });
-        
-        // Клавиатура
-        window.addEventListener('keydown', this.handleKeyDown);
-        window.addEventListener('keyup', this.handleKeyUp);
-        
-        // Touch для мобильных
-        let touchStartY = 0;
-        window.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-        
-        window.addEventListener('touchmove', (e) => {
-            const touchEndY = e.touches[0].clientY;
-            const delta = touchStartY - touchEndY;
-            this.move(delta * 2);
-            touchStartY = touchEndY;
-        }, { passive: true });
-    }
-    
-    /**
-     * Обработка колесика мыши
-     */
-    handleWheel(e) {
-        e.preventDefault();
-        const delta = e.deltaY;
-        this.move(delta);
-    }
-    
-    /**
-     * Обработка нажатия клавиш
-     */
-    handleKeyDown(e) {
-        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        // Слушаем колесико мыши
+        window.addEventListener('wheel', (e) => {
             e.preventDefault();
-            this.isMoving = true;
-            this.moveForward();
-        }
-        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-            e.preventDefault();
-            this.isMoving = true;
-            this.moveBackward();
-        }
-    }
-    
-    /**
-     * Обработка отпускания клавиш
-     */
-    handleKeyUp(e) {
-        if (['ArrowUp', 'ArrowDown', 'w', 'W', 's', 'S'].includes(e.key)) {
-            this.isMoving = false;
-        }
-    }
-    
-    /**
-     * Движение вперёд (к карточкам)
-     */
-    moveForward() {
-        if (this.isMoving) {
-            this.move(-CONFIG.camera.speed);
-            requestAnimationFrame(() => this.moveForward());
-        }
-    }
-    
-    /**
-     * Движение назад (от карточек)
-     */
-    moveBackward() {
-        if (this.isMoving) {
-            this.move(CONFIG.camera.speed);
-            requestAnimationFrame(() => this.moveBackward());
-        }
-    }
-    
-    /**
-     * Изменить целевую позицию камеры
-     * @param {number} delta - Изменение позиции
-     */
-    move(delta) {
-        this.targetDepth -= delta;
+            // e.deltaY > 0 это скролл вниз (идем вперед)
+            const direction = e.deltaY > 0 ? 1 : -1;
+            this.move(direction);
+        }, { passive: false });
         
-        this.targetDepth = Math.max(
-            CONFIG.camera.maxDepth,
-            Math.min(CONFIG.camera.minDepth, this.targetDepth)
-        );
-    }
+        // Слушаем клавиатуру (стрелки)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                e.preventDefault();
+                this.move(1); // Вперед
+            }
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                this.move(-1); // Назад
+            }
+        });
+    },
     
-    /**
-     * Плавное обновление позиции камеры
-     */
-    update() {
-        this.depth += (this.targetDepth - this.depth) * CONFIG.camera.smoothing;
-        this.updateCSS();
+    move(direction) {
+        // Увеличиваем или уменьшаем Z
+        // direction = 1  → вперед (зрите дальше в коридор)
+        // direction = -1 → назад (вернитесь в начало)
+        this.z += direction * this.speed;
+        
+        // Ограничиваем движение
+        // Нельзя уйти назад за старт (z < 0)
+        // Нельзя уйти дальше конца коридора (z > maxZ)
+        if (this.z < 0) this.z = 0;
+        if (this.z > this.maxZ) this.z = this.maxZ;
+        
+        // Применяем к CSS
+        // Мы двигаем мир ВО ПОБЕР (positive), чтобы сохранить иллюзию МОВЕНИЯ ВПЕРЕД
+        document.documentElement.style.setProperty('--depth', `${this.z}px`);
+        
+        // Обновляем прогресс-бар
         this.updateProgress();
-    }
+    },
     
-    /**
-     * Обновить CSS переменную --depth
-     */
-    updateCSS() {
-        document.documentElement.style.setProperty('--depth', `${this.depth}px`);
-    }
-    
-    /**
-     * Обновить прогресс-бар
-     */
     updateProgress() {
         const progressBar = document.getElementById('progress-bar');
-        if (progressBar) {
-            const progress = Math.abs(
-                (this.depth - CONFIG.camera.minDepth) / 
-                (CONFIG.camera.maxDepth - CONFIG.camera.minDepth)
-            ) * 100;
-            
+        if (progressBar && this.maxZ > 0) {
+            const progress = (this.z / this.maxZ) * 100;
             progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
         }
     }
-    
-    /**
-     * Запустить цикл обновления
-     */
-    startLoop() {
-        const loop = () => {
-            this.update();
-            this.animationFrame = requestAnimationFrame(loop);
-        };
-        loop();
-    }
-    
-    /**
-     * Остановить цикл обновления
-     */
-    stopLoop() {
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
-        }
-    }
-    
-    /**
-     * Получить текущую глубину
-     */
-    getDepth() {
-        return this.depth;
-    }
-    
-    /**
-     * Телепортироваться на определённую позицию
-     * @param {number} depth - Целевая глубина
-     */
-    jumpTo(depth) {
-        this.depth = depth;
-        this.targetDepth = depth;
-        this.updateCSS();
-    }
-    
-    /**
-     * Уничтожить камеру (cleanup)
-     */
-    destroy() {
-        this.stopLoop();
-        window.removeEventListener('wheel', this.handleWheel);
-        window.removeEventListener('keydown', this.handleKeyDown);
-        window.removeEventListener('keyup', this.handleKeyUp);
-        Utils.log('Camera destroyed', 'info');
-    }
-}
+};
 
 // Экспорт
 if (typeof module !== 'undefined' && module.exports) {
