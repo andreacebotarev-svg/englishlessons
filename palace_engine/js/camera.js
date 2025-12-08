@@ -41,7 +41,7 @@ class Camera {
         window.addEventListener('keydown', this.handleKeyDown);
         window.addEventListener('keyup', this.handleKeyUp);
         
-        // Touch для мобильных (будущее)
+        // Touch для мобильных
         let touchStartY = 0;
         window.addEventListener('touchstart', (e) => {
             touchStartY = e.touches[0].clientY;
@@ -50,7 +50,7 @@ class Camera {
         window.addEventListener('touchmove', (e) => {
             const touchEndY = e.touches[0].clientY;
             const delta = touchStartY - touchEndY;
-            this.move(-delta * 2); // ИНВЕРТИРОВАНО направление
+            this.move(delta * 2); // Прокрутка вниз = вперёд
             touchStartY = touchEndY;
         }, { passive: true });
     }
@@ -61,7 +61,8 @@ class Camera {
     handleWheel(e) {
         e.preventDefault();
         const delta = e.deltaY;
-        this.move(-delta); // ИНВЕРТИРОВАНО: прокрутка вниз = движение вперёд
+        // Положительный deltaY (прокрутка вниз) = движение вперёд
+        this.move(delta);
     }
     
     /**
@@ -94,7 +95,7 @@ class Camera {
      */
     moveForward() {
         if (this.isMoving) {
-            this.move(CONFIG.camera.speed); // ИНВЕРТИРОВАНО: + для движения вперёд
+            this.move(CONFIG.camera.speed); // + = движение вперёд
             requestAnimationFrame(() => this.moveForward());
         }
     }
@@ -104,22 +105,24 @@ class Camera {
      */
     moveBackward() {
         if (this.isMoving) {
-            this.move(-CONFIG.camera.speed); // ИНВЕРТИРОВАНО: - для движения назад
+            this.move(-CONFIG.camera.speed); // - = движение назад
             requestAnimationFrame(() => this.moveBackward());
         }
     }
     
     /**
      * Изменить целевую позицию камеры
-     * @param {number} delta - Изменение позиции
+     * @param {number} delta - Изменение позиции (положительное = вперёд)
      */
     move(delta) {
+        // Положительный delta уменьшает targetDepth (двигает в отрицательную сторону)
+        // Например: -100 - 50 = -150 (движение к карточкам)
         this.targetDepth -= delta;
         
         // Ограничения глубины
         this.targetDepth = Math.max(
-            CONFIG.camera.maxDepth,
-            Math.min(CONFIG.camera.minDepth, this.targetDepth)
+            CONFIG.camera.maxDepth,  // -50000 (минимум)
+            Math.min(CONFIG.camera.minDepth, this.targetDepth)  // -100 (максимум)
         );
     }
     
@@ -186,7 +189,7 @@ class Camera {
     }
     
     /**
-     * Телепортироваться на определённую позицию
+     * Телепортироваться на опредёлённую позицию
      * @param {number} depth - Целевая глубина
      */
     jumpTo(depth) {
