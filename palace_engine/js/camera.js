@@ -61,7 +61,7 @@ class Camera {
     handleWheel(e) {
         e.preventDefault();
         const delta = e.deltaY;
-        // Положительный deltaY (прокрутка вниз) = движение вперёд
+        // Положительный deltaY (прокрутка вниз) = движение вперёд К карточкам
         this.move(delta);
     }
     
@@ -95,7 +95,7 @@ class Camera {
      */
     moveForward() {
         if (this.isMoving) {
-            this.move(CONFIG.camera.speed); // + = движение вперёд
+            this.move(CONFIG.camera.speed); // + = движение вперёд К карточкам
             requestAnimationFrame(() => this.moveForward());
         }
     }
@@ -105,24 +105,25 @@ class Camera {
      */
     moveBackward() {
         if (this.isMoving) {
-            this.move(-CONFIG.camera.speed); // - = движение назад
+            this.move(-CONFIG.camera.speed); // - = движение назад ОТ карточек
             requestAnimationFrame(() => this.moveBackward());
         }
     }
     
     /**
      * Изменить целевую позицию камеры
-     * @param {number} delta - Изменение позиции (положительное = вперёд)
+     * @param {number} delta - Изменение позиции (положительное = вперёд К карточкам)
      */
     move(delta) {
-        // Положительный delta уменьшает targetDepth (двигает в отрицательную сторону)
-        // Например: -100 - 50 = -150 (движение к карточкам)
-        this.targetDepth -= delta;
+        // ИСПРАВЛЕНО: Положительный delta УВЕЛИЧИВАЕТ targetDepth в отрицательную сторону
+        // Пример: -100 + (-50) = -150 (движение К карточкам)
+        // Карточки находятся в отрицательной части: -800, -1600, -2400...
+        this.targetDepth += -delta; // ИЛИ this.targetDepth -= delta (то же самое)
         
         // Ограничения глубины
         this.targetDepth = Math.max(
-            CONFIG.camera.maxDepth,  // -50000 (минимум)
-            Math.min(CONFIG.camera.minDepth, this.targetDepth)  // -100 (максимум)
+            CONFIG.camera.maxDepth,  // -50000 (минимум, самая дальняя точка)
+            Math.min(CONFIG.camera.minDepth, this.targetDepth)  // -100 (максимум, начало)
         );
     }
     
@@ -189,7 +190,7 @@ class Camera {
     }
     
     /**
-     * Телепортироваться на опредёлённую позицию
+     * Телепортироваться на определённую позицию
      * @param {number} depth - Целевая глубина
      */
     jumpTo(depth) {
