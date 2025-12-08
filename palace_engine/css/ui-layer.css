@@ -1,0 +1,138 @@
+/* ============================================
+   UI LAYER COMPONENTS
+   Описание: Все элементы интерфейса (кнопки, загрузка, ошибки)
+   Зависимости: variables.css, animations.css
+   ============================================ */
+
+/* === UI CONTAINER === */
+#ui-layer {
+    position: fixed;
+    z-index: var(--z-ui);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* === LOADING INDICATOR === */
+#loading {
+    position: absolute;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-size-xl);
+    background: rgba(0, 0, 0, 0.9);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--card-border-radius);
+    border: 1px solid var(--neon-gold);
+    animation: pulse 2s ease-in-out infinite;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* === ERROR MESSAGE === */
+#error-msg {
+    position: absolute;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-size-lg);
+    background: rgba(255, 69, 58, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--error-red);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--spacing-sm);
+    border: var(--card-border-width) solid var(--error-red);
+    max-width: 400px;
+    text-align: center;
+    animation: slideIn 0.3s ease-out;
+}
+
+/* === CONTROLS HINT === */
+#controls-hint {
+    position: absolute;
+    bottom: var(--spacing-lg);
+    width: 100%;
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    animation: fadeInUp 1s ease-out 1s forwards;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(0, 0, 0, 0.5) 20%, 
+        rgba(0, 0, 0, 0.5) 80%, 
+        transparent);
+    padding: var(--spacing-sm) 0;
+}
+
+/* === BACK BUTTON === */
+#back-btn {
+    pointer-events: auto;
+    position: absolute;
+    top: var(--spacing-md); 
+    left: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px var(--spacing-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 24px;
+    transition: all var(--transition-normal) var(--easing);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#back-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--neon-gold);
+    color: var(--neon-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 214, 10, 0.3);
+}
+
+#back-btn:active {
+    transform: translateY(0);
+}
+
+#back-btn:focus-visible {
+    outline: 2px solid var(--neon-gold);
+    outline-offset: 4px;
+}
+
+/* === PROGRESS BAR === */
+#progress-bar {
+    pointer-events: none;
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-gold), var(--neon-blue));
+    transition: width var(--transition-normal) ease-out;
+    box-shadow: 0 0 10px var(--neon-gold);
+}
+
+/* === WORD COUNTER === */
+#word-counter {
+    pointer-events: none;
+    position: absolute;
+    top: var(--spacing-md); 
+    right: var(--spacing-md);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+#word-counter span {
+    color: var(--neon-gold);
+}
