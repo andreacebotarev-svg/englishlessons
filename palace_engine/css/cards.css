@@ -9,9 +9,12 @@
     position: absolute;
     width: var(--card-width);
     min-height: var(--card-min-height);
-    background: var(--card-bg);
-    backdrop-filter: blur(15px) saturate(150%);
-    -webkit-backdrop-filter: blur(15px) saturate(150%);
+    background: 
+        linear-gradient(135deg, 
+            rgba(20, 20, 20, 0.98) 0%,
+            rgba(30, 30, 30, 0.95) 100%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: var(--card-border-width) solid var(--neon-gold);
     border-radius: var(--card-border-radius);
     color: white;
@@ -26,24 +29,27 @@
     transform-style: preserve-3d;
     transition: all var(--transition-slow) var(--easing);
     box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-        0 0 20px rgba(255, 214, 10, 0.1);
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+        0 0 30px rgba(255, 214, 10, 0.15),
+        0 20px 60px rgba(0, 0, 0, 0.4);
     will-change: transform;
-    /* Центрирование */
-    margin-left: -150px; /* -50% от ширины карточки (300px / 2) */
-    margin-top: -100px;  /* -50% от высоты карточки (приблизительно) */
+    margin-left: -150px;
+    margin-top: -100px;
 }
 
 /* === CARD HOVER STATE === */
 .card:hover {
-    background: rgba(30, 30, 30, 0.95);
+    background: 
+        linear-gradient(135deg, 
+            rgba(30, 30, 30, 0.98) 0%,
+            rgba(40, 40, 40, 0.95) 100%);
     border-color: var(--neon-gold);
     box-shadow: 
-        0 12px 48px rgba(0, 0, 0, 0.6),
-        0 0 60px rgba(255, 214, 10, 0.5),
-        0 0 0 1px rgba(255, 214, 10, 0.3) inset;
-    /* Убрано scale и translateY из hover, чтобы не ломать позиционирование */
+        0 12px 48px rgba(0, 0, 0, 0.8),
+        0 0 80px rgba(255, 214, 10, 0.6),
+        0 0 0 2px rgba(255, 214, 10, 0.5) inset,
+        0 30px 90px rgba(0, 0, 0, 0.6);
 }
 
 /* === CARD GLOW EFFECT === */
