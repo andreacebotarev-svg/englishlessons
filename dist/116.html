@@ -6,9 +6,6 @@
     <meta name="referrer" content="no-referrer">
     <title>Have Got / Has Got Quiz - For Kids</title>
     
-    <!-- ResponsiveVoice API -->
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_KEY_HERE"></script>
-    
     <style>
         * {
             margin: 0;
@@ -69,6 +66,7 @@
             background: linear-gradient(90deg, #ff6b9d, #ffa07a);
             width: 0%;
             transition: width 0.3s ease;
+            will-change: width;
         }
 
         .question-container {
@@ -150,9 +148,10 @@
             align-items: center;
             font-size: 18px;
             font-weight: 600;
+            will-change: transform;
         }
 
-        .option:hover {
+        .option:hover:not(.disabled) {
             background: linear-gradient(135deg, #ffe8f0, #fff5f8);
             transform: translateX(8px);
             border-color: #ff6b9d;
@@ -398,6 +397,29 @@
             font-size: 20px;
             font-weight: bold;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+
+            .option {
+                font-size: 16px;
+                padding: 15px 20px;
+            }
+
+            .score {
+                font-size: 42px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -523,3 +545,258 @@
             {
                 question: "My sister _____ long hair.",
                 options: ["have got", "has got", "are got", "am got"],
+                correct: 1,
+                explanation: "Мы используем 'has got' с she (моя сестра). 👱‍♀️",
+                explanationRu: "'My sister' (моя сестра) — это she, поэтому 'has got'."
+            },
+            {
+                question: "The dog _____ a red collar.",
+                options: ["have got", "has got", "are got", "am got"],
+                correct: 1,
+                explanation: "Мы используем 'has got' с it (собака). 🐕",
+                explanationRu: "'The dog' (собака) — это it, поэтому 'has got'."
+            },
+            {
+                question: "We _____ two cats.",
+                options: ["has got", "have got", "is got", "am got"],
+                correct: 1,
+                explanation: "Мы используем 'have got' с we. 🐈🐈",
+                explanationRu: "С 'we' (мы) используется 'have got'."
+            },
+            {
+                question: "My friends _____ bikes.",
+                options: ["has got", "have got", "is got", "am got"],
+                correct: 1,
+                explanation: "Мы используем 'have got' с they (мои друзья). 🚴",
+                explanationRu: "'Friends' (друзья) — множественное число, нужен 'have got'."
+            },
+            {
+                question: "He _____ a yellow ball.",
+                options: ["have got", "has got", "are got", "am got"],
+                correct: 1,
+                explanation: "Мы используем 'has got' с he. ⚽",
+                explanationRu: "С 'he' (он) используется 'has got'."
+            },
+            {
+                question: "_____ they _____ a swimming pool?",
+                options: ["Do / have got", "Have / got", "Has / got", "Are / got"],
+                correct: 1,
+                explanation: "Для вопросов с 'they' мы используем 'Have they got'. 🏊",
+                explanationRu: "В вопросе с 'they' используется 'Have they got'."
+            },
+            {
+                question: "Tom _____ a new computer.",
+                options: ["have got", "has got", "is got", "are got"],
+                correct: 1,
+                explanation: "Tom = he, поэтому 'has got'. 💻",
+                explanationRu: "'Tom' (он) — это he, нужен 'has got'."
+            },
+            {
+                question: "You and I _____ homework.",
+                options: ["has got", "have got", "is got", "am got"],
+                correct: 1,
+                explanation: "You and I = we, поэтому 'have got'. 📚",
+                explanationRu: "'You and I' (мы с тобой) = we, нужен 'have got'."
+            },
+            {
+                question: "_____ it _____ four legs?",
+                options: ["Do / have got", "Have / got", "Has / got", "Is / got"],
+                correct: 2,
+                explanation: "Для вопросов с 'it' мы используем 'Has it got'. 🪑",
+                explanationRu: "В вопросе с 'it' используется 'Has it got'."
+            },
+            {
+                question: "Anna and Ben _____ a secret.",
+                options: ["has got", "have got", "is got", "am got"],
+                correct: 1,
+                explanation: "Anna and Ben = they, поэтому 'have got'. 🤫",
+                explanationRu: "Два человека (они) — это they, нужен 'have got'."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = [];
+        let answered = false;
+
+        function speakQuestion() {
+            const text = questions[currentQuestion].question;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8;
+            utterance.pitch = 1.2;
+            
+            const btn = document.getElementById('speakerBtn');
+            btn.classList.add('playing');
+            
+            utterance.onend = () => {
+                btn.classList.remove('playing');
+            };
+            
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function loadQuestion() {
+            answered = false;
+            const q = questions[currentQuestion];
+            
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            
+            document.getElementById('question-number').innerHTML = `
+                <button class="speaker-btn" id="speakerBtn" onclick="speakQuestion()" title="Listen to question">🔊</button>
+                Question ${currentQuestion + 1} of ${questions.length}
+            `;
+            document.getElementById('question-text').innerText = q.question;
+            
+            const optionsHtml = q.options.map((opt, idx) => 
+                `<div class="option" onclick="selectOption(${idx})">${opt}</div>`
+            ).join('');
+            document.getElementById('options').innerHTML = optionsHtml;
+            
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-btn').disabled = true;
+            
+            if (document.getElementById('autoPlayToggle').checked) {
+                setTimeout(speakQuestion, 500);
+            }
+        }
+
+        function selectOption(idx) {
+            if (answered) return;
+            
+            answered = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            userAnswers[currentQuestion] = idx;
+            
+            options.forEach((opt, i) => {
+                opt.classList.add('disabled');
+                if (i === q.correct) {
+                    opt.classList.add('correct');
+                }
+                if (i === idx && i !== q.correct) {
+                    opt.classList.add('incorrect');
+                }
+            });
+            
+            const feedbackDiv = document.getElementById('feedback');
+            const isCorrect = idx === q.correct;
+            
+            if (isCorrect) {
+                score++;
+                feedbackDiv.className = 'feedback correct';
+                feedbackDiv.innerHTML = `
+                    <strong>✅ Правильно!</strong><br>
+                    ${q.explanation}<br>
+                    <em style="opacity:0.8">${q.explanationRu}</em>
+                `;
+            } else {
+                feedbackDiv.className = 'feedback incorrect';
+                feedbackDiv.innerHTML = `
+                    <strong>❌ Неправильно</strong><br>
+                    ${q.explanation}<br>
+                    <em style="opacity:0.8">${q.explanationRu}</em>
+                `;
+            }
+            
+            feedbackDiv.classList.remove('hidden');
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('results-section').classList.remove('hidden');
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            
+            document.getElementById('final-score').innerText = `${score} / ${questions.length}`;
+            document.getElementById('score-text').innerText = `You got ${percentage}% correct!`;
+            
+            let emoji = '🌟';
+            if (percentage === 100) emoji = '🏆';
+            else if (percentage >= 80) emoji = '🎉';
+            else if (percentage >= 60) emoji = '😊';
+            else if (percentage >= 40) emoji = '📚';
+            else emoji = '💪';
+            
+            document.getElementById('celebration-emoji').innerText = emoji;
+            
+            const mistakes = [];
+            questions.forEach((q, idx) => {
+                if (userAnswers[idx] !== q.correct) {
+                    mistakes.push({
+                        question: q.question,
+                        userAnswer: q.options[userAnswers[idx]],
+                        correctAnswer: q.options[q.correct],
+                        explanation: q.explanation,
+                        explanationRu: q.explanationRu
+                    });
+                }
+            });
+            
+            const mistakesContainer = document.getElementById('mistakes-container');
+            
+            if (mistakes.length === 0) {
+                mistakesContainer.innerHTML = `
+                    <div class="no-mistakes">
+                        🎊 Perfect! No mistakes! 🎊
+                    </div>
+                `;
+            } else {
+                const mistakesHtml = mistakes.map(m => `
+                    <div class="mistake-item">
+                        <div class="mistake-question">${m.question}</div>
+                        <div class="mistake-answers">
+                            <div class="your-answer">❌ Your answer: ${m.userAnswer}</div>
+                            <div class="correct-answer">✅ Correct answer: ${m.correctAnswer}</div>
+                        </div>
+                        <div class="mistake-explanation">
+                            ${m.explanation}<br>
+                            <em>${m.explanationRu}</em>
+                        </div>
+                    </div>
+                `).join('');
+                
+                mistakesContainer.innerHTML = `
+                    <div class="mistakes-section">
+                        <h3>📝 Review Your Mistakes</h3>
+                        ${mistakesHtml}
+                    </div>
+                `;
+            }
+        }
+
+        function resetTest() {
+            const code = document.getElementById('reset-code').value.trim();
+            if (code === '777' || code === 'reset') {
+                currentQuestion = 0;
+                score = 0;
+                userAnswers = [];
+                
+                document.getElementById('results-section').classList.add('hidden');
+                document.getElementById('quiz-section').classList.remove('hidden');
+                document.getElementById('reset-code').value = '';
+                
+                loadQuestion();
+            } else {
+                alert('❌ Wrong code! Try: 777');
+            }
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
