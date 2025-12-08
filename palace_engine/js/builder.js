@@ -95,20 +95,21 @@ class WorldBuilder {
         // Определяем позицию карточки
         const position = this.calculateCardPosition(index);
         
-        // Применяем 3D трансформацию
+        // Применяем позиционирование через left/top (для absolute)
+        card.style.left = `calc(50% + ${position.x}px)`;
+        card.style.top = `calc(50% + ${position.y}px)`;
+        
+        // Применяем 3D трансформацию (БЕЗ translate -50%, -50%!)
         card.style.transform = `
-            translate(-50%, -50%)
             translateZ(${position.z}px)
-            translateX(${position.x}px)
-            translateY(${position.y}px)
-            ${position.side === 'left' ? 'rotateY(30deg)' : 'rotateY(-30deg)'}
+            ${position.side === 'left' ? 'rotateY(25deg)' : 'rotateY(-25deg)'}
         `;
         
         // Содержимое карточки
         card.innerHTML = `
             <h2>${wordData.en}</h2>
             <p>${wordData.ru}</p>
-            <span class="transcription">${wordData.transcription}</span>
+            <span class="transcription">${wordData.transcription || ''}</span>
             <p class="example">${wordData.example || ''}</p>
         `;
         
