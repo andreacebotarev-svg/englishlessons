@@ -1,0 +1,51 @@
+scene-3d.css/* ============================================
+   3D SCENE & WORLD
+   Описание: Контейнер 3D сцены, камера, туман
+   Зависимости: variables.css, animations.css
+   ============================================ */
+
+/* === SCENE CONTAINER === */
+#scene {
+    width: 100vw;
+    height: 100vh;
+    perspective: var(--perspective);
+    perspective-origin: var(--perspective-origin);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, var(--bg-dark) 0%, var(--bg-black) 100%);
+}
+
+/* === WORLD CONTAINER === */
+#world {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: translateZ(var(--depth));
+    transition: transform var(--transition-fast) linear;
+    will-change: transform;
+}
+
+/* === FOG EFFECT === */
+#scene::after {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
+    background: 
+        radial-gradient(circle at center, 
+            transparent 20%, 
+            rgba(0, 0, 0, 0.3) 50%, 
+            rgba(0, 0, 0, 0.7) 80%, 
+            var(--bg-black) 100%),
+        linear-gradient(180deg, 
+            transparent 0%, 
+            rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+    z-index: var(--z-fog);
+    animation: fogPulse 10s ease-in-out infinite;
+}
