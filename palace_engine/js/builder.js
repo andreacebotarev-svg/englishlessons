@@ -28,7 +28,7 @@ const Builder = {
             card.dataset.word = wordObj.en;
             
             // Рассчитываем глубину
-            const z = this.step * (index + 1); // 800, 1600, 2400, 3200...
+            const z = -this.step * (index + 1); // -800, -1600, -2400, -3200...
             
             // Направление (левая или правая)
             const side = index % 2 === 0 ? 'left' : 'right';
