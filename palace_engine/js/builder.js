@@ -72,9 +72,9 @@ class WorldBuilder {
     /**
      * Создать источники света вдоль коридора
      * 
-     * НОВАЯ СИСТЕМА КООРДИНАТ (положительные Z):
+     * ПРАВИЛЬНАЯ СИСТЕМА КООРДИНАТ:
      * - Источники света размещаются вдоль коридора
-     * - Z координаты положительные: 0, 1600, 3200, 4800...
+     * - Z координаты ОТРИЦАТЕЛЬНЫЕ: 0, -1600, -3200, -4800...
      * - Каждая вторая карточка (spacing * 2)
      */
     createLights() {
@@ -88,9 +88,9 @@ class WorldBuilder {
             lightLeft.style.transform = `
                 translateX(-500px)
                 translateY(-200px)
-                translateZ(${spacing * i}px)
+                translateZ(${-spacing * i}px)
             `;
-            // ✅ Положительные Z: 0, 1600, 3200, 4800...
+            // ✅ ИСПРАВЛЕНО: Отрицательные Z для CSS 3D
             this.world.appendChild(lightLeft);
             
             // Правая лампа
@@ -99,9 +99,9 @@ class WorldBuilder {
             lightRight.style.transform = `
                 translateX(500px)
                 translateY(-200px)
-                translateZ(${spacing * i}px)
+                translateZ(${-spacing * i}px)
             `;
-            // ✅ Положительные Z: 0, 1600, 3200, 4800...
+            // ✅ ИСПРАВЛЕНО: Отрицательные Z для CSS 3D
             this.world.appendChild(lightRight);
         }
     }
@@ -187,18 +187,22 @@ class WorldBuilder {
      * @param {number} index - Индекс карточки (0, 1, 2, 3...)
      * @returns {Object} - Координаты {x, y, z, side}
      * 
-     * НОВАЯ СИСТЕМА КООРДИНАТ (положительные Z):
-     * - Карточки размещаются вдоль оси Z с положительными значениями
-     * - Первая карточка (index=0): z = 800
-     * - Вторая карточка (index=1): z = 1600
-     * - Третья карточка (index=2): z = 2400
-     * - И так далее...
+     * ПРАВИЛЬНАЯ ЛОГИКА ДЛЯ CSS 3D:
+     * - Камера: depth идёт от 0 до 50000 (положительные в коде)
+     * - CSS: translateZ идёт от 0 до -50000 (инверсия в updateCSS)
+     * - Карточки: ДОЛЖНЫ быть ОТРИЦАТЕЛЬНЫМИ для правильного отображения
      * 
      * ПРИМЕРЫ:
-     * index=0: z = 800 * (0 + 1) = 800
-     * index=1: z = 800 * (1 + 1) = 1600
-     * index=2: z = 800 * (2 + 1) = 2400
-     * index=24: z = 800 * (24 + 1) = 20000
+     * index=0: z = -800 (первая карточка)
+     * index=1: z = -1600 (вторая карточка)
+     * index=2: z = -2400 (третья карточка)
+     * index=24: z = -20000 (25-я карточка)
+     * 
+     * ДВИЖЕНИЕ КАМЕРЫ:
+     * depth=0 → CSS translateZ(0) → видим начало коридора
+     * depth=500 → CSS translateZ(-500px) → приближаемся к карточке -800
+     * depth=800 → CSS translateZ(-800px) → ДОСТИГЛИ первой карточки ✅
+     * depth=1600 → CSS translateZ(-1600px) → ДОСТИГЛИ второй карточки ✅
      * 
      * ЧЕРЕДОВАНИЕ СТЕН:
      * - Чётные индексы (0, 2, 4...) → левая стена (x = -250)
@@ -208,9 +212,9 @@ class WorldBuilder {
         const spacing = CONFIG.cards.spacing; // 800px
         const alternateWalls = CONFIG.cards.alternateWalls; // true
         
-        // ✅ ИЗМЕНЕНО: Положительная глубина (Z)
-        // Карточки идут "в даль" с положительными значениями
-        const z = spacing * (index + 1);
+        // ✅ ИСПРАВЛЕНО: ОТРИЦАТЕЛЬНЫЕ координаты для CSS 3D
+        // Карточки должны быть "за" камерой в CSS системе координат
+        const z = -spacing * (index + 1); // -800, -1600, -2400...
         
         // Чередование стен (левая/правая)
         const side = alternateWalls 
