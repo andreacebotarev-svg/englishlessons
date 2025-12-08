@@ -23,14 +23,16 @@
     box-sizing: border-box;
     cursor: pointer;
     backface-visibility: hidden;
-    transform-style: preserve-3d; /* ДОБАВЛЕНО: для 3D трансформаций */
+    transform-style: preserve-3d;
     transition: all var(--transition-slow) var(--easing);
     box-shadow: 
         0 8px 32px rgba(0, 0, 0, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.1) inset,
         0 0 20px rgba(255, 214, 10, 0.1);
-    /* УДАЛЕНО: top: 50%; left: 50%; - позиции задаются через JS */
     will-change: transform;
+    /* Центрирование */
+    margin-left: -150px; /* -50% от ширины карточки (300px / 2) */
+    margin-top: -100px;  /* -50% от высоты карточки (приблизительно) */
 }
 
 /* === CARD HOVER STATE === */
@@ -41,7 +43,7 @@
         0 12px 48px rgba(0, 0, 0, 0.6),
         0 0 60px rgba(255, 214, 10, 0.5),
         0 0 0 1px rgba(255, 214, 10, 0.3) inset;
-    transform: scale(1.08) translateY(-10px);
+    /* Убрано scale и translateY из hover, чтобы не ломать позиционирование */
 }
 
 /* === CARD GLOW EFFECT === */
