@@ -90,6 +90,8 @@
 }
 
 /* === CARD CONTENT === */
+
+/* Английское слово - золотой, всегда видимый */
 .card h2 {
     margin: 0;
     font-size: var(--font-size-xxl);
@@ -99,37 +101,43 @@
     letter-spacing: 1px;
 }
 
-.card p {
-    font-size: var(--font-size-lg);
-    color: #bbb;
-    margin-top: var(--spacing-sm);
-    font-weight: 400;
-}
-
+/* Транскрипция - белый, полупрозрачный, всегда видимый */
 .card .transcription {
     font-size: var(--font-size-md);
-    color: #aaa;
+    color: #fff; /* ✅ БЕЛЫЙ вместо серого */
     margin-top: var(--spacing-xs);
     font-style: italic;
+    opacity: 0.7; /* Немного прозрачный для визуальной иерархии */
+    font-weight: 300;
 }
 
-.card .example {
-    font-size: var(--font-size-sm);
-    font-style: italic;
-    color: #222; /* ✅ ИСПРАВЛЕНО: Почти чёрный цвет для примера */
+/* Русский перевод - СКРЫТ по умолчанию, появляется при hover */
+.card .translation {
+    font-size: var(--font-size-lg);
+    color: #fff; /* ✅ БЕЛЫЙ */
     margin-top: var(--spacing-md);
+    font-weight: 400;
     text-align: center;
     max-width: 280px;
-    line-height: 1.5;
-    opacity: 0.9; /* ✅ Высокая видимость */
-    transform: translateY(0);
-    transition: all var(--transition-normal) ease;
+    line-height: 1.4;
+    
+    /* Скрываем и готовим к анимации */
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none; /* Не мешает кликам когда скрыт */
 }
 
-.card:hover .example {
+/* При наведении показываем перевод */
+.card:hover .translation {
     opacity: 1;
-    color: #111; /* ✅ Ещё темнее при hover */
     transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Усиливаем яркость транскрипции при hover */
+.card:hover .transcription {
+    opacity: 0.9;
 }
 
 /* === LEARNED CARD STATE === */
