@@ -1,46 +1,114 @@
-const App = {
+/* ============================================
+   MEMORY PALACE - MAIN APPLICATION
+   Описание: Главный контроллер приложения
+   Зависимости: config.js, utils.js, camera.js, builder.js, data-loader.js
+   ============================================ */
+
+class MemoryPalaceApp {
+    constructor() {
+        this.camera = null;
+        this.builder = null;
+        this.loader = null;
+        this.lessonId = null;
+        this.lessonData = null;
+        
+        // DOM элементы
+        this.ui = {
+            loading: document.getElementById('loading'),
+            error: document.getElementById('error-msg'),
+            hint: document.getElementById('controls-hint'),
+            backBtn: document.getElementById('back-btn')
+        };
+    }
+    
+    /**
+     * Инициализация приложения
+     */
     async init() {
-        const loader = document.getElementById('loading');
+        Utils.log('=== MEMORY PALACE STARTING ===', 'info');
         
         try {
-            // 1. Читаем ID урока из URL (?lesson=263)
-            const params = new URLSearchParams(window.location.search);
-            const lessonId = params.get('lesson');
-
-            if (!lessonId) throw new Error("No lesson ID provided");
-
-            // 2. Загружаем JSON (выходим на уровень выше в папку data)
-            const response = await fetch(`../../data/${lessonId}.json`);
-            if (!response.ok) throw new Error("Lesson not found");
+            // Получаем ID урока из URL
+            this.lessonId = Utils.getURLParam(CONFIG.data.lessonParam);
             
-            const data = await response.json();
-
-            // 3. Достаем слова (из vocabulary или phrases)
-            let words = [];
-            if (data.content.vocabulary && data.content.vocabulary.words) {
-                words = data.content.vocabulary.words;
+            if (!this.lessonId) {
+                throw new Error('Lesson ID not specified in URL');
             }
             
-            if (words.length === 0) throw new Error("No words in this lesson");
-
-            // 4. Запускаем строителя
-            Builder.build(words);
+            Utils.log(`Lesson ID: ${this.lessonId}`, 'info');
             
-            // 5. Запускаем камеру
-            Camera.init();
-
-            // Скрываем лоадер
-            loader.style.display = 'none';
-
+            // Создаём компоненты
+            this.loader = new DataLoader();
+            this.builder = new WorldBuilder();
+            this.camera = new Camera();
+            
+            // Загружаем данные
+            this.lessonData = await this.loader.loadLesson(this.lessonId);
+            
+            // Строим мир
+            this.builder.build(this.lessonData);
+            
+            // Загружаем прогресс
+            this.builder.loadProgress(this.lessonId);
+            
+            // Скрываем loading
+            setTimeout(() => {
+                Utils.hide(this.ui.loading);
+            }, CONFIG.ui.loadingDelay);
+            
+            // Автосохранение прогресса каждые 10 секунд
+            setInterval(() => {
+                this.builder.saveProgress(this.lessonId);
+            }, 10000);
+            
+            Utils.log('=== APP READY ===', 'success');
+            
         } catch (error) {
-            loader.style.display = 'none';
-            const errDiv = document.getElementById('error-msg');
-            errDiv.textContent = `Ошибка: ${error.message}`;
-            errDiv.style.display = 'block';
-            console.error(error);
+            this.showError(error.message);
+            Utils.log(`Initialization failed: ${error.message}`, 'error');
         }
     }
-};
+    
+    /**
+     * Показать ошибку
+     * @param {string} message - Текст ошибки
+     */
+    showError(message) {
+        Utils.hide(this.ui.loading);
+        Utils.setText(this.ui.error, `Error: ${message}`);
+        Utils.show(this.ui.error);
+        
+        // Автоскрытие ошибки
+        setTimeout(() => {
+            Utils.hide(this.ui.error);
+        }, CONFIG.ui.errorTimeout);
+    }
+    
+    /**
+     * Уничтожить приложение (cleanup)
+     */
+    destroy() {
+        if (this.camera) this.camera.destroy();
+        if (this.builder) this.builder.saveProgress(this.lessonId);
+        if (this.loader) this.loader.clearCache();
+        Utils.log('App destroyed', 'info');
+    }
+}
 
-// Старт при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => App.init());
+// === ЗАПУСК ПРИЛОЖЕНИЯ ===
+let app;
+
+document.addEventListener('DOMContentLoaded', () => {
+    app = new MemoryPalaceApp();
+    app.init();
+});
+
+// Cleanup при закрытии страницы
+window.addEventListener('beforeunload', () => {
+    if (app) app.destroy();
+});
+
+// Экспорт
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = MemoryPalaceApp;
+}
