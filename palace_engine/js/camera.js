@@ -50,7 +50,7 @@ class Camera {
         window.addEventListener('touchmove', (e) => {
             const touchEndY = e.touches[0].clientY;
             const delta = touchStartY - touchEndY;
-            this.move(delta * 2);
+            this.move(-delta * 2); // ИНВЕРТИРОВАНО направление
             touchStartY = touchEndY;
         }, { passive: true });
     }
@@ -61,7 +61,7 @@ class Camera {
     handleWheel(e) {
         e.preventDefault();
         const delta = e.deltaY;
-        this.move(delta);
+        this.move(-delta); // ИНВЕРТИРОВАНО: прокрутка вниз = движение вперёд
     }
     
     /**
@@ -94,7 +94,7 @@ class Camera {
      */
     moveForward() {
         if (this.isMoving) {
-            this.move(-CONFIG.camera.speed);
+            this.move(CONFIG.camera.speed); // ИНВЕРТИРОВАНО: + для движения вперёд
             requestAnimationFrame(() => this.moveForward());
         }
     }
@@ -104,7 +104,7 @@ class Camera {
      */
     moveBackward() {
         if (this.isMoving) {
-            this.move(CONFIG.camera.speed);
+            this.move(-CONFIG.camera.speed); // ИНВЕРТИРОВАНО: - для движения назад
             requestAnimationFrame(() => this.moveBackward());
         }
     }
