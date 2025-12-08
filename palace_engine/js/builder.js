@@ -24,6 +24,7 @@ class WorldBuilder {
         // Создаём базовые объекты
         this.createFloor();
         this.createWalls();
+        this.createLights(); // ДОБАВЛЕНО: создание источников света
         
         // Создаём карточки слов
         if (lessonData.content.vocabulary.words) {
@@ -66,6 +67,36 @@ class WorldBuilder {
         const wallRight = document.createElement('div');
         wallRight.className = 'wall-right';
         this.world.appendChild(wallRight);
+    }
+    
+    /**
+     * Создать источники света вдоль коридора
+     */
+    createLights() {
+        const lightCount = 30; // количество ламп
+        const spacing = CONFIG.cards.spacing * 2; // каждая вторая карточка
+        
+        for (let i = 0; i < lightCount; i++) {
+            // Левая лампа
+            const lightLeft = document.createElement('div');
+            lightLeft.className = 'light-source light-left';
+            lightLeft.style.transform = `
+                translateX(-500px)
+                translateY(-200px)
+                translateZ(-${spacing * i}px)
+            `;
+            this.world.appendChild(lightLeft);
+            
+            // Правая лампа
+            const lightRight = document.createElement('div');
+            lightRight.className = 'light-source light-right';
+            lightRight.style.transform = `
+                translateX(500px)
+                translateY(-200px)
+                translateZ(-${spacing * i}px)
+            `;
+            this.world.appendChild(lightRight);
+        }
     }
     
     /**
