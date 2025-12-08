@@ -1,0 +1,60 @@
+/* ============================================
+   WORLD OBJECTS (FLOOR & WALLS)
+   Описание: Пол и стены 3D коридора
+   Зависимости: variables.css
+   ============================================ */
+
+/* === FLOOR === */
+.floor {
+    position: absolute;
+    width: 2000px;
+    height: 100000px;
+    background: var(--floor-texture);
+    background-size: 500px;
+    background-repeat: repeat;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateX(90deg) translateZ(-200px);
+    filter: brightness(0.5) contrast(1.1);
+    will-change: transform;
+}
+
+/* === WALLS === */
+.wall-left, 
+.wall-right {
+    position: absolute;
+    width: 100000px;
+    height: 1000px;
+    background: var(--wall-texture);
+    background-size: 800px;
+    top: 50%;
+    transform-origin: center;
+    filter: brightness(0.3) contrast(1.2);
+    will-change: transform;
+}
+
+.wall-left {
+    left: 50%;
+    transform: translate(-50%, -50%) rotateY(90deg) translateZ(-300px);
+}
+
+.wall-right {
+    left: 50%;
+    transform: translate(-50%, -50%) rotateY(90deg) translateZ(300px);
+}
+
+/* === WALL AMBIENT LIGHTING === */
+.wall-left::before,
+.wall-right::before {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
+    background: linear-gradient(180deg, 
+        rgba(255, 214, 10, 0.05) 0%, 
+        transparent 50%, 
+        rgba(0, 0, 0, 0.3) 100%);
+    pointer-events: none;
+}
