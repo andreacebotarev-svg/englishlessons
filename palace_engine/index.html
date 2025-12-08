@@ -7,25 +7,27 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-    <!-- Интерфейс (поверх 3D мира) -->
+    <!-- UI Layer -->
     <div id="ui-layer">
-        <div id="loading">Загрузка дворца...</div>
+        <div id="loading">Loading Palace...</div>
         <div id="error-msg" style="display: none;"></div>
-        <div id="controls-hint">Крути колесико или жми ↑ для движения</div>
-        <button id="back-btn" onclick="history.back()">Exit</button>
+        <div id="controls-hint">Use mouse wheel or ↑/↓ arrows to move</div>
+        <div id="progress-bar"></div>
+        <div id="word-counter"><span>0</span> / 0</div>
+        <button id="back-btn" onclick="history.back()">← Exit</button>
     </div>
 
-    <!-- 3D Сцена -->
+    <!-- 3D Scene -->
     <div id="scene">
-        <div id="world">
-            <!-- Сюда JS добавит стены и слова -->
-        </div>
+        <div id="world"></div>
     </div>
 
-    <!-- Логика (порядок важен!) -->
+    <!-- JavaScript Modules -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/builder.js"></script>
+    <script src="js/data-loader.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
