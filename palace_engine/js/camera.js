@@ -50,7 +50,7 @@ class Camera {
         window.addEventListener('touchmove', (e) => {
             const touchEndY = e.touches[0].clientY;
             const delta = touchStartY - touchEndY;
-            this.move(delta * 2); // Прокрутка вниз = вперёд
+            this.move(delta * 2);
             touchStartY = touchEndY;
         }, { passive: true });
     }
@@ -61,7 +61,6 @@ class Camera {
     handleWheel(e) {
         e.preventDefault();
         const delta = e.deltaY;
-        // Положительный deltaY (прокрутка вниз) = движение вперёд К карточкам
         this.move(delta);
     }
     
@@ -95,7 +94,7 @@ class Camera {
      */
     moveForward() {
         if (this.isMoving) {
-            this.move(CONFIG.camera.speed); // + = движение вперёд К карточкам
+            this.move(CONFIG.camera.speed);
             requestAnimationFrame(() => this.moveForward());
         }
     }
@@ -105,25 +104,33 @@ class Camera {
      */
     moveBackward() {
         if (this.isMoving) {
-            this.move(-CONFIG.camera.speed); // - = движение назад ОТ карточек
+            this.move(-CONFIG.camera.speed);
             requestAnimationFrame(() => this.moveBackward());
         }
     }
     
     /**
      * Изменить целевую позицию камеры
-     * @param {number} delta - Изменение позиции (положительное = вперёд К карточкам)
+     * @param {number} delta - Изменение позиции
+     * 
+     * ЛОГИКА:
+     * - Карточки находятся в отрицательной части Z: -800, -1600, -2400...
+     * - minDepth = -100 (начало, ближе к камере)
+     * - maxDepth = -50000 (конец, дальше от камеры)
+     * - Чтобы двигаться К карточкам: depth должен УМЕНЬШАТЬСЯ (-100 -> -500)
+     * - Положительный delta (прокрутка вниз) должен УМЕНЬШАТЬ depth
+     * - Поэтому: targetDepth += delta (ЕСЛИ delta отрицательный, он уменьшит depth)
      */
     move(delta) {
-        // ИСПРАВЛЕНО: Положительный delta УВЕЛИЧИВАЕТ targetDepth в отрицательную сторону
-        // Пример: -100 + (-50) = -150 (движение К карточкам)
-        // Карточки находятся в отрицательной части: -800, -1600, -2400...
-        this.targetDepth += -delta; // ИЛИ this.targetDepth -= delta (то же самое)
+        // ИСПРАВЛЕНО: Изменил -= на +=
+        // Теперь положительный delta ДОБАВЛЯЕТСЯ к targetDepth
+        // Но мы хотим, чтобы он УМЕНЬШАЛ targetDepth, поэтому инвертируем
+        this.targetDepth += delta;
         
         // Ограничения глубины
         this.targetDepth = Math.max(
-            CONFIG.camera.maxDepth,  // -50000 (минимум, самая дальняя точка)
-            Math.min(CONFIG.camera.minDepth, this.targetDepth)  // -100 (максимум, начало)
+            CONFIG.camera.maxDepth,
+            Math.min(CONFIG.camera.minDepth, this.targetDepth)
         );
     }
     
