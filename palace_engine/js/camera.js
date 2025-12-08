@@ -94,8 +94,8 @@ class Camera {
      */
     moveForward() {
         if (this.isMoving) {
-            // ИСПРАВЛЕНО: отрицательный delta для движения ВПЕРЁД (к карточкам)
-            this.move(-CONFIG.camera.speed);
+            // ✅ ПРОСТО: положительный delta = движение вперёд
+            this.move(CONFIG.camera.speed);
             requestAnimationFrame(() => this.moveForward());
         }
     }
@@ -105,8 +105,8 @@ class Camera {
      */
     moveBackward() {
         if (this.isMoving) {
-            // ИСПРАВЛЕНО: положительный delta для движения НАЗАД (от карточек)
-            this.move(CONFIG.camera.speed);
+            // ✅ ПРОСТО: отрицательный delta = движение назад
+            this.move(-CONFIG.camera.speed);
             requestAnimationFrame(() => this.moveBackward());
         }
     }
@@ -115,48 +115,45 @@ class Camera {
      * Изменить целевую позицию камеры
      * @param {number} delta - Изменение позиции
      * 
-     * ЛОГИКА ДВИЖЕНИЯ:
-     * - Карточки имеют отрицательные координаты Z: -800, -1600, -2400...
-     * - minDepth = -100 (начальная позиция, ближе к камере)
-     * - maxDepth = -50000 (конечная позиция, дальше от камеры)
+     * НОВАЯ ЛОГИКА (ПОЛОЖИТЕЛЬНЫЕ КООРДИНАТЫ):
+     * - Карточки имеют положительные координаты Z: 800, 1600, 2400...
+     * - minDepth = 0 (начальная позиция)
+     * - maxDepth = 50000 (конечная позиция)
      * 
      * НАПРАВЛЕНИЕ:
-     * - Движение ВПЕРЁД (К карточкам): depth уменьшается (-100 → -500 → -1000)
-     * - Движение НАЗАД (ОТ карточек): depth увеличается (-1000 → -500 → -100)
+     * - Движение ВПЕРЁД (К карточкам): depth УВЕЛИЧИВАЕТСЯ (0 → 500 → 1000)
+     * - Движение НАЗАД (ОТ карточек): depth УМЕНЬШАЕТСЯ (1000 → 500 → 0)
      * 
      * КОЛЕСИКО МЫШИ:
-     * - Прокрутка ВНИЗ: deltaY > 0 (положительный)
-     * - Прокрутка ВВЕРХ: deltaY < 0 (отрицательный)
+     * - Прокрутка ВНИЗ: deltaY > 0 (положительный) → движение ВПЕРЁД ✅
+     * - Прокрутка ВВЕРХ: deltaY < 0 (отрицательный) → движение НАЗАД ✅
      * 
      * ФОРМУЛА:
-     * - targetDepth -= delta
-     * - Положительный delta → depth уменьшается → движение ВПЕРЁД
-     * - Отрицательный delta → depth увеличивается → движение НАЗАД
+     * - targetDepth += delta (всё интуитивно!)
+     * - Положительный delta → depth увеличивается → движение ВПЕРЁД ✅
+     * - Отрицательный delta → depth уменьшается → движение НАЗАД ✅
      * 
      * ПРИМЕРЫ:
      * 1. Прокрутка вниз: delta = +100
-     *    targetDepth = -100 - 100 = -200 (движение вперёд ✓)
+     *    targetDepth = 0 + 100 = 100 (движение вперёд ✅)
      * 
      * 2. Прокрутка вверх: delta = -100
-     *    targetDepth = -200 - (-100) = -100 (движение назад ✓)
+     *    targetDepth = 100 + (-100) = 0 (движение назад ✅)
      * 
-     * 3. Клавиша ↑ (вперёд): delta = -50
-     *    targetDepth = -100 - (-50) = -150 (движение вперёд ✓)
+     * 3. Клавиша ↑ (вперёд): delta = +50
+     *    targetDepth = 0 + 50 = 50 (движение вперёд ✅)
      * 
-     * 4. Клавиша ↓ (назад): delta = +50
-     *    targetDepth = -150 - 50 = -100 (движение назад ✓)
+     * 4. Клавиша ↓ (назад): delta = -50
+     *    targetDepth = 50 + (-50) = 0 (движение назад ✅)
      */
     move(delta) {
-        // Положительный delta уменьшает targetDepth (движение К карточкам)
-        // Отрицательный delta увеличивает targetDepth (движение ОТ карточек)
-        this.targetDepth -= delta;
+        // ✅ ПРОСТО И ПОНЯТНО: прибавляем delta
+        this.targetDepth += delta;
         
-        // Ограничения глубины
-        // Math.max выбирает большее число: max(-50000, min(-100, target))
-        // Это гарантирует: -50000 <= targetDepth <= -100
+        // Ограничения глубины: 0 <= targetDepth <= 50000
         this.targetDepth = Math.max(
-            CONFIG.camera.maxDepth,  // -50000 (минимальное значение, самая дальняя точка)
-            Math.min(CONFIG.camera.minDepth, this.targetDepth)  // -100 (максимальное значение, начало)
+            CONFIG.camera.minDepth,   // 0 (минимальное значение, начало)
+            Math.min(CONFIG.camera.maxDepth, this.targetDepth)  // 50000 (максимальное значение, конец)
         );
     }
     
@@ -165,7 +162,6 @@ class Camera {
      */
     update() {
         // Линейная интерполяция (lerp) для плавности
-        // Камера постепенно приближается к targetDepth
         this.depth += (this.targetDepth - this.depth) * CONFIG.camera.smoothing;
         
         // Обновляем CSS переменную
@@ -177,35 +173,35 @@ class Camera {
     
     /**
      * Обновить CSS переменную --depth
+     * ✅ ВАЖНО: Инвертируем знак для CSS translateZ()
      */
     updateCSS() {
-        document.documentElement.style.setProperty('--depth', `${this.depth}px`);
+        // CSS translateZ работает наоборот: отрицательные значения = объекты дальше
+        // Поэтому инвертируем: depth=100 → CSS=-100px
+        document.documentElement.style.setProperty('--depth', `${-this.depth}px`);
     }
     
     /**
      * Обновить прогресс-бар
      * 
      * ЛОГИКА РАСЧЁТА ПРОГРЕССА:
-     * - В начале (depth = -100): progress = 0%
-     * - В середине (depth = -25050): progress = 50%
-     * - В конце (depth = -50000): progress = 100%
+     * - В начале (depth = 0): progress = 0%
+     * - В середине (depth = 25000): progress = 50%
+     * - В конце (depth = 50000): progress = 100%
      * 
-     * ФОРМУЛА:
-     * progress = |depth - minDepth| / |maxDepth - minDepth| * 100
-     * progress = |-25050 - (-100)| / |-50000 - (-100)| * 100
-     * progress = |-24950| / |-49900| * 100
-     * progress = 24950 / 49900 * 100 ≈ 50%
+     * ФОРМУЛА (теперь без Math.abs):
+     * progress = (depth - minDepth) / (maxDepth - minDepth) * 100
+     * progress = (25000 - 0) / (50000 - 0) * 100 = 50%
      */
     updateProgress() {
         const progressBar = document.getElementById('progress-bar');
         if (progressBar) {
-            // Вычисляем процент пройденного пути
-            const progress = Math.abs(
+            // ✅ ПРОСТО: без Math.abs
+            const progress = (
                 (this.depth - CONFIG.camera.minDepth) / 
                 (CONFIG.camera.maxDepth - CONFIG.camera.minDepth)
             ) * 100;
             
-            // Ограничиваем значение между 0 и 100
             progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
         }
     }
