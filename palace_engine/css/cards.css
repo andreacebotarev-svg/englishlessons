@@ -104,33 +104,39 @@
 /* Транскрипция - белый, полупрозрачный, всегда видимый */
 .card .transcription {
     font-size: var(--font-size-md);
-    color: #fff; /* ✅ БЕЛЫЙ вместо серого */
+    color: #fff;
     margin-top: var(--spacing-xs);
     font-style: italic;
-    opacity: 0.7; /* Немного прозрачный для визуальной иерархии */
+    opacity: 0.7;
     font-weight: 300;
 }
 
-/* Русский перевод - СКРЫТ по умолчанию, появляется при hover */
+/* Русский перевод - СКРЫТ по умолчанию */
 .card .translation {
     font-size: var(--font-size-lg);
-    color: #fff; /* ✅ БЕЛЫЙ */
+    color: #fff;
     margin-top: var(--spacing-md);
     font-weight: 400;
     text-align: center;
     max-width: 280px;
     line-height: 1.4;
     
-    /* Скрываем и готовим к анимации */
+    /* Скрываем по умолчанию */
     opacity: 0;
     transform: translateY(-10px);
     transition: all 0.3s ease;
-    pointer-events: none; /* Не мешает кликам когда скрыт */
+    pointer-events: none;
 }
 
-/* При наведении показываем перевод */
-.card:hover .translation {
-    opacity: 1;
+/* ✅ HOVER: Временный preview перевода (только для НЕ-изученных карточек) */
+.card:not(.learned):hover .translation {
+    opacity: 0.6; /* Полупрозрачный preview */
+    transform: translateY(0);
+}
+
+/* ✅ LEARNED: Перевод ПОСТОЯННО виден после клика */
+.card.learned .translation {
+    opacity: 1; /* Полностью видимый */
     transform: translateY(0);
     pointer-events: auto;
 }
@@ -142,23 +148,7 @@
 
 /* === LEARNED CARD STATE === */
 .card.learned {
-    border-color: var(--neon-green);
-    opacity: 0.6;
+    border-color: var(--neon-green); /* Зелёная рамка для изученных */
 }
 
-.card.learned::after {
-    content: '✓';
-    position: absolute;
-    top: var(--spacing-sm);
-    right: var(--spacing-sm);
-    width: 28px;
-    height: 28px;
-    background: var(--neon-green);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: var(--font-size-lg);
-    font-weight: bold;
-    color: white;
-}
+/* ❌ УБРАЛИ галочку - теперь индикатор это зелёная рамка и видимый перевод */
