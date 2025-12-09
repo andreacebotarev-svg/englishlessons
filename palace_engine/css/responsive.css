@@ -90,6 +90,27 @@
         ) !important;
     }
     
+    /* 🚀 ОПТИМИЗАЦИЯ СТЕН - упрощаем градиенты для экономии видеопамяти */
+    .floor,
+    .wall-left,
+    .wall-right {
+        /* Убираем сложные repeating-linear-gradient */
+        background: rgba(30, 30, 30, 0.9) !important;
+        /* Упрощаем тени */
+        box-shadow: none !important;
+    }
+    
+    /* Убираем декоративные элементы на стенах */
+    .wall-left::before,
+    .wall-right::before {
+        display: none !important;
+    }
+    
+    /* Упрощаем источники света */
+    .light-source {
+        box-shadow: 0 0 20px rgba(255, 214, 10, 0.5) !important;
+    }
+    
     /* Оптимизация GPU */
     .room {
         will-change: auto !important; /* Не резервировать GPU память */
