@@ -7,6 +7,7 @@
 :root {
     /* === CAMERA & 3D === */
     --depth: 0px;
+    --fov: 1000px;         /* 🆕 Перспектива / Field of View (WASD) */
     --perspective: 800px;  /* ✅ ИЗМЕНЕНО: 1000px → 800px (сильнее 3D-эффект) */
     --perspective-origin: 50% 50%;
     
