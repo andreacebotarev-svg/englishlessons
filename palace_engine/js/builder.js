@@ -52,10 +52,9 @@ function createWallRight() {
  * Функция озвучивания слова
  */
 function speakWord(text) {
-  // Web Speech API (работает без интернета)
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'en-US';
-  utterance.rate = 0.9; // Чуть медленнее для лучшего понимания
+  utterance.rate = 0.9;
   speechSynthesis.speak(utterance);
   console.log(`🔊 Speaking: "${text}"`);
 }
@@ -69,7 +68,7 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
   room.dataset.word = word;
   room.dataset.position = position;
   room.dataset.index = index;
-  room.dataset.state = 'example';  // Начальное состояние
+  room.dataset.state = 'example';
   
   // ЧЕРЕДОВАНИЕ: чётные слева, нечётные справа
   const isLeft = index % 2 === 0;
@@ -80,16 +79,14 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
     room.classList.add(`room--${difficulty}`);
   }
   
-  // ✅ 3D-позиционирование: Z в глубину, X влево/вправо, Y по центру
-  const xOffset = isLeft ? -250 : 250;     // ✅ ИЗМЕНЕНО: 300 → 250 (ближе к центру)
-  const rotation = isLeft ? 60 : -60;      // поворот к центру коридора
+  // ✅ КРИТИЧНО: Используем left/top для позиционирования
+  const xOffset = isLeft ? -250 : 250;
+  room.style.left = `calc(50% + ${xOffset}px)`;
+  room.style.top = '50%';
   
-  room.style.transform = `
-    translateZ(-${position}px) 
-    translateX(${xOffset}px) 
-    translateY(-50%)
-    rotateY(${rotation}deg)
-  `;
+  // ✅ КРИТИЧНО: transform ТОЛЬКО для Z и поворота
+  const rotation = isLeft ? 25 : -25;
+  room.style.transform = `translateZ(-${position}px) rotateY(${rotation}deg)`;
   
   // === 1. АНГЛИЙСКОЕ СЛОВО + КНОПКА ОЗВУЧИВАНИЯ ===
   const header = document.createElement('div');
@@ -132,13 +129,11 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
   const contentWrapper = document.createElement('div');
   contentWrapper.className = 'room-content';
 
-  // Пример употребления (показан по умолчанию)
   const exampleEl = document.createElement('div');
   exampleEl.className = 'room-example';
   exampleEl.textContent = `Click to see translation`;
   contentWrapper.appendChild(exampleEl);
 
-  // Перевод (скрыт по умолчанию)
   const translationEl = document.createElement('div');
   translationEl.className = 'room-translation';
   translationEl.textContent = translation;
@@ -151,7 +146,6 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
   
   // 4.1 Клик по карточке — переключение example/translation
   room.addEventListener('click', (e) => {
-    // Если кликнули на кнопку озвучивания — не переключать
     if (e.target.closest('.room-speaker')) return;
     
     const currentState = room.dataset.state || 'example';
@@ -159,12 +153,10 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
     const translationEl = room.querySelector('.room-translation');
     
     if (currentState === 'example') {
-      // Показываем перевод
       exampleEl.style.display = 'none';
       translationEl.style.display = 'block';
       room.dataset.state = 'translation';
     } else {
-      // Показываем пример
       exampleEl.style.display = 'block';
       translationEl.style.display = 'none';
       room.dataset.state = 'example';
@@ -175,7 +167,7 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
   const speakerBtnFinal = room.querySelector('.room-speaker');
   if (speakerBtnFinal) {
     speakerBtnFinal.addEventListener('click', (e) => {
-      e.stopPropagation(); // Не вызывать клик по карточке
+      e.stopPropagation();
       speakWord(word);
     });
   }
@@ -208,13 +200,12 @@ function buildWorld(words) {
   corridor.appendChild(createWallRight());
   console.log('   ✅ Floor and walls added');
   
-  // ✅ НАЧАЛЬНОЕ СМЕЩЕНИЕ всех карточек вглубь (чтобы не были "в лицо")
-  const startOffset = 2000;
+  // ✅ НАЧАЛЬНОЕ СМЕЩЕНИЕ всех карточек вглубь
+  const startOffset = 0; // начинаем с 0, как в референсе
   
   // ДОБАВЛЯЕМ КАРТОЧКИ (чередуются слева/справа)
   words.forEach((word, index) => {
-    const position = startOffset + (index * CONFIG.corridor.roomSpacing);  // ✅ ИЗМЕНЕНО
-    const isLeft = index % 2 === 0;
+    const position = startOffset + ((index + 1) * CONFIG.cards.spacing);
     
     const room = createRoom({
       position: position,
@@ -227,10 +218,10 @@ function buildWorld(words) {
     
     corridor.appendChild(room);
     
-    console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px (${isLeft ? 'LEFT' : 'RIGHT'}, rotateY=${isLeft ? 60 : -60}°)`);
+    console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px`);
   });
   
-  console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.corridor.roomSpacing}px, startOffset: ${startOffset}px)`);
+  console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.cards.spacing}px)`);
   
   return corridor;
 }
