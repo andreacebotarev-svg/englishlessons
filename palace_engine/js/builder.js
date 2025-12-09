@@ -17,10 +17,9 @@ function createCorridor() {
   const corridor = document.createElement('div');
   corridor.id = 'corridor';
   
-  corridor.style.position = 'absolute';
-  corridor.style.top = '50%';
-  corridor.style.left = '50%';
-  corridor.style.transform = 'translate(-50%, -50%)';
+  // 🐛 FIX: Убран inline transform - он конфликтовал с camera.js
+  // Центрирование теперь через CSS (position: relative)
+  corridor.style.position = 'relative';
   corridor.style.transformStyle = 'preserve-3d';
   corridor.style.width = '100%';
   corridor.style.height = '100%';
