@@ -1,6 +1,12 @@
 // palace_engine/js/builder.js
 
 import { CONFIG } from './config.js';
+// 🏛️ НОВЫЕ ИМПОРТЫ ДЛЯ СИСТЕМЫ КОМНАТ
+import {
+    getRoomZPosition,
+    getWordRoomIndex,
+    logRoomInfo
+} from './room-geometry.js';
 
 /**
  * Создает контейнер для 3D-коридора
@@ -193,6 +199,11 @@ function buildWorld(words) {
   const corridor = createCorridor();
   
   console.log(`🏗️ Building corridor with ${words.length} rooms...`);
+  
+  // 🏛️ ЛОГИРОВАНИЕ ИНФОРМАЦИИ О КОМНАТАХ (если режим включён)
+  if (CONFIG.corridor.roomBox.enabled) {
+    logRoomInfo(words.length);
+  }
   
   // ДОБАВЛЯЕМ ПОЛ И СТЕНЫ
   corridor.appendChild(createFloor());
