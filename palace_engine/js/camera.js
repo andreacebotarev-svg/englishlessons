@@ -1,6 +1,6 @@
 /* ============================================
    MINECRAFT-STYLE CAMERA CONTROLLER
-   Описание: FPS-контроллер как в Minecraft
+   Описание: FPS-контроллер с гравитацией
    ============================================ */
 
 import { CONFIG } from './config.js';
@@ -8,7 +8,7 @@ import { CONFIG } from './config.js';
 const Camera = {
     // === ПОЗИЦИЯ ===
     x: 0,
-    y: 0,
+    y: 150,      // 🆕 Начальная позиция на уровне пола
     z: 0,
     
     // === ОРИЕНТАЦИЯ (Эйлеровы углы) ===
@@ -18,6 +18,7 @@ const Camera = {
     // === СКОРОСТЬ ДВИЖЕНИЯ ===
     velocity: {
         x: 0,
+        y: 0,     // 🆕 Вертикальная скорость (для гравитации)
         z: 0
     },
     
@@ -28,6 +29,12 @@ const Camera = {
     deceleration: 0.3,
     mouseSensitivity: 0.002,
     
+    // 🆕 ГРАВИТАЦИЯ
+    gravity: 0.5,
+    groundLevel: 150,
+    terminalVelocity: 20,
+    isOnGround: true,        // 🆕 Флаг: стоит ли на земле
+    
     // === ГРАНИЦЫ ===
     maxZ: 0,
     words: [],
@@ -37,11 +44,11 @@ const Camera = {
     
     // === СОСТОЯНИЕ КЛАВИШ ===
     keys: {
-        forward: false,   // W
-        backward: false,  // S
-        left: false,      // A
-        right: false,     // D
-        sprint: false,    // Shift
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+        sprint: false,
     },
     
     isPointerLocked: false,
@@ -49,7 +56,7 @@ const Camera = {
     lastActiveRoom: -1,
     
     init() {
-        console.log('🎮 Initializing Minecraft-style camera...');
+        console.log('🎮 Initializing Minecraft-style camera with gravity...');
         
         // Применяем настройки из CONFIG
         this.speed = CONFIG.camera.speed;
@@ -58,6 +65,12 @@ const Camera = {
         this.deceleration = CONFIG.camera.deceleration;
         this.mouseSensitivity = CONFIG.camera.mouseSensitivity;
         
+        // 🆕 Гравитация
+        this.gravity = CONFIG.camera.gravity;
+        this.groundLevel = CONFIG.camera.groundLevel;
+        this.terminalVelocity = CONFIG.camera.terminalVelocity;
+        this.y = this.groundLevel; // Стартуем на уровне пола
+        
         this.setupKeyboard();
         this.setupMouse();
         this.setupTouchControls();
@@ -65,16 +78,12 @@ const Camera = {
         
         setTimeout(() => this.cacheRooms(), 100);
         
-        console.log('🎮 Minecraft camera initialized');
-        console.log('   WASD - Move relative to view direction');
-        console.log('   Mouse - Look around');
-        console.log('   Shift - Sprint');
-        console.log('   Click to lock cursor (ESC to unlock)');
+        console.log('🎮 Camera initialized with gravity');
+        console.log(`   - Ground level: ${this.groundLevel}px`);
+        console.log(`   - Gravity: ${this.gravity} units/frame²`);
+        console.log(`   - Terminal velocity: ${this.terminalVelocity}`);
     },
     
-    /**
-     * Настройка клавиатуры
-     */
     setupKeyboard() {
         window.addEventListener('keydown', (e) => {
             switch(e.code) {
@@ -149,9 +158,6 @@ const Camera = {
         });
     },
     
-    /**
-     * Настройка мыши (Pointer Lock API)
-     */
     setupMouse() {
         const scene = document.querySelector('#scene');
         if (!scene) return;
@@ -180,10 +186,8 @@ const Camera = {
             this.yaw -= e.movementX * this.mouseSensitivity;
             this.pitch -= e.movementY * this.mouseSensitivity * (CONFIG.camera.invertY ? -1 : 1);
             
-            // Ограничиваем pitch
             this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
             
-            // Нормализуем yaw
             const twoPi = Math.PI * 2;
             if (this.yaw > twoPi) this.yaw -= twoPi;
             if (this.yaw < 0) this.yaw += twoPi;
@@ -192,9 +196,6 @@ const Camera = {
         this.showLockMessage(true);
     },
     
-    /**
-     * Показ/скрытие сообщения о захвате курсора
-     */
     showLockMessage(show) {
         let msg = document.getElementById('pointer-lock-message');
         
@@ -224,9 +225,6 @@ const Camera = {
         msg.style.opacity = show ? '1' : '0';
     },
     
-    /**
-     * Игровой цикл
-     */
     startGameLoop() {
         const update = () => {
             this.updateMovement();
@@ -242,9 +240,10 @@ const Camera = {
     },
     
     /**
-     * Обновление движения (Minecraft-стиль)
+     * 🆕 Обновление движения с гравитацией
      */
     updateMovement() {
+        // === ГОРИЗОНТАЛЬНОЕ ДВИЖЕНИЕ (X, Z) ===
         let inputX = 0;
         let inputZ = 0;
         
@@ -253,7 +252,6 @@ const Camera = {
         if (this.keys.left) inputX -= 1;
         if (this.keys.right) inputX += 1;
         
-        // Нормализация диагонального движения
         const length = Math.sqrt(inputX * inputX + inputZ * inputZ);
         if (length > 0) {
             inputX /= length;
@@ -281,7 +279,29 @@ const Camera = {
         this.x += this.velocity.x;
         this.z += this.velocity.z;
         
-        // Ограничения по Z
+        // === 🆕 ВЕРТИКАЛЬНОЕ ДВИЖЕНИЕ (Y) - ГРАВИТАЦИЯ ===
+        
+        // Применяем гравитацию
+        this.velocity.y -= this.gravity;
+        
+        // Ограничиваем максимальную скорость падения
+        if (this.velocity.y < -this.terminalVelocity) {
+            this.velocity.y = -this.terminalVelocity;
+        }
+        
+        // Применяем вертикальную скорость к позиции
+        this.y += this.velocity.y;
+        
+        // 🆕 КОЛЛИЗИЯ С ПОЛОМ
+        if (this.y <= this.groundLevel) {
+            this.y = this.groundLevel;
+            this.velocity.y = 0;
+            this.isOnGround = true;
+        } else {
+            this.isOnGround = false;
+        }
+        
+        // === ОГРАНИЧЕНИЯ ПО X И Z ===
         if (this.z < 0) {
             this.z = 0;
             this.velocity.z = 0;
@@ -291,7 +311,6 @@ const Camera = {
             this.velocity.z = 0;
         }
         
-        // Ограничения по X
         const maxX = 2000;
         if (this.x < -maxX) {
             this.x = -maxX;
@@ -304,7 +323,7 @@ const Camera = {
     },
     
     /**
-     * Применение трансформации к коридору
+     * 🆕 Применение трансформации (с Y-осью)
      */
     applyTransform() {
         const corridor = document.querySelector('#corridor');
@@ -312,17 +331,15 @@ const Camera = {
         
         document.documentElement.style.setProperty('--fov', `${CONFIG.camera.fov}px`);
         
+        // 🆕 Применяем Y-координату (высота камеры)
         corridor.style.transform = `
             translateZ(${CONFIG.camera.fov}px)
             rotateX(${this.pitch}rad)
             rotateY(${this.yaw}rad)
-            translate3d(${-this.x}px, 0px, ${-this.z}px)
+            translate3d(${-this.x}px, ${-this.y}px, ${-this.z}px)
         `;
     },
     
-    /**
-     * Обновление визуальных подсказок WASD
-     */
     updateWASDHints() {
         const map = [
             ['w', this.keys.forward],
@@ -339,9 +356,6 @@ const Camera = {
         });
     },
     
-    /**
-     * Touch-контролы (упрощённые)
-     */
     setupTouchControls() {
         let touchStartY = 0;
         let touchStartX = 0;
@@ -402,7 +416,9 @@ const Camera = {
     jumpToStart() {
         this.animateTo(0, 1000);
         this.x = 0;
+        this.y = this.groundLevel;  // 🆕 Сброс высоты
         this.velocity.x = 0;
+        this.velocity.y = 0;         // 🆕 Сброс вертикальной скорости
         this.velocity.z = 0;
         console.log('⏪ Jump to start');
     },
@@ -512,6 +528,9 @@ const Camera = {
         }
     },
     
+    /**
+     * 🆕 Обновление счётчика со статусом земли
+     */
     updateWordCounter() {
         const counter = document.getElementById('word-counter');
         if (counter && this.words.length > 0) {
@@ -526,8 +545,10 @@ const Camera = {
                 
                 counter.innerHTML = `
                     <div>Комната ${clampedRoomIndex + 1}/${totalRooms}</div>
-                    <div style="font-size: 11px; color: #666;">
-                        Yaw: ${yawDeg}° | Pitch: ${pitchDeg}°${this.keys.sprint ? ' 🏃 SPRINT' : ''}
+                    <div style="font-size: 10px; color: #666;">
+                        Yaw: ${yawDeg}° | Pitch: ${pitchDeg}°
+                        ${this.keys.sprint ? ' 🏃 SPRINT' : ''}
+                        ${this.isOnGround ? ' 🟢' : ' 🔴'}
                     </div>
                 `;
             }
@@ -549,12 +570,10 @@ function initCamera(words, config) {
     
     Camera.init();
     
-    console.log('🎮 Minecraft Camera configured:', {
+    console.log('🎮 Minecraft Camera with gravity configured:', {
         speed: Camera.speed,
-        sprintMultiplier: Camera.sprintMultiplier,
-        acceleration: Camera.acceleration,
-        deceleration: Camera.deceleration,
-        mouseSensitivity: Camera.mouseSensitivity,
+        gravity: Camera.gravity,
+        groundLevel: Camera.groundLevel,
         words: words.length
     });
 }
