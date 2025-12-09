@@ -1,207 +1,480 @@
 /* ============================================
-   CAMERA CONTROLLER
-   Описание: Управление камерой + определение активной карточки
-   Поддержка: Desktop (mouse/keyboard) + Mobile (touch/swipe)
-   Оптимизации: DOM caching, requestAnimationFrame, visibility culling
+   CAMERA CONTROLLER (WASD Navigation)
+   Описание: Игровое управление камерой с WASD
    ============================================ */
 
-// 🏠 ИМПОРТ для проверки режима комнат-боксов
 import { CONFIG } from './config.js';
 
 const Camera = {
-    z: 0,           // Текущая позиция
-    speed: 50,      // Скорость движения
-    maxZ: 0,        // Граница коридора
-    words: [],      // Массив слов
-    roomSpacing: 800, // Расстояние между карточками
-    startOffset: 2000, // Начальное смещение карточек
-    activeThreshold: 400, // Порог активации карточки (в px)
+    // === ПОЗИЦИЯ И ОРИЕНТАЦИЯ ===
+    x: 0,                    // Позиция по X (лево/право)
+    y: 0,                    // Позиция по Y (вверх/вниз) - не используется пока
+    z: 0,                    // Позиция по Z (вперёд/назад)
+    rotation: 0,             // 🆕 Угол поворота камеры (градусы)
     
-    // 🚀 ОПТИМИЗАЦИЯ: Кэширование DOM-элементов
-    roomsCache: null,  // Кэш DOM-элементов .room для избежания повторных querySelectorAll
-    isTicking: false, // Флаг для requestAnimationFrame
-    lastActiveRoom: -1, // 🎴 НОВОЕ ПОЛЕ для отслеживания последней активной комнаты
+    // === НАСТРОЙКИ ===
+    speed: 50,               // Скорость движения
+    rotationSpeed: 2,        // Скорость поворота
+    strafeSpeed: 30,         // Скорость стрейфа
+    smoothing: 0.15,         // Сглаживание
+    fov: 1000,               // Перспектива
+    
+    // === ГРАНИЦЫ И ДАННЫЕ ===
+    maxZ: 0,
+    words: [],
+    roomSpacing: 800,
+    startOffset: 2000,
+    activeThreshold: 400,
+    
+    // === ОПТИМИЗАЦИЯ ===
+    roomsCache: null,
+    isTicking: false,
+    lastActiveRoom: -1,
+    
+    // === 🆕 СОСТОЯНИЕ КЛАВИШ ===
+    keys: {
+        forward: false,      // W
+        backward: false,     // S
+        left: false,         // A
+        right: false,        // D
+        strafeLeft: false,   // Q
+        strafeRight: false,  // E
+    },
+    
+    // === 🆕 ЦЕЛЕВЫЕ ЗНАЧЕНИЯ ДЛЯ СГЛАЖИВАНИЯ ===
+    targetRotation: 0,
     
     init() {
-        // === DESKTOP CONTROLS ===
+        console.log('🎮 Initializing WASD camera controls...');
         
-        // Слушаем колесико мыши
+        // === КЛАВИАТУРА (WASD) ===
+        window.addEventListener('keydown', (e) => {
+            this.handleKeyDown(e);
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            this.handleKeyUp(e);
+        });
+        
+        // === КОЛЕСИКО МЫШИ (опционально, для совместимости) ===
         window.addEventListener('wheel', (e) => {
             e.preventDefault();
             const direction = e.deltaY > 0 ? 1 : -1;
-            this.move(direction);
+            this.moveForward(direction);
         }, { passive: false });
         
-        // Слушаем клавиатуру (стрелки)
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-                e.preventDefault();
-                this.move(1); // Вперед
-            }
-            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-                e.preventDefault();
-                this.move(-1); // Назад
-            }
-        });
+        // === МОБИЛЬНЫЕ СВАЙПЫ (опционально) ===
+        this.setupTouchControls();
         
-        // === MOBILE TOUCH CONTROLS ===
+        // === ИГРОВОЙ ЦИКЛ ===
+        this.startGameLoop();
         
+        // === КЭШИРОВАНИЕ DOM ===
+        setTimeout(() => {
+            this.cacheRooms();
+        }, 100);
+        
+        console.log('🎮 WASD camera initialized');
+        console.log('   W/S - Move forward/backward');
+        console.log('   A/D - Rotate left/right');
+        console.log('   Q/E - Strafe left/right (optional)');
+    },
+    
+    /**
+     * 🆕 Обработчик нажатия клавиш
+     */
+    handleKeyDown(e) {
+        const key = e.key.toLowerCase();
+        
+        // Подсветка клавиши
+        const keyElement = document.querySelector(`.wasd-key[data-key="${key}"]`);
+        if (keyElement) {
+            keyElement.classList.add('wasd-key--active');
+        }
+        
+        switch(key) {
+            case 'w':
+            case 'arrowup':
+                e.preventDefault();
+                this.keys.forward = true;
+                break;
+            case 's':
+            case 'arrowdown':
+                e.preventDefault();
+                this.keys.backward = true;
+                break;
+            case 'a':
+            case 'arrowleft':
+                e.preventDefault();
+                this.keys.left = true;
+                break;
+            case 'd':
+            case 'arrowright':
+                e.preventDefault();
+                this.keys.right = true;
+                break;
+            case 'q':
+                e.preventDefault();
+                this.keys.strafeLeft = true;
+                break;
+            case 'e':
+                e.preventDefault();
+                this.keys.strafeRight = true;
+                break;
+            
+            // === ДОПОЛНИТЕЛЬНЫЕ КОМАНДЫ ===
+            case ' ':
+                e.preventDefault();
+                this.jumpToNextRoom();
+                break;
+            case 'home':
+                e.preventDefault();
+                this.jumpToStart();
+                break;
+            case 'end':
+                e.preventDefault();
+                this.jumpToEnd();
+                break;
+        }
+    },
+    
+    /**
+     * 🆕 Обработчик отпускания клавиш
+     */
+    handleKeyUp(e) {
+        const key = e.key.toLowerCase();
+        
+        // Убираем подсветку
+        const keyElement = document.querySelector(`.wasd-key[data-key="${key}"]`);
+        if (keyElement) {
+            keyElement.classList.remove('wasd-key--active');
+        }
+        
+        switch(key) {
+            case 'w':
+            case 'arrowup':
+                this.keys.forward = false;
+                break;
+            case 's':
+            case 'arrowdown':
+                this.keys.backward = false;
+                break;
+            case 'a':
+            case 'arrowleft':
+                this.keys.left = false;
+                break;
+            case 'd':
+            case 'arrowright':
+                this.keys.right = false;
+                break;
+            case 'q':
+                this.keys.strafeLeft = false;
+                break;
+            case 'e':
+                this.keys.strafeRight = false;
+                break;
+        }
+    },
+    
+    /**
+     * 🆕 Игровой цикл (60 FPS)
+     */
+    startGameLoop() {
+        const update = () => {
+            // Обновляем движение на основе нажатых клавиш
+            this.updateMovement();
+            
+            // Применяем изменения к DOM
+            this.applyTransform();
+            
+            // Обновляем активные комнаты и UI
+            this.updateActiveRooms();
+            this.updateProgress();
+            this.updateWordCounter();
+            
+            requestAnimationFrame(update);
+        };
+        
+        requestAnimationFrame(update);
+    },
+    
+    /**
+     * 🆕 Обновление движения и поворота
+     */
+    updateMovement() {
+        let moved = false;
+        
+        // === ДВИЖЕНИЕ ВПЕРЁД/НАЗАД ===
+        if (this.keys.forward) {
+            this.moveForward(1);
+            moved = true;
+        }
+        if (this.keys.backward) {
+            this.moveForward(-1);
+            moved = true;
+        }
+        
+        // === ПОВОРОТ ВЛЕВО/ВПРАВО ===
+        if (this.keys.left) {
+            this.targetRotation += this.rotationSpeed;
+            moved = true;
+        }
+        if (this.keys.right) {
+            this.targetRotation -= this.rotationSpeed;
+            moved = true;
+        }
+        
+        // === СТРЕЙФ ВЛЕВО/ВПРАВО (опционально) ===
+        if (this.keys.strafeLeft) {
+            this.strafe(-1);
+            moved = true;
+        }
+        if (this.keys.strafeRight) {
+            this.strafe(1);
+            moved = true;
+        }
+        
+        // === СГЛАЖИВАНИЕ ПОВОРОТА ===
+        const rotationDiff = this.targetRotation - this.rotation;
+        this.rotation += rotationDiff * this.smoothing;
+        
+        // Нормализация угла (0-360)
+        if (this.rotation > 360) this.rotation -= 360;
+        if (this.rotation < 0) this.rotation += 360;
+        
+        // Лог движения (каждые 100px)
+        if (moved && Math.floor(this.z / 100) !== Math.floor((this.z - this.speed) / 100)) {
+            console.log(`🎮 Camera: Z=${Math.round(this.z)}px, Rot=${Math.round(this.rotation)}°, X=${Math.round(this.x)}px`);
+        }
+    },
+    
+    /**
+     * 🆕 Движение вперёд/назад (с учётом поворота)
+     */
+    moveForward(direction) {
+        // Конвертируем угол в радианы
+        const rad = (this.rotation * Math.PI) / 180;
+        
+        // Движение по Z (вперёд/назад)
+        this.z += direction * this.speed * Math.cos(rad);
+        
+        // Движение по X (из-за поворота)
+        this.x += direction * this.speed * Math.sin(rad);
+        
+        // Ограничения по Z
+        if (this.z < 0) this.z = 0;
+        if (this.z > this.maxZ) this.z = this.maxZ;
+        
+        // Ограничения по X (чтобы не уйти далеко в сторону)
+        const maxX = 2000; // Максимальное смещение влево/вправо
+        if (this.x < -maxX) this.x = -maxX;
+        if (this.x > maxX) this.x = maxX;
+    },
+    
+    /**
+     * 🆕 Стрейф (движение влево/вправо без поворота)
+     */
+    strafe(direction) {
+        // Конвертируем угол в радианы
+        const rad = (this.rotation * Math.PI) / 180;
+        
+        // Движение перпендикулярно направлению взгляда
+        this.x += direction * this.strafeSpeed * Math.cos(rad);
+        this.z -= direction * this.strafeSpeed * Math.sin(rad);
+        
+        // Ограничения
+        if (this.z < 0) this.z = 0;
+        if (this.z > this.maxZ) this.z = this.maxZ;
+        
+        const maxX = 2000;
+        if (this.x < -maxX) this.x = -maxX;
+        if (this.x > maxX) this.x = maxX;
+    },
+    
+    /**
+     * 🆕 Применение трансформации к 3D-сцене
+     */
+    applyTransform() {
+        const scene = document.querySelector('.corridor');
+        if (!scene) return;
+        
+        // Применяем перспективу к корневому элементу
+        document.documentElement.style.setProperty('--fov', `${this.fov}px`);
+        
+        // Применяем трансформацию к коридору
+        scene.style.transform = `
+            translateZ(${this.fov}px)
+            rotateY(${this.rotation}deg)
+            translate3d(${-this.x}px, 0px, ${-this.z}px)
+        `;
+    },
+    
+    /**
+     * Прыжок к следующей комнате (Space)
+     */
+    jumpToNextRoom() {
+        if (!CONFIG.corridor.roomBox.enabled) return;
+        
+        const { roomDepth } = CONFIG.corridor.roomBox;
+        const currentRoom = Math.floor((this.z - 2000) / roomDepth);
+        const nextRoom = currentRoom + 1;
+        const totalRooms = Math.ceil(this.words.length / CONFIG.corridor.roomBox.wordsPerRoom);
+        
+        if (nextRoom < totalRooms) {
+            const targetZ = 2000 + (nextRoom * roomDepth);
+            this.animateTo(targetZ, 800);
+            console.log(`⏩ Jump to room ${nextRoom}`);
+        }
+    },
+    
+    /**
+     * Прыжок в начало (Home)
+     */
+    jumpToStart() {
+        this.animateTo(0, 1000);
+        this.x = 0;
+        this.rotation = 0;
+        this.targetRotation = 0;
+        console.log('⏪ Jump to start');
+    },
+    
+    /**
+     * Прыжок в конец (End)
+     */
+    jumpToEnd() {
+        this.animateTo(this.maxZ, 1000);
+        console.log('⏩ Jump to end');
+    },
+    
+    /**
+     * Плавная анимация к целевой Z-позиции
+     */
+    animateTo(targetZ, duration = 800) {
+        const startZ = this.z;
+        const distance = targetZ - startZ;
+        const startTime = performance.now();
+        
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing: ease-in-out
+            const easeProgress = progress < 0.5
+                ? 2 * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            
+            this.z = startZ + (distance * easeProgress);
+            
+            if (this.z < 0) this.z = 0;
+            if (this.z > this.maxZ) this.z = this.maxZ;
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    },
+    
+    /**
+     * Настройка touch-контролов для мобильных (опционально)
+     */
+    setupTouchControls() {
         let touchStartY = 0;
-        let touchEndY = 0;
+        let touchStartX = 0;
         let isSwiping = false;
         
         window.addEventListener('touchstart', (e) => {
-            // Если тапнули на карточку или кнопку — не двигать камеру
-            if (e.target.closest('.room') || e.target.closest('.room-speaker')) {
+            if (e.target.closest('.room-card') || e.target.closest('.control-button')) {
                 return;
             }
             
             touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
             isSwiping = true;
         }, { passive: true });
         
         window.addEventListener('touchmove', (e) => {
             if (!isSwiping) return;
             
-            // Блокируем скролл страницы только во время свайпа
             if (e.cancelable) {
                 e.preventDefault();
             }
             
-            touchEndY = e.touches[0].clientY;
-            const delta = touchStartY - touchEndY;
+            const touchEndY = e.touches[0].clientY;
+            const touchEndX = e.touches[0].clientX;
+            const deltaY = touchStartY - touchEndY;
+            const deltaX = touchStartX - touchEndX;
             
-            // Порог чувствительности 5px
-            if (Math.abs(delta) > 5) {
-                const direction = delta > 0 ? 1 : -1;
-                this.move(direction * 0.3); // Меньше скорость для плавности на тач
-                touchStartY = touchEndY; // Обновляем позицию для continuous swipe
+            // Вертикальный свайп - движение вперёд/назад
+            if (Math.abs(deltaY) > 5) {
+                const direction = deltaY > 0 ? 1 : -1;
+                this.moveForward(direction * 0.3);
+                touchStartY = touchEndY;
+            }
+            
+            // Горизонтальный свайп - поворот
+            if (Math.abs(deltaX) > 5) {
+                this.targetRotation -= deltaX * 0.1;
+                touchStartX = touchEndX;
             }
         }, { passive: false });
         
         window.addEventListener('touchend', () => {
             isSwiping = false;
         }, { passive: true });
-        
-        // 🚀 Кэшируем комнаты один раз после инициализации
-        // Задержка 100ms даёт builder.js время создать все DOM-элементы
-        setTimeout(() => {
-            this.cacheRooms();
-        }, 100);
-        
-        console.log('📹 Camera initialized (Desktop + Mobile)');
     },
     
     /**
-     * 🚀 ОПТИМИЗАЦИЯ: Кэширует список комнат в памяти
-     * Вызывается автоматически при инициализации
-     * Можно вызвать вручную после динамического добавления комнат
+     * Кэширование комнат
      */
     cacheRooms() {
         this.roomsCache = Array.from(document.querySelectorAll('.room'));
-        console.log(`💾 Cached ${this.roomsCache.length} rooms for performance`);
-    },
-    
-    move(direction) {
-        const oldZ = this.z;
-        
-        // Увеличиваем или уменьшаем Z
-        this.z += direction * this.speed;
-        
-        // Ограничиваем движение
-        if (this.z < 0) this.z = 0;
-        if (this.z > this.maxZ) this.z = this.maxZ;
-        
-        // 🚀 ОПТИМИЗАЦИЯ: Обновляем DOM только перед отрисовкой кадра
-        // Связываем обновления с частотой обновления экрана (60/120 FPS)
-        if (!this.isTicking) {
-            window.requestAnimationFrame(() => {
-                // Применяем к CSS
-                document.documentElement.style.setProperty('--depth', `${this.z}px`);
-                
-                // ☑️ КРИТИЧНО: Обновляем активные карточки
-                this.updateActiveRooms();
-                
-                // Обновляем UI
-                this.updateProgress();
-                this.updateWordCounter();
-                
-                this.isTicking = false;
-            });
-            this.isTicking = true;
-        }
-        
-        // Отладочный лог (каждое 10-е движение)
-        if (Math.floor(oldZ / 100) !== Math.floor(this.z / 100)) {
-            console.log(`📹 Camera: ${oldZ}px → ${this.z}px (max: ${this.maxZ}px)`);
-        }
+        console.log(`💾 Cached ${this.roomsCache.length} rooms`);
     },
     
     /**
-     * 🚀 ОПТИМИЗАЦИЯ: Определяет ближайшую карточку и управляет видимостью
-     * Использует кэш вместо querySelectorAll для повышения производительности
-     * Скрывает далекие карточки с динамическим порогом для экономии GPU
+     * Обновление активных комнат
      */
     updateActiveRooms() {
-        // 🏠 ПРОВЕРКА РЕЖИМА КОМНАТ-БОКСОВ
         if (CONFIG.corridor.roomBox.enabled) {
             this.updateActiveRoomBoxes();
-            return;
-        }
-        
-        // === СУЩЕСТВУЮЩАЯ ЛОГИКА ДЛЯ ЛИНЕЙНОГО КОРИДОРА ===
-        
-        // 🚀 Используем кэш вместо querySelectorAll
-        // Fallback на случай, если кэш ещё не готов (первый вызов)
-        if (!this.roomsCache) {
-            this.roomsCache = Array.from(document.querySelectorAll('.room'));
-            console.warn('⚠️ Cache not ready, fallback to querySelectorAll');
-        }
-        
-        // 🚀 Динамический порог видимости
-        // Формула: (roomSpacing * 5) + activeThreshold
-        // Показываем 5 карточек вперёд/назад от камеры + запас для плавности
-        const visibilityThreshold = (this.roomSpacing * 5) + this.activeThreshold;
-        
-        this.roomsCache.forEach(room => {
-            // Получаем Z-позицию карточки из data-position
-            const roomZ = parseFloat(room.dataset.position || 0);
+        } else {
+            // Линейный режим (существующая логика)
+            if (!this.roomsCache) {
+                this.roomsCache = Array.from(document.querySelectorAll('.room'));
+            }
             
-            // Расстояние от камеры до карточки
-            const distance = Math.abs(this.z - roomZ);
+            const visibilityThreshold = (this.roomSpacing * 5) + this.activeThreshold;
             
-            // 🚀 ОПТИМИЗАЦИЯ: Виртуализация - скрываем далекие карточки
-            if (distance > visibilityThreshold) {
-                if (room.style.visibility !== 'hidden') {
+            this.roomsCache.forEach(room => {
+                const roomZ = parseFloat(room.dataset.position || 0);
+                const distance = Math.abs(this.z - roomZ);
+                
+                if (distance > visibilityThreshold) {
                     room.style.visibility = 'hidden';
-                }
-                return; // Пропускаем дальнейшие проверки для скрытых карточек
-            } else {
-                if (room.style.visibility === 'hidden') {
+                } else {
                     room.style.visibility = 'visible';
+                    
+                    if (distance < this.activeThreshold) {
+                        if (!room.classList.contains('room--active')) {
+                            room.classList.add('room--active');
+                        }
+                    } else {
+                        room.classList.remove('room--active');
+                    }
                 }
-            }
-            
-            // Если камера близко к карточке — активируем
-            if (distance < this.activeThreshold) {
-                if (!room.classList.contains('room--active')) {
-                    room.classList.add('room--active');
-                    console.log(`✨ Activated room: "${room.dataset.word}" (distance: ${Math.round(distance)}px)`);
-                }
-            } else {
-                room.classList.remove('room--active');
-            }
-        });
+            });
+        }
     },
     
     /**
-     * 🎴 НОВАЯ ФУНКЦИЯ: Определяет активную комнату и карточки в режиме room-box
+     * Обновление активных комнат-боксов
      */
     updateActiveRoomBoxes() {
         const roomBoxes = document.querySelectorAll('.room-box');
         const { roomDepth } = CONFIG.corridor.roomBox;
         
-        // Определяем, в какой комнате находится камера
         let activeRoomIndex = -1;
         let minDistance = Infinity;
         
@@ -209,13 +482,11 @@ const Camera = {
             const roomZ = parseFloat(roomBox.style.transform.match(/translateZ\(-?(\d+)px\)/)?.[1] || 0);
             const distance = Math.abs(this.z - roomZ);
             
-            // Ближайшая комната становится активной
             if (distance < minDistance) {
                 minDistance = distance;
                 activeRoomIndex = index;
             }
             
-            // Скрываем далёкие комнаты (оптимизация)
             if (distance > roomDepth * 3) {
                 roomBox.style.visibility = 'hidden';
             } else {
@@ -223,28 +494,20 @@ const Camera = {
             }
         });
         
-        // Активируем карточки в текущей комнате
         roomBoxes.forEach((roomBox, index) => {
             const cards = roomBox.querySelectorAll('.room-card');
             
             if (index === activeRoomIndex) {
                 roomBox.classList.add('room-box--active');
+                cards.forEach(card => card.classList.add('room-card--active'));
                 
-                cards.forEach(card => {
-                    card.classList.add('room-card--active');
-                });
-                
-                // Лог только при смене активной комнаты
                 if (this.lastActiveRoom !== activeRoomIndex) {
                     console.log(`✨ Entered room ${activeRoomIndex}`);
                     this.lastActiveRoom = activeRoomIndex;
                 }
             } else {
                 roomBox.classList.remove('room-box--active');
-                
-                cards.forEach(card => {
-                    card.classList.remove('room-card--active');
-                });
+                cards.forEach(card => card.classList.remove('room-card--active'));
             }
         });
     },
@@ -260,49 +523,55 @@ const Camera = {
     updateWordCounter() {
         const counter = document.getElementById('word-counter');
         if (counter && this.words.length > 0) {
-            // Вычисляем текущее слово по позиции
-            const currentWordIndex = Math.floor((this.z - this.startOffset) / this.roomSpacing);
-            const clampedIndex = Math.min(Math.max(0, currentWordIndex), this.words.length - 1);
-            counter.textContent = `${clampedIndex + 1} / ${this.words.length}`;
+            if (CONFIG.corridor.roomBox.enabled) {
+                const { roomDepth, wordsPerRoom } = CONFIG.corridor.roomBox;
+                const currentRoomIndex = Math.floor((this.z - 2000) / roomDepth);
+                const totalRooms = Math.ceil(this.words.length / wordsPerRoom);
+                const clampedRoomIndex = Math.min(Math.max(0, currentRoomIndex), totalRooms - 1);
+                
+                counter.innerHTML = `
+                    <div>Комната ${clampedRoomIndex + 1}/${totalRooms}</div>
+                    <div style="font-size: 12px; color: #888;">Угол: ${Math.round(this.rotation)}°</div>
+                `;
+            } else {
+                const currentWordIndex = Math.floor((this.z - this.startOffset) / this.roomSpacing);
+                const clampedIndex = Math.min(Math.max(0, currentWordIndex), this.words.length - 1);
+                counter.textContent = `${clampedIndex + 1} / ${this.words.length}`;
+            }
         }
     }
 };
 
 /**
- * Инициализирует камеру с параметрами урока
- * @param {Array} words - Массив слов из урока
- * @param {Object} config - Конфигурация (CONFIG)
+ * Инициализация камеры
  */
 function initCamera(words, config) {
     if (!words || words.length === 0) {
-        console.warn('⚠️ No words provided to camera');
+        console.warn('⚠️ No words provided');
         return;
     }
     
-    // Устанавливаем параметры
-    Camera.roomSpacing = config.corridor.roomSpacing;
-    Camera.startOffset = 2000; // должно совпадать с builder.js
-    Camera.maxZ = Camera.startOffset + (words.length * Camera.roomSpacing);
+    // Применяем настройки из конфига
     Camera.speed = config.camera.speed || 50;
-    Camera.words = words;
-    Camera.activeThreshold = 400; // радиус активации
+    Camera.rotationSpeed = config.camera.rotationSpeed || 2;
+    Camera.strafeSpeed = config.camera.strafeSpeed || 30;
+    Camera.smoothing = config.camera.smoothing || 0.15;
+    Camera.fov = config.camera.fov || 1000;
     
-    // Инициализируем обработчики событий
+    Camera.roomSpacing = config.corridor.roomSpacing;
+    Camera.startOffset = 2000;
+    Camera.maxZ = Camera.startOffset + (words.length * Camera.roomSpacing);
+    Camera.words = words;
+    Camera.activeThreshold = 400;
+    
     Camera.init();
     
-    // Устанавливаем начальное значение --depth
-    document.documentElement.style.setProperty('--depth', '0px');
-    
-    console.log(`📹 Camera configured:`);
+    console.log(`🎮 WASD Camera configured:`);
+    console.log(`   - Speed: ${Camera.speed}px/tick`);
+    console.log(`   - Rotation: ${Camera.rotationSpeed}°/tick`);
+    console.log(`   - Strafe: ${Camera.strafeSpeed}px/tick`);
+    console.log(`   - FOV: ${Camera.fov}px`);
     console.log(`   - Words: ${words.length}`);
-    console.log(`   - maxZ: ${Camera.maxZ}px`);
-    console.log(`   - speed: ${Camera.speed}px/tick`);
-    console.log(`   - roomSpacing: ${Camera.roomSpacing}px`);
-    console.log(`   - startOffset: ${Camera.startOffset}px`);
-    console.log(`   - activeThreshold: ${Camera.activeThreshold}px`);
-    console.log(`   - visibilityThreshold: ${(Camera.roomSpacing * 5) + Camera.activeThreshold}px (dynamic)`);
-    console.log(`🐿 Desktop: Scroll or ↑/↓ | Mobile: Swipe up/down`);
 }
 
-// ES6 экспорты
 export { initCamera, Camera };
