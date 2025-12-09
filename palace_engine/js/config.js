@@ -7,9 +7,16 @@ const CONFIG = {
     // === CAMERA SETTINGS ===
     camera: {
         speed: 50,              // Скорость движения (px за tick)
-        minDepth: 0,            // ✅ ИЗМЕНЕНО: Минимальная глубина (начало)
-        maxDepth: 50000,        // ✅ ИЗМЕНЕНО: Максимальная глубина (конец коридора)
+        minDepth: 0,            // Минимальная глубина (начало)
+        maxDepth: 50000,        // Максимальная глубина (конец коридора)
         smoothing: 0.1,         // Плавность движения (0-1)
+    },
+    
+    // === CORRIDOR SETTINGS ===
+    corridor: {
+        width: 800,
+        height: 300,
+        roomSpacing: 400        // Расстояние между "комнатами"
     },
     
     // === CARD LAYOUT ===
@@ -34,6 +41,13 @@ const CONFIG = {
         hintFadeDelay: 3000,    // Задержка перед исчезновением подсказки (ms)
     },
     
+    // === COLORS ===
+    colors: {
+        floor: '#1a1a2e',
+        wall: '#16213e',
+        accent: '#0f4c75'
+    },
+    
     // === AUDIO (для будущего) ===
     audio: {
         enabled: false,
@@ -41,7 +55,5 @@ const CONFIG = {
     }
 };
 
-// Экспорт для других модулей
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = CONFIG;
-}
+// ES6 экспорт
+export { CONFIG };
