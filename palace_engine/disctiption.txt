@@ -1,0 +1,19 @@
+palace_engine/
+├── index.html
+├── css/
+│   ├── style.css          (главный файл с @import)
+│   ├── variables.css      (переменные)
+│   ├── reset.css          (сброс)
+│   ├── animations.css     (анимации)
+│   ├── ui-layer.css       (UI)
+│   ├── scene-3d.css       (3D сцена)
+│   ├── world-objects.css  (объекты)
+│   ├── cards.css          (карточки)
+│   └── responsive.css     (адаптивность)
+└── js/
+    ├── config.js          (конфигурация)
+    ├── utils.js           (утилиты)
+    ├── camera.js          (камера)
+    ├── builder.js         (построение мира)
+    ├── data-loader.js     (загрузка данных)
+    └── app.js             (главный файл)
