@@ -7,7 +7,7 @@
 :root {
     /* === CAMERA & 3D === */
     --depth: 0px;
-    --perspective: 1000px;
+    --perspective: 800px;  /* ✅ ИЗМЕНЕНО: 1000px → 800px (сильнее 3D-эффект) */
     --perspective-origin: 50% 50%;
     
     /* === TEXTURES === */
