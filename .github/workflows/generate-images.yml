@@ -1,0 +1,36 @@
+name: Generate Lesson Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      lesson:
+        description: 'Lesson number to generate images for'
+        required: true
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: 🎨 Generate images
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        run: |
+          node scripts/generate-lesson-images.js ${{ github.event.inputs.lesson }}
+      
+      - name: 💾 Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add images/${{ github.event.inputs.lesson }}/ data/${{ github.event.inputs.lesson }}.json
+          git diff --staged --quiet || git commit -m "🖼️ Auto-generate images for lesson ${{ github.event.inputs.lesson }}"
+          git push
