@@ -55,17 +55,29 @@
         transform: scale(0.98) !important;
     }
     
+    /* ⚡ ОПТИМИЗАЦИЯ GPU */
+    .room {
+        will-change: auto !important; /* Не резервировать GPU память */
+        backface-visibility: visible !important; /* Меньше нагрузка на GPU */
+    }
+    
+    /* ⚡ УМЕНЬШАЕМ ПОЛ И СТЕНЫ (50000px → 20000px) */
+    .floor {
+        height: 20000px !important; /* было 50000px */
+    }
+    
+    .wall-left,
+    .wall-right {
+        height: 20000px !important; /* было 50000px */
+        top: -10000px !important; /* было -25000px */
+    }
+    
     /* Упрощаем туман для производительности */
     #scene::after {
         background: radial-gradient(ellipse at center, 
             transparent 30%, 
             #000 90%
         ) !important;
-    }
-    
-    /* Оптимизация GPU */
-    .room {
-        will-change: auto !important; /* Не резервировать GPU память */
     }
     
     /* UI элементы */
@@ -125,6 +137,17 @@
         width: 44px !important;
         height: 44px !important;
         font-size: 20px !important;
+    }
+    
+    /* Ещё меньше пол/стены для слабых устройств */
+    .floor {
+        height: 15000px !important;
+    }
+    
+    .wall-left,
+    .wall-right {
+        height: 15000px !important;
+        top: -7500px !important;
     }
 }
 
