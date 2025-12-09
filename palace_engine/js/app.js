@@ -1,7 +1,11 @@
 /* ============================================
-   MEMORY PALACE - MAIN APPLICATION - SIMPLIFIED
-   Описание: Нициализация и загружа данных
+   MEMORY PALACE - MAIN APPLICATION
+   Описание: Инициализация и загрузка данных
    ============================================ */
+
+import { CONFIG } from './config.js';
+import { buildWorld } from './builder.js';
+import { initCamera } from './camera.js';
 
 const App = {
     async init() {
@@ -10,22 +14,19 @@ const App = {
         try {
             // 1. Читаем ID урока из URL (?lesson=263)
             const params = new URLSearchParams(window.location.search);
-            const lessonId = params.get('lesson');
+            const lessonId = params.get('lesson') || '263';
             
-            if (!lessonId) {
-                throw new Error('No lesson ID provided');
-            }
+            console.log(`🎯 Loading lesson: ${lessonId}`);
             
             // 2. Загружаем JSON
-            // Путь: файл palace_engine/index.html -> где данные?
-            // Найдите свое расположение data файлов
-            const response = await fetch(`../../data/${lessonId}.json`);
+            const response = await fetch(`../data/${lessonId}.json`);
             
             if (!response.ok) {
-                throw new Error('Lesson not found');
+                throw new Error(`Lesson ${lessonId} not found`);
             }
             
             const data = await response.json();
+            console.log('📦 Data loaded:', data);
             
             // 3. Достаем слова
             let words = [];
@@ -38,36 +39,76 @@ const App = {
                 throw new Error('No words in this lesson');
             }
             
-            // 4. Постраиваем мир с карточками
-            Builder.build(words);
+            console.log(`📚 Words found: ${words.length}`);
+            
+            // 4. Строим мир с карточками
+            const world = buildWorld(words);
+            const scene = document.getElementById('scene');
+            
+            if (!scene) {
+                throw new Error('Scene container not found');
+            }
+            
+            scene.appendChild(world);
+            console.log('🏗️ World built successfully');
             
             // 5. Обновляем счётчик
-            document.getElementById('word-counter').textContent = `0 / ${words.length}`;
+            const counter = document.getElementById('word-counter');
+            if (counter) {
+                counter.textContent = `0 / ${words.length}`;
+            }
             
             // 6. Запускаем камеру
-            Camera.init();
+            if (typeof initCamera === 'function') {
+                initCamera(words, CONFIG);
+                console.log('📹 Camera initialized');
+            }
             
             // Скрываем лоадер
-            loader.style.display = 'none';
+            if (loader) {
+                loader.style.display = 'none';
+            }
             
             console.log(`✅ App initialized with ${words.length} words`);
             
         } catch (error) {
-            loader.style.display = 'none';
-            
-            const errDiv = document.getElementById('error-msg');
-            errDiv.textContent = `Ошибка: ${error.message}`;
-            errDiv.style.display = 'block';
-            
             console.error('❌ Initialization failed:', error);
+            
+            if (loader) {
+                loader.style.display = 'none';
+            }
+            
+            // Показываем ошибку пользователю
+            showError(`Ошибка: ${error.message}`);
         }
     }
 };
 
-// Старт при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => App.init());
-
-// Экспорт
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = App;
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'error-msg';
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px 40px;
+        background: rgba(255, 50, 50, 0.9);
+        color: white;
+        border-radius: 12px;
+        font-size: 18px;
+        border: 2px solid rgba(255, 100, 100, 0.5);
+        z-index: 10000;
+    `;
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
 }
+
+// Старт при загрузке страницы
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => App.init());
+} else {
+    App.init();
+}
+
+export default App;
