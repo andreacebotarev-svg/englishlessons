@@ -1,12 +1,13 @@
 /* ============================================
-   CAMERA CONTROLLER - SIMPLIFIED VERSION
+   CAMERA CONTROLLER
    Описание: Управление камерой с принципом направления
    ============================================ */
 
 const Camera = {
-    z: 0, // Текущая позиция
-    speed: 50, // Скорость движения
-    maxZ: 0, // Граница коридора (установит Builder)
+    z: 0,           // Текущая позиция
+    speed: 50,      // Скорость движения
+    maxZ: 0,        // Граница коридора (установится через initCamera)
+    words: [],      // Массив слов для отслеживания
     
     init() {
         // Слушаем колесико мыши
@@ -28,26 +29,24 @@ const Camera = {
                 this.move(-1); // Назад
             }
         });
+        
+        console.log('📹 Camera initialized');
     },
     
     move(direction) {
         // Увеличиваем или уменьшаем Z
-        // direction = 1  → вперед (зрите дальше в коридор)
-        // direction = -1 → назад (вернитесь в начало)
         this.z += direction * this.speed;
         
         // Ограничиваем движение
-        // Нельзя уйти назад за старт (z < 0)
-        // Нельзя уйти дальше конца коридора (z > maxZ)
         if (this.z < 0) this.z = 0;
         if (this.z > this.maxZ) this.z = this.maxZ;
         
         // Применяем к CSS
-        // Мы двигаем мир ВО ПОБЕР (positive), чтобы сохранить иллюзию МОВЕНИЯ ВПЕРЕД
         document.documentElement.style.setProperty('--depth', `${this.z}px`);
         
-        // Обновляем прогресс-бар
+        // Обновляем прогресс-бар и счётчик
         this.updateProgress();
+        this.updateWordCounter();
     },
     
     updateProgress() {
@@ -56,10 +55,40 @@ const Camera = {
             const progress = (this.z / this.maxZ) * 100;
             progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
         }
+    },
+    
+    updateWordCounter() {
+        const counter = document.getElementById('word-counter');
+        if (counter && this.words.length > 0) {
+            // Вычисляем текущее слово по позиции
+            const currentWordIndex = Math.floor(this.z / (this.maxZ / this.words.length));
+            const clampedIndex = Math.min(currentWordIndex, this.words.length - 1);
+            counter.textContent = `${clampedIndex + 1} / ${this.words.length}`;
+        }
     }
 };
 
-// Экспорт
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Camera;
+/**
+ * Инициализирует камеру с параметрами урока
+ * @param {Array} words - Массив слов из урока
+ * @param {Object} config - Конфигурация (CONFIG)
+ */
+function initCamera(words, config) {
+    if (!words || words.length === 0) {
+        console.warn('⚠️ No words provided to camera');
+        return;
+    }
+    
+    // Устанавливаем границы коридора
+    Camera.maxZ = words.length * config.corridor.roomSpacing;
+    Camera.speed = config.camera.speed || 50;
+    Camera.words = words;
+    
+    // Инициализируем обработчики событий
+    Camera.init();
+    
+    console.log(`📹 Camera configured: ${words.length} words, maxZ = ${Camera.maxZ}px`);
 }
+
+// ES6 экспорты
+export { initCamera, Camera };
