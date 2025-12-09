@@ -97,15 +97,13 @@ const Camera = {
         this.terminalVelocity = CONFIG.camera.terminalVelocity;
         this.y = this.groundLevel;
         
-        // 🐛 FIX: Стартуем НА РАССТОЯНИИ от первой карточки
+        // Стартуем НА РАССТОЯНИИ от первой карточки
         const firstCardWorldZ = -CONFIG.cards.spacing;  // -800
         const safeViewDistance = 1500;
         this.z = firstCardWorldZ + safeViewDistance;  // -800 + 1500 = 700
         
-        // 🐛 FIX: Правильные границы движения
-        // minZ = позиция последней карточки - небольшой запас
+        // Правильные границы движения
         this.minZ = -(CONFIG.cards.spacing * this.words.length) - 500;
-        // maxZ = немного дальше стартовой позиции (можно отойти назад)
         this.maxZ = this.z + 300;  // 700 + 300 = 1000
         
         console.log('📍 Camera start position:');
@@ -227,7 +225,10 @@ const Camera = {
         document.addEventListener('mousemove', (e) => {
             if (!this.isPointerLocked) return;
             
-            this.yaw -= e.movementX * this.mouseSensitivity;
+            // 🐛 FIX: Инвертирован знак для правильного поворота
+            // Мышь вправо → yaw увеличивается → поворот вправо
+            // Мышь влево → yaw уменьшается → поворот влево
+            this.yaw += e.movementX * this.mouseSensitivity;  // 🐛 БЫЛО: -=
             this.pitch -= e.movementY * this.mouseSensitivity * (CONFIG.camera.invertY ? -1 : 1);
             
             this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
@@ -283,9 +284,6 @@ const Camera = {
         requestAnimationFrame(update);
     },
     
-    /**
-     * 🐛 FIX: Исправлено движение WASD + убрано ограничение Z<0
-     */
     updateMovement() {
         // === ГОРИЗОНТАЛЬНОЕ ДВИЖЕНИЕ (X, Z) ===
         let inputX = 0;
@@ -296,7 +294,6 @@ const Camera = {
         if (this.keys.left) inputX -= 1;      // A — влево
         if (this.keys.right) inputX += 1;     // D — вправо
         
-        // Нормализация диагонального движения
         const length = Math.sqrt(inputX * inputX + inputZ * inputZ);
         if (length > 0) {
             inputX /= length;
@@ -308,9 +305,8 @@ const Camera = {
         
         const baseSpeed = this.speed * (this.keys.sprint ? this.sprintMultiplier : 1);
         
-        // Правильная формула для FPS-движения
         const targetVelocityX = (inputZ * sin + inputX * cos) * baseSpeed;
-        const targetVelocityZ = -(inputZ * cos - inputX * sin) * baseSpeed;  // Инвертировано
+        const targetVelocityZ = -(inputZ * cos - inputX * sin) * baseSpeed;
         
         if (inputX !== 0 || inputZ !== 0) {
             this.velocity.x += (targetVelocityX - this.velocity.x) * this.acceleration;
@@ -328,15 +324,13 @@ const Camera = {
         this.x += this.velocity.x;
         this.z += this.velocity.z;
         
-        // 🐛 DEBUG: Логирование движения и расстояния до первой карточки
+        // DEBUG логирование
         if (Math.abs(this.z - oldZ) > 0.1 && Math.floor(this.z / 100) !== Math.floor(oldZ / 100)) {
-            const firstCardZ = -CONFIG.cards.spacing;  // -800
-            const distance = firstCardZ - this.z;
-            const nearestCardIndex = Math.round(Math.abs(this.z) / CONFIG.cards.spacing);
+            const nearestCardIndex = Math.max(0, Math.round(Math.abs(this.z) / CONFIG.cards.spacing));
             const nearestCardZ = -nearestCardIndex * CONFIG.cards.spacing;
             const distanceToNearest = nearestCardZ - this.z;
             
-            console.log(`🚶 Camera Z=${Math.round(this.z)}px | Nearest card #${nearestCardIndex} at ${nearestCardZ}px (${Math.round(distanceToNearest)}px away)`);
+            console.log(`🚶 Camera Z=${Math.round(this.z)}px | Card #${nearestCardIndex} at ${nearestCardZ}px (${Math.round(Math.abs(distanceToNearest))}px away)`);
         }
         
         // === ВЕРТИКАЛЬНОЕ ДВИЖЕНИЕ (Y) - ГРАВИТАЦИЯ ===
@@ -348,7 +342,6 @@ const Camera = {
         
         this.y += this.velocity.y;
         
-        // КОЛЛИЗИЯ С ПОЛОМ
         if (this.y <= this.groundLevel) {
             this.y = this.groundLevel;
             this.velocity.y = 0;
@@ -357,10 +350,7 @@ const Camera = {
             this.isOnGround = false;
         }
         
-        // === 🐛 FIX: ПРАВИЛЬНЫЕ ОГРАНИЧЕНИЯ ПО Z ===
-        // Убрано жёсткое ограничение Z<0
-        // Теперь используем динамические границы на основе позиций карточек
-        
+        // === ОГРАНИЧЕНИЯ ПО Z ===
         if (this.z < this.minZ) {
             this.z = this.minZ;
             this.velocity.z = 0;
@@ -441,7 +431,7 @@ const Camera = {
             }
             
             if (Math.abs(deltaX) > 5) {
-                this.yaw -= deltaX * 0.01;
+                this.yaw += deltaX * 0.01;  // 🐛 БЫЛО: -=
                 touchStartX = e.touches[0].clientX;
             }
         }, { passive: false });
@@ -485,7 +475,6 @@ const Camera = {
     },
     
     jumpToStart() {
-        // Возврат к стартовой позиции
         const firstCardWorldZ = -CONFIG.cards.spacing;
         const safeViewDistance = 1500;
         const startZ = firstCardWorldZ + safeViewDistance;
@@ -500,7 +489,6 @@ const Camera = {
     },
     
     jumpToEnd() {
-        // Прыжок к последней карточке
         const lastCardZ = -CONFIG.cards.spacing * this.words.length;
         this.animateTo(lastCardZ, 1000);
         console.log('⏩ Jump to end');
@@ -521,7 +509,6 @@ const Camera = {
             
             this.z = startZ + (distance * easeProgress);
             
-            // Применяем те же границы
             if (this.z < this.minZ) this.z = this.minZ;
             if (this.z > this.maxZ) this.z = this.maxZ;
             
@@ -541,11 +528,16 @@ const Camera = {
                 this.roomsCache = Array.from(document.querySelectorAll('.room'));
             }
             
-            const visibilityThreshold = (this.roomSpacing * 5) + this.activeThreshold;
+            const visibilityThreshold = this.roomSpacing * 3;  // Дистанция видимости
             
             this.roomsCache.forEach(room => {
-                const roomZ = parseFloat(room.dataset.position || 0);
-                const distance = Math.abs(this.z - roomZ);
+                // 🐛 FIX: dataset.position хранит положительное число (800, 1600...)
+                // Но реальная координата карточки: -800, -1600...
+                const roomPositionPositive = parseFloat(room.dataset.position || 0);  // 800, 1600...
+                const roomZ = -roomPositionPositive;  // 🐛 ПРЕОБРАЗОВАНИЕ В РЕАЛЬНУЮ КООРДИНАТУ: -800, -1600...
+                
+                // Расстояние от камеры до карточки
+                const distance = Math.abs(roomZ - this.z);
                 
                 if (distance > visibilityThreshold) {
                     room.style.visibility = 'hidden';
@@ -602,7 +594,6 @@ const Camera = {
     updateProgress() {
         const progressBar = document.getElementById('progress-bar');
         if (progressBar) {
-            // Прогресс от maxZ (старт) до minZ (конец)
             const totalDistance = this.maxZ - this.minZ;
             const currentDistance = this.maxZ - this.z;
             const progress = (currentDistance / totalDistance) * 100;
@@ -631,7 +622,6 @@ const Camera = {
                     </div>
                 `;
             } else {
-                // Определяем ближайшую карточку по Z
                 const nearestCardIndex = Math.max(0, Math.min(
                     this.words.length - 1,
                     Math.round(Math.abs(this.z) / CONFIG.cards.spacing)
