@@ -5,11 +5,38 @@
 
 import { CONFIG } from './config.js';
 
+/* 
+ * === КООРДИНАТНАЯ СИСТЕМА ===
+ * 
+ * В CSS 3D:
+ * - Z+ идёт К ЗРИТЕЛЮ (из экрана)
+ * - Z- идёт ОТ ЗРИТЕЛЯ (в глубину экрана)
+ * 
+ * В нашей системе:
+ * - Камера смотрит в направлении -Z (вглубь)
+ * - Карточки размещены в negative Z: -800, -1600, -2400...
+ * - Camera.z увеличивается при движении вперёд (W)
+ * 
+ * Расстояние от камеры до объекта:
+ * distance = objectWorldZ - Camera.z
+ * 
+ * Пример:
+ * - Card at Z=-800, Camera at Z=0   → distance = -800 (карточка впереди на 800px)
+ * - Card at Z=-800, Camera at Z=700 → distance = -1500 (карточка впереди на 1500px)
+ * - Card at Z=-800, Camera at Z=-800 → distance = 0 (на карточке)
+ * 
+ * Transform применяется как:
+ * translate3d(-Camera.x, -Camera.y, -Camera.z)
+ * 
+ * Это значит: когда Camera.z=-800, мир сдвигается на +800px по Z,
+ * и карточка на Z=-800 оказывается в позиции -800+800 = 0 (на камере)
+ */
+
 const Camera = {
     // === ПОЗИЦИЯ ===
     x: 0,
     y: 150,
-    z: 0,
+    z: 0,  // Будет установлена в init()
     
     // === ОРИЕНТАЦИЯ (Эйлеровы углы) ===
     yaw: 0,
@@ -69,8 +96,18 @@ const Camera = {
         this.terminalVelocity = CONFIG.camera.terminalVelocity;
         this.y = this.groundLevel;
         
-        console.log(`📍 Camera start position: x=${this.x}, y=${this.y}, z=${this.z}`);
-        console.log(`📐 Camera orientation: yaw=${this.yaw}rad, pitch=${this.pitch}rad`);
+        // 🐛 FIX: Стартуем НА РАССТОЯНИИ от первой карточки
+        // Первая карточка в мире на Z = -spacing = -800px
+        // Безопасное расстояние для видимости: 1200-1500px
+        const firstCardWorldZ = -CONFIG.cards.spacing;  // -800
+        const safeViewDistance = 1500;  // Расстояние для комфортного просмотра
+        this.z = firstCardWorldZ + safeViewDistance;  // -800 + 1500 = 700
+        
+        console.log('📍 Camera start position:');
+        console.log(`   x=${this.x}, y=${this.y}, z=${this.z}`);
+        console.log(`🎯 First card at world Z=${firstCardWorldZ}px`);
+        console.log(`📏 Distance to first card: ${Math.abs(firstCardWorldZ - this.z)}px`);
+        console.log('💡 Move forward (W) to approach cards');
         
         this.setupKeyboard();
         this.setupMouse();
@@ -241,7 +278,7 @@ const Camera = {
     },
     
     /**
-     * 🐛 FIX: Исправлено движение WASD
+     * 🐛 FIX: Исправлено движение WASD + добавлен debug
      */
     updateMovement() {
         // === ГОРИЗОНТАЛЬНОЕ ДВИЖЕНИЕ (X, Z) ===
@@ -266,9 +303,8 @@ const Camera = {
         const baseSpeed = this.speed * (this.keys.sprint ? this.sprintMultiplier : 1);
         
         // 🐛 FIX: Правильная формула для FPS-движения
-        // Инвертирован знак Z для правильного направления
         const targetVelocityX = (inputZ * sin + inputX * cos) * baseSpeed;
-        const targetVelocityZ = -(inputZ * cos - inputX * sin) * baseSpeed;  // 🐛 ИНВЕРТИРОВАНО
+        const targetVelocityZ = -(inputZ * cos - inputX * sin) * baseSpeed;  // Инвертировано
         
         if (inputX !== 0 || inputZ !== 0) {
             this.velocity.x += (targetVelocityX - this.velocity.x) * this.acceleration;
@@ -281,15 +317,16 @@ const Camera = {
             if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0;
         }
         
-        const oldX = this.x;
         const oldZ = this.z;
         
         this.x += this.velocity.x;
         this.z += this.velocity.z;
         
-        // Логирование движения (каждые 50px)
-        if (Math.abs(this.z - oldZ) > 0.1 && Math.floor(this.z / 50) !== Math.floor(oldZ / 50)) {
-            console.log(`🚶 Moving: Z=${Math.round(this.z)}px, X=${Math.round(this.x)}px, Yaw=${Math.round(this.yaw * 180 / Math.PI)}°`);
+        // 🐛 DEBUG: Логирование движения и расстояния до первой карточки
+        if (Math.abs(this.z - oldZ) > 0.1 && Math.floor(this.z / 100) !== Math.floor(oldZ / 100)) {
+            const firstCardZ = -CONFIG.cards.spacing;  // -800
+            const distance = firstCardZ - this.z;
+            console.log(`🚶 Camera Z=${Math.round(this.z)}px | Distance to 1st card: ${Math.round(distance)}px | Yaw=${Math.round(this.yaw * 180 / Math.PI)}°`);
         }
         
         // === ВЕРТИКАЛЬНОЕ ДВИЖЕНИЕ (Y) - ГРАВИТАЦИЯ ===
@@ -407,6 +444,11 @@ const Camera = {
         console.log(`   - Linear rooms: ${this.roomsCache.length}`);
         console.log(`   - Room boxes: ${roomBoxes.length}`);
         console.log(`   - Room cards: ${roomCards.length}`);
+        
+        if (this.roomsCache.length > 0) {
+            const firstRoom = this.roomsCache[0];
+            console.log(`📦 First room: "${firstRoom.dataset.word}" at position=${firstRoom.dataset.position}`);
+        }
     },
     
     jumpToNextRoom() {
@@ -425,7 +467,12 @@ const Camera = {
     },
     
     jumpToStart() {
-        this.animateTo(0, 1000);
+        // Возврат к стартовой позиции
+        const firstCardWorldZ = -CONFIG.cards.spacing;
+        const safeViewDistance = 1500;
+        const startZ = firstCardWorldZ + safeViewDistance;
+        
+        this.animateTo(startZ, 1000);
         this.x = 0;
         this.y = this.groundLevel;
         this.velocity.x = 0;
@@ -568,7 +615,7 @@ const Camera = {
                 counter.innerHTML = `
                     <div>${clampedIndex + 1} / ${this.words.length}</div>
                     <div style="font-size: 10px; color: #666;">
-                        Yaw: ${yawDeg}° ${this.isOnGround ? '🟢' : '🔴'}
+                        Z: ${Math.round(this.z)}px | Yaw: ${yawDeg}° ${this.isOnGround ? '🟢' : '🔴'}
                     </div>
                 `;
             }
