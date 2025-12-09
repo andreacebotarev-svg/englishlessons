@@ -16,7 +16,7 @@ const CONFIG = {
     corridor: {
         width: 800,
         height: 300,
-        roomSpacing: 400        // Расстояние между "комнатами"
+        roomSpacing: 800        // ✅ ИЗМЕНЕНО: 400 → 800 (больше пространства между карточками)
     },
     
     // === CARD LAYOUT ===
