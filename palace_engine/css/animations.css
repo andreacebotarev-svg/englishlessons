@@ -1,0 +1,53 @@
+/* ============================================
+   ANIMATIONS & KEYFRAMES
+   Описание: Все @keyframes анимации
+   Зависимости: variables.css
+   ============================================ */
+
+/* === PULSE ANIMATION === */
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1); 
+    }
+    50% { 
+        opacity: 0.7; 
+        transform: translate(-50%, -50%) scale(1.05); 
+    }
+}
+
+/* === SLIDE IN ANIMATION === */
+@keyframes slideIn {
+    from { 
+        opacity: 0; 
+        transform: translate(-50%, -60%); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translate(-50%, -50%); 
+    }
+}
+
+/* === FADE IN UP ANIMATION === */
+@keyframes fadeInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 0.6; 
+        transform: translateY(0); 
+    }
+}
+
+/* === FOG PULSE ANIMATION === */
+@keyframes fogPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* === GRADIENT SHIFT ANIMATION === */
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
