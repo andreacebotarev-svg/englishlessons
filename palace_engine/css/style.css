@@ -10,9 +10,10 @@
    4. ui-layer.css      - UI элементы
    5. scene-3d.css      - 3D сцена
    6. world-objects.css - Объекты мира
-   7. cards.css         - Карточки
-   8. room-box.css      - 🏛️ Система комнат (новое)
-   9. responsive.css    - Адаптивность
+   7. cards.css         - Карточки (линейный режим)
+   8. room-box.css      - 🏛️ Система комнат-боксов (новое)
+   9. room-card.css     - 🎴 Карточки в комнатах (новое)
+   10. responsive.css   - Адаптивность
    ============================================ */
 
 @import url('variables.css');
@@ -23,4 +24,5 @@
 @import url('world-objects.css');
 @import url('cards.css');
 @import url('room-box.css');
+@import url('room-card.css');
 @import url('responsive.css');
