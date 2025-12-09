@@ -1,7 +1,7 @@
 /* ============================================
    MEMORY PALACE - MAIN APPLICATION
    Описание: Инициализация и загрузка данных
-   Last update: 2025-12-09 12:27
+   Last update: 2025-12-09 12:36
    ============================================ */
 
 import { CONFIG } from './config.js';
@@ -43,15 +43,17 @@ const App = {
             console.log(`📚 Words found: ${words.length}`);
             
             // 4. Строим мир с карточками
-            const world = buildWorld(words);
-            const scene = document.getElementById('scene');
+            const corridor = buildWorld(words);
             
-            if (!scene) {
-                throw new Error('Scene container not found');
+            // КРИТИЧНО: Добавляем corridor внутрь #world, а не в #scene!
+            const world = document.getElementById('world');
+            
+            if (!world) {
+                throw new Error('#world container not found in HTML');
             }
             
-            scene.appendChild(world);
-            console.log('🏗️ World built successfully');
+            world.appendChild(corridor);
+            console.log('🏗️ Corridor appended to #world');
             
             // 5. Обновляем счётчик
             const counter = document.getElementById('word-counter');
@@ -69,6 +71,7 @@ const App = {
             }
             
             console.log(`✅ App initialized with ${words.length} words`);
+            console.log(`🚿 DEBUG: Check if --depth changes when scrolling`);
             
         } catch (error) {
             console.error('❌ Initialization failed:', error);
