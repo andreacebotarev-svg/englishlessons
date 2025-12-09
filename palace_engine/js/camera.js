@@ -2,6 +2,7 @@
    CAMERA CONTROLLER
    Описание: Управление камерой + определение активной карточки
    Поддержка: Desktop (mouse/keyboard) + Mobile (touch/swipe)
+   Оптимизации: DOM caching, requestAnimationFrame, visibility culling
    ============================================ */
 
 const Camera = {
@@ -14,7 +15,7 @@ const Camera = {
     activeThreshold: 400, // Порог активации карточки (в px)
     
     // 🚀 ОПТИМИЗАЦИЯ: Кэширование DOM-элементов
-    roomsCache: null,
+    roomsCache: null,  // Кэш DOM-элементов .room для избежания повторных querySelectorAll
     isTicking: false, // Флаг для requestAnimationFrame
     
     init() {
@@ -79,12 +80,22 @@ const Camera = {
         }, { passive: true });
         
         // 🚀 Кэшируем комнаты один раз после инициализации
+        // Задержка 100ms даёт builder.js время создать все DOM-элементы
         setTimeout(() => {
-            this.roomsCache = Array.from(document.querySelectorAll('.room'));
-            console.log(`💾 Cached ${this.roomsCache.length} rooms for performance`);
+            this.cacheRooms();
         }, 100);
         
         console.log('📹 Camera initialized (Desktop + Mobile)');
+    },
+    
+    /**
+     * 🚀 ОПТИМИЗАЦИЯ: Кэширует список комнат в памяти
+     * Вызывается автоматически при инициализации
+     * Можно вызвать вручную после динамического добавления комнат
+     */
+    cacheRooms() {
+        this.roomsCache = Array.from(document.querySelectorAll('.room'));
+        console.log(`💾 Cached ${this.roomsCache.length} rooms for performance`);
     },
     
     move(direction) {
@@ -98,6 +109,7 @@ const Camera = {
         if (this.z > this.maxZ) this.z = this.maxZ;
         
         // 🚀 ОПТИМИЗАЦИЯ: Обновляем DOM только перед отрисовкой кадра
+        // Связываем обновления с частотой обновления экрана (60/120 FPS)
         if (!this.isTicking) {
             window.requestAnimationFrame(() => {
                 // Применяем к CSS
@@ -122,12 +134,16 @@ const Camera = {
     },
     
     /**
-     * Определяет ближайшую карточку и добавляет .room--active
+     * 🚀 ОПТИМИЗАЦИЯ: Определяет ближайшую карточку и управляет видимостью
+     * Использует кэш вместо querySelectorAll для повышения производительности
+     * Скрывает далекие карточки (>4000px) для экономии GPU
      */
     updateActiveRooms() {
         // 🚀 Используем кэш вместо querySelectorAll
+        // Fallback на случай, если кэш ещё не готов (первый вызов)
         if (!this.roomsCache) {
             this.roomsCache = Array.from(document.querySelectorAll('.room'));
+            console.warn('⚠️ Cache not ready, fallback to querySelectorAll');
         }
         
         this.roomsCache.forEach(room => {
@@ -137,12 +153,13 @@ const Camera = {
             // Расстояние от камеры до карточки
             const distance = Math.abs(this.z - roomZ);
             
-            // 🚀 ОПТИМИЗАЦИЯ: Скрываем далекие карточки
+            // 🚀 ОПТИМИЗАЦИЯ: Виртуализация - скрываем далекие карточки
+            // Пороговое значение 4000px подобрано эмпирически
             if (distance > 4000) {
                 if (room.style.visibility !== 'hidden') {
                     room.style.visibility = 'hidden';
                 }
-                return; // Пропускаем дальнейшие проверки
+                return; // Пропускаем дальнейшие проверки для скрытых карточек
             } else {
                 if (room.style.visibility === 'hidden') {
                     room.style.visibility = 'visible';
