@@ -59,6 +59,7 @@
     .room {
         will-change: auto !important; /* Не резервировать GPU память */
         backface-visibility: visible !important; /* Меньше нагрузка на GPU */
+        animation: none !important; /* ⚡ Отключаем анимацию появления */
     }
     
     /* ⚡ УМЕНЬШАЕМ ПОЛ И СТЕНЫ (50000px → 20000px) */
