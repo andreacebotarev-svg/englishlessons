@@ -19,12 +19,9 @@
   min-height: 450px;
   padding: 30px;
   
-  /* Центрирование через left/top 50%, смещение через translateX в JS */
-  top: 50%;
-  left: 50%;
-  
+  /* ⚠️ КРИТИЧНО: transform устанавливается в builder.js!
+     Анимация НЕ ДОЛЖНА его перезаписывать */
   transform-origin: center center;
-  /* transform устанавливается в builder.js */
   
   border-radius: 16px;
   background: linear-gradient(135deg, 
@@ -283,6 +280,7 @@
 
 /* ============================================
    АНИМАЦИЯ ПОЯВЛЕНИЯ
+   ⚠️ КРИТИЧНО: Используем opacity, НЕ transform!
    ============================================ */
 
 .room {
@@ -292,11 +290,11 @@
 @keyframes roomEnter {
   from {
     opacity: 0;
-    transform: translateZ(-200px) scale(0.8);
+    filter: blur(10px);
   }
   to {
     opacity: 1;
-    /* transform будет установлен JS */
+    filter: blur(0);
   }
 }
 
