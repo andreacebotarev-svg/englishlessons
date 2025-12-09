@@ -1,13 +1,16 @@
 /* ============================================
    CAMERA CONTROLLER
-   Описание: Управление камерой с принципом направления
+   Описание: Управление камерой + определение активной карточки
    ============================================ */
 
 const Camera = {
     z: 0,           // Текущая позиция
     speed: 50,      // Скорость движения
-    maxZ: 0,        // Граница коридора (установится через initCamera)
-    words: [],      // Массив слов для отслеживания
+    maxZ: 0,        // Граница коридора
+    words: [],      // Массив слов
+    roomSpacing: 800, // Расстояние между карточками
+    startOffset: 2000, // Начальное смещение карточек
+    activeThreshold: 400, // Порог активации карточки (в px)
     
     init() {
         // Слушаем колесико мыши
@@ -48,12 +51,39 @@ const Camera = {
         // Отладочный лог (каждое 10-е движение)
         if (Math.floor(oldZ / 100) !== Math.floor(this.z / 100)) {
             console.log(`📹 Camera: ${oldZ}px → ${this.z}px (max: ${this.maxZ}px)`);
-            console.log(`   CSS var --depth = ${getComputedStyle(document.documentElement).getPropertyValue('--depth')}`);
         }
         
-        // Обновляем прогресс-бар и счётчик
+        // ⚠️ КРИТИЧНО: Обновляем активные карточки
+        this.updateActiveRooms();
+        
+        // Обновляем UI
         this.updateProgress();
         this.updateWordCounter();
+    },
+    
+    /**
+     * Определяет ближайшую карточку и добавляет .room--active
+     */
+    updateActiveRooms() {
+        const rooms = document.querySelectorAll('.room');
+        
+        rooms.forEach(room => {
+            // Получаем Z-позицию карточки из data-position
+            const roomZ = parseFloat(room.dataset.position || 0);
+            
+            // Расстояние от камеры до карточки
+            const distance = Math.abs(this.z - roomZ);
+            
+            // Если камера близко к карточке — активируем
+            if (distance < this.activeThreshold) {
+                if (!room.classList.contains('room--active')) {
+                    room.classList.add('room--active');
+                    console.log(`✨ Activated room: "${room.dataset.word}" (distance: ${Math.round(distance)}px)`);
+                }
+            } else {
+                room.classList.remove('room--active');
+            }
+        });
     },
     
     updateProgress() {
@@ -68,8 +98,8 @@ const Camera = {
         const counter = document.getElementById('word-counter');
         if (counter && this.words.length > 0) {
             // Вычисляем текущее слово по позиции
-            const currentWordIndex = Math.floor(this.z / (this.maxZ / this.words.length));
-            const clampedIndex = Math.min(currentWordIndex, this.words.length - 1);
+            const currentWordIndex = Math.floor((this.z - this.startOffset) / this.roomSpacing);
+            const clampedIndex = Math.min(Math.max(0, currentWordIndex), this.words.length - 1);
             counter.textContent = `${clampedIndex + 1} / ${this.words.length}`;
         }
     }
@@ -86,10 +116,13 @@ function initCamera(words, config) {
         return;
     }
     
-    // Устанавливаем границы коридора
-    Camera.maxZ = words.length * config.corridor.roomSpacing;
+    // Устанавливаем параметры
+    Camera.roomSpacing = config.corridor.roomSpacing;
+    Camera.startOffset = 2000; // должно совпадать с builder.js
+    Camera.maxZ = Camera.startOffset + (words.length * Camera.roomSpacing);
     Camera.speed = config.camera.speed || 50;
     Camera.words = words;
+    Camera.activeThreshold = 400; // радиус активации
     
     // Инициализируем обработчики событий
     Camera.init();
@@ -101,7 +134,9 @@ function initCamera(words, config) {
     console.log(`   - Words: ${words.length}`);
     console.log(`   - maxZ: ${Camera.maxZ}px`);
     console.log(`   - speed: ${Camera.speed}px/tick`);
-    console.log(`   - roomSpacing: ${config.corridor.roomSpacing}px`);
+    console.log(`   - roomSpacing: ${Camera.roomSpacing}px`);
+    console.log(`   - startOffset: ${Camera.startOffset}px`);
+    console.log(`   - activeThreshold: ${Camera.activeThreshold}px`);
     console.log(`🚿 Try scrolling or pressing ↑/↓ arrows`);
 }
 
