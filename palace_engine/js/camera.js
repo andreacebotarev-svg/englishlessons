@@ -1,6 +1,7 @@
 /* ============================================
    CAMERA CONTROLLER
    Описание: Управление камерой + определение активной карточки
+   Поддержка: Desktop (mouse/keyboard) + Mobile (touch/swipe)
    ============================================ */
 
 const Camera = {
@@ -13,6 +14,8 @@ const Camera = {
     activeThreshold: 400, // Порог активации карточки (в px)
     
     init() {
+        // === DESKTOP CONTROLS ===
+        
         // Слушаем колесико мыши
         window.addEventListener('wheel', (e) => {
             e.preventDefault();
@@ -32,7 +35,46 @@ const Camera = {
             }
         });
         
-        console.log('📹 Camera event listeners attached');
+        // === MOBILE TOUCH CONTROLS ===
+        
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let isSwiping = false;
+        
+        window.addEventListener('touchstart', (e) => {
+            // Если тапнули на карточку или кнопку — не двигать камеру
+            if (e.target.closest('.room') || e.target.closest('.room-speaker')) {
+                return;
+            }
+            
+            touchStartY = e.touches[0].clientY;
+            isSwiping = true;
+        }, { passive: true });
+        
+        window.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            
+            // Блокируем скролл страницы только во время свайпа
+            if (e.cancelable) {
+                e.preventDefault();
+            }
+            
+            touchEndY = e.touches[0].clientY;
+            const delta = touchStartY - touchEndY;
+            
+            // Порог чувствительности 5px
+            if (Math.abs(delta) > 5) {
+                const direction = delta > 0 ? 1 : -1;
+                this.move(direction * 0.3); // Меньше скорость для плавности на тач
+                touchStartY = touchEndY; // Обновляем позицию для continuous swipe
+            }
+        }, { passive: false });
+        
+        window.addEventListener('touchend', () => {
+            isSwiping = false;
+        }, { passive: true });
+        
+        console.log('📹 Camera initialized (Desktop + Mobile)');
     },
     
     move(direction) {
@@ -137,7 +179,7 @@ function initCamera(words, config) {
     console.log(`   - roomSpacing: ${Camera.roomSpacing}px`);
     console.log(`   - startOffset: ${Camera.startOffset}px`);
     console.log(`   - activeThreshold: ${Camera.activeThreshold}px`);
-    console.log(`🚿 Try scrolling or pressing ↑/↓ arrows`);
+    console.log(`🛿 Desktop: Scroll or ↑/↓ | Mobile: Swipe up/down`);
 }
 
 // ES6 экспорты
