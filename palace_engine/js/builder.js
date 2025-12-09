@@ -4,16 +4,20 @@ import { CONFIG } from './config.js';
 
 /**
  * Создает контейнер для 3D-коридора
+ * ВАЖНО: Возвращает DIV который будет двигаться камерой
  */
 function createCorridor() {
   const corridor = document.createElement('div');
   corridor.id = 'corridor';
-  corridor.className = 'corridor';
   
-  corridor.style.width = `${CONFIG.corridor.width}px`;
-  corridor.style.height = `${CONFIG.corridor.height}px`;
-  corridor.style.position = 'relative';
+  // КРИТИЧНО: transform-style для 3D дочерних элементов
+  corridor.style.position = 'absolute';
+  corridor.style.top = '50%';
+  corridor.style.left = '50%';
+  corridor.style.transform = 'translate(-50%, -50%)';
   corridor.style.transformStyle = 'preserve-3d';
+  corridor.style.width = '100%';
+  corridor.style.height = '100%';
   
   return corridor;
 }
@@ -24,7 +28,8 @@ function createCorridor() {
 function createRoom({ position, word, translation, color, image, difficulty }) {
   const room = document.createElement('div');
   room.className = 'room';
-  room.dataset.word = word; // для поиска при приближении
+  room.dataset.word = word;
+  room.dataset.position = position; // для отладки
   
   // Добавляем класс сложности
   if (difficulty) {
@@ -60,7 +65,7 @@ function createRoom({ position, word, translation, color, image, difficulty }) {
     // Обработка ошибок загрузки
     img.onerror = () => {
       console.warn(`⚠️ Image not found: ${image}`);
-      wrapper.style.display = 'none'; // скрываем весь wrapper
+      wrapper.style.display = 'none';
     };
     
     wrapper.appendChild(img);
@@ -93,19 +98,25 @@ function getColorByDifficulty(word) {
 function buildWorld(words) {
   const corridor = createCorridor();
   
+  console.log(`🏗️ Building ${words.length} rooms...`);
+  
   words.forEach((word, index) => {
+    const position = index * CONFIG.corridor.roomSpacing;
+    
     const room = createRoom({
-      position: index * CONFIG.corridor.roomSpacing,
+      position: position,
       word: word.en,
       translation: word.ru,
-      image: word.image, // из JSON: "263/vote.jpg"
+      image: word.image,
       difficulty: getColorByDifficulty(word)
     });
     
     corridor.appendChild(room);
+    
+    console.log(`  Room ${index + 1}: "${word.en}" at Z=-${position}px`);
   });
   
-  console.log(`🏗️ Built ${words.length} rooms in corridor`);
+  console.log(`✅ Built ${words.length} rooms in corridor`);
   
   return corridor;
 }
