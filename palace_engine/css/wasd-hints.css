@@ -1,0 +1,74 @@
+/* ============================================
+   WASD HINTS
+   Подсказки управления на экране
+   ============================================ */
+
+.wasd-hints {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 99;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.wasd-hints:hover {
+    opacity: 1;
+}
+
+.wasd-hint-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+}
+
+.wasd-hint-row {
+    display: flex;
+    gap: 5px;
+}
+
+.wasd-key {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, 
+        rgba(30, 30, 40, 0.9), 
+        rgba(20, 20, 30, 0.95));
+    border: 2px solid rgba(255, 214, 10, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #FFD60A;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    transition: all 0.1s ease;
+}
+
+.wasd-key--active {
+    background: linear-gradient(135deg, 
+        rgba(255, 214, 10, 0.3), 
+        rgba(255, 165, 0, 0.3));
+    border-color: rgba(255, 214, 10, 0.8);
+    box-shadow: 0 0 20px rgba(255, 214, 10, 0.5);
+    transform: translateY(2px);
+}
+
+.wasd-hint-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+    white-space: nowrap;
+}
+
+/* Скрыть на мобильных */
+@media (max-width: 768px) {
+    .wasd-hints {
+        display: none;
+    }
+}
