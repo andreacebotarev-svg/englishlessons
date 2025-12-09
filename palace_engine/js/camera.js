@@ -40,6 +40,8 @@ const Camera = {
         let touchStartY = 0;
         let touchEndY = 0;
         let isSwiping = false;
+        let lastTouchTime = 0;
+        const touchThrottle = 16; // ~60 FPS (обрабатываем каждые 16ms)
         
         window.addEventListener('touchstart', (e) => {
             // Если тапнули на карточку или кнопку — не двигать камеру
@@ -49,10 +51,16 @@ const Camera = {
             
             touchStartY = e.touches[0].clientY;
             isSwiping = true;
+            lastTouchTime = Date.now();
         }, { passive: true });
         
         window.addEventListener('touchmove', (e) => {
             if (!isSwiping) return;
+            
+            // ⚡ THROTTLING: обрабатываем только каждые 16ms (~60 FPS)
+            const now = Date.now();
+            if (now - lastTouchTime < touchThrottle) return;
+            lastTouchTime = now;
             
             // Блокируем скролл страницы только во время свайпа
             if (e.cancelable) {
@@ -75,6 +83,7 @@ const Camera = {
         }, { passive: true });
         
         console.log('📹 Camera initialized (Desktop + Mobile)');
+        console.log('   ⚡ Touch throttling: 16ms (~60 FPS)');
     },
     
     move(direction) {
