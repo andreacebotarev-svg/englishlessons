@@ -68,12 +68,14 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
   }
   
   // 3D-позиционирование: Z в глубину, X влево/вправо, Y по центру
-  const xOffset = isLeft ? -300 : 300;  // смещение к стенам
+  const xOffset = isLeft ? -300 : 300;     // смещение к стенам
+  const rotation = isLeft ? 60 : -60;      // ✅ НОВОЕ: поворот к центру коридора
   
   room.style.transform = `
     translateZ(-${position}px) 
     translateX(${xOffset}px) 
     translateY(-50%)
+    rotateY(${rotation}deg)
   `;
   
   // === 1. АНГЛИЙСКОЕ СЛОВО ===
@@ -152,10 +154,10 @@ function buildWorld(words) {
     
     corridor.appendChild(room);
     
-    console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px (${isLeft ? 'LEFT' : 'RIGHT'})`);
+    console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px (${isLeft ? 'LEFT' : 'RIGHT'}, rotateY=${isLeft ? 60 : -60}°)`);
   });
   
-  console.log(`✅ Built corridor with ${words.length} rooms`);
+  console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.corridor.roomSpacing}px)`);
   
   return corridor;
 }
