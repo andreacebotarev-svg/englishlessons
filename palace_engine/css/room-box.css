@@ -56,6 +56,14 @@
     border: 3px solid rgba(255, 214, 10, 0.25);
 }
 
+/* 🎴 АКТИВНАЯ КОМНАТА */
+.room-box--active .room-wall--wall-back {
+    border-color: rgba(255, 214, 10, 0.5);
+    box-shadow: 
+        inset 0 0 50px rgba(255, 214, 10, 0.1),
+        0 0 80px rgba(255, 214, 10, 0.2);
+}
+
 /* Передняя стена (с дверью) - полупрозрачная */
 .room-wall--wall-front {
     background: linear-gradient(135deg, 
