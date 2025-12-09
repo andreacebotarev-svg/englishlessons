@@ -1,19 +1,75 @@
 /* ============================================
-   ROOM BOX SYSTEM (В РАЗРАБОТКЕ)
-   Будет активировано в следующих этапах
+   ROOM BOX SYSTEM
    ============================================ */
 
-/* Контейнер комнаты - пока не используется */
+/* Контейнер комнаты */
 .room-box {
     position: absolute;
+    width: 1500px;  /* Соответствует CONFIG.corridor.roomBox.roomWidth */
+    height: 1200px; /* Соответствует CONFIG.corridor.roomBox.roomHeight */
     transform-style: preserve-3d;
     pointer-events: none;
 }
 
-/* Стены комнаты - будет реализовано на этапе 2 */
+/* Базовые стили для всех стен */
 .room-wall {
     position: absolute;
+    background: linear-gradient(135deg, 
+        rgba(30, 30, 40, 0.85), 
+        rgba(20, 20, 30, 0.9));
+    border: 2px solid rgba(255, 214, 10, 0.15);
     backface-visibility: hidden;
+    pointer-events: auto;
+    
+    /* Тонкая сетка на стенах для ощущения структуры */
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 100px,
+            rgba(255, 214, 10, 0.05) 100px,
+            rgba(255, 214, 10, 0.05) 102px
+        );
+}
+
+/* Пол - темнее */
+.room-wall--floor {
+    background: linear-gradient(135deg, 
+        rgba(15, 15, 15, 0.95), 
+        rgba(10, 10, 10, 0.98));
+    border-color: rgba(255, 214, 10, 0.1);
+}
+
+/* Потолок - светлее */
+.room-wall--ceiling {
+    background: linear-gradient(135deg, 
+        rgba(40, 40, 50, 0.8), 
+        rgba(30, 30, 40, 0.85));
+    border-color: rgba(255, 214, 10, 0.08);
+}
+
+/* Задняя стена - акцент (здесь будут карточки) */
+.room-wall--wall-back {
+    background: linear-gradient(135deg, 
+        rgba(35, 35, 45, 0.9), 
+        rgba(25, 25, 35, 0.95));
+    border: 3px solid rgba(255, 214, 10, 0.25);
+}
+
+/* Передняя стена (с дверью) - полупрозрачная */
+.room-wall--wall-front {
+    background: linear-gradient(135deg, 
+        rgba(30, 30, 40, 0.4), 
+        rgba(20, 20, 30, 0.5));
+    opacity: 0.6;
+}
+
+/* Боковые стены - средняя видимость */
+.room-wall--wall-left,
+.room-wall--wall-right {
+    background: linear-gradient(135deg, 
+        rgba(28, 28, 38, 0.8), 
+        rgba(18, 18, 28, 0.85));
 }
 
 /* Дверь - будет реализовано на этапе 4 */
