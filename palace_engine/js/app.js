@@ -1,6 +1,7 @@
 /* ============================================
    MEMORY PALACE - MAIN APPLICATION
    Описание: Инициализация и загрузка данных
+   Last update: 2025-12-09 12:27
    ============================================ */
 
 import { CONFIG } from './config.js';
@@ -59,10 +60,8 @@ const App = {
             }
             
             // 6. Запускаем камеру
-            if (typeof initCamera === 'function') {
-                initCamera(words, CONFIG);
-                console.log('📹 Camera initialized');
-            }
+            initCamera(words, CONFIG);
+            console.log('📹 Camera initialized');
             
             // Скрываем лоадер
             if (loader) {
