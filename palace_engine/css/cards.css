@@ -19,9 +19,9 @@
   min-height: 450px;
   padding: 30px;
   
-  /* ВАЖНО: top по центру, left устанавливается классами */
+  /* ✅ ИЗМЕНЕНО: Центрирование через left/top 50%, смещение через translateX в JS */
   top: 50%;
-  /* left: не указываем, используем translateX в transform */
+  left: 50%;
   
   transform-origin: center center;
   /* transform устанавливается в builder.js */
@@ -52,22 +52,27 @@
   pointer-events: auto;
   z-index: 10;
   cursor: pointer;
+  
+  /* ✅ НОВОЕ: Скрываем заднюю сторону при повороте */
+  backface-visibility: hidden;
 }
 
 /* ПОЗИЦИОНИРОВАНИЕ НА СТЕНАХ */
+/* ✅ ИЗМЕНЕНО: left: 50% вместо 20%/80% */
 .room--left {
-  left: 20%;  /* левая стена */
-  transform-origin: left center;
+  /* Смещение устанавливается через translateX в builder.js */
+  transform-origin: center center;
 }
 
 .room--right {
-  left: 80%;  /* правая стена */
-  transform-origin: right center;
+  /* Смещение устанавливается через translateX в builder.js */
+  transform-origin: center center;
 }
 
 /* ЭФФЕКТ ПРИ НАВЕДЕНИИ */
+/* ✅ ИЗМЕНЕНО: Используем filter вместо transform, чтобы не ломать rotateY */
 .room:hover {
-  transform: scale(1.05) !important;  /* сохраняем Z-позицию */
+  filter: brightness(1.2);
   box-shadow: 
     0 20px 60px rgba(255, 214, 10, 0.3),
     0 0 100px rgba(255, 214, 10, 0.2),
