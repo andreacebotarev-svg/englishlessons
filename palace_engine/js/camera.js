@@ -20,6 +20,7 @@ const Camera = {
     // 🚀 ОПТИМИЗАЦИЯ: Кэширование DOM-элементов
     roomsCache: null,  // Кэш DOM-элементов .room для избежания повторных querySelectorAll
     isTicking: false, // Флаг для requestAnimationFrame
+    lastActiveRoom: -1, // 🎴 НОВОЕ ПОЛЕ для отслеживания последней активной комнаты
     
     init() {
         // === DESKTOP CONTROLS ===
@@ -144,8 +145,7 @@ const Camera = {
     updateActiveRooms() {
         // 🏠 ПРОВЕРКА РЕЖИМА КОМНАТ-БОКСОВ
         if (CONFIG.corridor.roomBox.enabled) {
-            // TODO: Этап 3 - логика для комнат-боксов
-            console.warn('⚠️ Room-box mode: active room detection not implemented yet');
+            this.updateActiveRoomBoxes();
             return;
         }
         
@@ -190,6 +190,61 @@ const Camera = {
                 }
             } else {
                 room.classList.remove('room--active');
+            }
+        });
+    },
+    
+    /**
+     * 🎴 НОВАЯ ФУНКЦИЯ: Определяет активную комнату и карточки в режиме room-box
+     */
+    updateActiveRoomBoxes() {
+        const roomBoxes = document.querySelectorAll('.room-box');
+        const { roomDepth } = CONFIG.corridor.roomBox;
+        
+        // Определяем, в какой комнате находится камера
+        let activeRoomIndex = -1;
+        let minDistance = Infinity;
+        
+        roomBoxes.forEach((roomBox, index) => {
+            const roomZ = parseFloat(roomBox.style.transform.match(/translateZ\(-?(\d+)px\)/)?.[1] || 0);
+            const distance = Math.abs(this.z - roomZ);
+            
+            // Ближайшая комната становится активной
+            if (distance < minDistance) {
+                minDistance = distance;
+                activeRoomIndex = index;
+            }
+            
+            // Скрываем далёкие комнаты (оптимизация)
+            if (distance > roomDepth * 3) {
+                roomBox.style.visibility = 'hidden';
+            } else {
+                roomBox.style.visibility = 'visible';
+            }
+        });
+        
+        // Активируем карточки в текущей комнате
+        roomBoxes.forEach((roomBox, index) => {
+            const cards = roomBox.querySelectorAll('.room-card');
+            
+            if (index === activeRoomIndex) {
+                roomBox.classList.add('room-box--active');
+                
+                cards.forEach(card => {
+                    card.classList.add('room-card--active');
+                });
+                
+                // Лог только при смене активной комнаты
+                if (this.lastActiveRoom !== activeRoomIndex) {
+                    console.log(`✨ Entered room ${activeRoomIndex}`);
+                    this.lastActiveRoom = activeRoomIndex;
+                }
+            } else {
+                roomBox.classList.remove('room-box--active');
+                
+                cards.forEach(card => {
+                    card.classList.remove('room-card--active');
+                });
             }
         });
     },
