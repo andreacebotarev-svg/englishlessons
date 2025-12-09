@@ -15,10 +15,33 @@
     <div id="ui-layer">
         <div id="loading">Loading Palace...</div>
         <div id="error-msg" style="display: none;"></div>
-        <div id="controls-hint">Use mouse wheel or ↑/↓ arrows to move</div>
+        <div id="controls-hint">🎮 WASD to move & rotate | Scroll or ↑/↓ arrows</div>
         <div id="progress-bar"></div>
         <div id="word-counter"><span>0</span> / 0</div>
         <button id="back-btn" onclick="history.back()">← Exit</button>
+    </div>
+
+    <!-- WASD Hints -->
+    <div class="wasd-hints">
+        <div class="wasd-hint-group">
+            <div class="wasd-hint-row">
+                <div class="wasd-key" data-key="w">W</div>
+            </div>
+            <div class="wasd-hint-row">
+                <div class="wasd-key" data-key="a">A</div>
+                <div class="wasd-key" data-key="s">S</div>
+                <div class="wasd-key" data-key="d">D</div>
+            </div>
+            <div class="wasd-hint-label">Move & Rotate</div>
+        </div>
+        
+        <div class="wasd-hint-group">
+            <div class="wasd-hint-row">
+                <div class="wasd-key" data-key="q">Q</div>
+                <div class="wasd-key" data-key="e">E</div>
+            </div>
+            <div class="wasd-hint-label">Strafe</div>
+        </div>
     </div>
 
     <!-- 3D Scene -->
