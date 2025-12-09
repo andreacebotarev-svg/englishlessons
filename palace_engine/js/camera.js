@@ -4,6 +4,9 @@
    Поддержка: Desktop (mouse/keyboard) + Mobile (touch/swipe)
    ============================================ */
 
+// ⚡ PRODUCTION MODE: отключаем логи
+const DEBUG = false;
+
 const Camera = {
     z: 0,           // Текущая позиция
     speed: 50,      // Скорость движения
@@ -82,8 +85,7 @@ const Camera = {
             isSwiping = false;
         }, { passive: true });
         
-        console.log('📹 Camera initialized (Desktop + Mobile)');
-        console.log('   ⚡ Touch throttling: 16ms (~60 FPS)');
+        if (DEBUG) console.log('📹 Camera initialized (Desktop + Mobile)');
     },
     
     move(direction) {
@@ -98,11 +100,6 @@ const Camera = {
         
         // Применяем к CSS
         document.documentElement.style.setProperty('--depth', `${this.z}px`);
-        
-        // Отладочный лог (каждое 10-е движение)
-        if (Math.floor(oldZ / 100) !== Math.floor(this.z / 100)) {
-            console.log(`📹 Camera: ${oldZ}px → ${this.z}px (max: ${this.maxZ}px)`);
-        }
         
         // ⚠️ КРИТИЧНО: Обновляем активные карточки
         this.updateActiveRooms();
@@ -129,7 +126,7 @@ const Camera = {
             if (distance < this.activeThreshold) {
                 if (!room.classList.contains('room--active')) {
                     room.classList.add('room--active');
-                    console.log(`✨ Activated room: "${room.dataset.word}" (distance: ${Math.round(distance)}px)`);
+                    if (DEBUG) console.log(`✨ Activated room: "${room.dataset.word}" (distance: ${Math.round(distance)}px)`);
                 }
             } else {
                 room.classList.remove('room--active');
@@ -163,7 +160,7 @@ const Camera = {
  */
 function initCamera(words, config) {
     if (!words || words.length === 0) {
-        console.warn('⚠️ No words provided to camera');
+        if (DEBUG) console.warn('⚠️ No words provided to camera');
         return;
     }
     
@@ -180,15 +177,6 @@ function initCamera(words, config) {
     
     // Устанавливаем начальное значение --depth
     document.documentElement.style.setProperty('--depth', '0px');
-    
-    console.log(`📹 Camera configured:`);
-    console.log(`   - Words: ${words.length}`);
-    console.log(`   - maxZ: ${Camera.maxZ}px`);
-    console.log(`   - speed: ${Camera.speed}px/tick`);
-    console.log(`   - roomSpacing: ${Camera.roomSpacing}px`);
-    console.log(`   - startOffset: ${Camera.startOffset}px`);
-    console.log(`   - activeThreshold: ${Camera.activeThreshold}px`);
-    console.log(`🛿 Desktop: Scroll or ↑/↓ | Mobile: Swipe up/down`);
 }
 
 // ES6 экспорты
