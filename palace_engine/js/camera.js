@@ -13,7 +13,6 @@ const Camera = {
         // Слушаем колесико мыши
         window.addEventListener('wheel', (e) => {
             e.preventDefault();
-            // e.deltaY > 0 это скролл вниз (идем вперед)
             const direction = e.deltaY > 0 ? 1 : -1;
             this.move(direction);
         }, { passive: false });
@@ -30,10 +29,12 @@ const Camera = {
             }
         });
         
-        console.log('📹 Camera initialized');
+        console.log('📹 Camera event listeners attached');
     },
     
     move(direction) {
+        const oldZ = this.z;
+        
         // Увеличиваем или уменьшаем Z
         this.z += direction * this.speed;
         
@@ -43,6 +44,12 @@ const Camera = {
         
         // Применяем к CSS
         document.documentElement.style.setProperty('--depth', `${this.z}px`);
+        
+        // Отладочный лог (каждое 10-е движение)
+        if (Math.floor(oldZ / 100) !== Math.floor(this.z / 100)) {
+            console.log(`📹 Camera: ${oldZ}px → ${this.z}px (max: ${this.maxZ}px)`);
+            console.log(`   CSS var --depth = ${getComputedStyle(document.documentElement).getPropertyValue('--depth')}`);
+        }
         
         // Обновляем прогресс-бар и счётчик
         this.updateProgress();
@@ -87,7 +94,15 @@ function initCamera(words, config) {
     // Инициализируем обработчики событий
     Camera.init();
     
-    console.log(`📹 Camera configured: ${words.length} words, maxZ = ${Camera.maxZ}px`);
+    // Устанавливаем начальное значение --depth
+    document.documentElement.style.setProperty('--depth', '0px');
+    
+    console.log(`📹 Camera configured:`);
+    console.log(`   - Words: ${words.length}`);
+    console.log(`   - maxZ: ${Camera.maxZ}px`);
+    console.log(`   - speed: ${Camera.speed}px/tick`);
+    console.log(`   - roomSpacing: ${config.corridor.roomSpacing}px`);
+    console.log(`🚿 Try scrolling or pressing ↑/↓ arrows`);
 }
 
 // ES6 экспорты
