@@ -8,17 +8,17 @@ import { CONFIG } from './config.js';
 const Camera = {
     // === ПОЗИЦИЯ ===
     x: 0,
-    y: 150,      // 🆕 Начальная позиция на уровне пола
+    y: 150,
     z: 0,
     
     // === ОРИЕНТАЦИЯ (Эйлеровы углы) ===
-    yaw: 0,      // Поворот влево/вправо (горизонталь)
-    pitch: 0,    // Наклон вверх/вниз (вертикаль)
+    yaw: 0,
+    pitch: 0,
     
     // === СКОРОСТЬ ДВИЖЕНИЯ ===
     velocity: {
         x: 0,
-        y: 0,     // 🆕 Вертикальная скорость (для гравитации)
+        y: 0,
         z: 0
     },
     
@@ -33,7 +33,7 @@ const Camera = {
     gravity: 0.5,
     groundLevel: 150,
     terminalVelocity: 20,
-    isOnGround: true,        // 🆕 Флаг: стоит ли на земле
+    isOnGround: true,
     
     // === ГРАНИЦЫ ===
     maxZ: 0,
@@ -58,18 +58,19 @@ const Camera = {
     init() {
         console.log('🎮 Initializing Minecraft-style camera with gravity...');
         
-        // Применяем настройки из CONFIG
         this.speed = CONFIG.camera.speed;
         this.sprintMultiplier = CONFIG.camera.sprintMultiplier;
         this.acceleration = CONFIG.camera.acceleration;
         this.deceleration = CONFIG.camera.deceleration;
         this.mouseSensitivity = CONFIG.camera.mouseSensitivity;
         
-        // 🆕 Гравитация
         this.gravity = CONFIG.camera.gravity;
         this.groundLevel = CONFIG.camera.groundLevel;
         this.terminalVelocity = CONFIG.camera.terminalVelocity;
-        this.y = this.groundLevel; // Стартуем на уровне пола
+        this.y = this.groundLevel;
+        
+        console.log(`📍 Camera start position: x=${this.x}, y=${this.y}, z=${this.z}`);
+        console.log(`📐 Camera orientation: yaw=${this.yaw}rad, pitch=${this.pitch}rad`);
         
         this.setupKeyboard();
         this.setupMouse();
@@ -240,30 +241,34 @@ const Camera = {
     },
     
     /**
-     * 🆕 Обновление движения с гравитацией
+     * 🐛 FIX: Исправлено движение WASD
      */
     updateMovement() {
         // === ГОРИЗОНТАЛЬНОЕ ДВИЖЕНИЕ (X, Z) ===
         let inputX = 0;
         let inputZ = 0;
         
-        if (this.keys.forward) inputZ += 1;
-        if (this.keys.backward) inputZ -= 1;
-        if (this.keys.left) inputX -= 1;
-        if (this.keys.right) inputX += 1;
+        if (this.keys.forward) inputZ += 1;   // W — вперёд
+        if (this.keys.backward) inputZ -= 1;  // S — назад
+        if (this.keys.left) inputX -= 1;      // A — влево
+        if (this.keys.right) inputX += 1;     // D — вправо
         
+        // Нормализация диагонального движения
         const length = Math.sqrt(inputX * inputX + inputZ * inputZ);
         if (length > 0) {
             inputX /= length;
             inputZ /= length;
         }
         
-        const cos = Math.cos(this.yaw);
         const sin = Math.sin(this.yaw);
+        const cos = Math.cos(this.yaw);
         
         const baseSpeed = this.speed * (this.keys.sprint ? this.sprintMultiplier : 1);
+        
+        // 🐛 FIX: Правильная формула для FPS-движения
+        // Инвертирован знак Z для правильного направления
         const targetVelocityX = (inputZ * sin + inputX * cos) * baseSpeed;
-        const targetVelocityZ = (inputZ * cos - inputX * sin) * baseSpeed;
+        const targetVelocityZ = -(inputZ * cos - inputX * sin) * baseSpeed;  // 🐛 ИНВЕРТИРОВАНО
         
         if (inputX !== 0 || inputZ !== 0) {
             this.velocity.x += (targetVelocityX - this.velocity.x) * this.acceleration;
@@ -276,23 +281,27 @@ const Camera = {
             if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0;
         }
         
+        const oldX = this.x;
+        const oldZ = this.z;
+        
         this.x += this.velocity.x;
         this.z += this.velocity.z;
         
-        // === 🆕 ВЕРТИКАЛЬНОЕ ДВИЖЕНИЕ (Y) - ГРАВИТАЦИЯ ===
+        // Логирование движения (каждые 50px)
+        if (Math.abs(this.z - oldZ) > 0.1 && Math.floor(this.z / 50) !== Math.floor(oldZ / 50)) {
+            console.log(`🚶 Moving: Z=${Math.round(this.z)}px, X=${Math.round(this.x)}px, Yaw=${Math.round(this.yaw * 180 / Math.PI)}°`);
+        }
         
-        // Применяем гравитацию
+        // === ВЕРТИКАЛЬНОЕ ДВИЖЕНИЕ (Y) - ГРАВИТАЦИЯ ===
         this.velocity.y -= this.gravity;
         
-        // Ограничиваем максимальную скорость падения
         if (this.velocity.y < -this.terminalVelocity) {
             this.velocity.y = -this.terminalVelocity;
         }
         
-        // Применяем вертикальную скорость к позиции
         this.y += this.velocity.y;
         
-        // 🆕 КОЛЛИЗИЯ С ПОЛОМ
+        // КОЛЛИЗИЯ С ПОЛОМ
         if (this.y <= this.groundLevel) {
             this.y = this.groundLevel;
             this.velocity.y = 0;
@@ -322,16 +331,12 @@ const Camera = {
         }
     },
     
-    /**
-     * 🆕 Применение трансформации (с Y-осью)
-     */
     applyTransform() {
         const corridor = document.querySelector('#corridor');
         if (!corridor) return;
         
         document.documentElement.style.setProperty('--fov', `${CONFIG.camera.fov}px`);
         
-        // 🆕 Применяем Y-координату (высота камеры)
         corridor.style.transform = `
             translateZ(${CONFIG.camera.fov}px)
             rotateX(${this.pitch}rad)
@@ -395,7 +400,13 @@ const Camera = {
     
     cacheRooms() {
         this.roomsCache = Array.from(document.querySelectorAll('.room'));
-        console.log(`💾 Cached ${this.roomsCache.length} rooms`);
+        const roomBoxes = document.querySelectorAll('.room-box');
+        const roomCards = document.querySelectorAll('.room-card');
+        
+        console.log(`💾 Cached rooms:`);
+        console.log(`   - Linear rooms: ${this.roomsCache.length}`);
+        console.log(`   - Room boxes: ${roomBoxes.length}`);
+        console.log(`   - Room cards: ${roomCards.length}`);
     },
     
     jumpToNextRoom() {
@@ -416,9 +427,9 @@ const Camera = {
     jumpToStart() {
         this.animateTo(0, 1000);
         this.x = 0;
-        this.y = this.groundLevel;  // 🆕 Сброс высоты
+        this.y = this.groundLevel;
         this.velocity.x = 0;
-        this.velocity.y = 0;         // 🆕 Сброс вертикальной скорости
+        this.velocity.y = 0;
         this.velocity.z = 0;
         console.log('⏪ Jump to start');
     },
@@ -528,9 +539,6 @@ const Camera = {
         }
     },
     
-    /**
-     * 🆕 Обновление счётчика со статусом земли
-     */
     updateWordCounter() {
         const counter = document.getElementById('word-counter');
         if (counter && this.words.length > 0) {
@@ -549,6 +557,18 @@ const Camera = {
                         Yaw: ${yawDeg}° | Pitch: ${pitchDeg}°
                         ${this.keys.sprint ? ' 🏃 SPRINT' : ''}
                         ${this.isOnGround ? ' 🟢' : ' 🔴'}
+                    </div>
+                `;
+            } else {
+                const currentWordIndex = Math.floor((this.z - this.startOffset) / this.roomSpacing);
+                const clampedIndex = Math.min(Math.max(0, currentWordIndex), this.words.length - 1);
+                
+                const yawDeg = Math.round((this.yaw * 180 / Math.PI) % 360);
+                
+                counter.innerHTML = `
+                    <div>${clampedIndex + 1} / ${this.words.length}</div>
+                    <div style="font-size: 10px; color: #666;">
+                        Yaw: ${yawDeg}° ${this.isOnGround ? '🟢' : '🔴'}
                     </div>
                 `;
             }
@@ -574,7 +594,8 @@ function initCamera(words, config) {
         speed: Camera.speed,
         gravity: Camera.gravity,
         groundLevel: Camera.groundLevel,
-        words: words.length
+        words: words.length,
+        maxZ: Camera.maxZ
     });
 }
 
