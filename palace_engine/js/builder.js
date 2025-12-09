@@ -7,6 +7,8 @@ import {
     getWordRoomIndex,
     logRoomInfo
 } from './room-geometry.js';
+// 🏠 НОВЫЙ ИМПОРТ - СОЗДАНИЕ КОМНАТ-БОКСОВ
+import { createRoomBox, groupWordsByRooms } from './room-builder.js';
 
 /**
  * Создает контейнер для 3D-коридора
@@ -198,41 +200,61 @@ function getColorByDifficulty(word) {
 function buildWorld(words) {
   const corridor = createCorridor();
   
-  console.log(`🏗️ Building corridor with ${words.length} rooms...`);
+  console.log(`🏛️ Building palace with ${words.length} words...`);
   
   // 🏛️ ЛОГИРОВАНИЕ ИНФОРМАЦИИ О КОМНАТАХ (если режим включён)
   if (CONFIG.corridor.roomBox.enabled) {
     logRoomInfo(words.length);
   }
   
-  // ДОБАВЛЯЕМ ПОЛ И СТЕНЫ
-  corridor.appendChild(createFloor());
-  corridor.appendChild(createWallLeft());
-  corridor.appendChild(createWallRight());
-  console.log('   ✅ Floor and walls added');
-  
-  // ✅ НАЧАЛЬНОЕ СМЕЩЕНИЕ всех карточек вглубь
-  const startOffset = 0; // начинаем с 0, как в референсе
-  
-  // ДОБАВЛЯЕМ КАРТОЧКИ (чередуются слева/справа)
-  words.forEach((word, index) => {
-    const position = startOffset + ((index + 1) * CONFIG.cards.spacing);
+  // 🏠 РЕЖИМ КОМНАТ-БОКСОВ
+  if (CONFIG.corridor.roomBox.enabled) {
+    console.log('🏠 Building in ROOM-BOX mode');
     
-    const room = createRoom({
-      position: position,
-      word: word.en,
-      translation: word.ru,
-      image: word.image,
-      difficulty: getColorByDifficulty(word),
-      index: index
+    // Группируем слова по комнатам
+    const roomGroups = groupWordsByRooms(words);
+    
+    // Создаём комнаты-боксы
+    roomGroups.forEach((roomWords, roomIndex) => {
+      const roomBox = createRoomBox(roomIndex, roomWords);
+      corridor.appendChild(roomBox);
     });
     
-    corridor.appendChild(room);
+    console.log(`✅ Created ${roomGroups.length} room-boxes`);
+  } 
+  // СТАРЫЙ РЕЖИМ ЛИНЕЙНОГО КОРИДОРА
+  else {
+    console.log('📏 Building in LINEAR CORRIDOR mode');
     
-    console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px`);
-  });
-  
-  console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.cards.spacing}px)`);
+    // ДОБАВЛЯЕМ ПОЛ И СТЕНЫ (старые)
+    corridor.appendChild(createFloor());
+    corridor.appendChild(createWallLeft());
+    corridor.appendChild(createWallRight());
+    console.log('   ✅ Floor and walls added');
+    
+    // ✅ НАЧАЛЬНОЕ СМЕЩЕНИЕ всех карточек вглубь
+    const startOffset = 0;
+    
+    // ДОБАВЛЯЕМ КАРТОЧКИ (чередуются слева/справа)
+    words.forEach((word, index) => {
+      const position = startOffset + ((index + 1) * CONFIG.cards.spacing);
+      
+      const room = createRoom({
+        position: position,
+        word: word.en,
+        translation: word.ru,
+        image: word.image,
+        difficulty: getColorByDifficulty(word),
+        index: index
+      });
+      
+      corridor.appendChild(room);
+      
+      console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px`);
+    });
+    
+    console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.cards.spacing}px)`);
+  }
   
   return corridor;
 }
