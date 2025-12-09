@@ -2,9 +2,6 @@
 
 import { CONFIG } from './config.js';
 
-// ⚡ PRODUCTION MODE: отключаем логи
-const DEBUG = false;
-
 /**
  * Создает контейнер для 3D-коридора
  */
@@ -59,7 +56,7 @@ function speakWord(text) {
   utterance.lang = 'en-US';
   utterance.rate = 0.9;
   speechSynthesis.speak(utterance);
-  if (DEBUG) console.log(`🔊 Speaking: "${text}"`);
+  console.log(`🔊 Speaking: "${text}"`);
 }
 
 /**
@@ -82,17 +79,16 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
     room.classList.add(`room--${difficulty}`);
   }
   
-  // ⚡ ОПТИМИЗАЦИЯ: Определяем мобильное устройство
-  const isMobile = window.innerWidth <= 768;
-  
-  // ⚡ 3D-позиционирование: используем translate3d() + rotateY только на десктопе
+  // ✅ 3D-позиционирование: Z в глубину, X влево/вправо, Y по центру
   const xOffset = isLeft ? -250 : 250;
-  const rotation = isMobile ? 0 : (isLeft ? 60 : -60); // ⚡ rotateY только на десктопе
+  const rotation = isLeft ? 60 : -60;
   
-  // ⚡ translate3d() быстрее чем отдельные translateX/Y/Z
-  room.style.transform = rotation !== 0
-    ? `translate3d(${xOffset}px, -50%, -${position}px) rotateY(${rotation}deg)`
-    : `translate3d(${xOffset}px, -50%, -${position}px)`;
+  room.style.transform = `
+    translateZ(-${position}px) 
+    translateX(${xOffset}px) 
+    translateY(-50%)
+    rotateY(${rotation}deg)
+  `;
   
   // === 1. АНГЛИЙСКОЕ СЛОВО + КНОПКА ОЗВУЧИВАНИЯ ===
   const header = document.createElement('div');
@@ -123,7 +119,7 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
     img.loading = 'lazy';
     
     img.onerror = () => {
-      if (DEBUG) console.warn(`⚠️ Image not found: ${image}`);
+      console.warn(`⚠️ Image not found: ${image}`);
       wrapper.style.display = 'none';
     };
     
@@ -198,13 +194,13 @@ function getColorByDifficulty(word) {
 function buildWorld(words) {
   const corridor = createCorridor();
   
-  if (DEBUG) console.log(`🏗️ Building corridor with ${words.length} rooms...`);
+  console.log(`🏗️ Building corridor with ${words.length} rooms...`);
   
   // ДОБАВЛЯЕМ ПОЛ И СТЕНЫ
   corridor.appendChild(createFloor());
   corridor.appendChild(createWallLeft());
   corridor.appendChild(createWallRight());
-  if (DEBUG) console.log('   ✅ Floor and walls added');
+  console.log('   ✅ Floor and walls added');
   
   // ✅ НАЧАЛЬНОЕ СМЕЩЕНИЕ всех карточек вглубь
   const startOffset = 2000;
@@ -225,13 +221,10 @@ function buildWorld(words) {
     
     corridor.appendChild(room);
     
-    if (DEBUG) {
-      const isMobile = window.innerWidth <= 768;
-      console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px (${isLeft ? 'LEFT' : 'RIGHT'}, rotateY=${isMobile ? 0 : (isLeft ? 60 : -60)}°)`);
-    }
+    console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px (${isLeft ? 'LEFT' : 'RIGHT'}, rotateY=${isLeft ? 60 : -60}°)`);
   });
   
-  if (DEBUG) console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.corridor.roomSpacing}px, startOffset: ${startOffset}px)`);
+  console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.corridor.roomSpacing}px, startOffset: ${startOffset}px)`);
   
   return corridor;
 }
