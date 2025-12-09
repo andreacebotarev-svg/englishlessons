@@ -15,7 +15,7 @@
     <div id="ui-layer">
         <div id="loading">Loading Palace...</div>
         <div id="error-msg" style="display: none;"></div>
-        <div id="controls-hint">🎮 WASD to move & rotate | Scroll or ↑/↓ arrows</div>
+        <div id="controls-hint">🎮 Click to lock cursor | WASD to move | Shift to sprint | ESC to exit</div>
         <div id="progress-bar"></div>
         <div id="word-counter"><span>0</span> / 0</div>
         <button id="back-btn" onclick="history.back()">← Exit</button>
@@ -32,15 +32,14 @@
                 <div class="wasd-key" data-key="s">S</div>
                 <div class="wasd-key" data-key="d">D</div>
             </div>
-            <div class="wasd-hint-label">Move & Rotate</div>
+            <div class="wasd-hint-label">Move (relative to view)</div>
         </div>
         
         <div class="wasd-hint-group">
             <div class="wasd-hint-row">
-                <div class="wasd-key" data-key="q">Q</div>
-                <div class="wasd-key" data-key="e">E</div>
+                <div class="wasd-key" data-key="shift">⇧</div>
             </div>
-            <div class="wasd-hint-label">Strafe</div>
+            <div class="wasd-hint-label">Sprint</div>
         </div>
     </div>
 
