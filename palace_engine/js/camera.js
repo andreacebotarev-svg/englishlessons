@@ -136,7 +136,7 @@ const Camera = {
     /**
      * 🚀 ОПТИМИЗАЦИЯ: Определяет ближайшую карточку и управляет видимостью
      * Использует кэш вместо querySelectorAll для повышения производительности
-     * Скрывает далекие карточки (>4000px) для экономии GPU
+     * Скрывает далекие карточки с динамическим порогом для экономии GPU
      */
     updateActiveRooms() {
         // 🚀 Используем кэш вместо querySelectorAll
@@ -146,6 +146,11 @@ const Camera = {
             console.warn('⚠️ Cache not ready, fallback to querySelectorAll');
         }
         
+        // 🚀 Динамический порог видимости
+        // Формула: (roomSpacing * 5) + activeThreshold
+        // Показываем 5 карточек вперёд/назад от камеры + запас для плавности
+        const visibilityThreshold = (this.roomSpacing * 5) + this.activeThreshold;
+        
         this.roomsCache.forEach(room => {
             // Получаем Z-позицию карточки из data-position
             const roomZ = parseFloat(room.dataset.position || 0);
@@ -154,8 +159,7 @@ const Camera = {
             const distance = Math.abs(this.z - roomZ);
             
             // 🚀 ОПТИМИЗАЦИЯ: Виртуализация - скрываем далекие карточки
-            // Пороговое значение 4000px подобрано эмпирически
-            if (distance > 4000) {
+            if (distance > visibilityThreshold) {
                 if (room.style.visibility !== 'hidden') {
                     room.style.visibility = 'hidden';
                 }
@@ -229,6 +233,7 @@ function initCamera(words, config) {
     console.log(`   - roomSpacing: ${Camera.roomSpacing}px`);
     console.log(`   - startOffset: ${Camera.startOffset}px`);
     console.log(`   - activeThreshold: ${Camera.activeThreshold}px`);
+    console.log(`   - visibilityThreshold: ${(Camera.roomSpacing * 5) + Camera.activeThreshold}px (dynamic)`);
     console.log(`🐿 Desktop: Scroll or ↑/↓ | Mobile: Swipe up/down`);
 }
 
