@@ -1,0 +1,23 @@
+/* ============================================
+   ROOM BOX SYSTEM (В РАЗРАБОТКЕ)
+   Будет активировано в следующих этапах
+   ============================================ */
+
+/* Контейнер комнаты - пока не используется */
+.room-box {
+    position: absolute;
+    transform-style: preserve-3d;
+    pointer-events: none;
+}
+
+/* Стены комнаты - будет реализовано на этапе 2 */
+.room-wall {
+    position: absolute;
+    backface-visibility: hidden;
+}
+
+/* Дверь - будет реализовано на этапе 4 */
+.room-door {
+    position: absolute;
+    cursor: pointer;
+}
