@@ -13,6 +13,10 @@ const Camera = {
     startOffset: 2000, // Начальное смещение карточек
     activeThreshold: 400, // Порог активации карточки (в px)
     
+    // 🚀 ОПТИМИЗАЦИЯ: Кэширование DOM-элементов
+    roomsCache: null,
+    isTicking: false, // Флаг для requestAnimationFrame
+    
     init() {
         // === DESKTOP CONTROLS ===
         
@@ -74,6 +78,12 @@ const Camera = {
             isSwiping = false;
         }, { passive: true });
         
+        // 🚀 Кэшируем комнаты один раз после инициализации
+        setTimeout(() => {
+            this.roomsCache = Array.from(document.querySelectorAll('.room'));
+            console.log(`💾 Cached ${this.roomsCache.length} rooms for performance`);
+        }, 100);
+        
         console.log('📹 Camera initialized (Desktop + Mobile)');
     },
     
@@ -87,34 +97,57 @@ const Camera = {
         if (this.z < 0) this.z = 0;
         if (this.z > this.maxZ) this.z = this.maxZ;
         
-        // Применяем к CSS
-        document.documentElement.style.setProperty('--depth', `${this.z}px`);
+        // 🚀 ОПТИМИЗАЦИЯ: Обновляем DOM только перед отрисовкой кадра
+        if (!this.isTicking) {
+            window.requestAnimationFrame(() => {
+                // Применяем к CSS
+                document.documentElement.style.setProperty('--depth', `${this.z}px`);
+                
+                // ☑️ КРИТИЧНО: Обновляем активные карточки
+                this.updateActiveRooms();
+                
+                // Обновляем UI
+                this.updateProgress();
+                this.updateWordCounter();
+                
+                this.isTicking = false;
+            });
+            this.isTicking = true;
+        }
         
         // Отладочный лог (каждое 10-е движение)
         if (Math.floor(oldZ / 100) !== Math.floor(this.z / 100)) {
             console.log(`📹 Camera: ${oldZ}px → ${this.z}px (max: ${this.maxZ}px)`);
         }
-        
-        // ⚠️ КРИТИЧНО: Обновляем активные карточки
-        this.updateActiveRooms();
-        
-        // Обновляем UI
-        this.updateProgress();
-        this.updateWordCounter();
     },
     
     /**
      * Определяет ближайшую карточку и добавляет .room--active
      */
     updateActiveRooms() {
-        const rooms = document.querySelectorAll('.room');
+        // 🚀 Используем кэш вместо querySelectorAll
+        if (!this.roomsCache) {
+            this.roomsCache = Array.from(document.querySelectorAll('.room'));
+        }
         
-        rooms.forEach(room => {
+        this.roomsCache.forEach(room => {
             // Получаем Z-позицию карточки из data-position
             const roomZ = parseFloat(room.dataset.position || 0);
             
             // Расстояние от камеры до карточки
             const distance = Math.abs(this.z - roomZ);
+            
+            // 🚀 ОПТИМИЗАЦИЯ: Скрываем далекие карточки
+            if (distance > 4000) {
+                if (room.style.visibility !== 'hidden') {
+                    room.style.visibility = 'hidden';
+                }
+                return; // Пропускаем дальнейшие проверки
+            } else {
+                if (room.style.visibility === 'hidden') {
+                    room.style.visibility = 'visible';
+                }
+            }
             
             // Если камера близко к карточке — активируем
             if (distance < this.activeThreshold) {
@@ -179,7 +212,7 @@ function initCamera(words, config) {
     console.log(`   - roomSpacing: ${Camera.roomSpacing}px`);
     console.log(`   - startOffset: ${Camera.startOffset}px`);
     console.log(`   - activeThreshold: ${Camera.activeThreshold}px`);
-    console.log(`🛿 Desktop: Scroll or ↑/↓ | Mobile: Swipe up/down`);
+    console.log(`🐿 Desktop: Scroll or ↑/↓ | Mobile: Swipe up/down`);
 }
 
 // ES6 экспорты
