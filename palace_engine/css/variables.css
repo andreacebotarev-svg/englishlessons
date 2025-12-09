@@ -31,6 +31,15 @@
     --card-min-height: 200px;
     --card-width-mobile: 280px;
     --card-min-height-mobile: 180px;
+
+    /* Цвета карточек с комнатами */
+    --card-bg-start: #1a1a2e;
+    --card-bg-end: #16213e;
+    --easy-color: #4CAF50;
+    --medium-color: #FFC107;
+    --hard-color: #F44336;
+    --glow-color: rgba(15, 76, 117, 0.6);
+    --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.5);
     
     /* === SPACING === */
     --spacing-xs: 8px;
