@@ -11,30 +11,43 @@
         --perspective: 600px; /* было 800px */
     }
     
-    /* Уменьшаем карточки */
+    /* 🚀 ОПТИМИЗАЦИЯ GPU - отключаем тяжелые эффекты */
     .room {
         width: 280px !important;  /* было 350px */
         min-height: 380px !important; /* было 450px */
         padding: 20px !important; /* было 30px */
+        
+        /* Отключаем backdrop-filter (очень тяжело для мобильных GPU) */
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        
+        /* Делаем фон чуть непрозрачнее, раз блюра нет */
+        background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
+        
+        /* Упрощаем тени - одна простая тень вместо нескольких */
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
     }
     
-    /* Уменьшаем шрифты */
+    /* Убираем сложные тени с текста */
     .room-word {
         font-size: 32px !important; /* было 42px */
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8) !important;
     }
     
     .room-translation {
         font-size: 18px !important; /* было 22px */
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
     }
     
     .room-example {
         font-size: 14px !important; /* было 16px */
     }
     
-    /* Уменьшаем картинки */
+    /* Упрощаем тени картинок */
     .room-image-wrapper {
         max-width: 240px !important; /* было 280px */
         height: 200px !important; /* было 240px */
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
     }
     
     /* Увеличиваем кнопку озвучивания для удобства тапа */
@@ -47,12 +60,26 @@
     /* Убираем hover (не работает на тач) */
     .room:hover {
         filter: none !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
     }
     
     /* Вместо hover - active при тапе */
     .room:active {
-        filter: brightness(1.2) !important;
+        filter: brightness(1.15) !important;
         transform: scale(0.98) !important;
+    }
+    
+    /* Упрощаем активное состояние */
+    .room--active {
+        box-shadow: 0 12px 32px rgba(255, 214, 10, 0.3) !important;
+    }
+    
+    .room--active .room-word {
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9) !important;
+    }
+    
+    .room--active .room-image-wrapper {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7) !important;
     }
     
     /* Упрощаем туман для производительности */
