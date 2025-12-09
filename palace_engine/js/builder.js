@@ -4,13 +4,11 @@ import { CONFIG } from './config.js';
 
 /**
  * Создает контейнер для 3D-коридора
- * ВАЖНО: Возвращает DIV который будет двигаться камерой
  */
 function createCorridor() {
   const corridor = document.createElement('div');
   corridor.id = 'corridor';
   
-  // КРИТИЧНО: transform-style для 3D дочерних элементов
   corridor.style.position = 'absolute';
   corridor.style.top = '50%';
   corridor.style.left = '50%';
@@ -18,32 +16,65 @@ function createCorridor() {
   corridor.style.transformStyle = 'preserve-3d';
   corridor.style.width = '100%';
   corridor.style.height = '100%';
+  corridor.style.pointerEvents = 'none';  // контейнер НЕ кликабелен
   
   return corridor;
 }
 
 /**
+ * Создает пол коридора
+ */
+function createFloor() {
+  const floor = document.createElement('div');
+  floor.className = 'floor';
+  return floor;
+}
+
+/**
+ * Создает левую стену
+ */
+function createWallLeft() {
+  const wall = document.createElement('div');
+  wall.className = 'wall-left';
+  return wall;
+}
+
+/**
+ * Создает правую стену
+ */
+function createWallRight() {
+  const wall = document.createElement('div');
+  wall.className = 'wall-right';
+  return wall;
+}
+
+/**
  * Создает "комнату" для одного слова
  */
-function createRoom({ position, word, translation, color, image, difficulty }) {
+function createRoom({ position, word, translation, image, difficulty, index }) {
   const room = document.createElement('div');
   room.className = 'room';
   room.dataset.word = word;
-  room.dataset.position = position; // для отладки
+  room.dataset.position = position;
+  room.dataset.index = index;
+  
+  // ЧЕРЕДОВАНИЕ: чётные слева, нечётные справа
+  const isLeft = index % 2 === 0;
+  room.classList.add(isLeft ? 'room--left' : 'room--right');
   
   // Добавляем класс сложности
   if (difficulty) {
     room.classList.add(`room--${difficulty}`);
   }
   
-  // 3D-позиционирование вдоль коридора
-  // ВАЖНО: translateZ ведет в глубину, translateX/Y - центрируют карточку
-  room.style.transform = `translateZ(-${position}px) translateX(-50%) translateY(-50%)`;
+  // 3D-позиционирование: Z в глубину, X влево/вправо, Y по центру
+  const xOffset = isLeft ? -300 : 300;  // смещение к стенам
   
-  // Если цвет передан напрямую (для обратной совместимости)
-  if (color && !difficulty) {
-    room.style.backgroundColor = color;
-  }
+  room.style.transform = `
+    translateZ(-${position}px) 
+    translateX(${xOffset}px) 
+    translateY(-50%)
+  `;
   
   // === 1. АНГЛИЙСКОЕ СЛОВО ===
   const label = document.createElement('div');
@@ -62,7 +93,6 @@ function createRoom({ position, word, translation, color, image, difficulty }) {
     img.alt = word;
     img.loading = 'lazy';
     
-    // Обработка ошибок загрузки
     img.onerror = () => {
       console.warn(`⚠️ Image not found: ${image}`);
       wrapper.style.display = 'none';
@@ -98,27 +128,36 @@ function getColorByDifficulty(word) {
 function buildWorld(words) {
   const corridor = createCorridor();
   
-  console.log(`🏗️ Building ${words.length} rooms...`);
+  console.log(`🏗️ Building corridor with ${words.length} rooms...`);
   
+  // ДОБАВЛЯЕМ ПОЛ И СТЕНЫ
+  corridor.appendChild(createFloor());
+  corridor.appendChild(createWallLeft());
+  corridor.appendChild(createWallRight());
+  console.log('   ✅ Floor and walls added');
+  
+  // ДОБАВЛЯЕМ КАРТОЧКИ (чередуются слева/справа)
   words.forEach((word, index) => {
     const position = index * CONFIG.corridor.roomSpacing;
+    const isLeft = index % 2 === 0;
     
     const room = createRoom({
       position: position,
       word: word.en,
       translation: word.ru,
       image: word.image,
-      difficulty: getColorByDifficulty(word)
+      difficulty: getColorByDifficulty(word),
+      index: index
     });
     
     corridor.appendChild(room);
     
-    console.log(`  Room ${index + 1}: "${word.en}" at Z=-${position}px`);
+    console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px (${isLeft ? 'LEFT' : 'RIGHT'})`);
   });
   
-  console.log(`✅ Built ${words.length} rooms in corridor`);
+  console.log(`✅ Built corridor with ${words.length} rooms`);
   
   return corridor;
 }
 
-export { buildWorld, createRoom, createCorridor };
+export { buildWorld, createRoom, createCorridor, createFloor, createWallLeft, createWallRight };
