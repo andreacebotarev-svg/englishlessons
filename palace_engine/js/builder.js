@@ -21,39 +21,52 @@ function createCorridor() {
 /**
  * Создает "комнату" для одного слова
  */
-function createRoom({ position, word, translation, color, image }) {
+function createRoom({ position, word, translation, color, image, difficulty }) {
   const room = document.createElement('div');
   room.className = 'room';
   room.dataset.word = word; // для поиска при приближении
   
+  // Добавляем класс сложности
+  if (difficulty) {
+    room.classList.add(`room--${difficulty}`);
+  }
+  
   // 3D-позиционирование вдоль коридора
   room.style.transform = `translateZ(-${position}px)`;
-  room.style.backgroundColor = color || CONFIG.colors.accent;
   
-  // Английское слово (большое)
+  // Если цвет передан напрямую (для обратной совместимости)
+  if (color && !difficulty) {
+    room.style.backgroundColor = color;
+  }
+  
+  // === 1. АНГЛИЙСКОЕ СЛОВО ===
   const label = document.createElement('div');
   label.className = 'room-word';
   label.textContent = word;
   room.appendChild(label);
   
-  // Картинка (если есть)
+  // === 2. КАРТИНКА (с wrapper для лучшего контроля) ===
   if (image) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'room-image-wrapper';
+    
     const img = document.createElement('img');
     img.className = 'room-image';
-    img.src = `../images/${image}`; // images/263/vote.jpg
+    img.src = `../images/${image}`;
     img.alt = word;
-    img.loading = 'lazy'; // ленивая загрузка
+    img.loading = 'lazy';
     
     // Обработка ошибок загрузки
     img.onerror = () => {
-      console.warn(`Image not found: ${image}`);
-      img.style.display = 'none';
+      console.warn(`⚠️ Image not found: ${image}`);
+      wrapper.style.display = 'none'; // скрываем весь wrapper
     };
     
-    room.appendChild(img);
+    wrapper.appendChild(img);
+    room.appendChild(wrapper);
   }
   
-  // Перевод (маленький, внизу)
+  // === 3. ПЕРЕВОД ===
   const subtitle = document.createElement('div');
   subtitle.className = 'room-translation';
   subtitle.textContent = translation;
@@ -63,14 +76,14 @@ function createRoom({ position, word, translation, color, image }) {
 }
 
 /**
- * Определяет цвет комнаты по сложности слова
+ * Определяет сложность слова по длине
  */
 function getColorByDifficulty(word) {
   const length = word.en.length;
   
-  if (length <= 4) return '#4CAF50'; // зеленый - простое
-  if (length <= 7) return '#FFC107'; // желтый - среднее
-  return '#F44336'; // красный - сложное
+  if (length <= 4) return 'easy';
+  if (length <= 7) return 'medium';
+  return 'hard';
 }
 
 /**
@@ -84,8 +97,8 @@ function buildWorld(words) {
       position: index * CONFIG.corridor.roomSpacing,
       word: word.en,
       translation: word.ru,
-      color: getColorByDifficulty(word),
-      image: word.image // из JSON: "263/vote.jpg"
+      image: word.image, // из JSON: "263/vote.jpg"
+      difficulty: getColorByDifficulty(word)
     });
     
     corridor.appendChild(room);
