@@ -12,18 +12,19 @@
   pointer-events: none;
 }
 
-/* КАРТОЧКА ("КОМНАТА") */
+/* КАРТОЧКА ("КОМНАТА") - БАЗОВЫЕ СТИЛИ */
 .room {
   position: absolute;
   width: 350px;
   min-height: 450px;
   padding: 30px;
   
-  /* ВАЖНО: позиционирование в центре */
-  left: 50%;
+  /* ВАЖНО: top по центру, left устанавливается классами */
   top: 50%;
+  /* left: не указываем, используем translateX в transform */
+  
   transform-origin: center center;
-  /* transform устанавливается в builder.js: translateZ(-{position}px) translateX(-50%) translateY(-50%) */
+  /* transform устанавливается в builder.js */
   
   border-radius: 16px;
   background: linear-gradient(135deg, 
@@ -46,7 +47,31 @@
   
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 214, 10, 0.2);
+  
+  /* КРИТИЧНО: кликабельность + z-index */
   pointer-events: auto;
+  z-index: 10;
+  cursor: pointer;
+}
+
+/* ПОЗИЦИОНИРОВАНИЕ НА СТЕНАХ */
+.room--left {
+  left: 20%;  /* левая стена */
+  transform-origin: left center;
+}
+
+.room--right {
+  left: 80%;  /* правая стена */
+  transform-origin: right center;
+}
+
+/* ЭФФЕКТ ПРИ НАВЕДЕНИИ */
+.room:hover {
+  transform: scale(1.05) !important;  /* сохраняем Z-позицию */
+  box-shadow: 
+    0 20px 60px rgba(255, 214, 10, 0.3),
+    0 0 100px rgba(255, 214, 10, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* АНГЛИЙСКОЕ СЛОВО */
@@ -188,10 +213,11 @@
 @keyframes roomEnter {
   from {
     opacity: 0;
-    transform: translateZ(-200px) translateX(-50%) translateY(-50%) scale(0.8);
+    transform: translateZ(-200px) scale(0.8);
   }
   to {
     opacity: 1;
+    /* transform будет установлен JS */
   }
 }
 
@@ -201,4 +227,3 @@
 .room:nth-child(3) { animation-delay: 0.15s; }
 .room:nth-child(4) { animation-delay: 0.2s; }
 .room:nth-child(5) { animation-delay: 0.25s; }
-/* Дальше не нужно - слишком много */
