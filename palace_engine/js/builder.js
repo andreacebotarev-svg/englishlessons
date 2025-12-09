@@ -32,7 +32,8 @@ function createRoom({ position, word, translation, color, image, difficulty }) {
   }
   
   // 3D-позиционирование вдоль коридора
-  room.style.transform = `translateZ(-${position}px)`;
+  // ВАЖНО: translateZ ведет в глубину, translateX/Y - центрируют карточку
+  room.style.transform = `translateZ(-${position}px) translateX(-50%) translateY(-50%)`;
   
   // Если цвет передан напрямую (для обратной совместимости)
   if (color && !difficulty) {
@@ -103,6 +104,8 @@ function buildWorld(words) {
     
     corridor.appendChild(room);
   });
+  
+  console.log(`🏗️ Built ${words.length} rooms in corridor`);
   
   return corridor;
 }
