@@ -14,7 +14,8 @@
    8. room-box.css      - 🏛️ Система комнат-боксов
    9. room-card.css     - 🎴 Карточки в комнатах
    10. wasd-hints.css   - 🎮 Подсказки WASD-управления
-   11. responsive.css   - Адаптивность
+   11. crosshair.css    - 🎯 Minecraft-style прицел
+   12. responsive.css   - Адаптивность
    ============================================ */
 
 @import url('variables.css');
@@ -27,4 +28,5 @@
 @import url('room-box.css');
 @import url('room-card.css');
 @import url('wasd-hints.css');
+@import url('crosshair.css');
 @import url('responsive.css');
