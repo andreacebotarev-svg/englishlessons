@@ -1,60 +1,181 @@
 /* ============================================
-   ROOM CARD SYSTEM
-   Карточки слов внутри 3D-комнат
+   🎨 ROOM CARD with SLIDE-UP HIGHLIGHT
+   Плавное свечение + правильная структура
    ============================================ */
 
-/* Контейнер карточки */
 .room-card {
     position: absolute;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, 
-        rgba(30, 30, 40, 0.95), 
-        rgba(20, 20, 30, 0.98));
+    
+    /* 🎨 SLIDE-UP GRADIENT BASE */
+    background-color: rgba(30, 30, 40, 0.95);
+    background-image: linear-gradient(
+        to top,
+        rgba(30, 30, 40, 0.95) 0%,      /* Темный низ (видим изначально) */
+        rgba(255, 214, 10, 0.08) 50%,   /* Переходная зона */
+        rgba(255, 214, 10, 0.25) 100%   /* Яркий верх (скрыт) */
+    );
+    
+    /* 🔑 KEY: Удвоенная высота градиента */
+    background-size: 100% 200%;
+    
+    /* 📍 INITIAL STATE: Яркая часть скрыта снизу */
+    background-position: 0% 100%;
+    
+    /* ⚙️ SMOOTH TRANSITION: Премиальная плавность */
+    transition: 
+        background-position 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-color 0.3s ease-out,
+        box-shadow 0.3s ease-out,
+        transform 0.3s ease-out;
+    
     border: 2px solid rgba(255, 214, 10, 0.3);
     border-radius: 12px;
     padding: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    
+    /* 🔒 CRITICAL: Предотвращает выход градиента за границы */
+    overflow: hidden;
+    
+    cursor: crosshair;
     backface-visibility: hidden;
     pointer-events: auto;
+    
     box-shadow: 
         0 4px 20px rgba(0, 0, 0, 0.5),
         0 0 30px rgba(255, 214, 10, 0.15);
 }
 
-.room-card:hover {
+/* 🎯 TARGETING STATE: Прицел на карточке */
+.room-card--targeted {
+    /* 🔼 SLIDE-UP: Градиент поднимается вверх */
+    background-position: 0% 0%;
+    
+    /* 🌟 ACCENT: Усиление визуального фидбека */
     border-color: rgba(255, 214, 10, 0.6);
     box-shadow: 
-        0 6px 30px rgba(0, 0, 0, 0.7),
-        0 0 50px rgba(255, 214, 10, 0.3);
-    filter: brightness(1.08);  /* 🔧 Было: 1.15 (-50% интенсивности) */
-}
-
-/* 🎯 Состояние под прицелом (targeting) */
-.room-card--targeted {
-    outline: 2px solid rgba(255, 255, 255, 0.5);  /* 🔧 Было: 3px, yellow */
-    outline-offset: 3px;  /* 🔧 Было: 5px */
-    box-shadow: 
         0 4px 20px rgba(0, 0, 0, 0.5),
-        0 0 15px rgba(255, 255, 255, 0.3);  /* 🔧 Было: 20px, yellow */
-    transform: scale(1.02);  /* 🔧 Было: translateZ(10px) scale(1.2) */
-    filter: brightness(1.05);  /* 🔧 Было: 1.2 (-75%) */
-    transition: all 0.2s ease-out;
+        0 0 40px rgba(255, 214, 10, 0.4),
+        inset 0 -50px 50px -30px rgba(255, 214, 10, 0.15);  /* Внутреннее свечение снизу */
+    
+    /* ✨ SUBTLE LIFT: Минимальный scale для глубины */
+    transform: translateZ(2px) scale(1.02);
+    
+    /* 📝 OUTLINE: Тонкая обводка вместо агрессивной границы */
+    outline: 1px solid rgba(255, 255, 255, 0.3);
+    outline-offset: 2px;
 }
 
-/* 💆 Анимация клика */
+/* 🖱️ CLICK FEEDBACK: Минимальная анимация нажатия */
 @keyframes cardClick {
-    0% { transform: scale(1); }
-    50% { transform: scale(0.98); }  /* 🔧 Было: 0.95 */
-    100% { transform: scale(1); }
+    0% { transform: translateZ(2px) scale(1.02); }
+    50% { transform: translateZ(0px) scale(0.99); }
+    100% { transform: translateZ(2px) scale(1.02); }
 }
 
 .room-card--clicked {
-    animation: cardClick 0.2s ease-out;
+    animation: cardClick 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Состояние "перевёрнутой" карточки */
+/* 🎭 HOVER: Тонкое изменение курсора */
+.room-card:hover {
+    cursor: crosshair;
+}
+
+/* === HEADER: Слово + Транскрипция === */
+.room-card__header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 214, 10, 0.2);
+}
+
+.room-card__word-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.room-card__word {
+    font-size: 28px;
+    font-weight: 700;
+    color: #FFD60A;
+    text-shadow: 0 2px 10px rgba(255, 214, 10, 0.5);
+    line-height: 1.2;
+}
+
+.room-card__transcription {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+/* === IMAGE === */
+.room-card__image-wrapper {
+    width: 100%;
+    height: 180px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.room-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* === CONTENT: Пример ИЛИ Перевод === */
+.room-card__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 60px;
+}
+
+.room-card__example {
+    font-size: 16px;
+    color: #E0E0E0;
+    line-height: 1.5;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border-left: 3px solid rgba(100, 200, 255, 0.4);
+}
+
+.room-card__translation {
+    font-size: 18px;
+    color: #FFD60A;
+    font-weight: 600;
+    text-align: center;
+    padding: 12px;
+    background: rgba(255, 214, 10, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 214, 10, 0.3);
+}
+
+/* 🔄 TOGGLE ANIMATION */
+.room-card__example,
+.room-card__translation {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Состояние "перевёрнутой" карточки (старый функционал) */
 .room-card--flipped {
     background: linear-gradient(135deg, 
         rgba(40, 40, 50, 0.95), 
@@ -84,85 +205,6 @@
     }
 }
 
-/* === ЗАГОЛОВОК === */
-.room-card__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 214, 10, 0.2);
-}
-
-.room-card__word {
-    font-size: 24px;
-    font-weight: 700;
-    color: #FFD60A;
-    text-shadow: 0 2px 10px rgba(255, 214, 10, 0.5);
-}
-
-.room-card__speaker {
-    background: rgba(255, 214, 10, 0.15);
-    border: 1px solid rgba(255, 214, 10, 0.3);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease-out;
-    pointer-events: auto;
-}
-
-.room-card__speaker:hover {
-    background: rgba(255, 214, 10, 0.3);
-    border-color: rgba(255, 214, 10, 0.6);
-    transform: scale(1.08);  /* 🔧 Было: 1.1 */
-}
-
-.room-card__speaker:active {
-    transform: scale(0.98);  /* 🔧 Было: 0.95 */
-}
-
-/* === КАРТИНКА === */
-.room-card__image-wrapper {
-    width: 100%;
-    height: 180px;
-    margin-bottom: 12px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.3);
-}
-
-.room-card__image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-/* === КОНТЕНТ (ПЕРЕВОД) === */
-.room-card__content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 60px;
-}
-
-.room-card__translation {
-    font-size: 18px;
-    color: #E0E0E0;
-    line-height: 1.4;
-    text-align: center;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    border: 1px solid rgba(100, 200, 255, 0.2);
-}
-
 /* === АДАПТИВНОСТЬ === */
 @media (max-width: 768px) {
     .room-card {
@@ -172,11 +214,19 @@
     }
     
     .room-card__word {
-        font-size: 20px;
+        font-size: 24px;
+    }
+    
+    .room-card__transcription {
+        font-size: 12px;
     }
     
     .room-card__image-wrapper {
         height: 140px;
+    }
+    
+    .room-card__example {
+        font-size: 14px;
     }
     
     .room-card__translation {
