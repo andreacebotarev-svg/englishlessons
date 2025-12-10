@@ -73,6 +73,7 @@ const Camera = {
     // 🎯 RAYCAST СИСТЕМА
     targetedCard: null,        // Текущая карточка под прицелом
     rayCastDistance: 2000,     // Максимальная дистанция raycast
+    lastRaycastLog: 0,         // Для ограничения debug-логов
     
     // === СОСТОЯНИЕ КЛАВИШ ===
     keys: {
@@ -140,6 +141,8 @@ const Camera = {
         window.addEventListener('click', (e) => {
             if (!this.isPointerLocked) return;
             
+            console.log('👁️ LMB Click - targetedCard:', this.targetedCard ? this.targetedCard.dataset.word : 'null');
+            
             if (this.targetedCard) {
                 const word = this.targetedCard.dataset.word;
                 this.speakWord(word);
@@ -159,6 +162,8 @@ const Camera = {
             e.preventDefault();
             if (!this.isPointerLocked) return;
             
+            console.log('👁️ RMB Click - targetedCard:', this.targetedCard ? this.targetedCard.dataset.word : 'null');
+            
             if (this.targetedCard) {
                 this.toggleCardTranslation(this.targetedCard);
             }
@@ -176,8 +181,21 @@ const Camera = {
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         
+        // 🐛 DEBUG: Логирование каждую секунду
+        const now = Date.now();
+        const shouldLog = (now - this.lastRaycastLog) > 1000;
+        if (shouldLog) {
+            this.lastRaycastLog = now;
+            console.log(`🎯 Raycast check at (${Math.round(centerX)}, ${Math.round(centerY)})`);
+        }
+        
         // Получаем все элементы под курсором
         const elementsUnderCrosshair = document.elementsFromPoint(centerX, centerY);
+        
+        if (shouldLog) {
+            console.log(`   Found ${elementsUnderCrosshair.length} elements:`, 
+                elementsUnderCrosshair.map(el => el.className || el.tagName).slice(0, 5));
+        }
         
         // Ищем первую карточку
         const targetCard = elementsUnderCrosshair.find(el => 
@@ -185,14 +203,25 @@ const Camera = {
             el.style.visibility !== 'hidden'
         );
         
+        if (shouldLog && targetCard) {
+            console.log(`   🎯 Found .room: "${targetCard.dataset.word}"`);
+        }
+        
         // Проверяем расстояние
         if (targetCard) {
             const cardPositionPositive = parseFloat(targetCard.dataset.position || 0);
             const cardZ = -cardPositionPositive;
             const distance = Math.abs(cardZ - this.z);
             
+            if (shouldLog) {
+                console.log(`   Distance: ${Math.round(distance)}px (max: ${this.rayCastDistance}px)`);
+            }
+            
             if (distance > this.rayCastDistance) {
                 // Слишком далеко
+                if (shouldLog) {
+                    console.log(`   ❌ Too far away!`);
+                }
                 if (this.targetedCard) {
                     this.targetedCard.classList.remove('room-card--targeted');
                     this.targetedCard = null;
@@ -218,6 +247,9 @@ const Camera = {
                 console.log(`🎯 Targeting: "${targetCard.dataset.word}" (${Math.round(distance)}px away)`);
             } else {
                 crosshair.classList.remove('crosshair--targeting');
+                if (shouldLog) {
+                    console.log(`   ❌ No card under crosshair`);
+                }
             }
             
             this.targetedCard = targetCard;
