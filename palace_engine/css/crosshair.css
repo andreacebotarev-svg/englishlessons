@@ -4,16 +4,19 @@
    ============================================ */
 
 .crosshair {
-    position: fixed;
+    position: fixed;  /* 🐛 КРИТИЧНО: fixed, не absolute */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 20px;
     height: 20px;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 10000;  /* 🐛 НАД ВСЕМИ UI */
     opacity: 0.7;
     transition: opacity 0.1s;
+    /* 🐛 Отключаем влияние 3D transform */
+    transform-style: flat;
+    will-change: opacity;
 }
 
 /* Горизонтальная линия */
