@@ -1,18 +1,14 @@
 /* ============================================
    MINECRAFT-STYLE CAMERA CONTROLLER
-   Описание: FPS-контроллер с гравитацией
    ============================================ */
 
 import { CONFIG } from './config.js';
 import { QuizManager, SoundEffects } from './quiz-manager.js';
 
-/**
- * 🎮 STATE MACHINE: Глобальное состояние камеры
- */
 export const CameraState = {
-    mode: 'IDLE',           // 'IDLE' | 'QUIZ_MODE'
-    activeInput: null,      // Текущий input element
-    activeCard: null        // Текущая карточка в quiz
+    mode: 'IDLE',
+    activeInput: null,
+    activeCard: null
 };
 
 const Camera = {
@@ -39,10 +35,9 @@ const Camera = {
     keys: { forward: false, backward: false, left: false, right: false, sprint: false },
     isPointerLocked: false,
     roomsCache: null,
-    lastActiveRoom: -1,
     
     init() {
-        console.log('🎮 Initializing camera with State Machine...');
+        console.log('🎮 Camera init...');
         this.speed = CONFIG.camera.speed;
         this.sprintMultiplier = CONFIG.camera.sprintMultiplier;
         this.acceleration = CONFIG.camera.acceleration;
@@ -63,7 +58,7 @@ const Camera = {
         this.setupTouchControls();
         this.startGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
-        console.log('✅ Camera ready (State: IDLE)');
+        console.log('✅ Camera ready');
     },
     
     setupRaycast() {
@@ -71,7 +66,7 @@ const Camera = {
         let rightClickCount = 0;
         let rightClickTimer = null;
         
-        // ЛКМ → открыть quiz
+        // ЛКМ → quiz
         window.addEventListener('mousedown', (e) => {
             if (!this.isPointerLocked || !this.targetedCard) return;
             if (e.button !== 0) return;
@@ -82,32 +77,34 @@ const Camera = {
             }
         });
         
-        // ✅ ПКМ → озвучка (×1) или перевод (×2)
-        // ИСПРАВЛЕНО: используем activeCard в QUIZ_MODE
+        // ✅ ПКМ → озвучка/перевод (БЕЗ ПРОВЕРКИ isPointerLocked!)
         window.addEventListener('contextmenu', (e) => {
             e.preventDefault();
+            console.log('🖱️ RMB clicked, mode:', CameraState.mode);
             
-            // ✅ Определяем целевую карточку
+            // ✅ Определяем карточку
             let targetCard = null;
             if (CameraState.mode === 'QUIZ_MODE') {
-                // В QUIZ_MODE используем activeCard
                 targetCard = CameraState.activeCard;
+                console.log('  → QUIZ_MODE, activeCard:', targetCard?.dataset.word);
             } else {
-                // В IDLE используем targetedCard
-                if (!this.isPointerLocked || !this.targetedCard) return;
                 targetCard = this.targetedCard;
+                console.log('  → IDLE, targetedCard:', targetCard?.dataset.word);
             }
             
-            if (!targetCard) return;
+            if (!targetCard) {
+                console.warn('  ❌ No card found!');
+                return;
+            }
             
             rightClickCount++;
+            console.log('  → Click count:', rightClickCount);
             
             if (rightClickCount === 1) {
-                // ПКМ × 1 → озвучка
                 const word = targetCard.dataset.word;
+                console.log(`  🔊 Speaking: "${word}"`);
                 this.quizManager.speakWord(word);
                 this.animateClick(targetCard);
-                console.log(`🔊 Speaking: "${word}"`);
                 this.showDoubleClickHint();
                 clearTimeout(rightClickTimer);
                 rightClickTimer = setTimeout(() => {
@@ -115,11 +112,10 @@ const Camera = {
                     this.hideDoubleClickHint();
                 }, 500);
             } else if (rightClickCount === 2) {
-                // ПКМ × 2 → показать перевод
                 clearTimeout(rightClickTimer);
                 rightClickCount = 0;
+                console.log('  👁️ Revealing translation');
                 this.quizManager.revealTranslation(targetCard);
-                console.log(`👁️ Revealed translation (cheat)`);
                 this.hideDoubleClickHint();
             }
         });
@@ -128,34 +124,24 @@ const Camera = {
     updateRaycast() {
         const crosshair = document.querySelector('.crosshair');
         if (!crosshair) return;
-        
-        // ✅ Автовыход при отбегании
         if (CameraState.mode === 'QUIZ_MODE' && CameraState.activeCard) {
             const distance = this.getDistanceToCard(CameraState.activeCard);
             if (distance > 2500) {
-                console.log(`⚠️ Too far from quiz card (${Math.round(distance)}px), closing...`);
+                console.log(`⚠️ Too far, closing quiz`);
                 this.quizManager.closeQuiz(CameraState.activeCard);
             }
         }
-        
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         const elementsUnderCrosshair = document.elementsFromPoint(centerX, centerY);
-        
-        let targetCard = elementsUnderCrosshair.find(el => 
-            el.classList.contains('room') && el.style.visibility !== 'hidden'
-        );
-        
+        let targetCard = elementsUnderCrosshair.find(el => el.classList.contains('room') && el.style.visibility !== 'hidden');
         if (!targetCard) {
             const rooms = Array.from(document.querySelectorAll('.room')).filter(room => room.style.visibility !== 'hidden');
             rooms.forEach(room => {
                 const rect = room.getBoundingClientRect();
-                if (centerX >= rect.left && centerX <= rect.right && centerY >= rect.top && centerY <= rect.bottom) {
-                    targetCard = room;
-                }
+                if (centerX >= rect.left && centerX <= rect.right && centerY >= rect.top && centerY <= rect.bottom) targetCard = room;
             });
         }
-        
         if (targetCard) {
             const distance = this.getDistanceToCard(targetCard);
             if (distance > this.rayCastDistance) {
@@ -167,7 +153,6 @@ const Camera = {
                 return;
             }
         }
-        
         if (targetCard !== this.targetedCard) {
             if (this.targetedCard) this.targetedCard.classList.remove('room-card--targeted');
             if (targetCard) {
@@ -227,7 +212,6 @@ const Camera = {
             }
             this.updateWASDHints();
         });
-        
         window.addEventListener('keyup', (e) => {
             if (CameraState.mode === 'QUIZ_MODE') return;
             switch(e.code) {
@@ -307,8 +291,7 @@ const Camera = {
             if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
             if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0;
         }
-        this.x += this.velocity.x;
-        this.z += this.velocity.z;
+        this.x += this.velocity.x; this.z += this.velocity.z;
         this.velocity.y -= this.gravity;
         if (this.velocity.y < -this.terminalVelocity) this.velocity.y = -this.terminalVelocity;
         this.y += this.velocity.y;
