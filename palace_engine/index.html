@@ -17,7 +17,7 @@
         <div id="error-msg" style="display: none;"></div>
         <div id="controls-hint">
             🎮 Click to lock cursor | WASD to move | Shift to sprint | ESC to exit<br>
-            🎯 LMB to speak | RMB to translate
+            🎯 LMB to Quiz | RMB to Speak | RMB×2 to Reveal
         </div>
         <div id="progress-bar"></div>
         <div id="word-counter"><span>0</span> / 0</div>
@@ -50,6 +50,35 @@
             <div class="wasd-hint-label">Sprint</div>
         </div>
     </div>
+
+    <!-- 🎮 QUIZ STATS OVERLAY -->
+    <div id="quiz-stats" style="display: none;">
+        <h3>📊 Статистика</h3>
+        
+        <div class="stat">
+            <span class="stat__label">Точность:</span>
+            <span class="stat__value" id="accuracy">0%</span>
+        </div>
+        <div class="stat">
+            <span class="stat__label">Правильно:</span>
+            <span class="stat__value stat__value--green" id="correct">0</span>
+        </div>
+        <div class="stat">
+            <span class="stat__label">Ошибок:</span>
+            <span class="stat__value stat__value--red" id="errors">0</span>
+        </div>
+        <div class="stat">
+            <span class="stat__label">Серия:</span>
+            <span class="stat__value stat__value--gold" id="streak">0🔥</span>
+        </div>
+        <div class="stat">
+            <span class="stat__label">Время:</span>
+            <span class="stat__value" id="timer">0:00</span>
+        </div>
+    </div>
+
+    <!-- 🏆 ACHIEVEMENT TOAST -->
+    <div id="achievement-toast"></div>
 
     <!-- 3D Scene -->
     <div id="scene">
