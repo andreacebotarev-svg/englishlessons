@@ -1,6 +1,6 @@
 /* ============================================
    🎨 ROOM CARD with SLIDE-UP HIGHLIGHT
-   Zero-motion design + усиленное свечение
+   Zero-Motion Design + Enhanced Glow
    ============================================ */
 
 .room-card {
@@ -47,45 +47,46 @@
         0 0 30px rgba(255, 214, 10, 0.15);
 }
 
-/* 🎯 TARGETING STATE: Только glow, БЕЗ scale/transform */
+/* 🎯 TARGETING STATE: ZERO MOTION - только glow усиление */
 .room-card--targeted {
-    /* 🔼 SLIDE-UP: Градиент поднимается вверх */
+    /* 🔼 SLIDE-UP: Градиент поднимается вверх (единственное плавное движение) */
     background-position: 0% 0%;
     
-    /* 🌟 ENHANCED GLOW: Усиленное свечение границ */
-    border-color: rgba(255, 214, 10, 0.9);
-    border-width: 3px;  /* ⬆️ Увеличена толщина */
+    /* 🌟 ENHANCED GLOW: Мощное свечение границ */
+    border-color: rgba(255, 214, 10, 0.95);  /* ⬆️ Ярче (0.9 → 0.95) */
+    border-width: 3px;  /* ⬆️ Толще (2px → 3px) */
     
     box-shadow: 
-        0 4px 20px rgba(0, 0, 0, 0.6),
-        0 0 50px rgba(255, 214, 10, 0.6),  /* ⬆️ Усилено внешнее свечение */
-        inset 0 -80px 80px -40px rgba(255, 214, 10, 0.2);  /* ⬆️ Усилено внутреннее свечение */
+        0 4px 25px rgba(0, 0, 0, 0.7),  /* Глубокая тень */
+        0 0 60px rgba(255, 214, 10, 0.7),  /* ⬆️ Усилено внешнее свечение (50px → 60px) */
+        0 0 100px rgba(255, 214, 10, 0.4),  /* Дополнительный слой свечения */
+        inset 0 -100px 100px -50px rgba(255, 214, 10, 0.25);  /* ⬆️ Усилено внутреннее свечение */
     
-    /* 📝 OUTLINE: Более заметная обводка */
-    outline: 2px solid rgba(255, 255, 255, 0.5);  /* ⬆️ Ярче и толще */
+    /* 📝 OUTLINE: Яркая обводка */
+    outline: 2px solid rgba(255, 255, 255, 0.6);  /* ⬆️ Ярче (0.5 → 0.6) */
     outline-offset: 4px;
     
-    /* ❌ REMOVED: transform (scale, translateZ) — 0 motion! */
+    /* ❌ REMOVED: transform, scale, translateZ — абсолютно 0 движения! */
 }
 
-/* 🖱️ CLICK FEEDBACK: Только opacity, БЕЗ scale */
+/* 🖱️ CLICK FEEDBACK: Вспышка света вместо scale */
 @keyframes cardClick {
     0% { 
         opacity: 1;
-        filter: brightness(1);
+        filter: brightness(1) saturate(1);
     }
     50% { 
-        opacity: 0.9;
-        filter: brightness(1.1);  /* Вспышка света вместо движения */
+        opacity: 0.95;
+        filter: brightness(1.2) saturate(1.1);  /* Яркая вспышка */
     }
     100% { 
         opacity: 1;
-        filter: brightness(1);
+        filter: brightness(1) saturate(1);
     }
 }
 
 .room-card--clicked {
-    animation: cardClick 0.15s ease-out;  /* ⬇️ Быстрее (150ms) */
+    animation: cardClick 0.15s ease-out;  /* Быстрая вспышка */
 }
 
 /* 🎭 HOVER: Тонкое изменение курсора */
@@ -169,19 +170,19 @@
     border: 1px solid rgba(255, 214, 10, 0.3);
 }
 
-/* 🔄 TOGGLE ANIMATION: Только fade, БЕЗ translateY */
+/* 🔄 TOGGLE ANIMATION: Только fade, БЕЗ движения */
 .room-card__example,
 .room-card__translation {
-    animation: fadeIn 0.25s ease-out;  /* ⬇️ Быстрее */
+    animation: fadeIn 0.2s ease-out;  /* Быстрее и проще */
 }
 
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-    /* ❌ REMOVED: translateY — 0 motion! */
+    /* ❌ REMOVED: transform translateY — абсолютно 0 движения! */
 }
 
-/* Состояние "перевёрнутой" карточки (старый функционал) */
+/* Состояние "перевёрнутой" карточки (legacy) */
 .room-card--flipped {
     background: linear-gradient(135deg, 
         rgba(40, 40, 50, 0.95), 
@@ -189,7 +190,7 @@
     border-color: rgba(100, 200, 255, 0.4);
 }
 
-/* Активная карточка */
+/* Активная карточка (для room-box режима) */
 .room-card--active {
     border-color: rgba(255, 214, 10, 0.7);
     box-shadow: 
@@ -216,9 +217,16 @@
     .room-card,
     .room-card--targeted,
     .room-card--clicked,
+    .room-card--active,
     .room-card__example,
     .room-card__translation {
         animation: none !important;
+        transition: opacity 0.2s ease-out !important;  /* Только fade */
+    }
+    
+    .room-card--targeted {
+        /* Моментальное изменение цвета вместо плавного */
+        background-position: 0% 0%;
         transition: none !important;
     }
 }
