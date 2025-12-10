@@ -1,0 +1,240 @@
+/* ============================================
+   MOBILE CONTROLS
+   Описание: D-Pad и touch-контролы для мобильных устройств
+   Зависимости: variables.css, animations.css
+   ============================================ */
+
+/* ═══════════════════════════════════════════════════════════════
+   FIXED D-PAD CONTAINER
+   ═══════════════════════════════════════════════════════════════ */
+
+#mobile-dpad {
+    position: fixed;
+    bottom: 120px;
+    left: 30px;
+    width: 150px;
+    height: 150px;
+    z-index: 1000;
+    pointer-events: none;  /* Контейнер не блокирует касания */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   D-PAD BUTTONS (▲▼◄►)
+   ═══════════════════════════════════════════════════════════════ */
+
+.dpad-button {
+    /* Positioning */
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    
+    /* Visual */
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    color: white;
+    font-size: 20px;
+    
+    /* Layout */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Touch */
+    touch-action: none;  /* ✅ Предотвращает скролл при касании */
+    user-select: none;   /* ✅ Предотвращает выделение текста */
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;  /* ✅ Убирает highlight на iOS */
+    pointer-events: auto;  /* ✅ Кнопки принимают события */
+    
+    /* Effects */
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    box-shadow: 
+        0 4px 10px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    
+    /* Animation */
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateZ(0);  /* ✅ GPU acceleration */
+    will-change: transform, background, box-shadow;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   D-PAD BUTTON STATES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ✅ ACTIVE STATE (нажата) */
+.dpad-button:active {
+    transform: scale(0.95) translateZ(0);
+    background: rgba(255, 214, 10, 0.5);  /* Жёлтая */
+    border-color: rgba(255, 214, 10, 0.8);
+    box-shadow: 
+        0 0 20px rgba(255, 214, 10, 0.6),
+        0 0 40px rgba(255, 214, 10, 0.3),
+        inset 0 1px 4px rgba(255, 255, 255, 0.3);
+}
+
+/* ✅ HOVER STATE (только десктоп с мышью) */
+@media (hover: hover) and (pointer: fine) {
+    .dpad-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 214, 10, 0.6);
+        transform: translateY(-2px) translateZ(0);
+        box-shadow: 
+            0 6px 15px rgba(0, 0, 0, 0.4),
+            0 0 15px rgba(255, 214, 10, 0.3);
+    }
+}
+
+/* ✅ FOCUS STATE (accessibility) */
+.dpad-button:focus-visible {
+    outline: 2px solid rgba(255, 214, 10, 0.8);
+    outline-offset: 3px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE: МАЛЕНЬКИЕ ЭКРАНЫ (< 480px)
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+    #mobile-dpad {
+        bottom: 80px;   /* ✅ Поднимаем выше на маленьких экранах */
+        left: 20px;     /* ✅ Ближе к краю */
+        transform: scale(0.9);  /* ✅ Немного меньше */
+    }
+    
+    .dpad-button {
+        width: 45px;   /* ✅ Чуть меньше кнопки */
+        height: 45px;
+        font-size: 18px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE: ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ (< 360px)
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 360px) {
+    #mobile-dpad {
+        bottom: 60px;
+        left: 15px;
+        transform: scale(0.8);
+    }
+    
+    .dpad-button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        border-width: 1.5px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESKTOP: СКРЫТИЕ D-PAD
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ✅ СКРЫВАЕМ на устройствах с мышью (точный указатель) */
+@media (hover: hover) and (pointer: fine) {
+    #mobile-dpad {
+        display: none !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LANDSCAPE MODE (альбомная ориентация)
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (orientation: landscape) and (max-height: 500px) {
+    #mobile-dpad {
+        bottom: 40px;   /* ✅ Опускаем ниже в landscape */
+        left: 20px;
+        transform: scale(0.85);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY: HIGH CONTRAST MODE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (prefers-contrast: high) {
+    .dpad-button {
+        background: rgba(0, 0, 0, 0.8);
+        border: 3px solid white;
+        color: white;
+    }
+    
+    .dpad-button:active {
+        background: rgba(255, 214, 10, 0.9);
+        border-color: white;
+        color: black;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY: REDUCED MOTION
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+    .dpad-button {
+        transition: none;
+        animation: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CAMERA ZONE HINT (опционально)
+   ═══════════════════════════════════════════════════════════════ */
+
+#camera-zone-hint {
+    position: fixed;
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 999;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    opacity: 0;
+    animation: hintFadeIn 2s ease-in-out 1s forwards, hintFadeOut 2s ease-in-out 5s forwards;
+}
+
+@keyframes hintFadeIn {
+    from { opacity: 0; }
+    to { opacity: 0.5; }
+}
+
+@keyframes hintFadeOut {
+    from { opacity: 0.5; }
+    to { opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLET (LANDSCAPE) OPTIMIZATION
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+    #mobile-dpad {
+        bottom: 100px;
+        left: 40px;
+        transform: scale(1.1);  /* ✅ Больше на планшетах */
+    }
+    
+    .dpad-button {
+        width: 55px;
+        height: 55px;
+        font-size: 22px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT STYLES (убираем при печати)
+   ═══════════════════════════════════════════════════════════════ */
+
+@media print {
+    #mobile-dpad {
+        display: none !important;
+    }
+}
