@@ -41,6 +41,7 @@ const Camera = {
     isPointerLocked: false,
     roomsCache: null,
     roomUpdateCounter: 0,
+    isTouchDevice: false,  // ✅ Определение touch-устройства
     
     init() {
         console.log('🎮 Camera init...');
@@ -58,13 +59,23 @@ const Camera = {
         this.z = firstCardWorldZ + safeViewDistance;
         this.minZ = -(CONFIG.cards.spacing * this.words.length) - 500;
         this.maxZ = this.z + 300;
+        
+        // ✅ Определяем touch-устройство
+        this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        
         this.setupKeyboard();
         this.setupMouse();
         this.setupRaycast();
         this.setupTouchControls();
+        
+        // ✅ Создаём D-Pad для мобильных
+        if (this.isTouchDevice) {
+            this.createFixedDPad();
+        }
+        
         this.startGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
-        console.log('✅ Camera ready with TRANSITION_MODE support');
+        console.log('✅ Camera ready with', this.isTouchDevice ? 'Mobile D-Pad' : 'Desktop controls');
     },
     
     setupRaycast() {
@@ -201,9 +212,6 @@ const Camera = {
         setTimeout(() => card.classList.remove('room-card--clicked'), 200);
     },
     
-    // ════════════════════════════════════════════════════════════
-    // ⌨️ KEYBOARD HANDLER с поддержкой TRANSITION_MODE
-    // ════════════════════════════════════════════════════════════
     setupKeyboard() {
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Escape' && CameraState.mode === 'QUIZ_MODE') {
@@ -212,8 +220,6 @@ const Camera = {
                 return;
             }
             
-            // ✅ Блокируем ТОЛЬКО QUIZ_MODE
-            // TRANSITION_MODE и IDLE → разрешены!
             if (CameraState.mode === 'QUIZ_MODE') return;
             
             switch(e.code) {
@@ -338,20 +344,158 @@ const Camera = {
         });
     },
     
+    // ════════════════════════════════════════════════════════════
+    // 📱 FIXED D-PAD (PUBG-style mobile controls)
+    // ════════════════════════════════════════════════════════════
+    createFixedDPad() {
+        const dpad = document.createElement('div');
+        dpad.id = 'mobile-dpad';
+        dpad.style.cssText = `
+            position: fixed;
+            bottom: 120px;
+            left: 30px;
+            width: 150px;
+            height: 150px;
+            z-index: 1000;
+        `;
+        
+        const buttons = [
+            { key: 'up', icon: '▲', top: '0', left: '50px' },
+            { key: 'down', icon: '▼', top: '100px', left: '50px' },
+            { key: 'left', icon: '◄', top: '50px', left: '0' },
+            { key: 'right', icon: '►', top: '50px', left: '100px' }
+        ];
+        
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.className = 'dpad-button';
+            button.dataset.key = btn.key;
+            button.textContent = btn.icon;
+            button.style.cssText = `
+                position: absolute;
+                top: ${btn.top};
+                left: ${btn.left};
+                width: 50px;
+                height: 50px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.4);
+                border-radius: 8px;
+                color: white;
+                font-size: 20px;
+                touch-action: none;
+                user-select: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.1s;
+            `;
+            
+            // ✅ Touch events для кнопок
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                button.style.background = 'rgba(255, 214, 10, 0.5)';
+                this.handleDPadPress(btn.key, true);
+            }, { passive: false });
+            
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                button.style.background = 'rgba(255, 255, 255, 0.2)';
+                this.handleDPadPress(btn.key, false);
+            }, { passive: false });
+            
+            button.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                button.style.background = 'rgba(255, 255, 255, 0.2)';
+                this.handleDPadPress(btn.key, false);
+            }, { passive: false });
+            
+            dpad.appendChild(button);
+        });
+        
+        document.body.appendChild(dpad);
+        console.log('📱 Mobile D-Pad created');
+    },
+    
+    handleDPadPress(key, pressed) {
+        switch(key) {
+            case 'up': 
+                this.keys.forward = pressed; 
+                console.log(`D-Pad UP: ${pressed}`);
+                break;
+            case 'down': 
+                this.keys.backward = pressed; 
+                console.log(`D-Pad DOWN: ${pressed}`);
+                break;
+            case 'left': 
+                this.keys.left = pressed; 
+                console.log(`D-Pad LEFT: ${pressed}`);
+                break;
+            case 'right': 
+                this.keys.right = pressed; 
+                console.log(`D-Pad RIGHT: ${pressed}`);
+                break;
+        }
+        this.updateWASDHints();
+    },
+    
+    // ════════════════════════════════════════════════════════════
+    // 📱 DUAL-ZONE TOUCH CONTROLS (camera on right side)
+    // ════════════════════════════════════════════════════════════
     setupTouchControls() {
-        let touchStartY = 0, touchStartX = 0, isSwiping = false;
+        const screenWidth = window.innerWidth;
+        const cameraZoneStart = screenWidth * 0.4;  // Правые 60% экрана
+        
+        let cameraTouchId = null;
+        let lastCameraX = 0;
+        let lastCameraY = 0;
+        
         window.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.room-card')) return;
-            touchStartY = e.touches[0].clientY; touchStartX = e.touches[0].clientX; isSwiping = true;
+            // Игнорируем D-Pad и UI элементы
+            if (e.target.closest('#mobile-dpad, .room-card, .quiz-stats, .wasd-keys')) return;
+            
+            Array.from(e.changedTouches).forEach(touch => {
+                const x = touch.clientX;
+                const y = touch.clientY;
+                
+                // ✅ ПРАВАЯ ЗОНА = КАМЕРА
+                if (x >= cameraZoneStart && cameraTouchId === null) {
+                    cameraTouchId = touch.identifier;
+                    lastCameraX = x;
+                    lastCameraY = y;
+                    console.log('📱 Camera touch started');
+                }
+            });
         }, { passive: true });
+        
         window.addEventListener('touchmove', (e) => {
-            if (!isSwiping) return;
             if (e.cancelable) e.preventDefault();
-            const deltaY = touchStartY - e.touches[0].clientY, deltaX = touchStartX - e.touches[0].clientX;
-            if (Math.abs(deltaY) > 5) { this.velocity.z += (deltaY > 0 ? 1 : -1) * this.speed * 0.1; touchStartY = e.touches[0].clientY; }
-            if (Math.abs(deltaX) > 5) { this.yaw += deltaX * 0.01; touchStartX = e.touches[0].clientX; }
+            
+            Array.from(e.changedTouches).forEach(touch => {
+                // ✅ Обновление камеры
+                if (touch.identifier === cameraTouchId) {
+                    const deltaX = touch.clientX - lastCameraX;
+                    const deltaY = touch.clientY - lastCameraY;
+                    
+                    this.yaw += deltaX * 0.005;
+                    this.pitch -= deltaY * 0.005;
+                    this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
+                    
+                    lastCameraX = touch.clientX;
+                    lastCameraY = touch.clientY;
+                }
+            });
         }, { passive: false });
-        window.addEventListener('touchend', () => { isSwiping = false; }, { passive: true });
+        
+        window.addEventListener('touchend', (e) => {
+            Array.from(e.changedTouches).forEach(touch => {
+                if (touch.identifier === cameraTouchId) {
+                    cameraTouchId = null;
+                    console.log('📱 Camera touch ended');
+                }
+            });
+        }, { passive: true });
+        
+        console.log('✅ Dual-zone touch controls initialized');
     },
     
     cacheRooms() { this.roomsCache = Array.from(document.querySelectorAll('.room')); },
