@@ -1,6 +1,6 @@
 /**
  * ============================================
- * ADAPTIVE MOBILE D-PAD MODULE v4.0
+ * ADAPTIVE MOBILE D-PAD MODULE v4.1
  * ============================================
  * 
  * Умный адаптивный D-Pad с viewport-relative positioning
@@ -20,7 +20,7 @@
 
 class MobileDPad {
     constructor() {
-        console.log('🎮 MobileDPad v4.0: Constructor called');
+        console.log('🎮 MobileDPad v4.1: Constructor called');
         
         this.keys = {
             up: false,
@@ -178,11 +178,11 @@ class MobileDPad {
         // Создаём контейнер
         this.container = document.createElement('div');
         this.container.id = 'mobile-dpad';
-        this.container.setAttribute('data-version', '4.0');
+        this.container.setAttribute('data-version', '4.1');
         this.container.setAttribute('data-source', 'mobile-dpad.js');
         this.container.setAttribute('data-adaptive', 'true');
         
-        // ✅ ПРИМЕНЯЕМ АДАПТИВНЫЕ СТИЛИ
+        // ✅ ПРИМЕНЯЕМ АДАПТИВНЫЕ СТИЛИ (БЕЗ translateZ!)
         this.container.style.cssText = `
             position: fixed !important;
             bottom: ${layout.position.bottom} !important;
@@ -200,8 +200,6 @@ class MobileDPad {
             border: 5px solid red !important;
             border-radius: ${Math.round(layout.size * 0.08)}px !important;
             box-shadow: 0 0 30px rgba(255, 0, 0, 0.8) !important;
-            transform: translateZ(10000px) !important;
-            will-change: transform !important;
             isolation: isolate !important;
             transition: width 0.3s, height 0.3s, bottom 0.3s, left 0.3s !important;
         `;
@@ -408,7 +406,6 @@ class MobileDPad {
         this.container.style.visibility = 'visible';
         this.container.style.opacity = '1';
         this.container.style.zIndex = '10000000';
-        this.container.style.transform = 'translateZ(10000px)';
         
         Object.values(this.buttons).forEach(btn => {
             btn.style.display = 'flex';
@@ -490,7 +487,7 @@ class MobileDPad {
 // AUTO-INIT
 // ============================================
 
-console.log('📦 mobile-dpad.js v4.0 loaded (ADAPTIVE)');
+console.log('📦 mobile-dpad.js v4.1 loaded (VIEWPORT-FIXED)');
 const dpad = new MobileDPad();
 console.log('✅ MobileDPad instance created');
 
