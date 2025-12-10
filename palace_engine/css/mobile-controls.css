@@ -9,11 +9,12 @@
    ═══════════════════════════════════════════════════════════════ */
 
 #mobile-dpad {
-    position: fixed;
-    bottom: 120px;
-    left: 30px;
-    width: 150px;
-    height: 150px;
+    /* Positioning handled by JavaScript */
+    /* position: fixed; */
+    /* bottom: 120px; */
+    /* left: 30px; */
+    /* width: 150px; */
+    /* height: 150px; */
     z-index: 1000;
     pointer-events: none;  /* Контейнер не блокирует касания */
 }
@@ -55,9 +56,9 @@
         inset 0 1px 2px rgba(255, 255, 255, 0.2);
     
     /* Animation */
-    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateZ(0);  /* ✅ GPU acceleration (safe for buttons) */
-    will-change: transform, background, box-shadow;
+    transition: background 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    /* УБРАНО: transform: translateZ(0) - создавал 3D-контекст, нарушающий fixed positioning */
+    will-change: background, box-shadow;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -66,7 +67,7 @@
 
 /* ✅ ACTIVE STATE (нажата) */
 .dpad-button:active {
-    transform: scale(0.95) translateZ(0);
+    transform: scale(0.95);
     background: rgba(255, 214, 10, 0.5);  /* Жёлтая */
     border-color: rgba(255, 214, 10, 0.8);
     box-shadow: 
@@ -80,7 +81,7 @@
     .dpad-button:hover {
         background: rgba(255, 255, 255, 0.3);
         border-color: rgba(255, 214, 10, 0.6);
-        transform: translateY(-2px) translateZ(0);
+        transform: translateY(-2px);
         box-shadow: 
             0 6px 15px rgba(0, 0, 0, 0.4),
             0 0 15px rgba(255, 214, 10, 0.3);
