@@ -56,7 +56,7 @@
     
     /* Animation */
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateZ(0);  /* ✅ GPU acceleration */
+    transform: translateZ(0);  /* ✅ GPU acceleration (safe for buttons) */
     will-change: transform, background, box-shadow;
 }
 
@@ -95,13 +95,16 @@
 
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVE: МАЛЕНЬКИЕ ЭКРАНЫ (< 480px)
+   ⚠️ REMOVED transform: scale() - breaks viewport positioning!
    ═══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 480px) {
     #mobile-dpad {
         bottom: 80px;   /* ✅ Поднимаем выше на маленьких экранах */
         left: 20px;     /* ✅ Ближе к краю */
-        transform: scale(0.9);  /* ✅ Немного меньше */
+        /* ❌ REMOVED: transform: scale(0.9) - creates 3D context! */
+        width: 135px;   /* ✅ Direct sizing instead of scale */
+        height: 135px;
     }
     
     .dpad-button {
@@ -119,7 +122,9 @@
     #mobile-dpad {
         bottom: 60px;
         left: 15px;
-        transform: scale(0.8);
+        /* ❌ REMOVED: transform: scale(0.8) */
+        width: 120px;   /* ✅ Direct sizing */
+        height: 120px;
     }
     
     .dpad-button {
@@ -155,7 +160,9 @@
     #mobile-dpad {
         bottom: 40px;   /* ✅ Опускаем ниже в landscape */
         left: 20px;
-        transform: scale(0.85);
+        /* ❌ REMOVED: transform: scale(0.85) */
+        width: 128px;   /* ✅ Direct sizing */
+        height: 128px;
     }
 }
 
@@ -225,7 +232,9 @@
     #mobile-dpad {
         bottom: 100px;
         left: 40px;
-        transform: scale(1.1);  /* ✅ Больше на планшетах */
+        /* ❌ REMOVED: transform: scale(1.1) */
+        width: 165px;   /* ✅ Direct sizing instead */
+        height: 165px;
     }
     
     .dpad-button {
