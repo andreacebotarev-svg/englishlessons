@@ -17,7 +17,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    perspective: 800px;  /* 🎮 FIRST PERSON PERSPECTIVE - как в Minecraft */
+    perspective: var(--fov);  /* ✅ FIXED: Use CSS variable (800px from variables.css) */
     perspective-origin: 50% 50%;
     display: flex;
     justify-content: center;
