@@ -75,6 +75,10 @@ const Camera = {
     rayCastDistance: 3000,     // 🐛 УВЕЛИЧЕНО с 2000 до 3000
     lastRaycastLog: 0,         // Для ограничения debug-логов
     
+    // 🔄 DOUBLE-CLICK ДЛЯ TOGGLE
+    lastClickTime: 0,
+    doubleClickDelay: 500,     // 500ms для определения "второго клика"
+    
     // === СОСТОЯНИЕ КЛАВИШ ===
     keys: {
         forward: false,
@@ -135,37 +139,39 @@ const Camera = {
     
     /**
      * 🎯 Настройка системы raycast и кликов
+     * ✅ НОВАЯ ЛОГИКА: ЛКМ всегда озвучивает + двойной клик toggle
      */
     setupRaycast() {
-        // ЛКМ - озвучить слово
-        window.addEventListener('click', (e) => {
+        // ЛКМ - озвучить слово (всегда) + toggle при двойном клике
+        window.addEventListener('mousedown', (e) => {
             if (!this.isPointerLocked) return;
+            if (!this.targetedCard) return;
             
-            console.log('👁️ LMB Click - targetedCard:', this.targetedCard ? this.targetedCard.dataset.word : 'null');
+            // Игнорируем ПКМ и другие кнопки
+            if (e.button !== 0) return;  // Только ЛКМ (button === 0)
             
-            if (this.targetedCard) {
-                const word = this.targetedCard.dataset.word;
-                this.speakWord(word);
-                
-                // Визуальный фидбек
-                this.targetedCard.classList.add('room-card--clicked');
-                setTimeout(() => {
-                    this.targetedCard?.classList.remove('room-card--clicked');
-                }, 200);
-                
-                console.log(`🔊 Speaking: "${word}"`);
+            const now = Date.now();
+            const word = this.targetedCard.dataset.word;
+            
+            // 🔊 ПЕРВЫЙ КЛИК: Всегда озвучиваем
+            this.speakWord(word);
+            this.animateClick(this.targetedCard);
+            console.log(`🔊 Speaking: "${word}"`);
+            
+            // 🔄 ВТОРОЙ КЛИК: Если прошло < 500ms, переключаем перевод
+            if (now - this.lastClickTime < this.doubleClickDelay) {
+                this.toggleCardTranslation(this.targetedCard);
+                console.log(`📖 Toggling translation for "${word}"`);
+                this.lastClickTime = 0;  // Сброс
+            } else {
+                this.lastClickTime = now;
             }
         });
         
-        // ПКМ - показать/скрыть перевод
+        // ПКМ: Отключаем (не используется)
         window.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            if (!this.isPointerLocked) return;
-            
-            console.log('👁️ RMB Click - targetedCard:', this.targetedCard ? this.targetedCard.dataset.word : 'null');
-            
-            if (this.targetedCard) {
-                this.toggleCardTranslation(this.targetedCard);
+            if (this.isPointerLocked) {
+                e.preventDefault();
             }
         });
     },
@@ -329,21 +335,37 @@ const Camera = {
     },
     
     /**
-     * 🔄 Переключение перевода карточки
+     * 🖱️ Анимация клика
+     */
+    animateClick(card) {
+        card.classList.add('room-card--clicked');
+        setTimeout(() => {
+            card.classList.remove('room-card--clicked');
+        }, 200);
+    },
+    
+    /**
+     * 🔄 Переключение: Пример ↔ Перевод
      */
     toggleCardTranslation(card) {
-        const currentState = card.dataset.state || 'example';
-        const exampleEl = card.querySelector('.room-example');
-        const translationEl = card.querySelector('.room-translation');
+        const exampleEl = card.querySelector('.room-card__example');
+        const translationEl = card.querySelector('.room-card__translation');
         
-        if (currentState === 'example') {
-            if (exampleEl) exampleEl.style.display = 'none';
-            if (translationEl) translationEl.style.display = 'block';
+        if (!exampleEl || !translationEl) return;
+        
+        // Проверяем текущее состояние
+        const showingExample = exampleEl.style.display !== 'none';
+        
+        if (showingExample) {
+            // Скрываем пример, показываем перевод
+            exampleEl.style.display = 'none';
+            translationEl.style.display = 'block';
             card.dataset.state = 'translation';
             console.log(`📖 Showing translation for "${card.dataset.word}"`);
         } else {
-            if (exampleEl) exampleEl.style.display = 'block';
-            if (translationEl) translationEl.style.display = 'none';
+            // Показываем пример, скрываем перевод
+            exampleEl.style.display = 'block';
+            translationEl.style.display = 'none';
             card.dataset.state = 'example';
             console.log(`📝 Showing example for "${card.dataset.word}"`);
         }
