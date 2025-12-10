@@ -4,7 +4,7 @@
  * ============================================
  * 
  * Умный адаптивный D-Pad с viewport-relative positioning
- * Автоматическая адаптация под размер экрана
+ * + EMERGENCY POSITION CORRECTION SYSTEM
  * 
  * FEATURES:
  * - Адаптивный размер (35% ширины экрана, 120-180px)
@@ -12,6 +12,8 @@
  * - Привязка к bottom-left viewport
  * - Auto-resize при повороте экрана
  * - Пропорциональные размеры кнопок
+ * - 🆕 Принудительная коррекция позиции после загрузки локации
+ * - 🆕 Защита от сдвига за пределы экрана
  * 
  * USAGE:
  * Import FIRST in index.html:
@@ -32,6 +34,7 @@ class MobileDPad {
         this.container = null;
         this.buttons = {};
         this.currentLayout = null;
+        this.positionCheckInterval = null;
         
         this.init();
     }
@@ -256,6 +259,33 @@ class MobileDPad {
                 }
             }
         }, 1000);
+        
+        // 🆕 Запускаем периодическую проверку позиции
+        this.startPositionMonitoring();
+    }
+    
+    applyContainerStyles(layout) {
+        this.container.style.cssText = `
+            position: fixed !important;
+            bottom: ${layout.position.bottom} !important;
+            left: ${layout.position.left} !important;
+            top: auto !important;
+            right: auto !important;
+            width: ${layout.size}px !important;
+            height: ${layout.size}px !important;
+            z-index: 10000000 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            background: rgba(255, 0, 0, 0.9) !important;
+            border: 5px solid red !important;
+            border-radius: ${Math.round(layout.size * 0.08)}px !important;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8) !important;
+            isolation: isolate !important;
+            transform: none !important;
+            transition: width 0.3s, height 0.3s, bottom 0.3s, left 0.3s !important;
+        `;
     }
     
     createButton(config, buttonSize) {
@@ -322,6 +352,151 @@ class MobileDPad {
         
         console.log(`✅ Button created: ${config.icon} (${config.key}) ${buttonSize}×${buttonSize}px`);
         return button;
+    }
+    
+    // ============================================
+    // 🚑 EMERGENCY POSITION CORRECTION SYSTEM
+    // ============================================
+    
+    setupLocationListeners() {
+        console.log('👂 Setting up location change listeners...');
+        
+        // 🆕 Слушаем custom event 'загрузка локации'
+        window.addEventListener('location-loaded', () => {
+            console.log('📍 Location loaded event detected!');
+            setTimeout(() => {
+                this.forceCorrectPosition();
+            }, 500); // Задержка для завершения рендера
+        });
+        
+        // 🆕 Слушаем изменения DOM (простая реализация)
+        let lastUrl = window.location.href;
+        setInterval(() => {
+            const currentUrl = window.location.href;
+            if (currentUrl !== lastUrl) {
+                console.log('🔄 URL changed, forcing position correction');
+                lastUrl = currentUrl;
+                setTimeout(() => {
+                    this.forceCorrectPosition();
+                }, 500);
+            }
+        }, 1000);
+        
+        console.log('✅ Location listeners active');
+    }
+    
+    startPositionMonitoring() {
+        // 🔄 Периодическая проверка позиции (каждые 5 секунд)
+        this.positionCheckInterval = setInterval(() => {
+            if (this.container) {
+                const isOutOfBounds = this.checkIfOutOfBounds();
+                if (isOutOfBounds) {
+                    console.warn('⚠️ D-Pad detected out of bounds! Forcing correction...');
+                    this.forceCorrectPosition();
+                }
+            }
+        }, 5000);
+        
+        console.log('✅ Position monitoring started (every 5s)');
+    }
+    
+    checkIfOutOfBounds() {
+        if (!this.container) return false;
+        
+        const rect = this.container.getBoundingClientRect();
+        const viewport = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+        
+        // Проверяем, что D-Pad виден на экране
+        const isVisible = 
+            rect.left >= -50 && // Не слишком слева
+            rect.top >= -50 &&  // Не слишком сверху
+            rect.right <= viewport.width + 50 && // Не слишком справа
+            rect.bottom <= viewport.height + 50; // Не слишком снизу
+        
+        return !isVisible;
+    }
+    
+    forceCorrectPosition() {
+        if (!this.container) {
+            console.warn('⚠️ Cannot force position: container not found');
+            return;
+        }
+        
+        console.log('🚑 ========== EMERGENCY POSITION CORRECTION ==========');
+        
+        // 1️⃣ Пересчитываем лаяут
+        this.currentLayout = this.calculatePosition();
+        const layout = this.currentLayout;
+        
+        // 2️⃣ Удаляем ВСЕ transform с родителей
+        let parent = this.container.parentElement;
+        while (parent && parent !== document.body) {
+            const transform = window.getComputedStyle(parent).transform;
+            if (transform && transform !== 'none') {
+                console.warn(`⚠️ Found transform on parent: ${parent.tagName}`);
+                console.log(`   Transform: ${transform}`);
+            }
+            parent = parent.parentElement;
+        }
+        
+        // 3️⃣ ПРИНУДИТЕЛЬНО применяем правильную позицию
+        this.applyContainerStyles(layout);
+        
+        // 4️⃣ Добавляем визуальную индикацию
+        this.showCorrectionFeedback();
+        
+        // 5️⃣ Верификация
+        setTimeout(() => {
+            const rect = this.container.getBoundingClientRect();
+            const expectedBottom = window.innerHeight - layout.margins.bottom;
+            const expectedLeft = layout.margins.left;
+            
+            console.log('📐 Position verification:');
+            console.log(`   Expected: bottom=${expectedBottom}px, left=${expectedLeft}px`);
+            console.log(`   Actual: bottom=${Math.round(rect.bottom)}px, left=${Math.round(rect.left)}px`);
+            
+            const isCorrect = 
+                Math.abs(rect.bottom - expectedBottom) < 10 &&
+                Math.abs(rect.left - expectedLeft) < 10;
+            
+            if (isCorrect) {
+                console.log('✅ Position corrected successfully!');
+            } else {
+                console.error('❌ Position correction FAILED!');
+                console.log('   Trying alternative method...');
+                this.emergencyRepositionToDOMRoot();
+            }
+        }, 100);
+        
+        console.log('🚑 ===================================================');
+    }
+    
+    emergencyRepositionToDOMRoot() {
+        // 🆘 Крайняя мера: перемещаем D-Pad напрямую в document.body
+        console.log('🆘 EMERGENCY: Moving D-Pad directly to document.body');
+        
+        if (this.container.parentElement !== document.body) {
+            document.body.appendChild(this.container);
+            console.log('✅ D-Pad moved to body root');
+        }
+        
+        // Повторно применяем стили
+        this.applyContainerStyles(this.currentLayout);
+    }
+    
+    showCorrectionFeedback() {
+        // ✨ Визуальная индикация коррекции
+        const originalBorder = this.container.style.border;
+        this.container.style.border = '5px solid yellow !important';
+        this.container.style.boxShadow = '0 0 50px rgba(255, 255, 0, 1) !important';
+        
+        setTimeout(() => {
+            this.container.style.border = originalBorder;
+            this.container.style.boxShadow = '0 0 30px rgba(255, 0, 0, 0.8) !important';
+        }, 500);
     }
     
     // ============================================
@@ -661,6 +836,10 @@ class MobileDPad {
     // ============================================
     
     destroy() {
+        if (this.positionCheckInterval) {
+            clearInterval(this.positionCheckInterval);
+        }
+        
         if (this.container && this.container.parentElement) {
             this.container.remove();
             console.log('🗑️ D-Pad destroyed');
