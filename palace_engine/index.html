@@ -15,10 +15,18 @@
     <div id="ui-layer">
         <div id="loading">Loading Palace...</div>
         <div id="error-msg" style="display: none;"></div>
-        <div id="controls-hint">🎮 Click to lock cursor | WASD to move | Shift to sprint | ESC to exit</div>
+        <div id="controls-hint">
+            🎮 Click to lock cursor | WASD to move | Shift to sprint | ESC to exit<br>
+            🎯 LMB to speak | RMB to translate
+        </div>
         <div id="progress-bar"></div>
         <div id="word-counter"><span>0</span> / 0</div>
         <button id="back-btn" onclick="history.back()">← Exit</button>
+    </div>
+
+    <!-- Minecraft-style Crosshair -->
+    <div class="crosshair">
+        <div class="crosshair__dot"></div>
     </div>
 
     <!-- WASD Hints -->
