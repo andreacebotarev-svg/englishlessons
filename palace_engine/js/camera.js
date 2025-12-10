@@ -41,7 +41,7 @@ const Camera = {
     isPointerLocked: false,
     roomsCache: null,
     roomUpdateCounter: 0,
-    isTouchDevice: false,  // ✅ Определение touch-устройства
+    isTouchDevice: false,
     
     init() {
         console.log('🎮 Camera init...');
@@ -60,7 +60,6 @@ const Camera = {
         this.minZ = -(CONFIG.cards.spacing * this.words.length) - 500;
         this.maxZ = this.z + 300;
         
-        // ✅ Определяем touch-устройство
         this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         
         this.setupKeyboard();
@@ -68,7 +67,6 @@ const Camera = {
         this.setupRaycast();
         this.setupTouchControls();
         
-        // ✅ Создаём D-Pad для мобильных
         if (this.isTouchDevice) {
             this.createFixedDPad();
         }
@@ -345,19 +343,35 @@ const Camera = {
     },
     
     // ════════════════════════════════════════════════════════════
-    // 📱 FIXED D-PAD (PUBG-style mobile controls)
+    // 📱 FIXED D-PAD (FORCED VISIBILITY)
     // ════════════════════════════════════════════════════════════
     createFixedDPad() {
+        console.log('📱 Creating D-Pad with FORCED visibility...');
+        
+        // Удаляем старый, если есть
+        const oldDpad = document.getElementById('mobile-dpad');
+        if (oldDpad) {
+            console.log('⚠️ Removing old D-Pad');
+            oldDpad.remove();
+        }
+        
         const dpad = document.createElement('div');
         dpad.id = 'mobile-dpad';
-        dpad.style.cssText = `
-            position: fixed;
-            bottom: 120px;
-            left: 30px;
-            width: 150px;
-            height: 150px;
-            z-index: 1000;
-        `;
+        
+        // ✅ ПРИНУДИТЕЛЬНЫЕ СТИЛИ (НЕВОЗМОЖНО ПЕРЕОПРЕДЕЛИТЬ)
+        dpad.setAttribute('style', `
+            position: fixed !important;
+            bottom: 120px !important;
+            left: 30px !important;
+            width: 150px !important;
+            height: 150px !important;
+            z-index: 999999 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            border: 3px solid red !important;
+        `);
         
         const buttons = [
             { key: 'up', icon: '▲', top: '0', left: '50px' },
@@ -371,49 +385,73 @@ const Camera = {
             button.className = 'dpad-button';
             button.dataset.key = btn.key;
             button.textContent = btn.icon;
-            button.style.cssText = `
-                position: absolute;
-                top: ${btn.top};
-                left: ${btn.left};
-                width: 50px;
-                height: 50px;
-                background: rgba(255, 255, 255, 0.2);
-                border: 2px solid rgba(255, 255, 255, 0.4);
-                border-radius: 8px;
-                color: white;
-                font-size: 20px;
-                touch-action: none;
-                user-select: none;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: background 0.1s;
-            `;
             
-            // ✅ Touch events для кнопок
+            // ✅ ПРИНУДИТЕЛЬНЫЕ СТИЛИ ДЛЯ КНОПОК
+            button.setAttribute('style', `
+                position: absolute !important;
+                top: ${btn.top} !important;
+                left: ${btn.left} !important;
+                width: 50px !important;
+                height: 50px !important;
+                background: rgba(255, 255, 255, 0.3) !important;
+                border: 2px solid rgba(255, 255, 255, 0.6) !important;
+                border-radius: 8px !important;
+                color: white !important;
+                font-size: 20px !important;
+                touch-action: none !important;
+                user-select: none !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                transition: background 0.1s !important;
+                z-index: 1000000 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: auto !important;
+            `);
+            
             button.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                button.style.background = 'rgba(255, 214, 10, 0.5)';
+                button.style.background = 'rgba(255, 214, 10, 0.7) !important';
                 this.handleDPadPress(btn.key, true);
             }, { passive: false });
             
             button.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                button.style.background = 'rgba(255, 255, 255, 0.2)';
+                button.style.background = 'rgba(255, 255, 255, 0.3) !important';
                 this.handleDPadPress(btn.key, false);
             }, { passive: false });
             
             button.addEventListener('touchcancel', (e) => {
                 e.preventDefault();
-                button.style.background = 'rgba(255, 255, 255, 0.2)';
+                button.style.background = 'rgba(255, 255, 255, 0.3) !important';
                 this.handleDPadPress(btn.key, false);
             }, { passive: false });
             
             dpad.appendChild(button);
+            console.log(`✅ Button "${btn.icon}" created`);
         });
         
         document.body.appendChild(dpad);
-        console.log('📱 Mobile D-Pad created');
+        console.log('✅ D-Pad appended to body');
+        
+        // Проверка через 1 секунду
+        setTimeout(() => {
+            const check = document.getElementById('mobile-dpad');
+            if (check) {
+                const styles = window.getComputedStyle(check);
+                console.log('🔍 D-Pad verification:');
+                console.log('  - display:', styles.display);
+                console.log('  - visibility:', styles.visibility);
+                console.log('  - opacity:', styles.opacity);
+                console.log('  - z-index:', styles.zIndex);
+                console.log('  - position:', styles.position);
+                console.log('  - bottom:', styles.bottom);
+                console.log('  - left:', styles.left);
+            } else {
+                console.error('❌ D-Pad not found after creation!');
+            }
+        }, 1000);
     },
     
     handleDPadPress(key, pressed) {
@@ -443,21 +481,19 @@ const Camera = {
     // ════════════════════════════════════════════════════════════
     setupTouchControls() {
         const screenWidth = window.innerWidth;
-        const cameraZoneStart = screenWidth * 0.4;  // Правые 60% экрана
+        const cameraZoneStart = screenWidth * 0.4;
         
         let cameraTouchId = null;
         let lastCameraX = 0;
         let lastCameraY = 0;
         
         window.addEventListener('touchstart', (e) => {
-            // Игнорируем D-Pad и UI элементы
             if (e.target.closest('#mobile-dpad, .room-card, .quiz-stats, .wasd-keys')) return;
             
             Array.from(e.changedTouches).forEach(touch => {
                 const x = touch.clientX;
                 const y = touch.clientY;
                 
-                // ✅ ПРАВАЯ ЗОНА = КАМЕРА
                 if (x >= cameraZoneStart && cameraTouchId === null) {
                     cameraTouchId = touch.identifier;
                     lastCameraX = x;
@@ -471,7 +507,6 @@ const Camera = {
             if (e.cancelable) e.preventDefault();
             
             Array.from(e.changedTouches).forEach(touch => {
-                // ✅ Обновление камеры
                 if (touch.identifier === cameraTouchId) {
                     const deltaX = touch.clientX - lastCameraX;
                     const deltaY = touch.clientY - lastCameraY;
