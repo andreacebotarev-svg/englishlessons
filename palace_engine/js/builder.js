@@ -1,6 +1,7 @@
 // palace_engine/js/builder.js
 
 import { CONFIG } from './config.js';
+import { QuizManager } from './quiz-manager.js';  // 🎮 ИМПОРТ ДЛЯ QUIZ
 // 🏛️ НОВЫЕ ИМПОРТЫ ДЛЯ СИСТЕМЫ КОМНАТ
 import {
     getRoomZPosition,
@@ -57,15 +58,16 @@ function createWallRight() {
 
 /**
  * Создает "комнату" для одного слова
- * ✅ ОБНОВЛЕННАЯ СТРУКТУРА: Слово + Транскрипция + Картинка + Пример/Перевод
+ * ✅ ОБНОВЛЕННАЯ СТРУКТУРА: Слово + Транскрипция + Картинка + Пример/Перевод + QUIZ
  */
 function createRoom({ position, word, translation, example, transcription, image, difficulty, index }) {
   const room = document.createElement('div');
   room.className = 'room';
   room.dataset.word = word;
+  room.dataset.translation = translation;  // 🎮 ДОБАВЛЕНО для Quiz
   room.dataset.position = position;
   room.dataset.index = index;
-  room.dataset.state = 'example';  // Начальное состояние
+  room.dataset.state = 'idle';  // 🎮 ИЗМЕНЕНО: idle для Quiz
   
   // ЧЕРЕДОВАНИЕ: чётные слева, нечётные справа
   const isLeft = index % 2 === 0;
@@ -127,17 +129,54 @@ function createRoom({ position, word, translation, example, transcription, image
     room.appendChild(wrapper);
   }
   
-  // 3. КОНТЕНТ: ПРИМЕР ИЛИ ПЕРЕВОД
+  // 🎮 3. QUIZ-БЛОК (скрыт изначально)
+  const quizBlock = document.createElement('div');
+  quizBlock.className = 'room-card__quiz';
+  quizBlock.style.display = 'none';
+
+  // Input для ввода ответа
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'room-card__input';
+  input.placeholder = 'Введите перевод...';
+  input.autocomplete = 'off';
+  input.spellcheck = false;
+
+  // Enter → проверка ответа
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      
+      // Найти QuizManager через camera
+      const camera = window.Camera;
+      if (camera && camera.quizManager) {
+        camera.quizManager.checkAnswer(room, input.value);
+      } else {
+        console.warn('⚠️ QuizManager not found');
+      }
+    }
+  });
+
+  // Hint для подсказок
+  const hint = document.createElement('div');
+  hint.className = 'room-card__hint';
+  hint.style.display = 'none';
+
+  quizBlock.appendChild(input);
+  quizBlock.appendChild(hint);
+  room.appendChild(quizBlock);
+  
+  // 4. КОНТЕНТ: ПРИМЕР ИЛИ ПЕРЕВОД
   const contentWrapper = document.createElement('div');
   contentWrapper.className = 'room-card__content';
 
-  // 3.1 ПРИМЕР (показывается по умолчанию)
+  // 4.1 ПРИМЕР (показывается по умолчанию)
   const exampleEl = document.createElement('div');
   exampleEl.className = 'room-card__example';
   exampleEl.textContent = example || `Example: "${word}" in a sentence.`;
   contentWrapper.appendChild(exampleEl);
 
-  // 3.2 ПЕРЕВОД (скрыт изначально)
+  // 4.2 ПЕРЕВОД (скрыт изначально)
   const translationEl = document.createElement('div');
   translationEl.className = 'room-card__translation';
   translationEl.textContent = translation;
@@ -146,8 +185,10 @@ function createRoom({ position, word, translation, example, transcription, image
 
   room.appendChild(contentWrapper);
   
-  // ✅ УБРАНЫ INLINE ОБРАБОТЧИКИ
-  // Вся логика теперь в camera.js (setupRaycast)
+  // 🎮 5. STATUS ICON (для галочки/крестика)
+  const statusIcon = document.createElement('div');
+  statusIcon.className = 'room-card__status-icon';
+  room.appendChild(statusIcon);
   
   return room;
 }
@@ -221,10 +262,13 @@ function buildWorld(words) {
       
       corridor.appendChild(room);
       
-      console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px`);
+      if (index < 3) {  // Логируем только первые 3
+        console.log(`   Room ${index + 1}: "${word.en}" at Z=-${position}px`);
+      }
     });
     
     console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.cards.spacing}px)`);
+    console.log('🎮 Quiz-mode enabled on all cards');
   }
   
   return corridor;
