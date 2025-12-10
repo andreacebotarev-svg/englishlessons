@@ -533,8 +533,16 @@ const Camera = {
     applyTransform() {
         const corridor = document.querySelector('#corridor');
         if (!corridor) return;
-        document.documentElement.style.setProperty('--fov', `${CONFIG.camera.fov}px`);
-        corridor.style.transform = `rotateX(${this.pitch}rad) rotateY(${this.yaw}rad) translate3d(${-this.x}px, ${-this.y}px, ${-this.z}px)`;
+        
+        // ✅ ПРАВИЛЬНАЯ ТРАНСФОРМАЦИЯ (как в Minecraft/FPS):
+        corridor.style.transform = `
+            translate3d(${-this.x}px, ${-this.y}px, ${-this.z}px)
+            rotateY(${-this.yaw}rad)
+            rotateX(${-this.pitch}rad)
+        `.trim();
+        
+        // ❌ УБРАНО: translateZ(fov) - создавало вид от 3-го лица
+        // document.documentElement.style.setProperty('--fov', `${CONFIG.camera.fov}px`);
     },
     
     updateWASDHints() {
