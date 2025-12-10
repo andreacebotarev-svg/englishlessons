@@ -69,11 +69,12 @@ const Camera = {
         
         if (this.isTouchDevice) {
             this.createFixedDPad();
+            this.setupMobileCardInteractions();  // ✅ FIX #2!
         }
         
         this.startGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
-        console.log('✅ Camera ready with', this.isTouchDevice ? 'Mobile D-Pad' : 'Desktop controls');
+        console.log('✅ Camera ready with', this.isTouchDevice ? 'Mobile D-Pad + Card Interactions' : 'Desktop controls');
     },
     
     setupRaycast() {
@@ -134,6 +135,193 @@ const Camera = {
         });
         
         window.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+    },
+    
+    // ════════════════════════════════════════════════════════════
+    // 📱 MOBILE CARD INTERACTIONS (Tap/Long-press/Double-tap)
+    // ════════════════════════════════════════════════════════════
+    setupMobileCardInteractions() {
+        console.log('📱 Setting up mobile card interactions...');
+        
+        let longPressTimer = null;
+        let longPressCard = null;
+        let touchStartTime = 0;
+        let touchStartPos = { x: 0, y: 0 };
+        let lastTapTime = 0;
+        let lastTapCard = null;
+        
+        // ✅ TOUCH START - Начало жеста
+        window.addEventListener('touchstart', (e) => {
+            // Игнорируем D-Pad и UI элементы
+            if (e.target.closest('#mobile-dpad, .quiz-stats, .wasd-keys, #back-btn')) return;
+            
+            const touch = e.changedTouches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            const card = element?.closest('.room');
+            
+            if (!card) return;
+            
+            touchStartTime = Date.now();
+            touchStartPos = { x: touch.clientX, y: touch.clientY };
+            longPressCard = card;
+            
+            // ✅ Начинаем таймер long-press (500ms)
+            longPressTimer = setTimeout(() => {
+                const distance = this.getDistanceToCard(card);
+                
+                // ✅ LONG-PRESS → SPEAK WORD
+                const word = card.dataset.word;
+                this.quizManager.speakWord(word);
+                this.animateClick(card);
+                
+                // ✅ Haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+                
+                // ✅ Visual feedback
+                this.showToast(`🔊 Speaking: "${word}"`, 1500);
+                
+                console.log(`📱 Long-press: Speaking "${word}" (distance: ${Math.round(distance)}px)`);
+                longPressCard = null;
+            }, 500);
+            
+        }, { passive: true });
+        
+        // ✅ TOUCH END - Завершение жеста
+        window.addEventListener('touchend', (e) => {
+            clearTimeout(longPressTimer);
+            
+            if (!longPressCard) return;
+            
+            const touch = e.changedTouches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            const card = element?.closest('.room');
+            
+            if (!card || card !== longPressCard) {
+                longPressCard = null;
+                return;
+            }
+            
+            const touchDuration = Date.now() - touchStartTime;
+            const touchMoveDistance = Math.sqrt(
+                Math.pow(touch.clientX - touchStartPos.x, 2) + 
+                Math.pow(touch.clientY - touchStartPos.y, 2)
+            );
+            
+            // ✅ Игнорируем, если палец двигался (scroll)
+            if (touchMoveDistance > 10) {
+                longPressCard = null;
+                return;
+            }
+            
+            // ✅ Игнорируем long-press (уже обработан)
+            if (touchDuration >= 500) {
+                longPressCard = null;
+                return;
+            }
+            
+            const distance = this.getDistanceToCard(card);
+            const now = Date.now();
+            const timeSinceLastTap = now - lastTapTime;
+            
+            // ✅ DOUBLE-TAP DETECTION (< 300ms)
+            if (lastTapCard === card && timeSinceLastTap < 300) {
+                e.preventDefault();
+                
+                // ✅ DOUBLE-TAP → REVEAL/HIDE TRANSLATION
+                const currentState = card.dataset.state || 'idle';
+                if (currentState === 'revealed') {
+                    this.quizManager.hideTranslation(card);
+                    this.showToast('🔒 Translation hidden', 1500);
+                } else {
+                    this.quizManager.revealTranslation(card);
+                    this.showToast('👁️ Translation revealed!', 1500);
+                }
+                
+                console.log(`📱 Double-tap: Toggle translation (distance: ${Math.round(distance)}px)`);
+                
+                lastTapTime = 0;
+                lastTapCard = null;
+                longPressCard = null;
+                return;
+            }
+            
+            // ✅ SINGLE TAP → QUIZ (with distance check)
+            const state = card.dataset.state || 'idle';
+            if (state === 'idle') {
+                // ✅ FIX #4: DISTANCE FEEDBACK
+                if (distance > 2000) {
+                    this.showToast(`⚠️ Too far! Distance: ${Math.round(distance)}px\n🚶 Move closer using D-Pad`, 2500);
+                    console.log(`📱 Tap rejected: Too far (${Math.round(distance)}px)`);
+                } else {
+                    e.preventDefault();
+                    this.quizManager.initQuiz(card);
+                    SoundEffects.playClick();
+                    console.log(`📱 Tap: Open quiz for "${card.dataset.word}" (distance: ${Math.round(distance)}px)`);
+                }
+            }
+            
+            lastTapTime = now;
+            lastTapCard = card;
+            longPressCard = null;
+            
+        }, { passive: true });
+        
+        // ✅ TOUCH MOVE - Отмена long-press при движении
+        window.addEventListener('touchmove', (e) => {
+            if (longPressCard) {
+                const touch = e.changedTouches[0];
+                const moveDistance = Math.sqrt(
+                    Math.pow(touch.clientX - touchStartPos.x, 2) + 
+                    Math.pow(touch.clientY - touchStartPos.y, 2)
+                );
+                
+                if (moveDistance > 10) {
+                    clearTimeout(longPressTimer);
+                    longPressCard = null;
+                }
+            }
+        }, { passive: true });
+        
+        console.log('✅ Mobile card interactions initialized (Tap/Long-press/Double-tap)');
+    },
+    
+    // ✅ FIX #4: TOAST NOTIFICATION SYSTEM
+    showToast(message, duration = 2000) {
+        let toast = document.getElementById('mobile-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'mobile-toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 200px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 24px;
+                border: 2px solid rgba(255, 214, 10, 0.5);
+                font-size: 14px;
+                font-weight: 600;
+                z-index: 100000;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.3s;
+                text-align: center;
+                max-width: 80%;
+                white-space: pre-line;
+            `;
+            document.body.appendChild(toast);
+        }
+        
+        toast.textContent = message;
+        toast.style.opacity = '1';
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+        }, duration);
     },
     
     updateRaycast() {
@@ -348,7 +536,6 @@ const Camera = {
     createFixedDPad() {
         console.log('📱 Creating D-Pad with FORCED visibility...');
         
-        // Удаляем старый, если есть
         const oldDpad = document.getElementById('mobile-dpad');
         if (oldDpad) {
             console.log('⚠️ Removing old D-Pad');
@@ -358,7 +545,6 @@ const Camera = {
         const dpad = document.createElement('div');
         dpad.id = 'mobile-dpad';
         
-        // ✅ ПРИНУДИТЕЛЬНЫЕ СТИЛИ (НЕВОЗМОЖНО ПЕРЕОПРЕДЕЛИТЬ)
         dpad.setAttribute('style', `
             position: fixed !important;
             bottom: 120px !important;
@@ -386,7 +572,6 @@ const Camera = {
             button.dataset.key = btn.key;
             button.textContent = btn.icon;
             
-            // ✅ ПРИНУДИТЕЛЬНЫЕ СТИЛИ ДЛЯ КНОПОК
             button.setAttribute('style', `
                 position: absolute !important;
                 top: ${btn.top} !important;
@@ -435,7 +620,6 @@ const Camera = {
         document.body.appendChild(dpad);
         console.log('✅ D-Pad appended to body');
         
-        // Проверка через 1 секунду
         setTimeout(() => {
             const check = document.getElementById('mobile-dpad');
             if (check) {
