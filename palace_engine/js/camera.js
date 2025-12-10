@@ -68,13 +68,47 @@ const Camera = {
         this.setupTouchControls();
         
         if (this.isTouchDevice) {
-            this.createFixedDPad();
-            this.setupMobileCardInteractions();  // ✅ FIX #2!
+            this.setupDPadEventListener();  // ✅ Listen to mobile-dpad.js events
+            this.setupMobileCardInteractions();
         }
         
         this.startGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
         console.log('✅ Camera ready with', this.isTouchDevice ? 'Mobile D-Pad + Card Interactions' : 'Desktop controls');
+    },
+    
+    // ════════════════════════════════════════════════════════════
+    // 📱 D-PAD EVENT LISTENER (from mobile-dpad.js)
+    // ════════════════════════════════════════════════════════════
+    setupDPadEventListener() {
+        console.log('📡 Camera: Setting up D-Pad event listener...');
+        
+        window.addEventListener('dpad-input', (e) => {
+            const { key, pressed } = e.detail;
+            
+            // Map D-Pad keys to Camera keys
+            switch(key) {
+                case 'up':
+                    this.keys.forward = pressed;
+                    break;
+                case 'down':
+                    this.keys.backward = pressed;
+                    break;
+                case 'left':
+                    this.keys.left = pressed;
+                    break;
+                case 'right':
+                    this.keys.right = pressed;
+                    break;
+            }
+            
+            // Update visual hints
+            this.updateWASDHints();
+            
+            console.log(`📡 Camera received: ${key}=${pressed}`);
+        });
+        
+        console.log('✅ D-Pad event listener ready');
     },
     
     setupRaycast() {
@@ -150,9 +184,7 @@ const Camera = {
         let lastTapTime = 0;
         let lastTapCard = null;
         
-        // ✅ TOUCH START - Начало жеста
         window.addEventListener('touchstart', (e) => {
-            // Игнорируем D-Pad и UI элементы
             if (e.target.closest('#mobile-dpad, .quiz-stats, .wasd-keys, #back-btn')) return;
             
             const touch = e.changedTouches[0];
@@ -165,30 +197,23 @@ const Camera = {
             touchStartPos = { x: touch.clientX, y: touch.clientY };
             longPressCard = card;
             
-            // ✅ Начинаем таймер long-press (500ms)
             longPressTimer = setTimeout(() => {
                 const distance = this.getDistanceToCard(card);
-                
-                // ✅ LONG-PRESS → SPEAK WORD
                 const word = card.dataset.word;
                 this.quizManager.speakWord(word);
                 this.animateClick(card);
                 
-                // ✅ Haptic feedback
                 if (navigator.vibrate) {
                     navigator.vibrate(50);
                 }
                 
-                // ✅ Visual feedback
                 this.showToast(`🔊 Speaking: "${word}"`, 1500);
-                
                 console.log(`📱 Long-press: Speaking "${word}" (distance: ${Math.round(distance)}px)`);
                 longPressCard = null;
             }, 500);
             
         }, { passive: true });
         
-        // ✅ TOUCH END - Завершение жеста
         window.addEventListener('touchend', (e) => {
             clearTimeout(longPressTimer);
             
@@ -209,14 +234,7 @@ const Camera = {
                 Math.pow(touch.clientY - touchStartPos.y, 2)
             );
             
-            // ✅ Игнорируем, если палец двигался (scroll)
-            if (touchMoveDistance > 10) {
-                longPressCard = null;
-                return;
-            }
-            
-            // ✅ Игнорируем long-press (уже обработан)
-            if (touchDuration >= 500) {
+            if (touchMoveDistance > 10 || touchDuration >= 500) {
                 longPressCard = null;
                 return;
             }
@@ -225,11 +243,10 @@ const Camera = {
             const now = Date.now();
             const timeSinceLastTap = now - lastTapTime;
             
-            // ✅ DOUBLE-TAP DETECTION (< 300ms)
+            // Double-tap
             if (lastTapCard === card && timeSinceLastTap < 300) {
                 e.preventDefault();
                 
-                // ✅ DOUBLE-TAP → REVEAL/HIDE TRANSLATION
                 const currentState = card.dataset.state || 'idle';
                 if (currentState === 'revealed') {
                     this.quizManager.hideTranslation(card);
@@ -247,10 +264,9 @@ const Camera = {
                 return;
             }
             
-            // ✅ SINGLE TAP → QUIZ (with distance check)
+            // Single tap
             const state = card.dataset.state || 'idle';
             if (state === 'idle') {
-                // ✅ FIX #4: DISTANCE FEEDBACK
                 if (distance > 2000) {
                     this.showToast(`⚠️ Too far! Distance: ${Math.round(distance)}px\n🚶 Move closer using D-Pad`, 2500);
                     console.log(`📱 Tap rejected: Too far (${Math.round(distance)}px)`);
@@ -268,7 +284,6 @@ const Camera = {
             
         }, { passive: true });
         
-        // ✅ TOUCH MOVE - Отмена long-press при движении
         window.addEventListener('touchmove', (e) => {
             if (longPressCard) {
                 const touch = e.changedTouches[0];
@@ -284,10 +299,9 @@ const Camera = {
             }
         }, { passive: true });
         
-        console.log('✅ Mobile card interactions initialized (Tap/Long-press/Double-tap)');
+        console.log('✅ Mobile card interactions initialized');
     },
     
-    // ✅ FIX #4: TOAST NOTIFICATION SYSTEM
     showToast(message, duration = 2000) {
         let toast = document.getElementById('mobile-toast');
         if (!toast) {
@@ -530,139 +544,6 @@ const Camera = {
         });
     },
     
-    // ════════════════════════════════════════════════════════════
-    // 📱 FIXED D-PAD (FORCED VISIBILITY)
-    // ════════════════════════════════════════════════════════════
-    createFixedDPad() {
-        console.log('📱 Creating D-Pad with FORCED visibility...');
-        
-        const oldDpad = document.getElementById('mobile-dpad');
-        if (oldDpad) {
-            console.log('⚠️ Removing old D-Pad');
-            oldDpad.remove();
-        }
-        
-        const dpad = document.createElement('div');
-        dpad.id = 'mobile-dpad';
-        
-        dpad.setAttribute('style', `
-            position: fixed !important;
-            bottom: 120px !important;
-            left: 30px !important;
-            width: 150px !important;
-            height: 150px !important;
-            z-index: 999999 !important;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            border: 3px solid red !important;
-        `);
-        
-        const buttons = [
-            { key: 'up', icon: '▲', top: '0', left: '50px' },
-            { key: 'down', icon: '▼', top: '100px', left: '50px' },
-            { key: 'left', icon: '◄', top: '50px', left: '0' },
-            { key: 'right', icon: '►', top: '50px', left: '100px' }
-        ];
-        
-        buttons.forEach(btn => {
-            const button = document.createElement('button');
-            button.className = 'dpad-button';
-            button.dataset.key = btn.key;
-            button.textContent = btn.icon;
-            
-            button.setAttribute('style', `
-                position: absolute !important;
-                top: ${btn.top} !important;
-                left: ${btn.left} !important;
-                width: 50px !important;
-                height: 50px !important;
-                background: rgba(255, 255, 255, 0.3) !important;
-                border: 2px solid rgba(255, 255, 255, 0.6) !important;
-                border-radius: 8px !important;
-                color: white !important;
-                font-size: 20px !important;
-                touch-action: none !important;
-                user-select: none !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                transition: background 0.1s !important;
-                z-index: 1000000 !important;
-                opacity: 1 !important;
-                visibility: visible !important;
-                pointer-events: auto !important;
-            `);
-            
-            button.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                button.style.background = 'rgba(255, 214, 10, 0.7) !important';
-                this.handleDPadPress(btn.key, true);
-            }, { passive: false });
-            
-            button.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                button.style.background = 'rgba(255, 255, 255, 0.3) !important';
-                this.handleDPadPress(btn.key, false);
-            }, { passive: false });
-            
-            button.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                button.style.background = 'rgba(255, 255, 255, 0.3) !important';
-                this.handleDPadPress(btn.key, false);
-            }, { passive: false });
-            
-            dpad.appendChild(button);
-            console.log(`✅ Button "${btn.icon}" created`);
-        });
-        
-        document.body.appendChild(dpad);
-        console.log('✅ D-Pad appended to body');
-        
-        setTimeout(() => {
-            const check = document.getElementById('mobile-dpad');
-            if (check) {
-                const styles = window.getComputedStyle(check);
-                console.log('🔍 D-Pad verification:');
-                console.log('  - display:', styles.display);
-                console.log('  - visibility:', styles.visibility);
-                console.log('  - opacity:', styles.opacity);
-                console.log('  - z-index:', styles.zIndex);
-                console.log('  - position:', styles.position);
-                console.log('  - bottom:', styles.bottom);
-                console.log('  - left:', styles.left);
-            } else {
-                console.error('❌ D-Pad not found after creation!');
-            }
-        }, 1000);
-    },
-    
-    handleDPadPress(key, pressed) {
-        switch(key) {
-            case 'up': 
-                this.keys.forward = pressed; 
-                console.log(`D-Pad UP: ${pressed}`);
-                break;
-            case 'down': 
-                this.keys.backward = pressed; 
-                console.log(`D-Pad DOWN: ${pressed}`);
-                break;
-            case 'left': 
-                this.keys.left = pressed; 
-                console.log(`D-Pad LEFT: ${pressed}`);
-                break;
-            case 'right': 
-                this.keys.right = pressed; 
-                console.log(`D-Pad RIGHT: ${pressed}`);
-                break;
-        }
-        this.updateWASDHints();
-    },
-    
-    // ════════════════════════════════════════════════════════════
-    // 📱 DUAL-ZONE TOUCH CONTROLS (camera on right side)
-    // ════════════════════════════════════════════════════════════
     setupTouchControls() {
         const screenWidth = window.innerWidth;
         const cameraZoneStart = screenWidth * 0.4;
