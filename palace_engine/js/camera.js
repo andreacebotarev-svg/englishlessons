@@ -35,6 +35,7 @@ const Camera = {
     keys: { forward: false, backward: false, left: false, right: false, sprint: false },
     isPointerLocked: false,
     roomsCache: null,
+    roomUpdateCounter: 0,  // ✅ НОВОЕ: Счётчик для throttling
     
     init() {
         console.log('🎮 Camera init...');
@@ -58,7 +59,7 @@ const Camera = {
         this.setupTouchControls();
         this.startGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
-        console.log('✅ Camera ready');
+        console.log('✅ Camera ready with Frustum Culling');
     },
     
     setupRaycast() {
@@ -66,11 +67,7 @@ const Camera = {
         let rightClickCount = 0;
         let rightClickTimer = null;
         
-        // ✅ ЕДИНЫЙ ОБРАБОТЧИК МЫШИ (LMB + RMB)
         window.addEventListener('mousedown', (e) => {
-            // ═══════════════════════════════════════
-            // ЛКМ (button === 0) → открыть quiz
-            // ═══════════════════════════════════════
             if (e.button === 0 && this.isPointerLocked && this.targetedCard) {
                 const state = this.targetedCard.dataset.state || 'idle';
                 if (state === 'idle') {
@@ -79,86 +76,38 @@ const Camera = {
                 }
             }
             
-            // ═══════════════════════════════════════
-            // ПКМ (button === 2) → озвучка/перевод
-            // ✅ РАБОТАЕТ В POINTER LOCK!
-            // ═══════════════════════════════════════
             if (e.button === 2) {
-                console.log('═══════════════════════════════');
-                console.log('🖱️ RMB pressed (mousedown)');
-                console.log('  Mode:', CameraState.mode);
-                console.log('  Pointer locked:', this.isPointerLocked);
-                
-                // Определяем карточку
                 let targetCard = null;
                 if (CameraState.mode === 'QUIZ_MODE') {
                     targetCard = CameraState.activeCard;
-                    console.log('  → QUIZ_MODE, using activeCard');
                 } else {
                     targetCard = this.targetedCard;
-                    console.log('  → IDLE, using targetedCard');
                 }
                 
-                if (!targetCard) {
-                    console.warn('  ❌ No card found!');
-                    console.log('  targetedCard:', this.targetedCard);
-                    console.log('  activeCard:', CameraState.activeCard);
-                    console.log('═══════════════════════════════');
-                    return;
-                }
-                
-                console.log('  ✅ Card:', targetCard.dataset.word);
-                console.log('  Translation:', targetCard.dataset.translation);
+                if (!targetCard) return;
                 
                 rightClickCount++;
-                console.log('  → Clicks:', rightClickCount);
                 
                 if (rightClickCount === 1) {
-                    // ПКМ × 1 → озвучка
                     const word = targetCard.dataset.word;
-                    console.log('  🔊 Speaking:', word);
-                    
-                    try {
-                        this.quizManager.speakWord(word);
-                        console.log('  ✅ speakWord() success');
-                    } catch (err) {
-                        console.error('  ❌ speakWord() error:', err);
-                    }
-                    
+                    this.quizManager.speakWord(word);
                     this.animateClick(targetCard);
                     this.showDoubleClickHint();
-                    
                     clearTimeout(rightClickTimer);
                     rightClickTimer = setTimeout(() => {
                         rightClickCount = 0;
                         this.hideDoubleClickHint();
-                        console.log('  ⏱️ Timer reset');
                     }, 500);
-                    
                 } else if (rightClickCount === 2) {
-                    // ПКМ × 2 → перевод
                     clearTimeout(rightClickTimer);
                     rightClickCount = 0;
-                    console.log('  👁️ Revealing translation');
-                    
-                    try {
-                        this.quizManager.revealTranslation(targetCard);
-                        console.log('  ✅ revealTranslation() success');
-                    } catch (err) {
-                        console.error('  ❌ revealTranslation() error:', err);
-                    }
-                    
+                    this.quizManager.revealTranslation(targetCard);
                     this.hideDoubleClickHint();
                 }
-                
-                console.log('═══════════════════════════════');
             }
         });
         
-        // ✅ Блокировка стандартного контекстного меню
-        window.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-        });
+        window.addEventListener('contextmenu', (e) => { e.preventDefault(); });
     },
     
     updateRaycast() {
@@ -167,7 +116,6 @@ const Camera = {
         if (CameraState.mode === 'QUIZ_MODE' && CameraState.activeCard) {
             const distance = this.getDistanceToCard(CameraState.activeCard);
             if (distance > 2500) {
-                console.log(`⚠️ Too far, closing quiz`);
                 this.quizManager.closeQuiz(CameraState.activeCard);
             }
         }
@@ -271,7 +219,6 @@ const Camera = {
         scene.addEventListener('click', () => { if (!this.isPointerLocked) scene.requestPointerLock(); });
         document.addEventListener('pointerlockchange', () => {
             this.isPointerLocked = document.pointerLockElement === scene;
-            console.log('🔒 Pointer lock changed:', this.isPointerLocked);
             this.showLockMessage(!this.isPointerLocked);
         });
         document.addEventListener('mousemove', (e) => {
@@ -303,7 +250,13 @@ const Camera = {
             this.updateMovement();
             this.applyTransform();
             this.updateRaycast();
-            this.updateActiveRooms();
+            
+            // ✅ THROTTLING: Обновление комнат раз в 3 кадра (20 FPS вместо 60)
+            this.roomUpdateCounter++;
+            if (this.roomUpdateCounter % 3 === 0) {
+                this.updateActiveRooms();
+            }
+            
             this.updateProgress();
             this.updateWordCounter();
             requestAnimationFrame(update);
@@ -375,6 +328,7 @@ const Camera = {
     },
     
     cacheRooms() { this.roomsCache = Array.from(document.querySelectorAll('.room')); },
+    
     jumpToNextRoom() {
         if (!CONFIG.corridor.roomBox.enabled) return;
         const { roomDepth } = CONFIG.corridor.roomBox;
@@ -382,8 +336,10 @@ const Camera = {
         const totalRooms = Math.ceil(this.words.length / CONFIG.corridor.roomBox.wordsPerRoom);
         if (nextRoom < totalRooms) this.animateTo(2000 + (nextRoom * roomDepth), 800);
     },
+    
     jumpToStart() { this.animateTo(-CONFIG.cards.spacing + 1500, 1000); this.x = this.y = 0; this.velocity.x = this.velocity.y = this.velocity.z = 0; },
     jumpToEnd() { this.animateTo(-CONFIG.cards.spacing * this.words.length, 1000); },
+    
     animateTo(targetZ, duration = 800) {
         const startZ = this.z, distance = targetZ - startZ, startTime = performance.now();
         const animate = (currentTime) => {
@@ -396,14 +352,56 @@ const Camera = {
         };
         requestAnimationFrame(animate);
     },
+    
+    // ═══════════════════════════════════════════════════════════════
+    // 🚀 FRUSTUM CULLING: Скрывать карточки ВНЕ поля зрения
+    // ═══════════════════════════════════════════════════════════════
     updateActiveRooms() {
         if (!this.roomsCache) this.roomsCache = Array.from(document.querySelectorAll('.room'));
+        
         const visibilityThreshold = this.roomSpacing * 3;
+        const fovRadians = (CONFIG.camera.fov / 800) * Math.PI;
+        const halfFOV = fovRadians / 2;
+        
         this.roomsCache.forEach(room => {
-            const roomZ = -parseFloat(room.dataset.position || 0), distance = Math.abs(roomZ - this.z);
-            if (distance > visibilityThreshold) { room.style.visibility = 'hidden'; } else { room.style.visibility = 'visible'; room.classList.toggle('room--active', distance < this.activeThreshold); }
+            const roomZ = -parseFloat(room.dataset.position || 0);
+            const roomX = parseFloat(room.dataset.x || 0);
+            
+            // ════════════════════════════════════════════════════════════
+            // ПРОВЕРКА 1: Расстояние по Z (как раньше)
+            // ════════════════════════════════════════════════════════════
+            const distance = Math.abs(roomZ - this.z);
+            if (distance > visibilityThreshold) {
+                room.style.visibility = 'hidden';
+                return;
+            }
+            
+            // ════════════════════════════════════════════════════════════
+            // ПРОВЕРКА 2: Frustum Culling (НОВОЕ!)
+            // ════════════════════════════════════════════════════════════
+            const dx = roomX - this.x;
+            const dz = roomZ - this.z;
+            
+            // Угол к карточке относительно камеры
+            let angleToCard = Math.atan2(dx, -dz);
+            
+            // Нормализация угла в диапазон [-π, π]
+            let angleDiff = angleToCard - this.yaw;
+            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+            
+            // Проверка: в поле зрения?
+            const inFrustum = Math.abs(angleDiff) < halfFOV * 1.5;  // 1.5 = запас
+            
+            if (inFrustum) {
+                room.style.visibility = 'visible';
+                room.classList.toggle('room--active', distance < this.activeThreshold);
+            } else {
+                room.style.visibility = 'hidden';
+            }
         });
     },
+    
     updateProgress() {
         const bar = document.getElementById('progress-bar');
         if (bar) {
@@ -411,6 +409,7 @@ const Camera = {
             bar.style.width = `${Math.min(100, Math.max(0, (current / total) * 100))}%`;
         }
     },
+    
     updateWordCounter() {
         const counter = document.getElementById('word-counter');
         if (counter && this.words.length > 0) {
