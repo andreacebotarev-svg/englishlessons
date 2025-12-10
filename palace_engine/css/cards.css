@@ -47,22 +47,36 @@
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 214, 10, 0.2);
   
-  /* КРИТИЧНО: кликабельность + z-index */
-  pointer-events: auto;
+  /* 🎯 КРИТИЧНО: Отключаем обычные клики (работает только raycast) */
+  pointer-events: none !important;
   z-index: 10;
-  cursor: pointer;
   
   /* Скрываем заднюю сторону при повороте */
   backface-visibility: hidden;
 }
 
-/* ЭФФЕКТ ПРИ НАВЕДЕНИИ */
-.room:hover {
-  filter: brightness(1.2);
+/* 🎯 КАРТОЧКА ПОД ПРИЦЕЛОМ */
+.room-card--targeted {
+  outline: 3px solid rgba(255, 214, 10, 0.8);
+  outline-offset: 5px;
   box-shadow: 
-    0 20px 60px rgba(255, 214, 10, 0.3),
-    0 0 100px rgba(255, 214, 10, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 0 20px rgba(255, 214, 10, 0.6),
+    0 0 40px rgba(255, 214, 10, 0.4),
+    0 10px 40px rgba(0, 0, 0, 0.5);
+  transform: translateZ(10px) !important;
+  z-index: 100;
+  filter: brightness(1.2);
+}
+
+/* 🎯 АНИМАЦИЯ КЛИКА */
+.room-card--clicked {
+  animation: cardClick 0.2s ease-out;
+}
+
+@keyframes cardClick {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
 }
 
 /* ============================================
@@ -311,5 +325,10 @@
   /* Резервируем GPU для картинки активной карточки */
   .room--active .room-image-wrapper {
     will-change: transform;
+  }
+  
+  /* 🎯 Резервируем GPU для карточки под прицелом */
+  .room-card--targeted {
+    will-change: transform, filter;
   }
 }
