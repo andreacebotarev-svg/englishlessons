@@ -56,26 +56,16 @@ function createWallRight() {
 }
 
 /**
- * Функция озвучивания слова
- */
-function speakWord(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.9;
-  speechSynthesis.speak(utterance);
-  console.log(`🔊 Speaking: "${text}"`);
-}
-
-/**
  * Создает "комнату" для одного слова
+ * ✅ ОБНОВЛЕННАЯ СТРУКТУРА: Слово + Транскрипция + Картинка + Пример/Перевод
  */
-function createRoom({ position, word, translation, image, difficulty, index }) {
+function createRoom({ position, word, translation, example, transcription, image, difficulty, index }) {
   const room = document.createElement('div');
   room.className = 'room';
   room.dataset.word = word;
   room.dataset.position = position;
   room.dataset.index = index;
-  room.dataset.state = 'example';
+  room.dataset.state = 'example';  // Начальное состояние
   
   // ЧЕРЕДОВАНИЕ: чётные слева, нечётные справа
   const isLeft = index % 2 === 0;
@@ -95,30 +85,35 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
   const rotation = isLeft ? 25 : -25;
   room.style.transform = `translateZ(-${position}px) rotateY(${rotation}deg)`;
   
-  // === 1. АНГЛИЙСКОЕ СЛОВО + КНОПКА ОЗВУЧИВАНИЯ ===
+  // === 🆕 НОВАЯ СТРУКТУРА КАРТОЧКИ ===
+  
+  // 1. ЗАГОЛОВОК: Слово + Транскрипция
   const header = document.createElement('div');
-  header.className = 'room-header';
+  header.className = 'room-card__header';
 
-  const label = document.createElement('div');
-  label.className = 'room-word';
-  label.textContent = word;
+  const wordGroup = document.createElement('div');
+  wordGroup.className = 'room-card__word-group';
 
-  const speakerBtn = document.createElement('button');
-  speakerBtn.className = 'room-speaker';
-  speakerBtn.innerHTML = '🔊';
-  speakerBtn.setAttribute('aria-label', 'Play pronunciation');
+  const wordLabel = document.createElement('div');
+  wordLabel.className = 'room-card__word';
+  wordLabel.textContent = word;
 
-  header.appendChild(label);
-  header.appendChild(speakerBtn);
+  const transcriptionEl = document.createElement('div');
+  transcriptionEl.className = 'room-card__transcription';
+  transcriptionEl.textContent = transcription || `/${word}/`;  // Фолбэк если нет транскрипции
+
+  wordGroup.appendChild(wordLabel);
+  wordGroup.appendChild(transcriptionEl);
+  header.appendChild(wordGroup);
   room.appendChild(header);
   
-  // === 2. КАРТИНКА (с wrapper для лучшего контроля) ===
+  // 2. КАРТИНКА (с wrapper для лучшего контроля)
   if (image) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'room-image-wrapper';
+    wrapper.className = 'room-card__image-wrapper';
     
     const img = document.createElement('img');
-    img.className = 'room-image';
+    img.className = 'room-card__image';
     img.src = `../images/${image}`;
     img.alt = word;
     img.loading = 'lazy';
@@ -132,52 +127,27 @@ function createRoom({ position, word, translation, image, difficulty, index }) {
     room.appendChild(wrapper);
   }
   
-  // === 3. КОНТЕНТ (ПРИМЕР + ПЕРЕВОД) ===
+  // 3. КОНТЕНТ: ПРИМЕР ИЛИ ПЕРЕВОД
   const contentWrapper = document.createElement('div');
-  contentWrapper.className = 'room-content';
+  contentWrapper.className = 'room-card__content';
 
+  // 3.1 ПРИМЕР (показывается по умолчанию)
   const exampleEl = document.createElement('div');
-  exampleEl.className = 'room-example';
-  exampleEl.textContent = `Click to see translation`;
+  exampleEl.className = 'room-card__example';
+  exampleEl.textContent = example || `Example: "${word}" in a sentence.`;
   contentWrapper.appendChild(exampleEl);
 
+  // 3.2 ПЕРЕВОД (скрыт изначально)
   const translationEl = document.createElement('div');
-  translationEl.className = 'room-translation';
+  translationEl.className = 'room-card__translation';
   translationEl.textContent = translation;
-  translationEl.style.display = 'none';
+  translationEl.style.display = 'none';  // ✅ Скрыто
   contentWrapper.appendChild(translationEl);
 
   room.appendChild(contentWrapper);
   
-  // === 4. ИНТЕРАКТИВНОСТЬ ===
-  
-  // 4.1 Клик по карточке — переключение example/translation
-  room.addEventListener('click', (e) => {
-    if (e.target.closest('.room-speaker')) return;
-    
-    const currentState = room.dataset.state || 'example';
-    const exampleEl = room.querySelector('.room-example');
-    const translationEl = room.querySelector('.room-translation');
-    
-    if (currentState === 'example') {
-      exampleEl.style.display = 'none';
-      translationEl.style.display = 'block';
-      room.dataset.state = 'translation';
-    } else {
-      exampleEl.style.display = 'block';
-      translationEl.style.display = 'none';
-      room.dataset.state = 'example';
-    }
-  });
-
-  // 4.2 Озвучивание слова
-  const speakerBtnFinal = room.querySelector('.room-speaker');
-  if (speakerBtnFinal) {
-    speakerBtnFinal.addEventListener('click', (e) => {
-      e.stopPropagation();
-      speakWord(word);
-    });
-  }
+  // ✅ УБРАНЫ INLINE ОБРАБОТЧИКИ
+  // Вся логика теперь в camera.js (setupRaycast)
   
   return room;
 }
@@ -242,6 +212,8 @@ function buildWorld(words) {
         position: position,
         word: word.en,
         translation: word.ru,
+        example: word.example || `Example with "${word.en}"`,  // ✅ Пример
+        transcription: word.transcription || null,  // ✅ Транскрипция
         image: word.image,
         difficulty: getColorByDifficulty(word),
         index: index
