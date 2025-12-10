@@ -1,12 +1,18 @@
 /* ============================================
    MEMORY PALACE - MAIN APPLICATION
    Описание: Инициализация и загрузка данных
-   Last update: 2025-12-09 12:36
+   Last update: 2025-12-10 12:11
    ============================================ */
 
 import { CONFIG } from './config.js';
 import { buildWorld } from './builder.js';
-import { initCamera } from './camera.js';
+import { initCamera, Camera } from './camera.js';  // 🎮 Импорт Camera
+
+// 🎮 ИМПОРТ QUIZ CSS
+import '../css/quiz-mode.css';
+
+// 🎮 ЭКСПОРТ Camera в window для builder.js
+window.Camera = Camera;
 
 const App = {
     async init() {
@@ -53,7 +59,7 @@ const App = {
             }
             
             world.appendChild(corridor);
-            console.log('🏗️ Corridor appended to #world');
+            console.log('🏛️ Corridor appended to #world');
             
             // 5. Обновляем счётчик
             const counter = document.getElementById('word-counter');
@@ -71,7 +77,7 @@ const App = {
             }
             
             console.log(`✅ App initialized with ${words.length} words`);
-            console.log(`🚿 DEBUG: Check if --depth changes when scrolling`);
+            console.log(`🎮 Quiz-Mode ready!`);
             
         } catch (error) {
             console.error('❌ Initialization failed:', error);
