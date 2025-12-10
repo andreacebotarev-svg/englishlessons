@@ -89,7 +89,18 @@
         <div id="world"></div>
     </div>
 
-    <!-- 🐛 DEBUG SCRIPT (load FIRST) -->
+    <!-- 🐛 ERUDA: Mobile DevTools Console (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+        // ✅ Автозапуск только на touch-устройствах
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            eruda.init();
+            console.log('🐛 Eruda mobile console initialized!');
+            console.log('👉 Tap green button (bottom-right) to open DevTools');
+        }
+    </script>
+
+    <!-- 🐛 DEBUG SCRIPT (load AFTER Eruda) -->
     <script type="module" src="js/debug-mobile.js"></script>
     
     <!-- JavaScript Modules - ВАЖНО: type="module" -->
