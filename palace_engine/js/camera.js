@@ -4,6 +4,7 @@
    ============================================ */
 
 import { CONFIG } from './config.js';
+import { QuizManager, SoundEffects } from './quiz-manager.js';  // 🎮 ИМПОРТ QUIZ
 
 /* 
  * === КООРДИНАТНАЯ СИСТЕМА ===
@@ -72,12 +73,15 @@ const Camera = {
     
     // 🎯 RAYCAST СИСТЕМА
     targetedCard: null,        // Текущая карточка под прицелом
-    rayCastDistance: 3000,     // 🐛 УВЕЛИЧЕНО с 2000 до 3000
-    lastRaycastLog: 0,         // Для ограничения debug-логов
+    rayCastDistance: 3000,
+    lastRaycastLog: 0,
     
-    // 🔄 DOUBLE-CLICK ДЛЯ TOGGLE
-    lastClickTime: 0,
-    doubleClickDelay: 500,     // 500ms для определения "второго клика"
+    // 🎮 QUIZ MANAGER
+    quizManager: null,  // 🎮 ДОБАВЛЕНО
+    
+    // 🔄 DOUBLE-CLICK ДЛЯ RIGHT-CLICK
+    lastRightClickTime: 0,  // 🔄 ПЕРЕИМЕНОВАНО
+    doubleClickDelay: 1000,  // 🔄 УВЕЛИЧЕНО до 1s для ПКМ × 2
     
     // === СОСТОЯНИЕ КЛАВИШ ===
     keys: {
@@ -107,165 +111,111 @@ const Camera = {
         this.y = this.groundLevel;
         
         // Стартуем НА РАССТОЯНИИ от первой карточки
-        const firstCardWorldZ = -CONFIG.cards.spacing;  // -800
+        const firstCardWorldZ = -CONFIG.cards.spacing;
         const safeViewDistance = 1500;
-        this.z = firstCardWorldZ + safeViewDistance;  // -800 + 1500 = 700
+        this.z = firstCardWorldZ + safeViewDistance;
         
         // Правильные границы движения
         this.minZ = -(CONFIG.cards.spacing * this.words.length) - 500;
-        this.maxZ = this.z + 300;  // 700 + 300 = 1000
+        this.maxZ = this.z + 300;
         
         console.log('📍 Camera start position:');
         console.log(`   x=${this.x}, y=${this.y}, z=${this.z}`);
         console.log(`🎯 First card at world Z=${firstCardWorldZ}px`);
         console.log(`📏 Distance to first card: ${Math.abs(firstCardWorldZ - this.z)}px`);
         console.log(`🚧 Boundaries: minZ=${this.minZ}px, maxZ=${this.maxZ}px`);
-        console.log(`💡 Move forward (W) to approach cards`);
         
         this.setupKeyboard();
         this.setupMouse();
-        this.setupRaycast();  // 🎯 НОВАЯ СИСТЕМА
+        this.setupRaycast();  // 🎯 Создаёт QuizManager
         this.setupTouchControls();
         this.startGameLoop();
         
         setTimeout(() => this.cacheRooms(), 100);
         
-        console.log('🎮 Camera initialized with gravity');
-        console.log(`   - Ground level: ${this.groundLevel}px`);
-        console.log(`   - Gravity: ${this.gravity} units/frame²`);
-        console.log(`   - Terminal velocity: ${this.terminalVelocity}`);
-        console.log('🎯 Raycast system initialized (distance: 3000px)');
+        console.log('🎮 Camera initialized with Quiz-Mode');
     },
     
     /**
      * 🎯 Настройка системы raycast и кликов
-     * ✅ НОВАЯ ЛОГИКА: ЛКМ всегда озвучивает + двойной клик toggle
+     * 🎮 НОВАЯ ЛОГИКА: ЛКМ → Quiz, ПКМ × 1 → озвучка, ПКМ × 2 → перевод
      */
     setupRaycast() {
-        // ЛКМ - озвучить слово (всегда) + toggle при двойном клике
+        // 🎮 Создать QuizManager
+        this.quizManager = new QuizManager(this);
+        console.log('🎮 QuizManager integrated into camera');
+        
+        // ЛКМ — открыть quiz-режим
         window.addEventListener('mousedown', (e) => {
             if (!this.isPointerLocked) return;
             if (!this.targetedCard) return;
             
-            // Игнорируем ПКМ и другие кнопки
-            if (e.button !== 0) return;  // Только ЛКМ (button === 0)
+            // Только ЛКМ (button === 0)
+            if (e.button !== 0) return;
+            
+            const state = this.targetedCard.dataset.state || 'idle';
+            
+            if (state === 'idle') {
+                // 🎮 Открыть quiz-режим
+                this.quizManager.initQuiz(this.targetedCard);
+                SoundEffects.playClick();
+            }
+        });
+        
+        // ПКМ — озвучка (1-й раз) или показать перевод (2-й раз)
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (!this.isPointerLocked) return;
+            if (!this.targetedCard) return;
             
             const now = Date.now();
             const word = this.targetedCard.dataset.word;
             
-            // 🔊 ПЕРВЫЙ КЛИК: Всегда озвучиваем
-            this.speakWord(word);
-            this.animateClick(this.targetedCard);
-            console.log(`🔊 Speaking: "${word}"`);
-            
-            // 🔄 ВТОРОЙ КЛИК: Если прошло < 500ms, переключаем перевод
-            if (now - this.lastClickTime < this.doubleClickDelay) {
-                this.toggleCardTranslation(this.targetedCard);
-                console.log(`📖 Toggling translation for "${word}"`);
-                this.lastClickTime = 0;  // Сброс
+            if (now - this.lastRightClickTime < this.doubleClickDelay) {
+                // ПКМ × 2 → показать перевод (читерство)
+                this.quizManager.revealTranslation(this.targetedCard);
+                console.log(`👁️ Revealed translation (cheat) for "${word}"`);
+                this.lastRightClickTime = 0;  // Сброс
             } else {
-                this.lastClickTime = now;
-            }
-        });
-        
-        // ПКМ: Отключаем (не используется)
-        window.addEventListener('contextmenu', (e) => {
-            if (this.isPointerLocked) {
-                e.preventDefault();
+                // ПКМ × 1 → озвучка
+                this.quizManager.speakWord(word);
+                this.animateClick(this.targetedCard);
+                console.log(`🔊 Speaking: "${word}"`);
+                this.lastRightClickTime = now;
             }
         });
     },
     
     /**
      * 🎯 Raycast каждый кадр - находит карточку под прицелом
-     * 🐛 С ПОЛНЫМ DEBUG-ЛОГИРОВАНИЕМ И FALLBACK
      */
     updateRaycast() {
         const crosshair = document.querySelector('.crosshair');
         if (!crosshair) return;
         
-        // Центр экрана
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         
-        // 🐛 DEBUG: Логирование каждую секунду
-        const now = Date.now();
-        const shouldLog = (now - this.lastRaycastLog) > 1000;
-        if (shouldLog) {
-            this.lastRaycastLog = now;
-            console.log(`\n🎯 ===== RAYCAST DEBUG =====`);
-            console.log(`📐 Viewport: ${window.innerWidth}x${window.innerHeight}`);
-            console.log(`🎯 Center: (${Math.round(centerX)}, ${Math.round(centerY)})`);
-            console.log(`📍 Camera Z: ${Math.round(this.z)}px`);
-        }
-        
-        // Получаем все элементы под курсором
         const elementsUnderCrosshair = document.elementsFromPoint(centerX, centerY);
         
-        if (shouldLog) {
-            console.log(`📦 Found ${elementsUnderCrosshair.length} elements:`);
-            console.log(`   Elements details:`, 
-                elementsUnderCrosshair.slice(0, 5).map(el => ({
-                    tag: el.tagName,
-                    cls: el.className,
-                    id: el.id,
-                    visible: el.style.visibility,
-                    hasRoom: el.classList.contains('room')
-                }))
-            );
-        }
-        
-        // Ищем первую карточку
         let targetCard = elementsUnderCrosshair.find(el => 
             el.classList.contains('room') && 
             el.style.visibility !== 'hidden'
         );
         
-        if (shouldLog && targetCard) {
-            console.log(`   ✅ Found .room via elementsFromPoint: "${targetCard.dataset.word}"`);
-        }
-        
-        // 🐛 FALLBACK: Если не нашли через elementsFromPoint
+        // Fallback: getBoundingClientRect
         if (!targetCard) {
             const rooms = Array.from(document.querySelectorAll('.room'))
                 .filter(room => room.style.visibility !== 'hidden');
             
-            if (shouldLog) {
-                console.log(`   ⚠️ No .room found via elementsFromPoint`);
-                console.log(`   🔍 Trying getBoundingClientRect fallback on ${rooms.length} visible rooms...`);
-            }
-            
             rooms.forEach(room => {
                 const rect = room.getBoundingClientRect();
-                
-                if (shouldLog) {
-                    const isUnder = centerX >= rect.left && centerX <= rect.right &&
-                                   centerY >= rect.top && centerY <= rect.bottom;
-                    console.log(`   Card "${room.dataset.word}":`, {
-                        left: Math.round(rect.left),
-                        right: Math.round(rect.right),
-                        top: Math.round(rect.top),
-                        bottom: Math.round(rect.bottom),
-                        width: Math.round(rect.width),
-                        height: Math.round(rect.height),
-                        centerX: Math.round(centerX),
-                        centerY: Math.round(centerY),
-                        isUnderCrosshair: isUnder
-                    });
-                }
                 
                 if (centerX >= rect.left && centerX <= rect.right &&
                     centerY >= rect.top && centerY <= rect.bottom) {
                     targetCard = room;
-                    if (shouldLog) {
-                        console.log(`   ✅ FALLBACK HIT: "${room.dataset.word}"`);
-                    }
                 }
             });
-            
-            if (!targetCard && shouldLog) {
-                console.log(`   ❌ No cards under crosshair (even with fallback)`);
-            }
         }
         
         // Проверяем расстояние
@@ -274,26 +224,13 @@ const Camera = {
             const cardZ = -cardPositionPositive;
             const distance = Math.abs(cardZ - this.z);
             
-            if (shouldLog) {
-                console.log(`   📏 Distance check:`);
-                console.log(`      Card Z: ${cardZ}px`);
-                console.log(`      Camera Z: ${Math.round(this.z)}px`);
-                console.log(`      Distance: ${Math.round(distance)}px (max: ${this.rayCastDistance}px)`);
-            }
-            
             if (distance > this.rayCastDistance) {
-                // Слишком далеко
-                if (shouldLog) {
-                    console.log(`   ❌ Too far away! (${Math.round(distance)}px > ${this.rayCastDistance}px)`);
-                }
                 if (this.targetedCard) {
                     this.targetedCard.classList.remove('room-card--targeted');
                     this.targetedCard = null;
                     crosshair.classList.remove('crosshair--targeting');
                 }
                 return;
-            } else if (shouldLog) {
-                console.log(`   ✅ Distance OK!`);
             }
         }
         
@@ -304,34 +241,14 @@ const Camera = {
             }
             
             if (targetCard) {
-                const cardPositionPositive = parseFloat(targetCard.dataset.position || 0);
-                const cardZ = -cardPositionPositive;
-                const distance = Math.abs(cardZ - this.z);
-                
                 targetCard.classList.add('room-card--targeted');
                 crosshair.classList.add('crosshair--targeting');
-                console.log(`🎯 Targeting: "${targetCard.dataset.word}" (${Math.round(distance)}px away)`);
             } else {
                 crosshair.classList.remove('crosshair--targeting');
             }
             
             this.targetedCard = targetCard;
         }
-    },
-    
-    /**
-     * 🔊 Озвучка слова (без звука клика)
-     */
-    speakWord(text) {
-        // Останавливаем предыдущее воспроизведение
-        speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
-        speechSynthesis.speak(utterance);
     },
     
     /**
@@ -342,33 +259,6 @@ const Camera = {
         setTimeout(() => {
             card.classList.remove('room-card--clicked');
         }, 200);
-    },
-    
-    /**
-     * 🔄 Переключение: Пример ↔ Перевод
-     */
-    toggleCardTranslation(card) {
-        const exampleEl = card.querySelector('.room-card__example');
-        const translationEl = card.querySelector('.room-card__translation');
-        
-        if (!exampleEl || !translationEl) return;
-        
-        // Проверяем текущее состояние
-        const showingExample = exampleEl.style.display !== 'none';
-        
-        if (showingExample) {
-            // Скрываем пример, показываем перевод
-            exampleEl.style.display = 'none';
-            translationEl.style.display = 'block';
-            card.dataset.state = 'translation';
-            console.log(`📖 Showing translation for "${card.dataset.word}"`);
-        } else {
-            // Показываем пример, скрываем перевод
-            exampleEl.style.display = 'block';
-            translationEl.style.display = 'none';
-            card.dataset.state = 'example';
-            console.log(`📝 Showing example for "${card.dataset.word}"`);
-        }
     },
     
     setupKeyboard() {
@@ -516,7 +406,7 @@ const Camera = {
         const update = () => {
             this.updateMovement();
             this.applyTransform();
-            this.updateRaycast();         // 🎯 ДОБАВЛЕНО
+            this.updateRaycast();
             this.updateActiveRooms();
             this.updateProgress();
             this.updateWordCounter();
@@ -562,18 +452,8 @@ const Camera = {
             if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0;
         }
         
-        const oldZ = this.z;
-        
         this.x += this.velocity.x;
         this.z += this.velocity.z;
-        
-        if (Math.abs(this.z - oldZ) > 0.1 && Math.floor(this.z / 100) !== Math.floor(oldZ / 100)) {
-            const nearestCardIndex = Math.max(0, Math.round(Math.abs(this.z) / CONFIG.cards.spacing));
-            const nearestCardZ = -nearestCardIndex * CONFIG.cards.spacing;
-            const distanceToNearest = nearestCardZ - this.z;
-            
-            console.log(`🚶 Camera Z=${Math.round(this.z)}px | Card #${nearestCardIndex} at ${nearestCardZ}px (${Math.round(Math.abs(distanceToNearest))}px away)`);
-        }
         
         // === ВЕРТИКАЛЬНОЕ ДВИЖЕНИЕ (Y) - ГРАВИТАЦИЯ ===
         this.velocity.y -= this.gravity;
@@ -596,12 +476,10 @@ const Camera = {
         if (this.z < this.minZ) {
             this.z = this.minZ;
             this.velocity.z = 0;
-            console.log(`⚠️ Reached minimum boundary: Z=${this.minZ}px`);
         }
         if (this.z > this.maxZ) {
             this.z = this.maxZ;
             this.velocity.z = 0;
-            console.log(`⚠️ Reached maximum boundary: Z=${this.maxZ}px`);
         }
         
         // === ОГРАНИЧЕНИЯ ПО X ===
@@ -685,20 +563,7 @@ const Camera = {
     
     cacheRooms() {
         this.roomsCache = Array.from(document.querySelectorAll('.room'));
-        const roomBoxes = document.querySelectorAll('.room-box');
-        const roomCards = document.querySelectorAll('.room-card');
-        
-        console.log(`💾 Cached rooms:`);
-        console.log(`   - Linear rooms: ${this.roomsCache.length}`);
-        console.log(`   - Room boxes: ${roomBoxes.length}`);
-        console.log(`   - Room cards: ${roomCards.length}`);
-        
-        if (this.roomsCache.length > 0) {
-            const firstRoom = this.roomsCache[0];
-            const lastRoom = this.roomsCache[this.roomsCache.length - 1];
-            console.log(`📦 First room: "${firstRoom.dataset.word}" at position=${firstRoom.dataset.position}`);
-            console.log(`📦 Last room: "${lastRoom.dataset.word}" at position=${lastRoom.dataset.position}`);
-        }
+        console.log(`💾 Cached ${this.roomsCache.length} rooms`);
     },
     
     jumpToNextRoom() {
@@ -763,68 +628,27 @@ const Camera = {
     },
     
     updateActiveRooms() {
-        if (CONFIG.corridor.roomBox.enabled) {
-            this.updateActiveRoomBoxes();
-        } else {
-            if (!this.roomsCache) {
-                this.roomsCache = Array.from(document.querySelectorAll('.room'));
-            }
-            
-            const visibilityThreshold = this.roomSpacing * 3;
-            
-            this.roomsCache.forEach(room => {
-                const roomPositionPositive = parseFloat(room.dataset.position || 0);
-                const roomZ = -roomPositionPositive;
-                const distance = Math.abs(roomZ - this.z);
-                
-                if (distance > visibilityThreshold) {
-                    room.style.visibility = 'hidden';
-                } else {
-                    room.style.visibility = 'visible';
-                    
-                    if (distance < this.activeThreshold) {
-                        room.classList.add('room--active');
-                    } else {
-                        room.classList.remove('room--active');
-                    }
-                }
-            });
+        if (!this.roomsCache) {
+            this.roomsCache = Array.from(document.querySelectorAll('.room'));
         }
-    },
-    
-    updateActiveRoomBoxes() {
-        const roomBoxes = document.querySelectorAll('.room-box');
-        const { roomDepth } = CONFIG.corridor.roomBox;
         
-        let activeRoomIndex = -1;
-        let minDistance = Infinity;
+        const visibilityThreshold = this.roomSpacing * 3;
         
-        roomBoxes.forEach((roomBox, index) => {
-            const roomZ = parseFloat(roomBox.style.transform.match(/translateZ\(-?(\d+)px\)/)?.[1] || 0);
-            const distance = Math.abs(this.z - roomZ);
+        this.roomsCache.forEach(room => {
+            const roomPositionPositive = parseFloat(room.dataset.position || 0);
+            const roomZ = -roomPositionPositive;
+            const distance = Math.abs(roomZ - this.z);
             
-            if (distance < minDistance) {
-                minDistance = distance;
-                activeRoomIndex = index;
-            }
-            
-            roomBox.style.visibility = distance > roomDepth * 3 ? 'hidden' : 'visible';
-        });
-        
-        roomBoxes.forEach((roomBox, index) => {
-            const cards = roomBox.querySelectorAll('.room-card');
-            
-            if (index === activeRoomIndex) {
-                roomBox.classList.add('room-box--active');
-                cards.forEach(card => card.classList.add('room-card--active'));
-                
-                if (this.lastActiveRoom !== activeRoomIndex) {
-                    console.log(`✨ Entered room ${activeRoomIndex}`);
-                    this.lastActiveRoom = activeRoomIndex;
-                }
+            if (distance > visibilityThreshold) {
+                room.style.visibility = 'hidden';
             } else {
-                roomBox.classList.remove('room-box--active');
-                cards.forEach(card => card.classList.remove('room-card--active'));
+                room.style.visibility = 'visible';
+                
+                if (distance < this.activeThreshold) {
+                    room.classList.add('room--active');
+                } else {
+                    room.classList.remove('room--active');
+                }
             }
         });
     },
@@ -842,38 +666,17 @@ const Camera = {
     updateWordCounter() {
         const counter = document.getElementById('word-counter');
         if (counter && this.words.length > 0) {
-            if (CONFIG.corridor.roomBox.enabled) {
-                const { roomDepth, wordsPerRoom } = CONFIG.corridor.roomBox;
-                const currentRoomIndex = Math.floor((this.z - 2000) / roomDepth);
-                const totalRooms = Math.ceil(this.words.length / wordsPerRoom);
-                const clampedRoomIndex = Math.min(Math.max(0, currentRoomIndex), totalRooms - 1);
-                
-                const yawDeg = Math.round((this.yaw * 180 / Math.PI) % 360);
-                const pitchDeg = Math.round(this.pitch * 180 / Math.PI);
-                
-                counter.innerHTML = `
-                    <div>Комната ${clampedRoomIndex + 1}/${totalRooms}</div>
-                    <div style="font-size: 10px; color: #666;">
-                        Yaw: ${yawDeg}° | Pitch: ${pitchDeg}°
-                        ${this.keys.sprint ? ' 🏃 SPRINT' : ''}
-                        ${this.isOnGround ? ' 🟢' : ' 🔴'}
-                    </div>
-                `;
-            } else {
-                const nearestCardIndex = Math.max(0, Math.min(
-                    this.words.length - 1,
-                    Math.round(Math.abs(this.z) / CONFIG.cards.spacing)
-                ));
-                
-                const yawDeg = Math.round((this.yaw * 180 / Math.PI) % 360);
-                
-                counter.innerHTML = `
-                    <div>${nearestCardIndex + 1} / ${this.words.length}</div>
-                    <div style="font-size: 10px; color: #666;">
-                        Z: ${Math.round(this.z)}px | Yaw: ${yawDeg}° ${this.isOnGround ? '🟢' : '🔴'}
-                    </div>
-                `;
-            }
+            const nearestCardIndex = Math.max(0, Math.min(
+                this.words.length - 1,
+                Math.round(Math.abs(this.z) / CONFIG.cards.spacing)
+            ));
+            
+            counter.innerHTML = `
+                <div>${nearestCardIndex + 1} / ${this.words.length}</div>
+                <div style="font-size: 10px; color: #666;">
+                    Z: ${Math.round(this.z)}px ${this.isOnGround ? '🟢' : '🔴'}
+                </div>
+            `;
         }
     }
 };
@@ -891,13 +694,10 @@ function initCamera(words, config) {
     
     Camera.init();
     
-    console.log('🎮 Minecraft Camera with gravity configured:', {
+    console.log('🎮 Camera configured with Quiz-Mode:', {
         speed: Camera.speed,
         gravity: Camera.gravity,
-        groundLevel: Camera.groundLevel,
-        words: words.length,
-        minZ: Camera.minZ,
-        maxZ: Camera.maxZ
+        words: words.length
     });
 }
 
