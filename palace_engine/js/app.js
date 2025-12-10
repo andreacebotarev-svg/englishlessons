@@ -1,15 +1,12 @@
 /* ============================================
    MEMORY PALACE - MAIN APPLICATION
    Описание: Инициализация и загрузка данных
-   Last update: 2025-12-10 12:11
+   Last update: 2025-12-10 12:18
    ============================================ */
 
 import { CONFIG } from './config.js';
 import { buildWorld } from './builder.js';
-import { initCamera, Camera } from './camera.js';  // 🎮 Импорт Camera
-
-// 🎮 ИМПОРТ QUIZ CSS
-import '../css/quiz-mode.css';
+import { initCamera, Camera } from './camera.js';
 
 // 🎮 ЭКСПОРТ Camera в window для builder.js
 window.Camera = Camera;
@@ -77,7 +74,7 @@ const App = {
             }
             
             console.log(`✅ App initialized with ${words.length} words`);
-            console.log(`🎮 Quiz-Mode ready!`);
+            console.log(`🎮 Quiz-Mode ready! (ЛКМ → Quiz, ПКМ → Speak, ПКМ×2 → Reveal)`);
             
         } catch (error) {
             console.error('❌ Initialization failed:', error);
