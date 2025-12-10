@@ -72,7 +72,7 @@ const Camera = {
     
     // 🎯 RAYCAST СИСТЕМА
     targetedCard: null,        // Текущая карточка под прицелом
-    rayCastDistance: 2000,     // Максимальная дистанция raycast
+    rayCastDistance: 3000,     // 🐛 УВЕЛИЧЕНО с 2000 до 3000
     lastRaycastLog: 0,         // Для ограничения debug-логов
     
     // === СОСТОЯНИЕ КЛАВИШ ===
@@ -130,7 +130,7 @@ const Camera = {
         console.log(`   - Ground level: ${this.groundLevel}px`);
         console.log(`   - Gravity: ${this.gravity} units/frame²`);
         console.log(`   - Terminal velocity: ${this.terminalVelocity}`);
-        console.log('🎯 Raycast system initialized');
+        console.log('🎯 Raycast system initialized (distance: 3000px)');
     },
     
     /**
@@ -172,6 +172,7 @@ const Camera = {
     
     /**
      * 🎯 Raycast каждый кадр - находит карточку под прицелом
+     * 🐛 С ПОЛНЫМ DEBUG-ЛОГИРОВАНИЕМ И FALLBACK
      */
     updateRaycast() {
         const crosshair = document.querySelector('.crosshair');
@@ -186,25 +187,79 @@ const Camera = {
         const shouldLog = (now - this.lastRaycastLog) > 1000;
         if (shouldLog) {
             this.lastRaycastLog = now;
-            console.log(`🎯 Raycast check at (${Math.round(centerX)}, ${Math.round(centerY)})`);
+            console.log(`\n🎯 ===== RAYCAST DEBUG =====`);
+            console.log(`📐 Viewport: ${window.innerWidth}x${window.innerHeight}`);
+            console.log(`🎯 Center: (${Math.round(centerX)}, ${Math.round(centerY)})`);
+            console.log(`📍 Camera Z: ${Math.round(this.z)}px`);
         }
         
         // Получаем все элементы под курсором
         const elementsUnderCrosshair = document.elementsFromPoint(centerX, centerY);
         
         if (shouldLog) {
-            console.log(`   Found ${elementsUnderCrosshair.length} elements:`, 
-                elementsUnderCrosshair.map(el => el.className || el.tagName).slice(0, 5));
+            console.log(`📦 Found ${elementsUnderCrosshair.length} elements:`);
+            console.log(`   Elements details:`, 
+                elementsUnderCrosshair.slice(0, 5).map(el => ({
+                    tag: el.tagName,
+                    cls: el.className,
+                    id: el.id,
+                    visible: el.style.visibility,
+                    hasRoom: el.classList.contains('room')
+                }))
+            );
         }
         
         // Ищем первую карточку
-        const targetCard = elementsUnderCrosshair.find(el => 
+        let targetCard = elementsUnderCrosshair.find(el => 
             el.classList.contains('room') && 
             el.style.visibility !== 'hidden'
         );
         
         if (shouldLog && targetCard) {
-            console.log(`   🎯 Found .room: "${targetCard.dataset.word}"`);
+            console.log(`   ✅ Found .room via elementsFromPoint: "${targetCard.dataset.word}"`);
+        }
+        
+        // 🐛 FALLBACK: Если не нашли через elementsFromPoint
+        if (!targetCard) {
+            const rooms = Array.from(document.querySelectorAll('.room'))
+                .filter(room => room.style.visibility !== 'hidden');
+            
+            if (shouldLog) {
+                console.log(`   ⚠️ No .room found via elementsFromPoint`);
+                console.log(`   🔍 Trying getBoundingClientRect fallback on ${rooms.length} visible rooms...`);
+            }
+            
+            rooms.forEach(room => {
+                const rect = room.getBoundingClientRect();
+                
+                if (shouldLog) {
+                    const isUnder = centerX >= rect.left && centerX <= rect.right &&
+                                   centerY >= rect.top && centerY <= rect.bottom;
+                    console.log(`   Card "${room.dataset.word}":`, {
+                        left: Math.round(rect.left),
+                        right: Math.round(rect.right),
+                        top: Math.round(rect.top),
+                        bottom: Math.round(rect.bottom),
+                        width: Math.round(rect.width),
+                        height: Math.round(rect.height),
+                        centerX: Math.round(centerX),
+                        centerY: Math.round(centerY),
+                        isUnderCrosshair: isUnder
+                    });
+                }
+                
+                if (centerX >= rect.left && centerX <= rect.right &&
+                    centerY >= rect.top && centerY <= rect.bottom) {
+                    targetCard = room;
+                    if (shouldLog) {
+                        console.log(`   ✅ FALLBACK HIT: "${room.dataset.word}"`);
+                    }
+                }
+            });
+            
+            if (!targetCard && shouldLog) {
+                console.log(`   ❌ No cards under crosshair (even with fallback)`);
+            }
         }
         
         // Проверяем расстояние
@@ -214,13 +269,16 @@ const Camera = {
             const distance = Math.abs(cardZ - this.z);
             
             if (shouldLog) {
-                console.log(`   Distance: ${Math.round(distance)}px (max: ${this.rayCastDistance}px)`);
+                console.log(`   📏 Distance check:`);
+                console.log(`      Card Z: ${cardZ}px`);
+                console.log(`      Camera Z: ${Math.round(this.z)}px`);
+                console.log(`      Distance: ${Math.round(distance)}px (max: ${this.rayCastDistance}px)`);
             }
             
             if (distance > this.rayCastDistance) {
                 // Слишком далеко
                 if (shouldLog) {
-                    console.log(`   ❌ Too far away!`);
+                    console.log(`   ❌ Too far away! (${Math.round(distance)}px > ${this.rayCastDistance}px)`);
                 }
                 if (this.targetedCard) {
                     this.targetedCard.classList.remove('room-card--targeted');
@@ -228,6 +286,8 @@ const Camera = {
                     crosshair.classList.remove('crosshair--targeting');
                 }
                 return;
+            } else if (shouldLog) {
+                console.log(`   ✅ Distance OK!`);
             }
         }
         
@@ -247,9 +307,6 @@ const Camera = {
                 console.log(`🎯 Targeting: "${targetCard.dataset.word}" (${Math.round(distance)}px away)`);
             } else {
                 crosshair.classList.remove('crosshair--targeting');
-                if (shouldLog) {
-                    console.log(`   ❌ No card under crosshair`);
-                }
             }
             
             this.targetedCard = targetCard;
