@@ -35,7 +35,7 @@ const Camera = {
     keys: { forward: false, backward: false, left: false, right: false, sprint: false },
     isPointerLocked: false,
     roomsCache: null,
-    roomUpdateCounter: 0,  // ✅ НОВОЕ: Счётчик для throttling
+    roomUpdateCounter: 0,
     
     init() {
         console.log('🎮 Camera init...');
@@ -59,7 +59,7 @@ const Camera = {
         this.setupTouchControls();
         this.startGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
-        console.log('✅ Camera ready with Frustum Culling');
+        console.log('✅ Camera ready with Frustum Culling + RMB Toggle');
     },
     
     setupRaycast() {
@@ -68,6 +68,7 @@ const Camera = {
         let rightClickTimer = null;
         
         window.addEventListener('mousedown', (e) => {
+            // ЛКМ → quiz
             if (e.button === 0 && this.isPointerLocked && this.targetedCard) {
                 const state = this.targetedCard.dataset.state || 'idle';
                 if (state === 'idle') {
@@ -76,6 +77,9 @@ const Camera = {
                 }
             }
             
+            // ═══════════════════════════════════════
+            // ПКМ → озвучка (×1) / toggle перевода (×2)
+            // ═══════════════════════════════════════
             if (e.button === 2) {
                 let targetCard = null;
                 if (CameraState.mode === 'QUIZ_MODE') {
@@ -89,19 +93,42 @@ const Camera = {
                 rightClickCount++;
                 
                 if (rightClickCount === 1) {
+                    // ПКМ × 1 → озвучка
                     const word = targetCard.dataset.word;
                     this.quizManager.speakWord(word);
                     this.animateClick(targetCard);
-                    this.showDoubleClickHint();
+                    
+                    // ✅ Умная подсказка в зависимости от состояния
+                    const currentState = targetCard.dataset.state || 'idle';
+                    if (currentState === 'revealed') {
+                        this.showDoubleClickHint('hide');
+                    } else {
+                        this.showDoubleClickHint('reveal');
+                    }
+                    
                     clearTimeout(rightClickTimer);
                     rightClickTimer = setTimeout(() => {
                         rightClickCount = 0;
                         this.hideDoubleClickHint();
                     }, 500);
+                    
                 } else if (rightClickCount === 2) {
+                    // ПКМ × 2 → TOGGLE перевода
                     clearTimeout(rightClickTimer);
                     rightClickCount = 0;
-                    this.quizManager.revealTranslation(targetCard);
+                    
+                    const currentState = targetCard.dataset.state || 'idle';
+                    
+                    if (currentState === 'revealed') {
+                        // Скрыть перевод
+                        console.log('🔒 Hiding translation (toggle)');
+                        this.quizManager.hideTranslation(targetCard);
+                    } else {
+                        // Показать перевод
+                        console.log('👁️ Revealing translation (toggle)');
+                        this.quizManager.revealTranslation(targetCard);
+                    }
+                    
                     this.hideDoubleClickHint();
                 }
             }
@@ -158,15 +185,25 @@ const Camera = {
         return Math.abs(cardZ - this.z);
     },
     
-    showDoubleClickHint() {
+    // ═══════════════════════════════════════════════════════════
+    // 👉 УМНАЯ ПОДСКАЗКА: reveal / hide в зависимости от состояния
+    // ═══════════════════════════════════════════════════════════
+    showDoubleClickHint(action = 'reveal') {
         let hint = document.getElementById('double-click-hint');
         if (!hint) {
             hint = document.createElement('div');
             hint.id = 'double-click-hint';
-            hint.textContent = '👉 RMB again to reveal';
             hint.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(255,214,10,0.9);color:black;padding:10px 20px;border-radius:8px;font-weight:bold;font-size:14px;z-index:9999;animation:fadeInUp 0.2s;`;
             document.body.appendChild(hint);
         }
+        
+        // ✅ Динамический текст
+        if (action === 'hide') {
+            hint.textContent = '👉 RMB again to hide';
+        } else {
+            hint.textContent = '👉 RMB again to reveal';
+        }
+        
         hint.style.display = 'block';
     },
     
@@ -250,13 +287,10 @@ const Camera = {
             this.updateMovement();
             this.applyTransform();
             this.updateRaycast();
-            
-            // ✅ THROTTLING: Обновление комнат раз в 3 кадра (20 FPS вместо 60)
             this.roomUpdateCounter++;
             if (this.roomUpdateCounter % 3 === 0) {
                 this.updateActiveRooms();
             }
-            
             this.updateProgress();
             this.updateWordCounter();
             requestAnimationFrame(update);
@@ -353,46 +387,26 @@ const Camera = {
         requestAnimationFrame(animate);
     },
     
-    // ═══════════════════════════════════════════════════════════════
-    // 🚀 FRUSTUM CULLING: Скрывать карточки ВНЕ поля зрения
-    // ═══════════════════════════════════════════════════════════════
     updateActiveRooms() {
         if (!this.roomsCache) this.roomsCache = Array.from(document.querySelectorAll('.room'));
-        
         const visibilityThreshold = this.roomSpacing * 3;
         const fovRadians = (CONFIG.camera.fov / 800) * Math.PI;
         const halfFOV = fovRadians / 2;
-        
         this.roomsCache.forEach(room => {
             const roomZ = -parseFloat(room.dataset.position || 0);
             const roomX = parseFloat(room.dataset.x || 0);
-            
-            // ════════════════════════════════════════════════════════════
-            // ПРОВЕРКА 1: Расстояние по Z (как раньше)
-            // ════════════════════════════════════════════════════════════
             const distance = Math.abs(roomZ - this.z);
             if (distance > visibilityThreshold) {
                 room.style.visibility = 'hidden';
                 return;
             }
-            
-            // ════════════════════════════════════════════════════════════
-            // ПРОВЕРКА 2: Frustum Culling (НОВОЕ!)
-            // ════════════════════════════════════════════════════════════
             const dx = roomX - this.x;
             const dz = roomZ - this.z;
-            
-            // Угол к карточке относительно камеры
             let angleToCard = Math.atan2(dx, -dz);
-            
-            // Нормализация угла в диапазон [-π, π]
             let angleDiff = angleToCard - this.yaw;
             while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
             while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-            
-            // Проверка: в поле зрения?
-            const inFrustum = Math.abs(angleDiff) < halfFOV * 1.5;  // 1.5 = запас
-            
+            const inFrustum = Math.abs(angleDiff) < halfFOV * 1.5;
             if (inFrustum) {
                 room.style.visibility = 'visible';
                 room.classList.toggle('room--active', distance < this.activeThreshold);
