@@ -534,7 +534,7 @@ const Camera = {
         const corridor = document.querySelector('#corridor');
         if (!corridor) return;
         document.documentElement.style.setProperty('--fov', `${CONFIG.camera.fov}px`);
-        corridor.style.transform = `translateZ(${CONFIG.camera.fov}px) rotateX(${this.pitch}rad) rotateY(${this.yaw}rad) translate3d(${-this.x}px, ${-this.y}px, ${-this.z}px)`;
+        corridor.style.transform = `rotateX(${this.pitch}rad) rotateY(${this.yaw}rad) translate3d(${-this.x}px, ${-this.y}px, ${-this.z}px)`;
     },
     
     updateWASDHints() {
