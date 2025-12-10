@@ -61,12 +61,14 @@ class MobileDPad {
                 this.create();
                 this.setupResizeListeners();
                 this.setupLocationListeners();
+                this.startPositionMonitoring();
             });
         } else {
             console.log('✅ DOM already ready, creating immediately');
             this.create();
             this.setupResizeListeners();
             this.setupLocationListeners();
+            this.startPositionMonitoring();
         }
     }
     
@@ -101,13 +103,16 @@ class MobileDPad {
             20  // минимум 20px
         );
         
+        // РАССЧИТЫВАЕМ TOP вместо BOTTOM для правильного позиционирования в 3D-контексте
+        const topPosition = viewportHeight - dpadSize - marginBottom;
+        
         const layout = {
             size: Math.round(dpadSize),
             buttonSize: buttonSize,
             position: {
-                bottom: `${marginBottom}px`,
+                top: `${topPosition}px`,  // Используем top вместо bottom
                 left: `${marginLeft}px`,
-                top: 'auto',
+                bottom: 'auto',  // Отключаем bottom
                 right: 'auto'
             },
             margins: {
@@ -187,8 +192,27 @@ class MobileDPad {
         this.container.setAttribute('data-source', 'mobile-dpad.js');
         this.container.setAttribute('data-adaptive', 'true');
         
-        // ✅ ПРИМЕНЯЕМ АДАПТИВНЫЕ СТИЛИ
-        this.applyContainerStyles(layout);
+        // ✅ ПРИМЕНЯЕМ АДАПТИВНЫЕ СТИЛИ (БЕЗ translateZ!)
+        this.container.style.cssText = `
+            position: fixed !important;
+            top: ${layout.position.top} !important;  /* Используем top вместо bottom */
+            left: ${layout.position.left} !important;
+            bottom: auto !important;  /* Отключаем bottom */
+            right: auto !important;
+            width: ${layout.size}px !important;
+            height: ${layout.size}px !important;
+            z-index: 10000000 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            background: rgba(255, 0, 0, 0.9) !important;
+            border: 5px solid red !important;
+            border-radius: ${Math.round(layout.size * 0.08)}px !important;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8) !important;
+            isolation: isolate !important;
+            transition: width 0.3s, height 0.3s, top 0.3s, left 0.3s !important;  /* Обновляем transition */
+        `;
         
         console.log('📦 Container created:', this.container.id);
         
@@ -227,6 +251,12 @@ class MobileDPad {
             } else {
                 console.log('✅ D-Pad still in DOM after 1 second');
                 this.forceVisibility();
+                
+                // Проверяем, находится ли D-Pad в нужном месте, и при необходимости корректируем
+                if (this.checkIfOutOfBounds()) {
+                    console.warn('⚠️ D-Pad is out of bounds after creation, applying emergency correction...');
+                    this._forceCorrectPositionInternal();
+                }
             }
         }, 1000);
         
@@ -289,9 +319,9 @@ class MobileDPad {
             cursor: pointer !important;
             z-index: 10000001 !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
-            transform: translateZ(0) !important;
-            will-change: transform, background !important;
-            transition: background 0.1s, transform 0.1s !important;
+            /* УБРАНО: transform: translateZ(0) - создавал 3D-контекст, нарушающий fixed positioning */
+            will-change: background !important;
+            transition: background 0.1s !important;
         `;
         
         // Touch события
@@ -300,7 +330,8 @@ class MobileDPad {
             e.stopPropagation();
             this.handlePress(config.key, true);
             button.style.background = 'rgba(255, 214, 10, 0.9) !important';
-            button.style.transform = 'translateZ(0) scale(0.95) !important';
+            // Используем transform только для анимации, но не для создания 3D-контекста
+            button.style.transform = 'scale(0.95)';
         }, { passive: false });
         
         button.addEventListener('touchend', (e) => {
@@ -308,7 +339,7 @@ class MobileDPad {
             e.stopPropagation();
             this.handlePress(config.key, false);
             button.style.background = 'rgba(255, 255, 255, 0.8) !important';
-            button.style.transform = 'translateZ(0) scale(1) !important';
+            button.style.transform = 'scale(1)';
         }, { passive: false });
         
         button.addEventListener('touchcancel', (e) => {
@@ -316,7 +347,7 @@ class MobileDPad {
             e.stopPropagation();
             this.handlePress(config.key, false);
             button.style.background = 'rgba(255, 255, 255, 0.8) !important';
-            button.style.transform = 'translateZ(0) scale(1) !important';
+            button.style.transform = 'scale(1)';
         }, { passive: false });
         
         console.log(`✅ Button created: ${config.icon} (${config.key}) ${buttonSize}×${buttonSize}px`);
@@ -512,7 +543,11 @@ class MobileDPad {
         const layout = this.currentLayout;
         
         // Обновляем контейнер
-        this.applyContainerStyles(layout);
+        this.container.style.top = layout.position.top;  // Используем top вместо bottom
+        this.container.style.left = layout.position.left;
+        this.container.style.width = `${layout.size}px`;
+        this.container.style.height = `${layout.size}px`;
+        this.container.style.borderRadius = `${Math.round(layout.size * 0.08)}px`;
         
         // Пересоздаём кнопки
         this.container.innerHTML = '';
@@ -614,6 +649,155 @@ class MobileDPad {
     }
     
     // ============================================
+    // 🚨 EMERGENCY POSITION CORRECTION SYSTEM (v4.2+)
+    // ============================================
+    
+    setupLocationListeners() {
+        // Слушает custom event 'location-loaded'
+        window.addEventListener('location-loaded', () => {
+            setTimeout(() => {
+                this._forceCorrectPositionInternal();
+            }, 500); // Задержка для завершения рендера
+        });
+        
+        // Дополнительно: отслеживает изменение URL
+        let currentUrl = window.location.href;
+        setInterval(() => {
+            if (currentUrl !== window.location.href) {
+                currentUrl = window.location.href;
+                this._forceCorrectPositionInternal();
+            }
+        }, 1000);
+        
+        console.log('📡 Location listeners set up');
+    }
+    
+    startPositionMonitoring() {
+        setInterval(() => {
+            if (this.checkIfOutOfBounds()) {
+                console.warn('⚠️ D-Pad out of bounds! Correcting...');
+                this._forceCorrectPositionInternal();
+            }
+        }, 5000);
+        
+        console.log('🔄 Position monitoring started');
+    }
+    
+    checkIfOutOfBounds() {
+        if (!this.container) return false;
+        
+        const rect = this.container.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Проверяем, находится ли элемент в пределах вьюпорта
+        const isOutOfBounds = 
+            rect.left < -100 || rect.right > viewportWidth + 100 ||
+            rect.top < -100 || rect.bottom > viewportHeight + 100;
+        
+        return isOutOfBounds;
+    }
+    
+    _forceCorrectPositionInternal() {
+        console.log('🚑 ========== EMERGENCY POSITION CORRECTION ==========');
+        console.log('📐 Calculating adaptive layout...');
+        
+        // 1. Пересчитывает layout
+        this.currentLayout = this.calculatePosition();
+        const layout = this.currentLayout;
+        
+        console.log(`   Viewport: ${window.innerWidth}×${window.innerHeight}`);
+        console.log(`   D-Pad size: ${layout.size}×${layout.size}px`);
+        console.log(`   Bottom margin: ${layout.margins.bottom}px`);
+        console.log(`   Left margin: ${layout.margins.left}px`);
+        
+        // 2. Проверяет родителей на transform
+        let parent = this.container.parentElement;
+        let hasTransform = false;
+        while (parent && parent !== document.body) {
+            const parentStyles = window.getComputedStyle(parent);
+            if (parentStyles.transform && parentStyles.transform !== 'none') {
+                console.warn(`⚠️ Found transform on parent: ${parent.tagName}`);
+                console.warn(`   Transform: ${parentStyles.transform}`);
+                hasTransform = true;
+            }
+            parent = parent.parentElement;
+        }
+        
+        if (hasTransform) {
+            console.log('⚠️ Transform detected in parent chain, using emergency reposition...');
+            this.emergencyRepositionToDOMRoot();
+        }
+        
+        // 3. Принудительно применяет стили
+        this.applyContainerStyles(layout);
+        
+        // 4. Визуальная индикация (жёлтая вспышка)
+        this.showCorrectionFeedback();
+        
+        // 5. Верификация результата
+        setTimeout(() => {
+            const styles = window.getComputedStyle(this.container);
+            const rect = this.container.getBoundingClientRect();
+            console.log('📐 Position verification:');
+            console.log(`   Expected: bottom=${layout.position.bottom}, left=${layout.position.left}`);
+            console.log(`   Actual: bottom=${styles.bottom}, left=${styles.left}`);
+            console.log(`   Rect: left=${rect.left}, bottom=${rect.bottom}`);
+            
+            if (this.checkIfOutOfBounds()) {
+                console.error('❌ Position correction failed, trying emergency reposition...');
+                this.emergencyRepositionToDOMRoot();
+            } else {
+                console.log('✅ Position corrected successfully!');
+            }
+        }, 100);
+        
+        console.log('🚑 ===================================================');
+    }
+    
+    applyContainerStyles(layout) {
+        if (!this.container) return;
+        
+        this.container.style.position = 'fixed';
+        this.container.style.top = layout.position.top;  // Используем top вместо bottom
+        this.container.style.left = layout.position.left;
+        this.container.style.bottom = layout.position.bottom;  // Отключаем bottom
+        this.container.style.right = layout.position.right;
+        this.container.style.width = `${layout.size}px`;
+        this.container.style.height = `${layout.size}px`;
+        this.container.style.borderRadius = `${Math.round(layout.size * 0.08)}px`;
+        this.container.style.zIndex = '10000000';
+        this.container.style.display = 'block';
+        this.container.style.visibility = 'visible';
+        this.container.style.opacity = '1';
+        
+        // Удаляем любые трансформации, которые могут мешать
+        this.container.style.transform = 'none';
+        this.container.style.willChange = 'auto';
+    }
+    
+    showCorrectionFeedback() {
+        // Жёлтая рамка на 500ms = сигнал коррекции
+        this.container.style.border = '5px solid yellow';
+        this.container.style.boxShadow = '0 0 50px rgba(255, 255, 0, 1)';
+        
+        setTimeout(() => {
+            // Возврат к красной
+            this.container.style.border = '5px solid red';
+            this.container.style.boxShadow = '0 0 30px rgba(255, 0, 0, 0.8)';
+        }, 500);
+    }
+    
+    emergencyRepositionToDOMRoot() {
+        // Если всё плохо — перемещаем D-Pad напрямую в <body>
+        if (this.container.parentElement !== document.body) {
+            console.warn('🚨 EMERGENCY: Moving D-Pad to document.body');
+            document.body.appendChild(this.container);
+        }
+        this.applyContainerStyles(this.currentLayout);
+    }
+    
+    // ============================================
     // PUBLIC API
     // ============================================
     
@@ -628,6 +812,28 @@ class MobileDPad {
     getLayout() {
         return this.currentLayout;
     }
+    
+
+    // ============================================
+    // EMERGENCY CORRECTION API (v4.2+)
+    // ============================================
+    
+    forceCorrectPosition() {
+        if (this.container) {
+            this._forceCorrectPositionInternal();  // Calls the internal method
+        }
+    }
+    
+    forceCorrectPositionAPI() {
+        if (this.container) {
+            this._forceCorrectPositionInternal();  // Alternative API name
+        }
+    }
+
+    
+    // ============================================
+    // DESTRUCTOR
+    // ============================================
     
     destroy() {
         if (this.positionCheckInterval) {
@@ -645,11 +851,11 @@ class MobileDPad {
 // AUTO-INIT
 // ============================================
 
-console.log('📦 mobile-dpad.js v4.2 loaded (EMERGENCY CORRECTION)');
+console.log('📦 mobile-dpad.js v4.2 loaded (VIEWPORT-FIXED)');
 const dpad = new MobileDPad();
 console.log('✅ MobileDPad instance created');
 
-// 🆕 Глобальный доступ для отладки и ручной коррекции
+// Make instance available globally for debugging
 window.dpadInstance = dpad;
 
 // ============================================
