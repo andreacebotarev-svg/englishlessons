@@ -1,7 +1,7 @@
 /* ============================================
    MEMORY PALACE - MAIN STYLESHEET
-   Версия: 2.0
-   Дата: 2025-12-09
+   Версия: 2.1
+   Дата: 2025-12-10
    
    Структура импортов (порядок важен!):
    1. variables.css     - Переменные
@@ -13,9 +13,10 @@
    7. cards.css         - Карточки (линейный режим)
    8. room-box.css      - 🏛️ Система комнат-боксов
    9. room-card.css     - 🎴 Карточки в комнатах
-   10. wasd-hints.css   - 🎮 Подсказки WASD-управления
-   11. crosshair.css    - 🎯 Minecraft-style прицел
-   12. responsive.css   - Адаптивность
+   10. quiz-mode.css    - 🎮 Quiz-режим (интерактивные задания)
+   11. wasd-hints.css   - 🎮 Подсказки WASD-управления
+   12. crosshair.css    - 🎯 Minecraft-style прицел
+   13. responsive.css   - Адаптивность
    ============================================ */
 
 @import url('variables.css');
@@ -27,6 +28,7 @@
 @import url('cards.css');
 @import url('room-box.css');
 @import url('room-card.css');
+@import url('quiz-mode.css');    /* 🎮 НОВЫЙ ИМПОРТ */
 @import url('wasd-hints.css');
 @import url('crosshair.css');
 @import url('responsive.css');
