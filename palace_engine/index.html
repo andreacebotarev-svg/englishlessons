@@ -100,10 +100,18 @@
         }
     </script>
 
-    <!-- 🐛 DEBUG SCRIPT (load AFTER Eruda) -->
+    <!-- ============================================
+         📱 MOBILE D-PAD MODULE (LOAD FIRST!)
+         - Independent from Camera
+         - Creates D-Pad automatically on touch devices
+         - Dispatches 'dpad-input' events
+         ============================================ -->
+    <script type="module" src="js/mobile-dpad.js"></script>
+
+    <!-- 🐛 DEBUG SCRIPT (after D-Pad) -->
     <script type="module" src="js/debug-mobile.js"></script>
     
-    <!-- JavaScript Modules - ВАЖНО: type="module" -->
+    <!-- 🎮 MAIN APPLICATION (last) -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
