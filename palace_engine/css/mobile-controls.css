@@ -131,15 +131,21 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   DESKTOP: СКРЫТИЕ D-PAD
+   ❌ REMOVED: DESKTOP HIDING (was conflicting with inline styles)
+   
+   СТАРЫЙ КОД (УДАЛЁН):
+   @media (hover: hover) and (pointer: fine) {
+       #mobile-dpad {
+           display: none !important;  // ❌ Конфликтовал с JS!
+       }
+   }
+   
+   НОВАЯ ЛОГИКА:
+   ✅ D-Pad создаётся ТОЛЬКО в JavaScript (camera.js)
+   ✅ Проверка: if (this.isTouchDevice) { this.createFixedDPad(); }
+   ✅ CSS больше НЕ скрывает D-Pad
+   ✅ Чистое разделение: JS = логика, CSS = презентация
    ═══════════════════════════════════════════════════════════════ */
-
-/* ✅ СКРЫВАЕМ на устройствах с мышью (точный указатель) */
-@media (hover: hover) and (pointer: fine) {
-    #mobile-dpad {
-        display: none !important;
-    }
-}
 
 /* ═══════════════════════════════════════════════════════════════
    LANDSCAPE MODE (альбомная ориентация)
