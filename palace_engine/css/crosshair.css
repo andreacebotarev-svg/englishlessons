@@ -4,19 +4,21 @@
    ============================================ */
 
 .crosshair {
-    position: fixed;  /* 🐛 КРИТИЧНО: fixed, не absolute */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    /* 🔧 FIX: Используем calc() для точного центрирования */
+    position: fixed;
+    top: calc(50vh - 10px);   /* 50% viewport height минус половина высоты */
+    left: calc(50vw - 10px);  /* 50% viewport width минус половина ширины */
     width: 20px;
     height: 20px;
     pointer-events: none;
-    z-index: 10000;  /* 🐛 НАД ВСЕМИ UI */
+    z-index: 10000;  /* НАД ВСЕМИ UI */
     opacity: 0.7;
     transition: opacity 0.1s;
-    /* 🐛 Отключаем влияние 3D transform */
+    /* Отключаем влияние 3D transform родителей */
     transform-style: flat;
     will-change: opacity;
+    margin: 0;
+    padding: 0;
 }
 
 /* Горизонтальная линия */
@@ -30,6 +32,7 @@
     background: rgba(255, 255, 255, 0.9);
     transform: translateY(-50%);
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 /* Вертикальная линия */
@@ -43,17 +46,18 @@
     background: rgba(255, 255, 255, 0.9);
     transform: translateX(-50%);
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Подсветка при наведении на карточку */
+/* 🎨 Подсветка при наведении на карточку (нейтральный белый) */
 .crosshair--targeting {
     opacity: 1;
 }
 
 .crosshair--targeting::before,
 .crosshair--targeting::after {
-    background: rgba(255, 214, 10, 1);
-    box-shadow: 0 0 4px rgba(255, 214, 10, 0.8);
+    background: rgba(255, 255, 255, 1);  /* 🔧 Было: rgba(255, 214, 10, 1) */
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
 }
 
 /* Центральная точка */
@@ -67,9 +71,10 @@
     border-radius: 50%;
     transform: translate(-50%, -50%);
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    transition: background 0.15s ease;
 }
 
 .crosshair--targeting .crosshair__dot {
-    background: rgba(255, 214, 10, 1);
-    box-shadow: 0 0 4px rgba(255, 214, 10, 0.8);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
 }
