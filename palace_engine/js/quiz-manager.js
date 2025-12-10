@@ -106,7 +106,6 @@ export const SoundEffects = {
   }
 };
 
-// ✅ RENAMED: first_blood → first_success
 const Achievements = [
   { 
     id: 'first_success', 
@@ -147,7 +146,7 @@ export class QuizManager {
     this.camera = camera;
     this.currentCard = null;
     this.currentAttempts = 0;
-    console.log('🎮 QuizManager initialized with State Machine');
+    console.log('🎮 QuizManager initialized with Smart Validation');
   }
   
   initQuiz(card) {
@@ -159,23 +158,20 @@ export class QuizManager {
     
     console.log(`📝 Opening quiz for: "${card.dataset.word}"`);
     
-    // ✅ ПЕРЕХОД В QUIZ_MODE
     CameraState.mode = 'QUIZ_MODE';
     CameraState.activeCard = card;
     
-    // ✅ КРИТИЧНО: ПОЛНАЯ ОСТАНОВКА ДВИЖЕНИЯ
+    // ✅ ПОЛНАЯ ОСТАНОВКА ДВИЖЕНИЯ
     this.camera.keys.forward = false;
     this.camera.keys.backward = false;
     this.camera.keys.left = false;
     this.camera.keys.right = false;
     this.camera.keys.sprint = false;
-    
-    // ✅ ОБНУЛИТЬ СКОРОСТЬ (устраняет инерцию)
     this.camera.velocity.x = 0;
     this.camera.velocity.y = 0;
     this.camera.velocity.z = 0;
     
-    console.log('🛑 Movement STOPPED (keys + velocity reset)');
+    console.log('🛑 Movement STOPPED');
     
     this.currentCard = card;
     this.currentAttempts = 0;
@@ -202,33 +198,159 @@ export class QuizManager {
     const stats = document.getElementById('quiz-stats');
     if (stats) stats.style.display = 'block';
     
-    console.log('🎮 Entered QUIZ_MODE (WASD disabled)');
+    console.log('🎮 Entered QUIZ_MODE');
   }
   
+  // ═══════════════════════════════════════════════════════════════
+  // 🎯 SMART VALIDATION: Hybrid approach
+  // ═══════════════════════════════════════════════════════════════
   checkAnswer(card, userInput) {
     const correctAnswer = (card.dataset.translation || '').toLowerCase().trim();
     const userAnswer = userInput.toLowerCase().trim();
-    const normalize = (str) => str.replace(/[.,!?;:]/g, '');
-    const isCorrect = normalize(userAnswer) === normalize(correctAnswer);
     
-    if (isCorrect) {
-      GameState.correct++;
-      GameState.currentStreak++;
-      if (GameState.currentStreak > GameState.maxStreak) GameState.maxStreak = GameState.currentStreak;
-      this.playSuccessAnimation(card);
-      SoundEffects.playSuccess();
-      this.spawnSuccessParticles(card);
-      console.log(`✅ Correct! Streak: ${GameState.currentStreak}`);
-      setTimeout(() => this.closeQuiz(card), 1500);
-    } else {
-      GameState.errors++;
-      GameState.currentStreak = 0;
-      this.currentAttempts++;
-      this.playErrorAnimation(card);
-      SoundEffects.playError();
-      this.showHint(card, this.currentAttempts);
-      console.log(`❌ Wrong! Attempts: ${this.currentAttempts}`);
+    // Нормализация
+    const normalize = (str) => str
+      .replace(/[.,!?;:()]/g, '')  // Убираем пунктуацию
+      .replace(/\s+/g, ' ')        // Множественные пробелы → один
+      .trim();
+    
+    const normalizedUser = normalize(userAnswer);
+    const normalizedCorrect = normalize(correctAnswer);
+    
+    console.log('═══════════════════════════════════════');
+    console.log('📝 User input:', userAnswer);
+    console.log('✅ Correct answer:', correctAnswer);
+    console.log('🔍 Normalized user:', normalizedUser);
+    console.log('🔍 Normalized correct:', normalizedCorrect);
+    
+    // ════════════════════════════════════════════════════════════
+    // ПРОВЕРКА 1: Полное совпадение
+    // ════════════════════════════════════════════════════════════
+    if (normalizedUser === normalizedCorrect) {
+      console.log('✅ Full exact match!');
+      console.log('═══════════════════════════════════════');
+      return this.handleCorrect(card);
     }
+    
+    // ════════════════════════════════════════════════════════════
+    // ПРОВЕРКА 2: Частичное совпадение (разделители)
+    // ════════════════════════════════════════════════════════════
+    const separators = /[\/,;|]/;
+    const variants = normalizedCorrect
+      .split(separators)
+      .map(v => v.trim())
+      .filter(v => v.length > 0);
+    
+    console.log('🔍 Variants:', variants);
+    
+    // Точное совпадение с вариантом
+    if (variants.some(variant => normalizedUser === variant)) {
+      console.log('✅ Partial match (variant accepted)!');
+      console.log('═══════════════════════════════════════');
+      return this.handleCorrect(card);
+    }
+    
+    // ════════════════════════════════════════════════════════════
+    // ПРОВЕРКА 3: Опечатки (для слов > 5 символов)
+    // ════════════════════════════════════════════════════════════
+    if (normalizedUser.length >= 5) {
+      const maxDistance = Math.floor(normalizedUser.length * 0.2);  // 20% допуск
+      
+      console.log('🔍 Checking typos (max distance:', maxDistance + ')');
+      
+      for (const variant of variants) {
+        if (variant.length < 5) {
+          console.log(`  ⏭️ Skipping short word: "${variant}"`);
+          continue;  // Короткие слова — без опечаток
+        }
+        
+        const distance = this.levenshteinDistance(normalizedUser, variant);
+        console.log(`  📏 "${normalizedUser}" ↔ "${variant}": distance = ${distance}`);
+        
+        if (distance <= maxDistance) {
+          console.log(`  ✅ Typo accepted! (distance: ${distance} ≤ ${maxDistance})`);
+          console.log('═══════════════════════════════════════');
+          return this.handleCorrect(card);
+        }
+      }
+    } else {
+      console.log('⏭️ Input too short for typo check (< 5 chars)');
+    }
+    
+    // ════════════════════════════════════════════════════════════
+    // ОШИБКА
+    // ════════════════════════════════════════════════════════════
+    console.log('❌ No match found');
+    console.log('═══════════════════════════════════════');
+    return this.handleIncorrect(card);
+  }
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 📏 LEVENSHTEIN DISTANCE (расстояние редактирования)
+  // ═══════════════════════════════════════════════════════════════
+  levenshteinDistance(a, b) {
+    const matrix = [];
+    
+    // Инициализация
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= a.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    // Заполнение матрицы
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,  // замена
+            matrix[i][j - 1] + 1,      // вставка
+            matrix[i - 1][j] + 1       // удаление
+          );
+        }
+      }
+    }
+    
+    return matrix[b.length][a.length];
+  }
+  
+  // ═══════════════════════════════════════════════════════════════
+  // ✅ ОБРАБОТКА ПРАВИЛЬНОГО ОТВЕТА
+  // ═══════════════════════════════════════════════════════════════
+  handleCorrect(card) {
+    GameState.correct++;
+    GameState.currentStreak++;
+    if (GameState.currentStreak > GameState.maxStreak) {
+      GameState.maxStreak = GameState.currentStreak;
+    }
+    
+    this.playSuccessAnimation(card);
+    SoundEffects.playSuccess();
+    this.spawnSuccessParticles(card);
+    console.log(`✅ Correct! Streak: ${GameState.currentStreak}`);
+    
+    setTimeout(() => this.closeQuiz(card), 1500);
+    
+    GameState.attempted++;
+    this.updateStats();
+    this.checkAchievements();
+  }
+  
+  // ═══════════════════════════════════════════════════════════════
+  // ❌ ОБРАБОТКА НЕПРАВИЛЬНОГО ОТВЕТА
+  // ═══════════════════════════════════════════════════════════════
+  handleIncorrect(card) {
+    GameState.errors++;
+    GameState.currentStreak = 0;
+    this.currentAttempts++;
+    
+    this.playErrorAnimation(card);
+    SoundEffects.playError();
+    this.showHint(card, this.currentAttempts);
+    console.log(`❌ Wrong! Attempts: ${this.currentAttempts}`);
     
     GameState.attempted++;
     this.updateStats();
@@ -331,8 +453,8 @@ export class QuizManager {
     CameraState.mode = 'IDLE';
     CameraState.activeCard = null;
     CameraState.activeInput = null;
-    console.log(`👁️ Revealed translation: "${card.dataset.translation}"`);
-    console.log('🎮 Exited QUIZ_MODE (WASD enabled)');
+    console.log(`👁️ Revealed: "${card.dataset.translation}"`);
+    console.log('🎮 Exited QUIZ_MODE');
   }
   
   closeQuiz(card) {
@@ -346,7 +468,7 @@ export class QuizManager {
     card.dataset.state = 'idle';
     this.currentCard = null;
     this.currentAttempts = 0;
-    console.log('🎮 Exited QUIZ_MODE (WASD enabled)');
+    console.log('🎮 Exited QUIZ_MODE');
   }
   
   checkAchievements() {
