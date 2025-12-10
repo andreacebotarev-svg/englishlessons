@@ -84,25 +84,28 @@ class MobileDPad {
         // ✅ Создаём контейнер
         this.container = document.createElement('div');
         this.container.id = 'mobile-dpad';
-        this.container.setAttribute('data-version', '2.0');
+        this.container.setAttribute('data-version', '3.0');
         this.container.setAttribute('data-source', 'mobile-dpad.js');
         
-        // ✅ ПРИНУДИТЕЛЬНЫЕ INLINE СТИЛИ
+        // ✅ ПРИНУДИТЕЛЬНЫЕ INLINE СТИЛИ (FIXED VERSION)
         this.container.style.cssText = `
             position: fixed !important;
             bottom: 120px !important;
             left: 30px !important;
             width: 150px !important;
             height: 150px !important;
-            z-index: 999999 !important;
+            z-index: 10000000 !important;
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
-            pointer-events: none !important;
-            background: rgba(255, 0, 0, 0.2) !important;
-            border: 3px solid red !important;
+            pointer-events: auto !important;
+            background: rgba(255, 0, 0, 0.9) !important;
+            border: 5px solid red !important;
             border-radius: 12px !important;
-            box-shadow: 0 4px 20px rgba(255, 0, 0, 0.5) !important;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8) !important;
+            transform: translateZ(10000px) !important;
+            will-change: transform !important;
+            isolation: isolate !important;
         `;
         
         console.log('📦 Container created:', this.container.id);
@@ -146,6 +149,7 @@ class MobileDPad {
                 console.error('❌ D-Pad disappeared from DOM!');
             } else {
                 console.log('✅ D-Pad still in DOM after 1 second');
+                this.forceVisibility(); // Принудительная видимость
             }
         }, 1000);
     }
@@ -157,17 +161,17 @@ class MobileDPad {
         button.textContent = icon;
         button.setAttribute('aria-label', `Move ${key}`);
         
-        // ✅ ПРИНУДИТЕЛЬНЫЕ INLINE СТИЛИ
+        // ✅ ПРИНУДИТЕЛЬНЫЕ INLINE СТИЛИ (БЕЗ BACKDROP-FILTER!)
         button.style.cssText = `
             position: absolute !important;
             top: ${top}px !important;
             left: ${left}px !important;
             width: 50px !important;
             height: 50px !important;
-            background: rgba(255, 255, 255, 0.3) !important;
-            border: 2px solid rgba(255, 255, 255, 0.6) !important;
+            background: rgba(255, 255, 255, 0.8) !important;
+            border: 2px solid rgba(255, 255, 255, 1) !important;
             border-radius: 8px !important;
-            color: white !important;
+            color: black !important;
             font-size: 24px !important;
             font-weight: bold !important;
             display: flex !important;
@@ -179,10 +183,10 @@ class MobileDPad {
             -webkit-user-select: none !important;
             -webkit-tap-highlight-color: transparent !important;
             cursor: pointer !important;
-            z-index: 1000000 !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+            z-index: 10000001 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+            transform: translateZ(0) !important;
+            will-change: transform, background !important;
         `;
         
         // ✅ Touch события
@@ -190,24 +194,24 @@ class MobileDPad {
             e.preventDefault();
             e.stopPropagation();
             this.handlePress(key, true);
-            button.style.background = 'rgba(255, 214, 10, 0.7) !important';
-            button.style.transform = 'scale(0.95)';
+            button.style.background = 'rgba(255, 214, 10, 0.9) !important';
+            button.style.transform = 'translateZ(0) scale(0.95) !important';
         }, { passive: false });
         
         button.addEventListener('touchend', (e) => {
             e.preventDefault();
             e.stopPropagation();
             this.handlePress(key, false);
-            button.style.background = 'rgba(255, 255, 255, 0.3) !important';
-            button.style.transform = 'scale(1)';
+            button.style.background = 'rgba(255, 255, 255, 0.8) !important';
+            button.style.transform = 'translateZ(0) scale(1) !important';
         }, { passive: false });
         
         button.addEventListener('touchcancel', (e) => {
             e.preventDefault();
             e.stopPropagation();
             this.handlePress(key, false);
-            button.style.background = 'rgba(255, 255, 255, 0.3) !important';
-            button.style.transform = 'scale(1)';
+            button.style.background = 'rgba(255, 255, 255, 0.8) !important';
+            button.style.transform = 'translateZ(0) scale(1) !important';
         }, { passive: false });
         
         console.log(`✅ Button created: ${icon} (${key})`);
@@ -227,6 +231,28 @@ class MobileDPad {
         
         window.dispatchEvent(event);
         console.log(`📡 Event dispatched: dpad-input (${key}=${pressed})`);
+    }
+    
+    forceVisibility() {
+        if (!this.container) return;
+        
+        console.log('🔧 Forcing D-Pad visibility...');
+        
+        // Принудительное применение стилей
+        this.container.style.display = 'block';
+        this.container.style.visibility = 'visible';
+        this.container.style.opacity = '1';
+        this.container.style.zIndex = '10000000';
+        this.container.style.transform = 'translateZ(10000px)';
+        
+        // Применить к кнопкам
+        Object.values(this.buttons).forEach(btn => {
+            btn.style.display = 'flex';
+            btn.style.visibility = 'visible';
+            btn.style.opacity = '1';
+        });
+        
+        console.log('✅ Force visibility applied');
     }
     
     verify() {
@@ -259,6 +285,7 @@ class MobileDPad {
         console.log('   - height:', styles.height);
         console.log('   - background:', styles.background);
         console.log('   - border:', styles.border);
+        console.log('   - transform:', styles.transform);
         
         console.log('📦 BOUNDING CLIENT RECT:');
         console.log('   - x:', rect.x);
