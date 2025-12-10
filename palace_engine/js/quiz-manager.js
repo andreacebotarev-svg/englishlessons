@@ -146,7 +146,7 @@ export class QuizManager {
     this.camera = camera;
     this.currentCard = null;
     this.currentAttempts = 0;
-    console.log('🎮 QuizManager initialized with Smart Validation');
+    console.log('🎮 QuizManager initialized with Smart Validation + TRANSITION_MODE');
   }
   
   initQuiz(card) {
@@ -287,6 +287,9 @@ export class QuizManager {
     return matrix[b.length][a.length];
   }
   
+  // ════════════════════════════════════════════════════════════
+  // 🚀 TRANSITION_MODE: предотвращает съезжание камеры
+  // ════════════════════════════════════════════════════════════
   handleCorrect(card) {
     GameState.correct++;
     GameState.currentStreak++;
@@ -299,7 +302,31 @@ export class QuizManager {
     this.spawnSuccessParticles(card);
     console.log(`✅ Correct! Streak: ${GameState.currentStreak}`);
     
-    setTimeout(() => this.closeQuiz(card), 1500);
+    // ════════════════════════════════════════════════════════════
+    // ✅ СРАЗУ переходим в TRANSITION_MODE
+    // ════════════════════════════════════════════════════════════
+    CameraState.mode = 'TRANSITION_MODE';
+    CameraState.activeInput = null;  // Отключаем input
+    
+    // ✅ Скрываем quiz UI сразу
+    const quiz = card.querySelector('.room-card__quiz');
+    if (quiz) quiz.style.display = 'none';
+    const example = card.querySelector('.room-card__example');
+    if (example) example.style.display = 'block';
+    
+    console.log('🎮 Entered TRANSITION_MODE (movement allowed)');
+    
+    // ════════════════════════════════════════════════════════════
+    // ⏱️ Через 1.5 сек завершаем переход в IDLE
+    // ════════════════════════════════════════════════════════════
+    setTimeout(() => {
+      CameraState.mode = 'IDLE';
+      CameraState.activeCard = null;
+      card.dataset.state = 'idle';
+      this.currentCard = null;
+      this.currentAttempts = 0;
+      console.log('🎮 Exited TRANSITION_MODE → IDLE');
+    }, 1500);
     
     GameState.attempted++;
     this.updateStats();
@@ -421,9 +448,6 @@ export class QuizManager {
     console.log('🎮 Exited QUIZ_MODE');
   }
   
-  // ════════════════════════════════════════════════════════════
-  // 🆕 HIDE TRANSLATION (для toggle)
-  // ════════════════════════════════════════════════════════════
   hideTranslation(card) {
     const translation = card.querySelector('.room-card__translation');
     const example = card.querySelector('.room-card__example');
@@ -435,7 +459,6 @@ export class QuizManager {
     
     card.dataset.state = 'idle';
     
-    // ✅ Выходим из QUIZ_MODE если был активен
     if (CameraState.mode === 'QUIZ_MODE' && CameraState.activeCard === card) {
       CameraState.mode = 'IDLE';
       CameraState.activeCard = null;
@@ -445,10 +468,26 @@ export class QuizManager {
     console.log(`🔒 Translation hidden for: "${card.dataset.word}"`);
   }
   
+  // ════════════════════════════════════════════════════════════
+  // 🔧 CLOSEQ UIZ: с принудительным сбросом keys/velocity
+  // ════════════════════════════════════════════════════════════
   closeQuiz(card) {
     CameraState.mode = 'IDLE';
     CameraState.activeCard = null;
     CameraState.activeInput = null;
+    
+    // ✅ ПРИНУДИТЕЛЬНЫЙ СБРОС ВСЕХ КЛАВИШ
+    this.camera.keys.forward = false;
+    this.camera.keys.backward = false;
+    this.camera.keys.left = false;
+    this.camera.keys.right = false;
+    this.camera.keys.sprint = false;
+    
+    // ✅ СБРОС VELOCITY (предотвращает drift)
+    this.camera.velocity.x = 0;
+    this.camera.velocity.y = 0;
+    this.camera.velocity.z = 0;
+    
     const quiz = card.querySelector('.room-card__quiz');
     if (quiz) quiz.style.display = 'none';
     const example = card.querySelector('.room-card__example');
@@ -456,7 +495,8 @@ export class QuizManager {
     card.dataset.state = 'idle';
     this.currentCard = null;
     this.currentAttempts = 0;
-    console.log('🎮 Exited QUIZ_MODE');
+    
+    console.log('🎮 Exited QUIZ_MODE (keys + velocity reset)');
   }
   
   checkAchievements() {
