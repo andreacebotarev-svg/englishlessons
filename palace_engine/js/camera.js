@@ -4,51 +4,29 @@
    ============================================ */
 
 import { CONFIG } from './config.js';
-import { QuizManager, SoundEffects } from './quiz-manager.js';  // 🎮 ИМПОРТ QUIZ
+import { QuizManager, SoundEffects } from './quiz-manager.js';
 
-/* 
- * === КООРДИНАТНАЯ СИСТЕМА ===
- * 
- * В CSS 3D:
- * - Z+ идёт К ЗРИТЕЛЮ (из экрана)
- * - Z- идёт ОТ ЗРИТЕЛЯ (в глубину экрана)
- * 
- * В нашей системе:
- * - Камера смотрит в направлении -Z (вглубь)
- * - Карточки размещены в negative Z: -800, -1600, -2400...
- * - Camera.z увеличивается при движении вперёд (W)
- * 
- * Расстояние от камеры до объекта:
- * distance = objectWorldZ - Camera.z
- * 
- * Пример:
- * - Card at Z=-800, Camera at Z=0   → distance = -800 (карточка впереди на 800px)
- * - Card at Z=-800, Camera at Z=700 → distance = -1500 (карточка впереди на 1500px)
- * - Card at Z=-800, Camera at Z=-800 → distance = 0 (на карточке)
- * 
- * Transform применяется как:
- * translate3d(-Camera.x, -Camera.y, -Camera.z)
- * 
- * Это значит: когда Camera.z=-800, мир сдвигается на +800px по Z,
- * и карточка на Z=-800 оказывается в позиции -800+800 = 0 (на камере)
+/**
+ * 🎮 STATE MACHINE: Глобальное состояние камеры
  */
+export const CameraState = {
+    mode: 'IDLE',           // 'IDLE' | 'QUIZ_MODE'
+    activeInput: null,      // Текущий input element
+    activeCard: null        // Текущая карточка в quiz
+};
 
 const Camera = {
     // === ПОЗИЦИЯ ===
     x: 0,
     y: 150,
-    z: 0,  // Будет установлена в init()
+    z: 0,
     
-    // === ОРИЕНТАЦИЯ (Эйлеровы углы) ===
+    // === ОРИЕНТАЦИЯ ===
     yaw: 0,
     pitch: 0,
     
-    // === СКОРОСТЬ ДВИЖЕНИЯ ===
-    velocity: {
-        x: 0,
-        y: 0,
-        z: 0
-    },
+    // === СКОРОСТЬ ===
+    velocity: { x: 0, y: 0, z: 0 },
     
     // === НАСТРОЙКИ ===
     speed: 8,
@@ -64,26 +42,21 @@ const Camera = {
     isOnGround: true,
     
     // === ГРАНИЦЫ ===
-    minZ: 0,  // Будет рассчитан в init()
-    maxZ: 0,  // Будет рассчитан в init()
+    minZ: 0,
+    maxZ: 0,
     words: [],
     roomSpacing: 800,
     startOffset: 2000,
     activeThreshold: 400,
     
-    // 🎯 RAYCAST СИСТЕМА
-    targetedCard: null,        // Текущая карточка под прицелом
+    // 🎯 RAYCAST
+    targetedCard: null,
     rayCastDistance: 3000,
-    lastRaycastLog: 0,
     
     // 🎮 QUIZ MANAGER
-    quizManager: null,  // 🎮 ДОБАВЛЕНО
+    quizManager: null,
     
-    // 🔄 DOUBLE-CLICK ДЛЯ RIGHT-CLICK
-    lastRightClickTime: 0,  // 🔄 ПЕРЕИМЕНОВАНО
-    doubleClickDelay: 1000,  // 🔄 УВЕЛИЧЕНО до 1s для ПКМ × 2
-    
-    // === СОСТОЯНИЕ КЛАВИШ ===
+    // === КЛАВИШИ ===
     keys: {
         forward: false,
         backward: false,
@@ -97,105 +70,111 @@ const Camera = {
     lastActiveRoom: -1,
     
     init() {
-        console.log('🎮 Initializing Minecraft-style camera with gravity...');
+        console.log('🎮 Initializing camera with State Machine...');
         
         this.speed = CONFIG.camera.speed;
         this.sprintMultiplier = CONFIG.camera.sprintMultiplier;
         this.acceleration = CONFIG.camera.acceleration;
         this.deceleration = CONFIG.camera.deceleration;
         this.mouseSensitivity = CONFIG.camera.mouseSensitivity;
-        
         this.gravity = CONFIG.camera.gravity;
         this.groundLevel = CONFIG.camera.groundLevel;
         this.terminalVelocity = CONFIG.camera.terminalVelocity;
         this.y = this.groundLevel;
         
-        // Стартуем НА РАССТОЯНИИ от первой карточки
         const firstCardWorldZ = -CONFIG.cards.spacing;
         const safeViewDistance = 1500;
         this.z = firstCardWorldZ + safeViewDistance;
-        
-        // Правильные границы движения
         this.minZ = -(CONFIG.cards.spacing * this.words.length) - 500;
         this.maxZ = this.z + 300;
         
-        console.log('📍 Camera start position:');
-        console.log(`   x=${this.x}, y=${this.y}, z=${this.z}`);
-        console.log(`🎯 First card at world Z=${firstCardWorldZ}px`);
-        console.log(`📏 Distance to first card: ${Math.abs(firstCardWorldZ - this.z)}px`);
-        console.log(`🚧 Boundaries: minZ=${this.minZ}px, maxZ=${this.maxZ}px`);
-        
         this.setupKeyboard();
         this.setupMouse();
-        this.setupRaycast();  // 🎯 Создаёт QuizManager
+        this.setupRaycast();
         this.setupTouchControls();
         this.startGameLoop();
         
         setTimeout(() => this.cacheRooms(), 100);
-        
-        console.log('🎮 Camera initialized with Quiz-Mode');
+        console.log('✅ Camera ready (State: IDLE)');
     },
     
     /**
-     * 🎯 Настройка системы raycast и кликов
-     * 🎮 НОВАЯ ЛОГИКА: ЛКМ → Quiz, ПКМ × 1 → озвучка, ПКМ × 2 → перевод
+     * 🎯 Raycast + клики
      */
     setupRaycast() {
-        // 🎮 Создать QuizManager
         this.quizManager = new QuizManager(this);
-        console.log('🎮 QuizManager integrated into camera');
         
-        // ЛКМ — открыть quiz-режим
-        window.addEventListener('mousedown', (e) => {
-            if (!this.isPointerLocked) return;
-            if (!this.targetedCard) return;
-            
-            // Только ЛКМ (button === 0)
+        let rightClickCount = 0;
+        let rightClickTimer = null;
+        
+        // ЛКМ → открыть quiz
+        window.addEventListener('mousedown', (e) => {            if (!this.isPointerLocked || !this.targetedCard) return;
             if (e.button !== 0) return;
             
             const state = this.targetedCard.dataset.state || 'idle';
             
             if (state === 'idle') {
-                // 🎮 Открыть quiz-режим
                 this.quizManager.initQuiz(this.targetedCard);
                 SoundEffects.playClick();
             }
         });
         
-        // ПКМ — озвучка (1-й раз) или показать перевод (2-й раз)
+        // ПКМ → озвучка (×1) или перевод (×2)
         window.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            if (!this.isPointerLocked) return;
-            if (!this.targetedCard) return;
+            if (!this.isPointerLocked || !this.targetedCard) return;
             
-            const now = Date.now();
-            const word = this.targetedCard.dataset.word;
+            rightClickCount++;
             
-            if (now - this.lastRightClickTime < this.doubleClickDelay) {
-                // ПКМ × 2 → показать перевод (читерство)
-                this.quizManager.revealTranslation(this.targetedCard);
-                console.log(`👁️ Revealed translation (cheat) for "${word}"`);
-                this.lastRightClickTime = 0;  // Сброс
-            } else {
+            if (rightClickCount === 1) {
                 // ПКМ × 1 → озвучка
+                const word = this.targetedCard.dataset.word;
                 this.quizManager.speakWord(word);
                 this.animateClick(this.targetedCard);
                 console.log(`🔊 Speaking: "${word}"`);
-                this.lastRightClickTime = now;
+                
+                // Подсказка для 2-го клика
+                this.showDoubleClickHint();
+                
+                // Сброс через 500ms
+                clearTimeout(rightClickTimer);
+                rightClickTimer = setTimeout(() => {
+                    rightClickCount = 0;
+                    this.hideDoubleClickHint();
+                }, 500);
+                
+            } else if (rightClickCount === 2) {
+                // ПКМ × 2 → показать перевод
+                clearTimeout(rightClickTimer);
+                rightClickCount = 0;
+                
+                this.quizManager.revealTranslation(this.targetedCard);
+                console.log(`👁️ Revealed translation (cheat)`);
+                this.hideDoubleClickHint();
             }
         });
     },
     
     /**
-     * 🎯 Raycast каждый кадр - находит карточку под прицелом
+     * 🎯 Raycast update
      */
     updateRaycast() {
         const crosshair = document.querySelector('.crosshair');
         if (!crosshair) return;
         
+        // ✅ Автовыход при отбегании
+        if (CameraState.mode === 'QUIZ_MODE' && CameraState.activeCard) {
+            const distance = this.getDistanceToCard(CameraState.activeCard);
+            
+            if (distance > 2500) {
+                console.log(`⚠️ Too far from quiz card (${Math.round(distance)}px), closing...`);
+                this.quizManager.closeQuiz(CameraState.activeCard);
+            }
+        }
+        
+        // Поиск карточки под прицелом
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
-        
         const elementsUnderCrosshair = document.elementsFromPoint(centerX, centerY);
         
         let targetCard = elementsUnderCrosshair.find(el => 
@@ -203,14 +182,13 @@ const Camera = {
             el.style.visibility !== 'hidden'
         );
         
-        // Fallback: getBoundingClientRect
+        // Fallback
         if (!targetCard) {
             const rooms = Array.from(document.querySelectorAll('.room'))
                 .filter(room => room.style.visibility !== 'hidden');
             
             rooms.forEach(room => {
                 const rect = room.getBoundingClientRect();
-                
                 if (centerX >= rect.left && centerX <= rect.right &&
                     centerY >= rect.top && centerY <= rect.bottom) {
                     targetCard = room;
@@ -218,11 +196,9 @@ const Camera = {
             });
         }
         
-        // Проверяем расстояние
+        // Проверка расстояния
         if (targetCard) {
-            const cardPositionPositive = parseFloat(targetCard.dataset.position || 0);
-            const cardZ = -cardPositionPositive;
-            const distance = Math.abs(cardZ - this.z);
+            const distance = this.getDistanceToCard(targetCard);
             
             if (distance > this.rayCastDistance) {
                 if (this.targetedCard) {
@@ -234,7 +210,7 @@ const Camera = {
             }
         }
         
-        // Обновляем targetedCard
+        // Обновление targetedCard
         if (targetCard !== this.targetedCard) {
             if (this.targetedCard) {
                 this.targetedCard.classList.remove('room-card--targeted');
@@ -252,17 +228,74 @@ const Camera = {
     },
     
     /**
+     * 📏 Расстояние до карточки
+     */
+    getDistanceToCard(card) {
+        const cardZ = -parseFloat(card.dataset.position || 0);
+        return Math.abs(cardZ - this.z);
+    },
+    
+    /**
+     * 👁️ Подсказка для ПКМ × 2
+     */
+    showDoubleClickHint() {
+        let hint = document.getElementById('double-click-hint');
+        if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'double-click-hint';
+            hint.textContent = '👉 RMB again to reveal';
+            hint.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(255, 214, 10, 0.9);
+                color: black;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 14px;
+                z-index: 9999;
+                animation: fadeInUp 0.2s;
+            `;
+            document.body.appendChild(hint);
+        }
+        hint.style.display = 'block';
+    },
+    
+    hideDoubleClickHint() {
+        const hint = document.getElementById('double-click-hint');
+        if (hint) hint.style.display = 'none';
+    },
+    
+    /**
      * 🖱️ Анимация клика
      */
     animateClick(card) {
         card.classList.add('room-card--clicked');
-        setTimeout(() => {
-            card.classList.remove('room-card--clicked');
-        }, 200);
+        setTimeout(() => card.classList.remove('room-card--clicked'), 200);
     },
     
+    /**
+     * ⌨️ Клавиатура (с State Machine)
+     */
     setupKeyboard() {
         window.addEventListener('keydown', (e) => {
+            // ✅ ESC в QUIZ_MODE → выход
+            if (e.code === 'Escape' && CameraState.mode === 'QUIZ_MODE') {
+                e.preventDefault();
+                if (CameraState.activeCard) {
+                    this.quizManager.closeQuiz(CameraState.activeCard);
+                }
+                return;
+            }
+            
+            // ✅ БЛОКИРОВКА WASD в QUIZ_MODE
+            if (CameraState.mode === 'QUIZ_MODE') {
+                return;  // Игнорируем все клавиши (кроме ESC)
+            }
+            
+            // Обычная логика WASD (только в IDLE)
             switch(e.code) {
                 case 'KeyW':
                 case 'ArrowUp':
@@ -289,7 +322,6 @@ const Camera = {
                     e.preventDefault();
                     this.keys.sprint = true;
                     break;
-                
                 case 'Space':
                     e.preventDefault();
                     this.jumpToNextRoom();
@@ -308,6 +340,9 @@ const Camera = {
         });
         
         window.addEventListener('keyup', (e) => {
+            // Блокировка в QUIZ_MODE
+            if (CameraState.mode === 'QUIZ_MODE') return;
+            
             switch(e.code) {
                 case 'KeyW':
                 case 'ArrowUp':
@@ -349,10 +384,8 @@ const Camera = {
             this.isPointerLocked = document.pointerLockElement === scene;
             
             if (this.isPointerLocked) {
-                console.log('🎮 Cursor locked - use mouse to look around');
                 this.showLockMessage(false);
             } else {
-                console.log('🎮 Cursor unlocked - click to lock again');
                 this.showLockMessage(true);
             }
         });
@@ -362,7 +395,6 @@ const Camera = {
             
             this.yaw += e.movementX * this.mouseSensitivity;
             this.pitch -= e.movementY * this.mouseSensitivity * (CONFIG.camera.invertY ? -1 : 1);
-            
             this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
             
             const twoPi = Math.PI * 2;
@@ -410,15 +442,12 @@ const Camera = {
             this.updateActiveRooms();
             this.updateProgress();
             this.updateWordCounter();
-            
             requestAnimationFrame(update);
         };
-        
         requestAnimationFrame(update);
     },
     
     updateMovement() {
-        // === ГОРИЗОНТАЛЬНОЕ ДВИЖЕНИЕ (X, Z) ===
         let inputX = 0;
         let inputZ = 0;
         
@@ -435,7 +464,6 @@ const Camera = {
         
         const sin = Math.sin(this.yaw);
         const cos = Math.cos(this.yaw);
-        
         const baseSpeed = this.speed * (this.keys.sprint ? this.sprintMultiplier : 1);
         
         const targetVelocityX = (inputZ * sin + inputX * cos) * baseSpeed;
@@ -447,7 +475,6 @@ const Camera = {
         } else {
             this.velocity.x *= (1 - this.deceleration);
             this.velocity.z *= (1 - this.deceleration);
-            
             if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
             if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0;
         }
@@ -455,13 +482,9 @@ const Camera = {
         this.x += this.velocity.x;
         this.z += this.velocity.z;
         
-        // === ВЕРТИКАЛЬНОЕ ДВИЖЕНИЕ (Y) - ГРАВИТАЦИЯ ===
+        // Гравитация
         this.velocity.y -= this.gravity;
-        
-        if (this.velocity.y < -this.terminalVelocity) {
-            this.velocity.y = -this.terminalVelocity;
-        }
-        
+        if (this.velocity.y < -this.terminalVelocity) this.velocity.y = -this.terminalVelocity;
         this.y += this.velocity.y;
         
         if (this.y <= this.groundLevel) {
@@ -472,26 +495,13 @@ const Camera = {
             this.isOnGround = false;
         }
         
-        // === ОГРАНИЧЕНИЯ ПО Z ===
-        if (this.z < this.minZ) {
-            this.z = this.minZ;
-            this.velocity.z = 0;
-        }
-        if (this.z > this.maxZ) {
-            this.z = this.maxZ;
-            this.velocity.z = 0;
-        }
+        // Ограничения
+        if (this.z < this.minZ) { this.z = this.minZ; this.velocity.z = 0; }
+        if (this.z > this.maxZ) { this.z = this.maxZ; this.velocity.z = 0; }
         
-        // === ОГРАНИЧЕНИЯ ПО X ===
         const maxX = 2000;
-        if (this.x < -maxX) {
-            this.x = -maxX;
-            this.velocity.x = 0;
-        }
-        if (this.x > maxX) {
-            this.x = maxX;
-            this.velocity.x = 0;
-        }
+        if (this.x < -maxX) { this.x = -maxX; this.velocity.x = 0; }
+        if (this.x > maxX) { this.x = maxX; this.velocity.x = 0; }
     },
     
     applyTransform() {
@@ -499,7 +509,6 @@ const Camera = {
         if (!corridor) return;
         
         document.documentElement.style.setProperty('--fov', `${CONFIG.camera.fov}px`);
-        
         corridor.style.transform = `
             translateZ(${CONFIG.camera.fov}px)
             rotateX(${this.pitch}rad)
@@ -518,20 +527,15 @@ const Camera = {
         
         map.forEach(([key, active]) => {
             const el = document.querySelector(`.wasd-key[data-key="${key}"]`);
-            if (el) {
-                el.classList.toggle('wasd-key--active', active);
-            }
+            if (el) el.classList.toggle('wasd-key--active', active);
         });
     },
     
     setupTouchControls() {
-        let touchStartY = 0;
-        let touchStartX = 0;
-        let isSwiping = false;
+        let touchStartY = 0, touchStartX = 0, isSwiping = false;
         
         window.addEventListener('touchstart', (e) => {
             if (e.target.closest('.room-card')) return;
-            
             touchStartY = e.touches[0].clientY;
             touchStartX = e.touches[0].clientX;
             isSwiping = true;
@@ -545,160 +549,99 @@ const Camera = {
             const deltaX = touchStartX - e.touches[0].clientX;
             
             if (Math.abs(deltaY) > 5) {
-                const direction = deltaY > 0 ? 1 : -1;
-                this.velocity.z += direction * this.speed * 0.1;
+                this.velocity.z += (deltaY > 0 ? 1 : -1) * this.speed * 0.1;
                 touchStartY = e.touches[0].clientY;
             }
-            
             if (Math.abs(deltaX) > 5) {
                 this.yaw += deltaX * 0.01;
                 touchStartX = e.touches[0].clientX;
             }
         }, { passive: false });
         
-        window.addEventListener('touchend', () => {
-            isSwiping = false;
-        }, { passive: true });
+        window.addEventListener('touchend', () => { isSwiping = false; }, { passive: true });
     },
     
     cacheRooms() {
         this.roomsCache = Array.from(document.querySelectorAll('.room'));
-        console.log(`💾 Cached ${this.roomsCache.length} rooms`);
     },
     
     jumpToNextRoom() {
         if (!CONFIG.corridor.roomBox.enabled) return;
-        
         const { roomDepth } = CONFIG.corridor.roomBox;
         const currentRoom = Math.floor((this.z - 2000) / roomDepth);
         const nextRoom = currentRoom + 1;
         const totalRooms = Math.ceil(this.words.length / CONFIG.corridor.roomBox.wordsPerRoom);
-        
-        if (nextRoom < totalRooms) {
-            const targetZ = 2000 + (nextRoom * roomDepth);
-            this.animateTo(targetZ, 800);
-            console.log(`⏩ Jump to room ${nextRoom}`);
-        }
+        if (nextRoom < totalRooms) this.animateTo(2000 + (nextRoom * roomDepth), 800);
     },
     
     jumpToStart() {
-        const firstCardWorldZ = -CONFIG.cards.spacing;
-        const safeViewDistance = 1500;
-        const startZ = firstCardWorldZ + safeViewDistance;
-        
-        this.animateTo(startZ, 1000);
-        this.x = 0;
-        this.y = this.groundLevel;
-        this.velocity.x = 0;
-        this.velocity.y = 0;
-        this.velocity.z = 0;
-        console.log('⏪ Jump to start');
+        this.animateTo(-CONFIG.cards.spacing + 1500, 1000);
+        this.x = this.y = 0;
+        this.velocity.x = this.velocity.y = this.velocity.z = 0;
     },
     
     jumpToEnd() {
-        const lastCardZ = -CONFIG.cards.spacing * this.words.length;
-        this.animateTo(lastCardZ, 1000);
-        console.log('⏩ Jump to end');
+        this.animateTo(-CONFIG.cards.spacing * this.words.length, 1000);
     },
     
     animateTo(targetZ, duration = 800) {
-        const startZ = this.z;
-        const distance = targetZ - startZ;
-        const startTime = performance.now();
+        const startZ = this.z, distance = targetZ - startZ, startTime = performance.now();
         
         const animate = (currentTime) => {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
-            const easeProgress = progress < 0.5
-                ? 2 * progress * progress
-                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            const easeProgress = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
             
             this.z = startZ + (distance * easeProgress);
-            
             if (this.z < this.minZ) this.z = this.minZ;
             if (this.z > this.maxZ) this.z = this.maxZ;
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
+            if (progress < 1) requestAnimationFrame(animate);
         };
-        
         requestAnimationFrame(animate);
     },
     
     updateActiveRooms() {
-        if (!this.roomsCache) {
-            this.roomsCache = Array.from(document.querySelectorAll('.room'));
-        }
-        
+        if (!this.roomsCache) this.roomsCache = Array.from(document.querySelectorAll('.room'));
         const visibilityThreshold = this.roomSpacing * 3;
         
         this.roomsCache.forEach(room => {
-            const roomPositionPositive = parseFloat(room.dataset.position || 0);
-            const roomZ = -roomPositionPositive;
+            const roomZ = -parseFloat(room.dataset.position || 0);
             const distance = Math.abs(roomZ - this.z);
             
             if (distance > visibilityThreshold) {
                 room.style.visibility = 'hidden';
             } else {
                 room.style.visibility = 'visible';
-                
-                if (distance < this.activeThreshold) {
-                    room.classList.add('room--active');
-                } else {
-                    room.classList.remove('room--active');
-                }
+                room.classList.toggle('room--active', distance < this.activeThreshold);
             }
         });
     },
     
     updateProgress() {
-        const progressBar = document.getElementById('progress-bar');
-        if (progressBar) {
-            const totalDistance = this.maxZ - this.minZ;
-            const currentDistance = this.maxZ - this.z;
-            const progress = (currentDistance / totalDistance) * 100;
-            progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+        const bar = document.getElementById('progress-bar');
+        if (bar) {
+            const total = this.maxZ - this.minZ;
+            const current = this.maxZ - this.z;
+            bar.style.width = `${Math.min(100, Math.max(0, (current / total) * 100))}%`;
         }
     },
     
     updateWordCounter() {
         const counter = document.getElementById('word-counter');
         if (counter && this.words.length > 0) {
-            const nearestCardIndex = Math.max(0, Math.min(
-                this.words.length - 1,
-                Math.round(Math.abs(this.z) / CONFIG.cards.spacing)
-            ));
-            
-            counter.innerHTML = `
-                <div>${nearestCardIndex + 1} / ${this.words.length}</div>
-                <div style="font-size: 10px; color: #666;">
-                    Z: ${Math.round(this.z)}px ${this.isOnGround ? '🟢' : '🔴'}
-                </div>
-            `;
+            const idx = Math.max(0, Math.min(this.words.length - 1, Math.round(Math.abs(this.z) / CONFIG.cards.spacing)));
+            counter.innerHTML = `<div>${idx + 1} / ${this.words.length}</div><div style="font-size:10px;color:#666">State: ${CameraState.mode}</div>`;
         }
     }
 };
 
 function initCamera(words, config) {
-    if (!words || words.length === 0) {
-        console.warn('⚠️ No words provided');
-        return;
-    }
-    
+    if (!words || words.length === 0) return;
     Camera.words = words;
     Camera.roomSpacing = config.corridor.roomSpacing;
     Camera.startOffset = 2000;
     Camera.activeThreshold = 400;
-    
     Camera.init();
-    
-    console.log('🎮 Camera configured with Quiz-Mode:', {
-        speed: Camera.speed,
-        gravity: Camera.gravity,
-        words: words.length
-    });
 }
 
 export { initCamera, Camera };
