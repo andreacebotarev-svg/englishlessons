@@ -66,88 +66,98 @@ const Camera = {
         let rightClickCount = 0;
         let rightClickTimer = null;
         
-        // ЛКМ → quiz
+        // ✅ ЕДИНЫЙ ОБРАБОТЧИК МЫШИ (LMB + RMB)
         window.addEventListener('mousedown', (e) => {
-            if (!this.isPointerLocked || !this.targetedCard) return;
-            if (e.button !== 0) return;
-            const state = this.targetedCard.dataset.state || 'idle';
-            if (state === 'idle') {
-                this.quizManager.initQuiz(this.targetedCard);
-                SoundEffects.playClick();
+            // ═══════════════════════════════════════
+            // ЛКМ (button === 0) → открыть quiz
+            // ═══════════════════════════════════════
+            if (e.button === 0 && this.isPointerLocked && this.targetedCard) {
+                const state = this.targetedCard.dataset.state || 'idle';
+                if (state === 'idle') {
+                    this.quizManager.initQuiz(this.targetedCard);
+                    SoundEffects.playClick();
+                }
+            }
+            
+            // ═══════════════════════════════════════
+            // ПКМ (button === 2) → озвучка/перевод
+            // ✅ РАБОТАЕТ В POINTER LOCK!
+            // ═══════════════════════════════════════
+            if (e.button === 2) {
+                console.log('═══════════════════════════════');
+                console.log('🖱️ RMB pressed (mousedown)');
+                console.log('  Mode:', CameraState.mode);
+                console.log('  Pointer locked:', this.isPointerLocked);
+                
+                // Определяем карточку
+                let targetCard = null;
+                if (CameraState.mode === 'QUIZ_MODE') {
+                    targetCard = CameraState.activeCard;
+                    console.log('  → QUIZ_MODE, using activeCard');
+                } else {
+                    targetCard = this.targetedCard;
+                    console.log('  → IDLE, using targetedCard');
+                }
+                
+                if (!targetCard) {
+                    console.warn('  ❌ No card found!');
+                    console.log('  targetedCard:', this.targetedCard);
+                    console.log('  activeCard:', CameraState.activeCard);
+                    console.log('═══════════════════════════════');
+                    return;
+                }
+                
+                console.log('  ✅ Card:', targetCard.dataset.word);
+                console.log('  Translation:', targetCard.dataset.translation);
+                
+                rightClickCount++;
+                console.log('  → Clicks:', rightClickCount);
+                
+                if (rightClickCount === 1) {
+                    // ПКМ × 1 → озвучка
+                    const word = targetCard.dataset.word;
+                    console.log('  🔊 Speaking:', word);
+                    
+                    try {
+                        this.quizManager.speakWord(word);
+                        console.log('  ✅ speakWord() success');
+                    } catch (err) {
+                        console.error('  ❌ speakWord() error:', err);
+                    }
+                    
+                    this.animateClick(targetCard);
+                    this.showDoubleClickHint();
+                    
+                    clearTimeout(rightClickTimer);
+                    rightClickTimer = setTimeout(() => {
+                        rightClickCount = 0;
+                        this.hideDoubleClickHint();
+                        console.log('  ⏱️ Timer reset');
+                    }, 500);
+                    
+                } else if (rightClickCount === 2) {
+                    // ПКМ × 2 → перевод
+                    clearTimeout(rightClickTimer);
+                    rightClickCount = 0;
+                    console.log('  👁️ Revealing translation');
+                    
+                    try {
+                        this.quizManager.revealTranslation(targetCard);
+                        console.log('  ✅ revealTranslation() success');
+                    } catch (err) {
+                        console.error('  ❌ revealTranslation() error:', err);
+                    }
+                    
+                    this.hideDoubleClickHint();
+                }
+                
+                console.log('═══════════════════════════════');
             }
         });
         
-        // 🖱️ ПКМ → озвучка/перевод (С ПОДРОБНЫМИ ЛОГАМИ)
+        // ✅ Блокировка стандартного контекстного меню
         window.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🖱️ RMB EVENT FIRED!');
-            console.log('  Mode:', CameraState.mode);
-            console.log('  isPointerLocked:', this.isPointerLocked);
-            console.log('  targetedCard:', this.targetedCard);
-            console.log('  activeCard:', CameraState.activeCard);
-            
-            // ✅ Определяем карточку
-            let targetCard = null;
-            if (CameraState.mode === 'QUIZ_MODE') {
-                targetCard = CameraState.activeCard;
-                console.log('  → Using activeCard (QUIZ_MODE)');
-            } else {
-                targetCard = this.targetedCard;
-                console.log('  → Using targetedCard (IDLE)');
-            }
-            
-            if (!targetCard) {
-                console.error('  ❌ NO CARD FOUND!');
-                alert('❌ No card targeted! Move closer or aim at a card.');
-                return;
-            }
-            
-            console.log('  ✅ Target card:', targetCard);
-            console.log('  ✅ Card word:', targetCard.dataset.word);
-            console.log('  ✅ Card translation:', targetCard.dataset.translation);
-            
-            rightClickCount++;
-            console.log('  → Click count:', rightClickCount);
-            
-            if (rightClickCount === 1) {
-                const word = targetCard.dataset.word;
-                console.log(`  🔊 Attempting to speak: "${word}"`);
-                
-                try {
-                    this.quizManager.speakWord(word);
-                    console.log('  ✅ speakWord() called successfully');
-                } catch (err) {
-                    console.error('  ❌ speakWord() error:', err);
-                    alert('❌ Speech error: ' + err.message);
-                }
-                
-                this.animateClick(targetCard);
-                this.showDoubleClickHint();
-                
-                clearTimeout(rightClickTimer);
-                rightClickTimer = setTimeout(() => {
-                    console.log('  ⏱️ Timer expired, resetting count');
-                    rightClickCount = 0;
-                    this.hideDoubleClickHint();
-                }, 500);
-                
-            } else if (rightClickCount === 2) {
-                clearTimeout(rightClickTimer);
-                rightClickCount = 0;
-                console.log('  👁️ Revealing translation');
-                
-                try {
-                    this.quizManager.revealTranslation(targetCard);
-                    console.log('  ✅ revealTranslation() called');
-                } catch (err) {
-                    console.error('  ❌ revealTranslation() error:', err);
-                }
-                
-                this.hideDoubleClickHint();
-            }
-            
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         });
     },
     
