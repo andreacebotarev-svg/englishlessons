@@ -5,8 +5,13 @@
 import { CONFIG } from './config.js';
 import { QuizManager, SoundEffects } from './quiz-manager.js';
 
+// ════════════════════════════════════════════════════════════
+// 📊 STATE MACHINE:
+// IDLE → (LMB) → QUIZ_MODE → (correct) → TRANSITION_MODE → (1.5s) → IDLE
+//                     ↑ WASD blocked           ↑ WASD allowed!
+// ════════════════════════════════════════════════════════════
 export const CameraState = {
-    mode: 'IDLE',
+    mode: 'IDLE',  // IDLE | QUIZ_MODE | TRANSITION_MODE
     activeInput: null,
     activeCard: null
 };
@@ -59,7 +64,7 @@ const Camera = {
         this.setupTouchControls();
         this.startGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
-        console.log('✅ Camera ready with Frustum Culling + RMB Toggle');
+        console.log('✅ Camera ready with TRANSITION_MODE support');
     },
     
     setupRaycast() {
@@ -68,7 +73,6 @@ const Camera = {
         let rightClickTimer = null;
         
         window.addEventListener('mousedown', (e) => {
-            // ЛКМ → quiz
             if (e.button === 0 && this.isPointerLocked && this.targetedCard) {
                 const state = this.targetedCard.dataset.state || 'idle';
                 if (state === 'idle') {
@@ -77,9 +81,6 @@ const Camera = {
                 }
             }
             
-            // ═══════════════════════════════════════
-            // ПКМ → озвучка (×1) / toggle перевода (×2)
-            // ═══════════════════════════════════════
             if (e.button === 2) {
                 let targetCard = null;
                 if (CameraState.mode === 'QUIZ_MODE') {
@@ -93,42 +94,31 @@ const Camera = {
                 rightClickCount++;
                 
                 if (rightClickCount === 1) {
-                    // ПКМ × 1 → озвучка
                     const word = targetCard.dataset.word;
                     this.quizManager.speakWord(word);
                     this.animateClick(targetCard);
-                    
-                    // ✅ Умная подсказка в зависимости от состояния
                     const currentState = targetCard.dataset.state || 'idle';
                     if (currentState === 'revealed') {
                         this.showDoubleClickHint('hide');
                     } else {
                         this.showDoubleClickHint('reveal');
                     }
-                    
                     clearTimeout(rightClickTimer);
                     rightClickTimer = setTimeout(() => {
                         rightClickCount = 0;
                         this.hideDoubleClickHint();
                     }, 500);
-                    
                 } else if (rightClickCount === 2) {
-                    // ПКМ × 2 → TOGGLE перевода
                     clearTimeout(rightClickTimer);
                     rightClickCount = 0;
-                    
                     const currentState = targetCard.dataset.state || 'idle';
-                    
                     if (currentState === 'revealed') {
-                        // Скрыть перевод
                         console.log('🔒 Hiding translation (toggle)');
                         this.quizManager.hideTranslation(targetCard);
                     } else {
-                        // Показать перевод
                         console.log('👁️ Revealing translation (toggle)');
                         this.quizManager.revealTranslation(targetCard);
                     }
-                    
                     this.hideDoubleClickHint();
                 }
             }
@@ -185,9 +175,6 @@ const Camera = {
         return Math.abs(cardZ - this.z);
     },
     
-    // ═══════════════════════════════════════════════════════════
-    // 👉 УМНАЯ ПОДСКАЗКА: reveal / hide в зависимости от состояния
-    // ═══════════════════════════════════════════════════════════
     showDoubleClickHint(action = 'reveal') {
         let hint = document.getElementById('double-click-hint');
         if (!hint) {
@@ -196,14 +183,11 @@ const Camera = {
             hint.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(255,214,10,0.9);color:black;padding:10px 20px;border-radius:8px;font-weight:bold;font-size:14px;z-index:9999;animation:fadeInUp 0.2s;`;
             document.body.appendChild(hint);
         }
-        
-        // ✅ Динамический текст
         if (action === 'hide') {
             hint.textContent = '👉 RMB again to hide';
         } else {
             hint.textContent = '👉 RMB again to reveal';
         }
-        
         hint.style.display = 'block';
     },
     
@@ -217,6 +201,9 @@ const Camera = {
         setTimeout(() => card.classList.remove('room-card--clicked'), 200);
     },
     
+    // ════════════════════════════════════════════════════════════
+    // ⌨️ KEYBOARD HANDLER с поддержкой TRANSITION_MODE
+    // ════════════════════════════════════════════════════════════
     setupKeyboard() {
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Escape' && CameraState.mode === 'QUIZ_MODE') {
@@ -224,7 +211,11 @@ const Camera = {
                 if (CameraState.activeCard) this.quizManager.closeQuiz(CameraState.activeCard);
                 return;
             }
+            
+            // ✅ Блокируем ТОЛЬКО QUIZ_MODE
+            // TRANSITION_MODE и IDLE → разрешены!
             if (CameraState.mode === 'QUIZ_MODE') return;
+            
             switch(e.code) {
                 case 'KeyW': case 'ArrowUp': e.preventDefault(); this.keys.forward = true; break;
                 case 'KeyS': case 'ArrowDown': e.preventDefault(); this.keys.backward = true; break;
@@ -237,8 +228,10 @@ const Camera = {
             }
             this.updateWASDHints();
         });
+        
         window.addEventListener('keyup', (e) => {
             if (CameraState.mode === 'QUIZ_MODE') return;
+            
             switch(e.code) {
                 case 'KeyW': case 'ArrowUp': this.keys.forward = false; break;
                 case 'KeyS': case 'ArrowDown': this.keys.backward = false; break;
