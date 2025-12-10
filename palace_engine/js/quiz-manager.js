@@ -1,11 +1,8 @@
 // palace_engine/js/quiz-manager.js
 
 import { CONFIG } from './config.js';
-import { CameraState } from './camera.js';  // 🎮 ИМПОРТ STATE
+import { CameraState } from './camera.js';
 
-/**
- * 📊 Состояние игры
- */
 export const GameState = {
   totalWords: 0,
   attempted: 0,
@@ -22,7 +19,6 @@ export const GameState = {
   
   currentStreak: 0,
   maxStreak: 0,
-  
   startTime: null,
   endTime: null,
   timerInterval: null,
@@ -49,9 +45,6 @@ export const GameState = {
   }
 };
 
-/**
- * 🎵 Звуковые эффекты
- */
 export const SoundEffects = {
   audioContext: null,
   
@@ -65,7 +58,6 @@ export const SoundEffects = {
     this.init();
     const ctx = this.audioContext;
     const now = ctx.currentTime;
-    
     [261.63, 329.63, 392.00].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -114,11 +106,40 @@ export const SoundEffects = {
   }
 };
 
+// ✅ RENAMED: first_blood → first_success
 const Achievements = [
-  { id: 'first_blood', name: 'Первая кровь', desc: 'Угадай первое слово', icon: '🎯', condition: () => GameState.correct >= 1, unlocked: false },
-  { id: 'perfectionist', name: 'Перфекционист', desc: '10 ответов подряд без ошибок', icon: '💯', condition: () => GameState.currentStreak >= 10, unlocked: false },
-  { id: 'speedrunner', name: 'Спидраннер', desc: '20 слов за 2 минуты', icon: '⚡', condition: () => GameState.correct >= 20 && GameState.duration <= 120, unlocked: false },
-  { id: 'linguist', name: 'Лингвист', desc: '100% точность на 30+ словах', icon: '🎓', condition: () => GameState.attempted >= 30 && GameState.accuracy === 100, unlocked: false }
+  { 
+    id: 'first_success', 
+    name: 'Первые успехи', 
+    desc: 'Угадай первое слово', 
+    icon: '🎯', 
+    condition: () => GameState.correct >= 1, 
+    unlocked: false 
+  },
+  { 
+    id: 'perfectionist', 
+    name: 'Перфекционист', 
+    desc: '10 ответов подряд без ошибок', 
+    icon: '💯', 
+    condition: () => GameState.currentStreak >= 10, 
+    unlocked: false 
+  },
+  { 
+    id: 'speedrunner', 
+    name: 'Спидраннер', 
+    desc: '20 слов за 2 минуты', 
+    icon: '⚡', 
+    condition: () => GameState.correct >= 20 && GameState.duration <= 120, 
+    unlocked: false 
+  },
+  { 
+    id: 'linguist', 
+    name: 'Лингвист', 
+    desc: '100% точность на 30+ словах', 
+    icon: '🎓', 
+    condition: () => GameState.attempted >= 30 && GameState.accuracy === 100, 
+    unlocked: false 
+  }
 ];
 
 export class QuizManager {
@@ -129,11 +150,7 @@ export class QuizManager {
     console.log('🎮 QuizManager initialized with State Machine');
   }
   
-  /**
-   * 📝 Открыть quiz-режим
-   */
   initQuiz(card) {
-    // ✅ Проверка расстояния
     const distance = this.camera.getDistanceToCard(card);
     if (distance > 2000) {
       console.warn(`❌ Too far to start quiz (${Math.round(distance)}px)`);
@@ -146,25 +163,34 @@ export class QuizManager {
     CameraState.mode = 'QUIZ_MODE';
     CameraState.activeCard = card;
     
+    // ✅ КРИТИЧНО: ПОЛНАЯ ОСТАНОВКА ДВИЖЕНИЯ
+    this.camera.keys.forward = false;
+    this.camera.keys.backward = false;
+    this.camera.keys.left = false;
+    this.camera.keys.right = false;
+    this.camera.keys.sprint = false;
+    
+    // ✅ ОБНУЛИТЬ СКОРОСТЬ (устраняет инерцию)
+    this.camera.velocity.x = 0;
+    this.camera.velocity.y = 0;
+    this.camera.velocity.z = 0;
+    
+    console.log('🛑 Movement STOPPED (keys + velocity reset)');
+    
     this.currentCard = card;
     this.currentAttempts = 0;
     
-    // Скрыть пример
     const example = card.querySelector('.room-card__example');
     if (example) example.style.display = 'none';
     
-    // Показать quiz-блок
     const quiz = card.querySelector('.room-card__quiz');
     if (quiz) {
       quiz.style.display = 'flex';
-      
       const input = quiz.querySelector('.room-card__input');
       if (input) {
         CameraState.activeInput = input;
         input.value = '';
         input.focus();
-        
-        // Очистить подсказку
         const hint = quiz.querySelector('.room-card__hint');
         if (hint) hint.style.display = 'none';
       }
@@ -179,9 +205,6 @@ export class QuizManager {
     console.log('🎮 Entered QUIZ_MODE (WASD disabled)');
   }
   
-  /**
-   * ✅ Проверить ответ
-   */
   checkAnswer(card, userInput) {
     const correctAnswer = (card.dataset.translation || '').toLowerCase().trim();
     const userAnswer = userInput.toLowerCase().trim();
@@ -192,19 +215,15 @@ export class QuizManager {
       GameState.correct++;
       GameState.currentStreak++;
       if (GameState.currentStreak > GameState.maxStreak) GameState.maxStreak = GameState.currentStreak;
-      
       this.playSuccessAnimation(card);
       SoundEffects.playSuccess();
       this.spawnSuccessParticles(card);
       console.log(`✅ Correct! Streak: ${GameState.currentStreak}`);
-      
-      // Автозакрытие через 1.5s
       setTimeout(() => this.closeQuiz(card), 1500);
     } else {
       GameState.errors++;
       GameState.currentStreak = 0;
       this.currentAttempts++;
-      
       this.playErrorAnimation(card);
       SoundEffects.playError();
       this.showHint(card, this.currentAttempts);
@@ -219,11 +238,9 @@ export class QuizManager {
   showHint(card, level) {
     const hint = card.querySelector('.room-card__hint');
     if (!hint) return;
-    
     const correctAnswer = card.dataset.translation || '';
     const firstLetter = correctAnswer[0] || '';
     const wordLength = correctAnswer.length;
-    
     let hintText = '';
     if (level === 1) {
       hintText = `💡 Подсказка: Первая буква — "${firstLetter}"`;
@@ -233,7 +250,6 @@ export class QuizManager {
     } else {
       hintText = `📜 Правильный ответ: ${correctAnswer}`;
     }
-    
     hint.textContent = hintText;
     hint.style.display = 'block';
     GameState.hints++;
@@ -264,17 +280,14 @@ export class QuizManager {
     const rect = card.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    
     for (let i = 0; i < 8; i++) {
       const particle = document.createElement('div');
       particle.className = 'success-particle';
       particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      
       const angle = (i / 8) * Math.PI * 2;
       const distance = 80 + Math.random() * 40;
       const tx = Math.cos(angle) * distance;
       const ty = Math.sin(angle) * distance;
-      
       particle.style.left = `${centerX}px`;
       particle.style.top = `${centerY}px`;
       particle.style.setProperty('--tx', `${tx}px`);
@@ -289,7 +302,6 @@ export class QuizManager {
     const correct = document.getElementById('correct');
     const errors = document.getElementById('errors');
     const streak = document.getElementById('streak');
-    
     if (accuracy) accuracy.textContent = `${GameState.accuracy}%`;
     if (correct) correct.textContent = GameState.correct;
     if (errors) errors.textContent = GameState.errors;
@@ -311,42 +323,29 @@ export class QuizManager {
     const translation = card.querySelector('.room-card__translation');
     const example = card.querySelector('.room-card__example');
     const quiz = card.querySelector('.room-card__quiz');
-    
     if (translation) translation.style.display = 'block';
     if (example) example.style.display = 'none';
     if (quiz) quiz.style.display = 'none';
-    
     card.dataset.state = 'revealed';
     GameState.cheats++;
-    
-    // ✅ ВЫХОД ИЗ QUIZ_MODE
     CameraState.mode = 'IDLE';
     CameraState.activeCard = null;
     CameraState.activeInput = null;
-    
     console.log(`👁️ Revealed translation: "${card.dataset.translation}"`);
     console.log('🎮 Exited QUIZ_MODE (WASD enabled)');
   }
   
-  /**
-   * ❌ Закрыть quiz-режим
-   */
   closeQuiz(card) {
-    // ✅ ВОЗВРАТ В IDLE
     CameraState.mode = 'IDLE';
     CameraState.activeCard = null;
     CameraState.activeInput = null;
-    
     const quiz = card.querySelector('.room-card__quiz');
     if (quiz) quiz.style.display = 'none';
-    
     const example = card.querySelector('.room-card__example');
     if (example) example.style.display = 'block';
-    
     card.dataset.state = 'idle';
     this.currentCard = null;
     this.currentAttempts = 0;
-    
     console.log('🎮 Exited QUIZ_MODE (WASD enabled)');
   }
   
@@ -362,13 +361,11 @@ export class QuizManager {
   showAchievement(achievement) {
     const toast = document.getElementById('achievement-toast');
     if (!toast) return;
-    
     toast.innerHTML = `
       <div class="achievement-icon">${achievement.icon}</div>
       <div>${achievement.name}</div>
       <div style="font-size: 14px; opacity: 0.8; margin-top: 5px;">${achievement.desc}</div>
     `;
-    
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3000);
     console.log(`🏆 Achievement unlocked: ${achievement.name}`);
