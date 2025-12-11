@@ -1,5 +1,6 @@
 /* ============================================
    MINECRAFT-STYLE CAMERA CONTROLLER
+   Last update: 2025-12-11 (GameLoop integrated)
    ============================================ */
 
 import { CONFIG } from './config.js';
@@ -42,9 +43,15 @@ const Camera = {
     roomsCache: null,
     roomUpdateCounter: 0,
     isTouchDevice: false,
+    gameLoop: null,  // ✅ NEW: GameLoop reference
     
-    init() {
+    // ✅ MODIFIED: Now accepts gameLoop parameter
+    init(gameLoop) {
         console.log('🎮 Camera init...');
+        
+        // ✅ Store GameLoop reference
+        this.gameLoop = gameLoop;
+        
         this.speed = CONFIG.camera.speed;
         this.sprintMultiplier = CONFIG.camera.sprintMultiplier;
         this.acceleration = CONFIG.camera.acceleration;
@@ -68,13 +75,72 @@ const Camera = {
         this.setupTouchControls();
         
         if (this.isTouchDevice) {
-            this.setupDPadEventListener();  // ✅ Listen to mobile-dpad.js events
+            this.setupDPadEventListener();
             this.setupMobileCardInteractions();
         }
         
-        this.startGameLoop();
+        // ✅ REPLACED: startGameLoop() → subscribeToGameLoop()
+        this.subscribeToGameLoop();
+        
         setTimeout(() => this.cacheRooms(), 100);
         console.log('✅ Camera ready with', this.isTouchDevice ? 'Mobile D-Pad + Card Interactions' : 'Desktop controls');
+    },
+    
+    // ════════════════════════════════════════════════════════════
+    // ✅ NEW: Subscribe to GameLoop (replaces startGameLoop)
+    // ════════════════════════════════════════════════════════════
+    subscribeToGameLoop() {
+        if (!this.gameLoop) {
+            console.error('❌ Camera: GameLoop not provided! Falling back to manual RAF.');
+            this.startGameLoopFallback();
+            return;
+        }
+        
+        console.log('🔗 Camera: Subscribing to GameLoop...');
+        
+        // UPDATE callback (fixed timestep)
+        this.gameLoop.onUpdate((dt) => {
+            // dt is always 16.67ms (for 60 FPS)
+            this.updateMovement(dt);
+        });
+        
+        // RENDER callback (every frame)
+        this.gameLoop.onRender((alpha) => {
+            // alpha = 0-1, можно использовать для interpolation
+            this.applyTransform();
+            this.updateRaycast();
+            
+            // Update rooms every 3rd frame (оптимизация)
+            this.roomUpdateCounter++;
+            if (this.roomUpdateCounter % 3 === 0) {
+                this.updateActiveRooms();
+            }
+            
+            this.updateProgress();
+            this.updateWordCounter();
+        });
+        
+        console.log('✅ Camera subscribed to GameLoop');
+    },
+    
+    // ════════════════════════════════════════════════════════════
+    // ⚠️ FALLBACK: Manual RAF (if GameLoop not initialized)
+    // ════════════════════════════════════════════════════════════
+    startGameLoopFallback() {
+        console.warn('⚠️ Using fallback RAF loop (not recommended)');
+        const update = () => {
+            this.updateMovement(16.67); // Assume 60 FPS
+            this.applyTransform();
+            this.updateRaycast();
+            this.roomUpdateCounter++;
+            if (this.roomUpdateCounter % 3 === 0) {
+                this.updateActiveRooms();
+            }
+            this.updateProgress();
+            this.updateWordCounter();
+            requestAnimationFrame(update);
+        };
+        requestAnimationFrame(update);
     },
     
     // ════════════════════════════════════════════════════════════
@@ -86,26 +152,14 @@ const Camera = {
         window.addEventListener('dpad-input', (e) => {
             const { key, pressed } = e.detail;
             
-            // Map D-Pad keys to Camera keys
             switch(key) {
-                case 'up':
-                    this.keys.forward = pressed;
-                    break;
-                case 'down':
-                    this.keys.backward = pressed;
-                    break;
-                case 'left':
-                    this.keys.left = pressed;
-                    break;
-                case 'right':
-                    this.keys.right = pressed;
-                    break;
+                case 'up': this.keys.forward = pressed; break;
+                case 'down': this.keys.backward = pressed; break;
+                case 'left': this.keys.left = pressed; break;
+                case 'right': this.keys.right = pressed; break;
             }
             
-            // Update visual hints
             this.updateWASDHints();
-            
-            console.log(`📡 Camera received: ${key}=${pressed}`);
         });
         
         console.log('✅ D-Pad event listener ready');
@@ -157,10 +211,8 @@ const Camera = {
                     rightClickCount = 0;
                     const currentState = targetCard.dataset.state || 'idle';
                     if (currentState === 'revealed') {
-                        console.log('🔒 Hiding translation (toggle)');
                         this.quizManager.hideTranslation(targetCard);
                     } else {
-                        console.log('👁️ Revealing translation (toggle)');
                         this.quizManager.revealTranslation(targetCard);
                     }
                     this.hideDoubleClickHint();
@@ -198,7 +250,6 @@ const Camera = {
             longPressCard = card;
             
             longPressTimer = setTimeout(() => {
-                const distance = this.getDistanceToCard(card);
                 const word = card.dataset.word;
                 this.quizManager.speakWord(word);
                 this.animateClick(card);
@@ -208,7 +259,6 @@ const Camera = {
                 }
                 
                 this.showToast(`🔊 Speaking: "${word}"`, 1500);
-                console.log(`📱 Long-press: Speaking "${word}" (distance: ${Math.round(distance)}px)`);
                 longPressCard = null;
             }, 500);
             
@@ -256,8 +306,6 @@ const Camera = {
                     this.showToast('👁️ Translation revealed!', 1500);
                 }
                 
-                console.log(`📱 Double-tap: Toggle translation (distance: ${Math.round(distance)}px)`);
-                
                 lastTapTime = 0;
                 lastTapCard = null;
                 longPressCard = null;
@@ -269,12 +317,10 @@ const Camera = {
             if (state === 'idle') {
                 if (distance > 2000) {
                     this.showToast(`⚠️ Too far! Distance: ${Math.round(distance)}px\n🚶 Move closer using D-Pad`, 2500);
-                    console.log(`📱 Tap rejected: Too far (${Math.round(distance)}px)`);
                 } else {
                     e.preventDefault();
                     this.quizManager.initQuiz(card);
                     SoundEffects.playClick();
-                    console.log(`📱 Tap: Open quiz for "${card.dataset.word}" (distance: ${Math.round(distance)}px)`);
                 }
             }
             
@@ -481,23 +527,10 @@ const Camera = {
         msg.style.opacity = show ? '1' : '0';
     },
     
-    startGameLoop() {
-        const update = () => {
-            this.updateMovement();
-            this.applyTransform();
-            this.updateRaycast();
-            this.roomUpdateCounter++;
-            if (this.roomUpdateCounter % 3 === 0) {
-                this.updateActiveRooms();
-            }
-            this.updateProgress();
-            this.updateWordCounter();
-            requestAnimationFrame(update);
-        };
-        requestAnimationFrame(update);
-    },
-    
-    updateMovement() {
+    // ════════════════════════════════════════════════════════════
+    // ✅ MODIFIED: Now accepts deltaTime parameter (fixed timestep)
+    // ════════════════════════════════════════════════════════════
+    updateMovement(dt = 16.67) {
         let inputX = 0, inputZ = 0;
         if (this.keys.forward) inputZ += 1;
         if (this.keys.backward) inputZ -= 1;
@@ -534,15 +567,11 @@ const Camera = {
         const corridor = document.querySelector('#corridor');
         if (!corridor) return;
         
-        // ✅ ПРАВИЛЬНАЯ ТРАНСФОРМАЦИЯ (как в Minecraft/FPS):
         corridor.style.transform = `
             translate3d(${-this.x}px, ${-this.y}px, ${-this.z}px)
             rotateY(${-this.yaw}rad)
             rotateX(${-this.pitch}rad)
         `.trim();
-        
-        // ❌ УБРАНО: translateZ(fov) - создавало вид от 3-го лица
-        // document.documentElement.style.setProperty('--fov', `${CONFIG.camera.fov}px`);
     },
     
     updateWASDHints() {
@@ -571,7 +600,6 @@ const Camera = {
                     cameraTouchId = touch.identifier;
                     lastCameraX = x;
                     lastCameraY = y;
-                    console.log('📱 Camera touch started');
                 }
             });
         }, { passive: true });
@@ -598,12 +626,9 @@ const Camera = {
             Array.from(e.changedTouches).forEach(touch => {
                 if (touch.identifier === cameraTouchId) {
                     cameraTouchId = null;
-                    console.log('📱 Camera touch ended');
                 }
             });
         }, { passive: true });
-        
-        console.log('✅ Dual-zone touch controls initialized');
     },
     
     cacheRooms() { this.roomsCache = Array.from(document.querySelectorAll('.room')); },
@@ -678,13 +703,14 @@ const Camera = {
     }
 };
 
-function initCamera(words, config) {
+// ✅ MODIFIED: Now accepts gameLoop parameter
+function initCamera(words, config, gameLoop) {
     if (!words || words.length === 0) return;
     Camera.words = words;
     Camera.roomSpacing = config.corridor.roomSpacing;
     Camera.startOffset = 2000;
     Camera.activeThreshold = 400;
-    Camera.init();
+    Camera.init(gameLoop);
 }
 
 export { initCamera, Camera };
