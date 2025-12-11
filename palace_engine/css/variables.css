@@ -1,15 +1,33 @@
 /* ============================================
    DESIGN TOKENS & CSS VARIABLES
    Описание: Центральное хранилище всех цветов, размеров и констант
-   Используется: Во всех остальных файлах
+   Last update: 2025-12-11 (Perspective formula sync)
    ============================================ */
 
 :root {
-    /* === CAMERA & 3D === */
+    /* === 🆕 CAMERA & 3D PERSPECTIVE (ПО ФОРМУЛЕ ЭТАЛОНА) === */
+    
+    /* Базовые параметры */
+    --base-perspective: 1;
+    --camera-speed: 200;
+    --item-z: 3;
+    
+    /* Вычисляемые значения */
+    --fov: 200px;              /* ✅ CRITICAL: basePerspective × cameraSpeed = 1 × 200 (was 2400px) */
+    --perspective: 200px;       /* ✅ CRITICAL: Same as fov (was 2400px) */
+    --spacing: 600px;           /* ✅ CRITICAL: itemZ × cameraSpeed = 3 × 200 (was 800px) */
+    
+    /* Позиция камеры (обновляется JS) */
+    --camera-z: 0;
+    
+    /* Perspective origin (точка зрения) */
+    --perspective-origin-x: 50;  /* % */
+    --perspective-origin-y: 30;  /* % */
+    --perspective-origin: 50% 30%;
+    
+    /* Глубина сцены (рассчитывается JS) */
+    --viewport-height: 0;
     --depth: 0px;
-    --fov: 2400px;         /* ✅ CRITICAL: Was 1000px, now 3x new spacing */
-    --perspective: 2400px; /* ✅ CRITICAL: Was 800px, now matches fov */
-    --perspective-origin: 50% 50%;
     
     /* === TEXTURES === */
     --wall-texture: url('https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=2069&auto=format&fit=crop');
