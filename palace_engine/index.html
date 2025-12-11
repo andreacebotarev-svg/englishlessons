@@ -4,12 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memory Palace - 3D English Learning</title>
+    
+    <!-- ✅ CORE CSS (Order matters!) -->
     <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/scene-3d.css">
-    <link rel="stylesheet" href="css/ui.css">
-    <link rel="stylesheet" href="css/room.css">
-    <link rel="stylesheet" href="css/quiz.css">
-    <link rel="stylesheet" href="css/mobile.css">
+    
+    <!-- ✅ WORLD OBJECTS (Floor, Walls, Corridor) -->
+    <link rel="stylesheet" href="css/world-objects.css">
+    
+    <!-- ✅ CARDS & ROOMS -->
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/room-card.css">
+    <link rel="stylesheet" href="css/room-box.css">
+    
+    <!-- ✅ UI LAYER -->
+    <link rel="stylesheet" href="css/ui-layer.css">
+    <link rel="stylesheet" href="css/crosshair.css">
+    <link rel="stylesheet" href="css/wasd-hints.css">
+    
+    <!-- ✅ QUIZ MODE -->
+    <link rel="stylesheet" href="css/quiz-mode.css">
+    
+    <!-- ✅ MOBILE -->
+    <link rel="stylesheet" href="css/mobile-controls.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- ✅ ANIMATIONS -->
+    <link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
     <!-- ══════════════════════════════════════════════════════════ -->
@@ -88,7 +110,7 @@
     <script type="module" src="js/app.js"></script>
     <script type="module" src="js/mobile-dpad.js"></script>
     <script>
-        // Toggle debug panel with 'G' key (changed from 'D')
+        // Toggle debug panel with 'G' key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'g' || e.key === 'G') {
                 const panel = document.getElementById('debug-panel');
