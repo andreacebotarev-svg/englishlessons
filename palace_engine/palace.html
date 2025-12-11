@@ -41,7 +41,15 @@
     <div class="lesson-info" id="lessonInfo"><h2>Lesson <span id="lessonNumber">???</span></h2><div class="word-count"><span id="wordCount">0</span> words loaded</div></div>
     <div class="ui-overlay" id="uiOverlay"><h1>🏰 Memory Palace</h1><p style="margin-bottom: 12px; opacity: 0.8;">Navigate through your 3D vocabulary corridor</p><h3 style="margin-top: 12px; color: #FFD60A; font-size: 13px;">⌨️ Controls:</h3><ul class="controls-list"><li><span class="key">W</span><span class="key">↑</span> Move Forward</li><li><span class="key">S</span><span class="key">↓</span> Move Backward</li><li><span class="key">Space</span> Next Waypoint</li><li><span class="key">Home</span> Start</li><li><span class="key">End</span> Finish</li><li><span class="key">Esc</span> Return to Rail</li><li><span class="key">R</span> Toggle Path</li><li><span class="key">Click</span> Focus Card</li></ul></div>
     <div class="status-panel" id="statusPanel"><div class="status-item"><span class="status-label">Position:</span><span class="status-value" id="statusPosition">0%</span></div><div class="status-item"><span class="status-label">FPS:</span><span class="status-value" id="statusFps">60</span></div><div class="status-item"><span class="status-label">FOV:</span><span class="status-value" id="statusFov">35°</span></div></div>
-    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","gsap":"https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm"}}</script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+            "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js"
+        }
+    }
+    </script>
     <script type="module">
         import * as THREE from 'three';
         import gsap from 'gsap';
