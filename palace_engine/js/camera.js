@@ -1,6 +1,6 @@
 /* ============================================
    MINECRAFT-STYLE CAMERA CONTROLLER
-   Last update: 2025-12-11 (Y-axis inversion disabled)
+   Last update: 2025-12-11 (Camera start position fixed)
    
    ⚠️⚠️⚠️ AI AGENTS WARNING ⚠️⚠️⚠️
    DO NOT MODIFY CAMERA INVERSION SETTINGS!
@@ -20,7 +20,7 @@ export const CameraState = {
 };
 
 const Camera = {
-    x: 0, y: 150, z: 0,
+    x: 0, y: 150, z: 1500, // 👁️ START BEHIND FIRST CARD
     yaw: 0, pitch: 0,
     velocity: { x: 0, y: 0, z: 0 },
     speed: 8,
@@ -69,11 +69,15 @@ const Camera = {
         // ⚠️ AI WARNING: Camera inversion is user preference!
         console.log('⚠️ Camera inversion: X=' + this.invertX + ', Y=' + this.invertY);
         
-        const firstCardWorldZ = -CONFIG.cards.spacing;
-        const safeViewDistance = 1500;
-        this.z = firstCardWorldZ + safeViewDistance;
+        // 👁️ FIXED: Camera starts 1500px BEHIND first card (which is at z=0)
+        // Cards are at: 0, -500, -1000, -1500...
+        // Camera at z=1500 looks FORWARD (towards negative Z)
+        this.z = 1500;
         this.minZ = -(CONFIG.cards.spacing * this.words.length) - 500;
-        this.maxZ = this.z + 300;
+        this.maxZ = 2000; // Allow moving back a bit
+        
+        console.log(`📍 Camera start: z=${this.z}, cards range: 0 to ${this.minZ}`);
+        
         this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         this.setupKeyboard();
         this.setupMouse();
@@ -89,57 +93,15 @@ const Camera = {
         console.log('🔄 Inverted controls: X=' + this.invertX + ', Y=' + this.invertY);
     },
     
-    subscribeToGameLoop() {
-        if (!this.gameLoop) {
-            console.error('❌ Camera: GameLoop not provided!');
-            this.startGameLoopFallback();
-            return;
-        }
-        console.log('🔗 Camera: Subscribing to GameLoop...');
-        this.gameLoop.onUpdate((dt) => { this.updateMovement(dt); });
-        this.gameLoop.onRender((alpha) => {
-            this.applyTransform();
-            this.updateRaycast();
-            this.roomUpdateCounter++;
-            if (this.roomUpdateCounter % 3 === 0) { this.updateActiveRooms(); }
-            this.updateProgress();
-            this.updateWordCounter();
-        });
-        console.log('✅ Camera subscribed to GameLoop');
-    },
+    subscribeToGameLoop() { if (!this.gameLoop) { console.error('❌ Camera: GameLoop not provided!'); this.startGameLoopFallback(); return; } console.log('🔗 Camera: Subscribing to GameLoop...'); this.gameLoop.onUpdate((dt) => { this.updateMovement(dt); }); this.gameLoop.onRender((alpha) => { this.applyTransform(); this.updateRaycast(); this.roomUpdateCounter++; if (this.roomUpdateCounter % 3 === 0) { this.updateActiveRooms(); } this.updateProgress(); this.updateWordCounter(); }); console.log('✅ Camera subscribed to GameLoop'); },
     
-    startGameLoopFallback() {
-        console.warn('⚠️ Using fallback RAF loop');
-        const update = () => {
-            this.updateMovement(16.67);
-            this.applyTransform();
-            this.updateRaycast();
-            this.roomUpdateCounter++;
-            if (this.roomUpdateCounter % 3 === 0) { this.updateActiveRooms(); }
-            this.updateProgress();
-            this.updateWordCounter();
-            requestAnimationFrame(update);
-        };
-        requestAnimationFrame(update);
-    },
+    startGameLoopFallback() { console.warn('⚠️ Using fallback RAF loop'); const update = () => { this.updateMovement(16.67); this.applyTransform(); this.updateRaycast(); this.roomUpdateCounter++; if (this.roomUpdateCounter % 3 === 0) { this.updateActiveRooms(); } this.updateProgress(); this.updateWordCounter(); requestAnimationFrame(update); }; requestAnimationFrame(update); },
     
-    setupDPadEventListener() {
-        console.log('📡 Setting up D-Pad...');
-        window.addEventListener('dpad-input', (e) => {
-            const { key, pressed } = e.detail;
-            switch(key) {
-                case 'up': this.keys.forward = pressed; break;
-                case 'down': this.keys.backward = pressed; break;
-                case 'left': this.keys.left = pressed; break;
-                case 'right': this.keys.right = pressed; break;
-            }
-            this.updateWASDHints();
-        });
-    },
+    setupDPadEventListener() { console.log('📡 Setting up D-Pad...'); window.addEventListener('dpad-input', (e) => { const { key, pressed } = e.detail; switch(key) { case 'up': this.keys.forward = pressed; break; case 'down': this.keys.backward = pressed; break; case 'left': this.keys.left = pressed; break; case 'right': this.keys.right = pressed; break; } this.updateWASDHints(); }); },
     
-    setupRaycast() { this.quizManager = new QuizManager(this); let rightClickCount = 0; let rightClickTimer = null; window.addEventListener('mousedown', (e) => { if (e.button === 0 && this.isPointerLocked && this.targetedCard) { const state = this.targetedCard.dataset.state || 'idle'; if (state === 'idle') { this.quizManager.initQuiz(this.targetedCard); SoundEffects.playClick(); } } if (e.button === 2) { let targetCard = null; if (CameraState.mode === 'QUIZ_MODE') { targetCard = CameraState.activeCard; } else { targetCard = this.targetedCard; } if (!targetCard) return; rightClickCount++; if (rightClickCount === 1) { const word = targetCard.dataset.word; this.quizManager.speakWord(word); this.animateClick(targetCard); const currentState = targetCard.dataset.state || 'idle'; if (currentState === 'revealed') { this.showDoubleClickHint('hide'); } else { this.showDoubleClickHint('reveal'); } clearTimeout(rightClickTimer); rightClickTimer = setTimeout(() => { rightClickCount = 0; this.hideDoubleClickHint(); }, 500); } else if (rightClickCount === 2) { clearTimeout(rightClickTimer); rightClickCount = 0; const currentState = targetCard.dataset.state || 'idle'; if (currentState === 'revealed') { this.quizManager.hideTranslation(targetCard); } else { this.quizManager.revealTranslation(targetCard); } this.hideDoubleClickHint(); } } }); window.addEventListener('contextmenu', (e) => { e.preventDefault(); }); },
+    setupRaycast() { this.quizManager = new QuizManager(this); let rightClickCount = 0; let rightClickTimer = null; window.addEventListener('mousedown', (e) => { if (e.button === 0 && this.isPointerLocked && this.targetedCard) { const state = this.targetedCard.dataset.state || 'idle'; if (state === 'idle') { this.quizManager.initQuiz(this.targetedCard); SoundEffects.playClick(); } } if (e.button === 2) { let targetCard = null; if (CameraState.mode === 'QUIZ_MODE') { targetCard = CameraState.activeCard; } else { targetCard = this.targetedCard; } if (!targetCard) return; rightClickCount++; if (rightClickCount === 1) { const word = targetCard.dataset.en; this.quizManager.speakWord(word); this.animateClick(targetCard); const currentState = targetCard.dataset.state || 'idle'; if (currentState === 'revealed') { this.showDoubleClickHint('hide'); } else { this.showDoubleClickHint('reveal'); } clearTimeout(rightClickTimer); rightClickTimer = setTimeout(() => { rightClickCount = 0; this.hideDoubleClickHint(); }, 500); } else if (rightClickCount === 2) { clearTimeout(rightClickTimer); rightClickCount = 0; const currentState = targetCard.dataset.state || 'idle'; if (currentState === 'revealed') { this.quizManager.hideTranslation(targetCard); } else { this.quizManager.revealTranslation(targetCard); } this.hideDoubleClickHint(); } } }); window.addEventListener('contextmenu', (e) => { e.preventDefault(); }); },
     
-    setupMobileCardInteractions() { console.log('📱 Mobile cards...'); let longPressTimer = null; let longPressCard = null; let touchStartTime = 0; let touchStartPos = { x: 0, y: 0 }; let lastTapTime = 0; let lastTapCard = null; window.addEventListener('touchstart', (e) => { if (e.target.closest('#mobile-dpad, .quiz-stats, .wasd-keys, #back-btn')) return; const touch = e.changedTouches[0]; const element = document.elementFromPoint(touch.clientX, touch.clientY); const card = element?.closest('.room'); if (!card) return; touchStartTime = Date.now(); touchStartPos = { x: touch.clientX, y: touch.clientY }; longPressCard = card; longPressTimer = setTimeout(() => { const word = card.dataset.word; this.quizManager.speakWord(word); this.animateClick(card); if (navigator.vibrate) { navigator.vibrate(50); } this.showToast(`🔊 ${word}`, 1500); longPressCard = null; }, 500); }, { passive: true }); window.addEventListener('touchend', (e) => { clearTimeout(longPressTimer); if (!longPressCard) return; const touch = e.changedTouches[0]; const element = document.elementFromPoint(touch.clientX, touch.clientY); const card = element?.closest('.room'); if (!card || card !== longPressCard) { longPressCard = null; return; } const touchDuration = Date.now() - touchStartTime; const touchMoveDistance = Math.sqrt(Math.pow(touch.clientX - touchStartPos.x, 2) + Math.pow(touch.clientY - touchStartPos.y, 2)); if (touchMoveDistance > 10 || touchDuration >= 500) { longPressCard = null; return; } const distance = this.getDistanceToCard(card); const now = Date.now(); const timeSinceLastTap = now - lastTapTime; if (lastTapCard === card && timeSinceLastTap < 300) { e.preventDefault(); const currentState = card.dataset.state || 'idle'; if (currentState === 'revealed') { this.quizManager.hideTranslation(card); this.showToast('🔒 Hidden', 1500); } else { this.quizManager.revealTranslation(card); this.showToast('👁️ Revealed!', 1500); } lastTapTime = 0; lastTapCard = null; longPressCard = null; return; } const state = card.dataset.state || 'idle'; if (state === 'idle') { if (distance > 2000) { this.showToast(`⚠️ Too far: ${Math.round(distance)}px`, 2500); } else { e.preventDefault(); this.quizManager.initQuiz(card); SoundEffects.playClick(); } } lastTapTime = now; lastTapCard = card; longPressCard = null; }, { passive: true }); window.addEventListener('touchmove', (e) => { if (longPressCard) { const touch = e.changedTouches[0]; const moveDistance = Math.sqrt(Math.pow(touch.clientX - touchStartPos.x, 2) + Math.pow(touch.clientY - touchStartPos.y, 2)); if (moveDistance > 10) { clearTimeout(longPressTimer); longPressCard = null; } } }, { passive: true }); },
+    setupMobileCardInteractions() { console.log('📱 Mobile cards...'); let longPressTimer = null; let longPressCard = null; let touchStartTime = 0; let touchStartPos = { x: 0, y: 0 }; let lastTapTime = 0; let lastTapCard = null; window.addEventListener('touchstart', (e) => { if (e.target.closest('#mobile-dpad, .quiz-stats, .wasd-keys, #back-btn')) return; const touch = e.changedTouches[0]; const element = document.elementFromPoint(touch.clientX, touch.clientY); const card = element?.closest('.room'); if (!card) return; touchStartTime = Date.now(); touchStartPos = { x: touch.clientX, y: touch.clientY }; longPressCard = card; longPressTimer = setTimeout(() => { const word = card.dataset.en; this.quizManager.speakWord(word); this.animateClick(card); if (navigator.vibrate) { navigator.vibrate(50); } this.showToast(`🔊 ${word}`, 1500); longPressCard = null; }, 500); }, { passive: true }); window.addEventListener('touchend', (e) => { clearTimeout(longPressTimer); if (!longPressCard) return; const touch = e.changedTouches[0]; const element = document.elementFromPoint(touch.clientX, touch.clientY); const card = element?.closest('.room'); if (!card || card !== longPressCard) { longPressCard = null; return; } const touchDuration = Date.now() - touchStartTime; const touchMoveDistance = Math.sqrt(Math.pow(touch.clientX - touchStartPos.x, 2) + Math.pow(touch.clientY - touchStartPos.y, 2)); if (touchMoveDistance > 10 || touchDuration >= 500) { longPressCard = null; return; } const distance = this.getDistanceToCard(card); const now = Date.now(); const timeSinceLastTap = now - lastTapTime; if (lastTapCard === card && timeSinceLastTap < 300) { e.preventDefault(); const currentState = card.dataset.state || 'idle'; if (currentState === 'revealed') { this.quizManager.hideTranslation(card); this.showToast('🔒 Hidden', 1500); } else { this.quizManager.revealTranslation(card); this.showToast('👁️ Revealed!', 1500); } lastTapTime = 0; lastTapCard = null; longPressCard = null; return; } const state = card.dataset.state || 'idle'; if (state === 'idle') { if (distance > 2000) { this.showToast(`⚠️ Too far: ${Math.round(distance)}px`, 2500); } else { e.preventDefault(); this.quizManager.initQuiz(card); SoundEffects.playClick(); } } lastTapTime = now; lastTapCard = card; longPressCard = null; }, { passive: true }); window.addEventListener('touchmove', (e) => { if (longPressCard) { const touch = e.changedTouches[0]; const moveDistance = Math.sqrt(Math.pow(touch.clientX - touchStartPos.x, 2) + Math.pow(touch.clientY - touchStartPos.y, 2)); if (moveDistance > 10) { clearTimeout(longPressTimer); longPressCard = null; } } }, { passive: true }); },
     
     showToast(message, duration = 2000) { let toast = document.getElementById('mobile-toast'); if (!toast) { toast = document.createElement('div'); toast.id = 'mobile-toast'; toast.style.cssText = `position:fixed;bottom:200px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:white;padding:12px 24px;border-radius:24px;border:2px solid rgba(255,214,10,0.5);font-size:14px;font-weight:600;z-index:100000;pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;max-width:80%;white-space:pre-line;`; document.body.appendChild(toast); } toast.textContent = message; toast.style.opacity = '1'; setTimeout(() => { toast.style.opacity = '0'; }, duration); },
     
@@ -263,8 +225,8 @@ const Camera = {
     
     cacheRooms() { this.roomsCache = Array.from(document.querySelectorAll('.room')); },
     jumpToNextRoom() { if (!CONFIG.corridor.roomBox.enabled) return; const { roomDepth } = CONFIG.corridor.roomBox; const currentRoom = Math.floor((this.z - 2000) / roomDepth), nextRoom = currentRoom + 1; const totalRooms = Math.ceil(this.words.length / CONFIG.corridor.roomBox.wordsPerRoom); if (nextRoom < totalRooms) this.animateTo(2000 + (nextRoom * roomDepth), 800); },
-    jumpToStart() { this.animateTo(-CONFIG.cards.spacing + 1500, 1000); this.x = this.y = 0; this.velocity.x = this.velocity.y = this.velocity.z = 0; },
-    jumpToEnd() { this.animateTo(-CONFIG.cards.spacing * this.words.length, 1000); },
+    jumpToStart() { this.animateTo(1500, 1000); this.x = 0; this.y = this.groundLevel; this.velocity.x = this.velocity.y = this.velocity.z = 0; },
+    jumpToEnd() { this.animateTo(-CONFIG.cards.spacing * (this.words.length - 1), 1000); },
     animateTo(targetZ, duration = 800) { const startZ = this.z, distance = targetZ - startZ, startTime = performance.now(); const animate = (currentTime) => { const elapsed = currentTime - startTime, progress = Math.min(elapsed / duration, 1); const easeProgress = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2; this.z = startZ + (distance * easeProgress); if (this.z < this.minZ) this.z = this.minZ; if (this.z > this.maxZ) this.z = this.maxZ; if (progress < 1) requestAnimationFrame(animate); }; requestAnimationFrame(animate); },
     updateActiveRooms() { if (!this.roomsCache) this.roomsCache = Array.from(document.querySelectorAll('.room')); const visibilityThreshold = this.roomSpacing * 3; const fovRadians = (CONFIG.camera.fov / 800) * Math.PI; const halfFOV = fovRadians / 2; this.roomsCache.forEach(room => { const roomZ = -parseFloat(room.dataset.position || 0); const roomX = parseFloat(room.dataset.x || 0); const distance = Math.abs(roomZ - this.z); if (distance > visibilityThreshold) { room.style.visibility = 'hidden'; return; } const dx = roomX - this.x; const dz = roomZ - this.z; let angleToCard = Math.atan2(dx, -dz); let angleDiff = angleToCard - this.yaw; while (angleDiff > Math.PI) angleDiff -= Math.PI * 2; while (angleDiff < -Math.PI) angleDiff += Math.PI * 2; const inFrustum = Math.abs(angleDiff) < halfFOV * 1.5; if (inFrustum) { room.style.visibility = 'visible'; room.classList.toggle('room--active', distance < this.activeThreshold); } else { room.style.visibility = 'hidden'; } }); },
     updateProgress() { const bar = document.getElementById('progress-bar'); if (bar) { const total = this.maxZ - this.minZ, current = this.maxZ - this.z; bar.style.width = `${Math.min(100, Math.max(0, (current / total) * 100))}%`; } },
