@@ -1,12 +1,12 @@
 /* ============================================
    MINECRAFT-STYLE CAMERA CONTROLLER
-   Last update: 2025-12-11 (Camera inversion added)
+   Last update: 2025-12-11 (Y-axis inversion disabled)
    
    ⚠️⚠️⚠️ AI AGENTS WARNING ⚠️⚠️⚠️
    DO NOT MODIFY CAMERA INVERSION SETTINGS!
    The user has explicitly requested:
-   - invertX = true (horizontal inversion)
-   - invertY = true (vertical inversion)
+   - invertX = true (horizontal inversion ON)
+   - invertY = false (vertical inversion OFF)
    This is NOT a bug - it's user preference!
    ============================================ */
 
@@ -30,9 +30,9 @@ const Camera = {
     mouseSensitivity: 0.002,
     
     // ⚠️ AI WARNING: DO NOT CHANGE THESE VALUES!
-    // User explicitly requested camera inversion
-    invertX: true,  // ⚠️ PROTECTED: Horizontal inversion ON
-    invertY: true,  // ⚠️ PROTECTED: Vertical inversion ON
+    // User explicitly requested these settings
+    invertX: true,   // ⚠️ PROTECTED: Horizontal inversion ON (left/right)
+    invertY: false,  // ⚠️ PROTECTED: Vertical normal (up/down)
     
     gravity: 0.5,
     groundLevel: 150,
@@ -166,18 +166,18 @@ const Camera = {
         });
         
         // ⚠️⚠️⚠️ AI WARNING: CAMERA INVERSION CODE BELOW ⚠️⚠️⚠️
-        // DO NOT MODIFY! User explicitly requested inverted controls!
+        // DO NOT MODIFY! User preference: invertX=true, invertY=false
         document.addEventListener('mousemove', (e) => {
             if (!this.isPointerLocked) return;
             
-            // ⚠️ PROTECTED: X-axis inversion (horizontal)
+            // ⚠️ PROTECTED: X-axis inversion (horizontal LEFT/RIGHT)
             // Moving mouse RIGHT → camera rotates LEFT
             const xMultiplier = this.invertX ? -1 : 1;
             this.yaw += e.movementX * this.mouseSensitivity * xMultiplier;
             
-            // ⚠️ PROTECTED: Y-axis inversion (vertical)
-            // Moving mouse DOWN → camera looks UP
-            const yMultiplier = this.invertY ? 1 : -1;  // Note: already has minus, so invert = remove it
+            // ✅ NORMAL: Y-axis (vertical UP/DOWN)
+            // Moving mouse DOWN → camera looks DOWN (normal)
+            const yMultiplier = this.invertY ? 1 : -1;
             this.pitch -= e.movementY * this.mouseSensitivity * yMultiplier;
             
             this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
@@ -208,6 +208,7 @@ const Camera = {
     updateWASDHints() { [['w', this.keys.forward], ['a', this.keys.left], ['s', this.keys.backward], ['d', this.keys.right]].forEach(([key, active]) => { const el = document.querySelector(`.wasd-key[data-key="${key}"]`); if (el) el.classList.toggle('wasd-key--active', active); }); },
     
     // ⚠️⚠️⚠️ AI WARNING: TOUCH INVERSION CODE ⚠️⚠️⚠️
+    // User preference: invertX=true, invertY=false
     setupTouchControls() {
         const screenWidth = window.innerWidth;
         const cameraZoneStart = screenWidth * 0.4;
@@ -235,11 +236,11 @@ const Camera = {
                     const deltaX = touch.clientX - lastCameraX;
                     const deltaY = touch.clientY - lastCameraY;
                     
-                    // ⚠️ PROTECTED: Touch X-axis inversion
+                    // ⚠️ PROTECTED: Touch X-axis inversion (LEFT/RIGHT)
                     const xMultiplier = this.invertX ? -1 : 1;
                     this.yaw += deltaX * 0.005 * xMultiplier;
                     
-                    // ⚠️ PROTECTED: Touch Y-axis inversion
+                    // ✅ NORMAL: Touch Y-axis (UP/DOWN)
                     const yMultiplier = this.invertY ? 1 : -1;
                     this.pitch -= deltaY * 0.005 * yMultiplier;
                     
