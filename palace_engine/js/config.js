@@ -26,16 +26,16 @@ const CONFIG = {
         terminalVelocity: 20,       // 🆕 Максимальная скорость падения
         
         // 3D
-        fov: 800,                   // ✅ FIXED: Synced to 800px (was 1000) to match scene-3d.css perspective
+        fov: 2400,                  // ✅ CRITICAL: Updated to 2400px (was 800) to match CSS
         minDepth: 0,                // Минимальная глубина (начало)
-        maxDepth: 50000,            // Максимальная глубина (конец коридора)
+        maxDepth: 12000,            // ✅ OPTIMIZE: Updated to 500px × 24 cards (was 50000)
     },
     
     // === CORRIDOR SETTINGS ===
     corridor: {
         width: 800,
         height: 300,
-        roomSpacing: 800,       // Расстояние между карточками (линейный режим)
+        roomSpacing: 500,       // ✅ CRITICAL: Updated from 800px to 500px
         
         // 🏛️ НОВАЯ СИСТЕМА КОМНАТ-БОКСОВ
         roomBox: {
@@ -65,7 +65,7 @@ const CONFIG = {
     
     // === CARD LAYOUT ===
     cards: {
-        spacing: 800,           // Расстояние между карточками (px)
+        spacing: 500,           // ✅ CRITICAL: Updated from 800px to 500px
         offsetLeft: -250,       // Смещение левой стены (px)
         offsetRight: 250,       // Смещение правой стены (px)
         offsetY: 0,             // Смещение по высоте (px)
