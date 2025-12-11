@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import { compression } from 'vite-plugin-compression';
 
 export default defineConfig({
   base: './',
@@ -16,7 +15,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           'three-core': ['three'],
-          'three-addons': ['three/examples/jsm/utils/BufferGeometryUtils'],
           'gsap': ['gsap'],
         },
       },
@@ -24,13 +22,10 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
-    include: ['three', 'gsap'],
+    include: ['three', 'gsap', 'three/addons/'],
   },
-  plugins: [
-    compression({ algorithm: 'brotliCompress' }),
-  ],
   server: {
     port: 3000,
-    open: '/camera-demo.html'
+    open: '/palace_engine/index.html'
   }
 });
