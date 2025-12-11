@@ -1,6 +1,7 @@
 // palace_engine/js/builder.js
 
 import { CONFIG } from './config.js';
+import { getCardZPosition } from './scene-depth-calculator.js';
 import { QuizManager } from './quiz-manager.js';  // 🎮 ИМПОРТ ДЛЯ QUIZ
 // 🏛️ НОВЫЕ ИМПОРТЫ ДЛЯ СИСТЕМЫ КОМНАТ
 import {
@@ -242,15 +243,13 @@ function buildWorld(words) {
     corridor.appendChild(createWallRight());
     console.log('   ✅ Floor and walls added');
     
-    // ✅ НАЧАЛЬНОЕ СМЕЩЕНИЕ всех карточек вглубь
-    const startOffset = 0;
-    
     // ДОБАВЛЯЕМ КАРТОЧКИ (чередуются слева/справа)
     words.forEach((word, index) => {
-      const position = startOffset + ((index + 1) * CONFIG.cards.spacing);
+      // ✅ CRITICAL: Используем новую формулу
+      const zPosition = getCardZPosition(index);
       
       const room = createRoom({
-        position: position,
+        position: Math.abs(zPosition),  // Для совместимости (передаём положительное)
         word: word.en,
         translation: word.ru,
         example: word.example || `Example with "${word.en}"`,  // ✅ Пример
