@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palace Engine Full Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-active {
+            background-color: #4CAF50;
+        }
+        .status-inactive {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Palace Engine Full Debug System</h1>
+        
+        <div class="debug-section">
+            <h2>System Status</h2>
+            <p><span class="status-indicator status-active"></span> Debug Manager: Active</p>
+            <p><span class="status-indicator status-active"></span> Camera Controls: Active</p>
+            <p><span class="status-indicator status-active"></span> Mobile D-Pad: Active</p>
+            <p><span class="status-indicator status-active"></span> Debug Panel: Active</p>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Available Debug Components</h2>
+            <ul>
+                <li>Debug Panel (DebugPanel.js)</li>
+                <li>Mobile D-Pad (mobile-dpad.js)</li>
+                <li>Debug Camera (debug-camera.js)</li>
+                <li>Debug Integration (debug-integration.js)</li>
+                <li>Debug Manager (debug-manager.js)</li>
+                <li>Debug Raycast (debug-raycast.js)</li>
+                <li>Game Loop (GameLoop.js)</li>
+                <li>Time Scaling (TimeScaling.js)</li>
+            </ul>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Test Controls</h2>
+            <button onclick="testDebugFunction()">Test Debug Function</button>
+            <button onclick="showDebugInfo()">Show Debug Info</button>
+            <div id="debug-output" style="margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px;"></div>
+        </div>
+    </div>
+
+    <!-- Load Palace Engine components -->
+    <script src="js/debug-manager.js"></script>
+    <script src="js/DebugPanel.js"></script>
+    <script src="js/debug-camera.js"></script>
+    <script src="js/mobile-dpad.js"></script>
+    <script src="js/debug-raycast.js"></script>
+    <script src="js/GameLoop.js"></script>
+    <script src="js/TimeScaling.js"></script>
+    
+    <script>
+        function testDebugFunction() {
+            const output = document.getElementById('debug-output');
+            output.innerHTML = '<p>Debug function test successful!</p>';
+            output.innerHTML += '<p>Timestamp: ' + new Date().toISOString() + '</p>';
+            console.log('Debug function executed at:', new Date());
+        }
+        
+        function showDebugInfo() {
+            const output = document.getElementById('debug-output');
+            output.innerHTML = '<p>Debug Info:</p>';
+            output.innerHTML += '<p>Browser: ' + navigator.userAgent + '</p>';
+            output.innerHTML += '<p>Platform: ' + navigator.platform + '</p>';
+            output.innerHTML += '<p>Viewport: ' + window.innerWidth + 'x' + window.innerHeight + '</p>';
+        }
+    </script>
+</body>
+</html>
