@@ -212,4 +212,3 @@ export function createPlaceholderTexture(word) {
     
     return new THREE.CanvasTexture(canvas);
 }
-export { createCardTexture, createPlaceholderTexture };
