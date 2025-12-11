@@ -1,10 +1,10 @@
 /* ============================================
-   3D SCENE SETUP
-   Описание: Перспектива и 3D-трансформации
-   Last update: 2025-12-11 (WASD perspective fix)
+   3D SCENE SETUP (CINEMATIC CAMERA VERSION)
+   Описание: Стили для Three.js рендерера
+   Last update: 2025-12-11 (Cinematic Camera Migration)
    ============================================ */
 
-/* СЦЕНА С PERSPECTIVE */
+/* СЦЕНА ДЛЯ Three.js CANVAS */
 #scene {
     position: fixed;
     top: 0;
@@ -13,35 +13,36 @@
     height: 100%;
     overflow: hidden;
     
-    /* ✅ CRITICAL: Static perspective for WASD mode */
-    perspective: 2400px;
-    perspective-origin: 50% 50%;
+    /* Убираем CSS perspective, т.к. теперь используется Three.js камера */
     
-    /* 3D контекст */
-    transform-style: preserve-3d;
-    
-    /* Фон */
+    /* Фон теперь задается в Three.js сцене */
     background: linear-gradient(to bottom, #0a0a0a 0%, #1a1a2e 100%);
 }
 
-/* WORLD CONTAINER */
+/* WORLD CONTAINER - теперь используется как контейнер для Three.js canvas */
 #world {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    transform-style: preserve-3d;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* Убираем CSS 3D трансформации */
 }
 
-/* CORRIDOR - управляется camera.js */
+/* Убираем стили для коридора, т.к. теперь используется Three.js сцена */
 #corridor {
-    position: absolute;
-    transform-style: preserve-3d;
-    /* transform управляется camera.js через applyTransform() */
+    display: none; /* Старый HTML коридор больше не нужен */
 }
 
-/* FOG EFFECT (optional) */
+/* CANVAS СТИЛИ */
+#world canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* FOG EFFECT (optional) - остается для UI эффектов */
 #scene::after {
     content: '';
     position: fixed;

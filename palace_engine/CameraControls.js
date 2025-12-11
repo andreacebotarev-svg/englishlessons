@@ -5,11 +5,12 @@
  */
 
 export class CameraControls {
-  constructor(cinematicCamera) {
+  constructor(cinematicCamera, domElement = window) {
     this.cinematicCamera = cinematicCamera;
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
     
+    this.domElement = domElement;
     this.enabled = true;
     
     this.init();
@@ -17,12 +18,17 @@ export class CameraControls {
   
   init() {
     // Обработка клавиатуры
-    window.addEventListener('keydown', this.onKeyDown.bind(this));
-    window.addEventListener('keyup', this.onKeyUp.bind(this));
+    this.domElement.addEventListener('keydown', this.onKeyDown.bind(this));
+    this.domElement.addEventListener('keyup', this.onKeyUp.bind(this));
     
-    // Обработка мыши
-    window.addEventListener('click', this.onClick.bind(this));
-    window.addEventListener('mousemove', this.onMouseMove.bind(this));
+    // Обработка мыши - только если domElement поддерживает мышиные события
+    if (this.domElement !== window) {
+      this.domElement.addEventListener('click', this.onClick.bind(this));
+      this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this));
+    } else {
+      window.addEventListener('click', this.onClick.bind(this));
+      window.addEventListener('mousemove', this.onMouseMove.bind(this));
+    }
     
     console.log('🎮 Camera Controls initialized');
   }
