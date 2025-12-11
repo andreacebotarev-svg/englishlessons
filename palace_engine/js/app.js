@@ -18,9 +18,11 @@ import {
 
 // === THREE.JS MODE IMPORTS ===
 import * as THREE from 'three';
-import { buildThreeJSWorld, createThreeJSFloor, createThreeJSWalls } from './builder-threejs.js';
+import { buildOptimizedWorld, createOptimizedFloor, createOptimizedWalls, disposeScene } from './OptimizedBuilder.js';
 import { CinematicCamera } from '../CinematicCamera.js';
 import { CameraControls } from '../CameraControls.js';
+import { PerformanceMonitor } from './PerformanceMonitor.js';
+import { SmartRenderer } from './SmartRenderer.js';
 
 const App = {
     // Global variables
@@ -135,13 +137,20 @@ const App = {
         );
         this.camera.position.set(0, 2, 15);
         
-        // 3. Create renderer
+        // 3. Create renderer with optimizations
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
-            alpha: true 
+            alpha: true,
+            powerPreference: 'high-performance',  // Optimize for performance
+            preserveDrawingBuffer: false,         // Reduce memory usage
+            logarithmicDepthBuffer: true          // Better for large scenes
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;  // Better performance with good visuals
+        this.renderer.toneMappingExposure = 1.2;
         
         // 4. Add canvas to #world
         const worldContainer = document.getElementById('world');
@@ -153,22 +162,26 @@ const App = {
         worldContainer.appendChild(this.renderer.domElement);
         console.log('🖼️ Three.js canvas added to #world');
         
-        // 5. Add lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // 5. Add lighting (optimized)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);  // Increased ambient
         this.scene.add(ambientLight);
         
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
         directionalLight.position.set(5, 10, 5);
         directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 1024;   // Lower shadow resolution for performance
+        directionalLight.shadow.mapSize.height = 1024;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
         this.scene.add(directionalLight);
         console.log('💡 Lighting added');
         
-        // 6. Create floor and walls
-        createThreeJSFloor(this.scene);
-        createThreeJSWalls(this.scene);
+        // 6. Create floor and walls (optimized)
+        createOptimizedFloor(this.scene);
+        createOptimizedWalls(this.scene);
         
-        // 7. Create cards
-        this.cards = await buildThreeJSWorld(words, this.scene);
+        // 7. Create cards (optimized)
+        this.cards = await buildOptimizedWorld(words, this.scene);
         console.log(`🎴 ${this.cards.length} cards created`);
         
         // 8. Initialize Cinematic Camera
@@ -179,19 +192,31 @@ const App = {
         // 9. Setup quiz interaction
         this.setupQuizInteraction(words);
         
-        // 10. Animation loop
+        // 10. Performance monitoring
+        this.performanceMonitor = new PerformanceMonitor();
+        
+        // 11. Smart renderer
+        this.smartRenderer = new SmartRenderer(this.renderer, this.camera, this.scene);
+        
+        // 12. Animation loop with performance optimizations
         const clock = new THREE.Clock();
         
         const animate = () => {
-            requestAnimationFrame(animate);
+            // Begin performance monitoring
+            this.performanceMonitor.begin(this.renderer);
             
             const deltaTime = clock.getDelta();
             
             // Update camera
             this.cinematicCamera.update(deltaTime);
             
-            // Render
-            this.renderer.render(this.scene, this.camera);
+            // Smart render
+            this.smartRenderer.render();
+            
+            // End performance monitoring
+            this.performanceMonitor.end();
+            
+            requestAnimationFrame(animate);
         };
         
         animate();
@@ -204,6 +229,7 @@ const App = {
         });
         
         console.log('🎮 Controls: W/S or ↑/↓ - Move, Space - Next waypoint');
+        console.log('📊 Performance Monitor: Active');
     },
     
     /**

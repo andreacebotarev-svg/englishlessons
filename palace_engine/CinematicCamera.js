@@ -171,12 +171,15 @@ export class CinematicCamera {
    */
   smoothRotation() {
     // Создаём матрицу lookAt для целевого quaternion
-    const lookAtMatrix = new THREE.Matrix4();
-    lookAtMatrix.lookAt(this.camera.position, this.targetLookAt, this.camera.up);
-    this.targetQuaternion.setFromRotationMatrix(lookAtMatrix);
+    this.lookAtMatrix = this.lookAtMatrix || new THREE.Matrix4();
+    this.lookAtMatrix.lookAt(this.camera.position, this.targetLookAt, this.camera.up);
+    this.targetQuaternion.setFromRotationMatrix(this.lookAtMatrix);
     
-    // SLERP между текущим и целевым quaternion
-    this.camera.quaternion.slerp(this.targetQuaternion, this.params.rotationSpeed);
+    // Only apply SLERP if the rotation change is significant (avoid unnecessary calculations)
+    const angleDiff = this.camera.quaternion.angleTo(this.targetQuaternion);
+    if (angleDiff > 0.001) { // Only rotate if there's a meaningful difference
+      this.camera.quaternion.slerp(this.targetQuaternion, this.params.rotationSpeed);
+    }
   }
   
   /**
