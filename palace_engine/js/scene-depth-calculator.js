@@ -1,48 +1,38 @@
 /* ============================================
    SCENE DEPTH CALCULATOR
-   Описание: Рассчитывает глубину 3D-сцены
-   Зависимости: config.js
+   Описание: Расчёт позиций карточек для WASD-режима
+   Last update: 2025-12-11 (WASD mode stub)
    ============================================ */
 
 import { CONFIG } from './config.js';
 
 /**
- * Рассчитывает глубину сцены для viewport scrolling
- * Формула из эталона:
- * depth = windowHeight + perspective + (spacing × numberOfCards)
+ * Рассчитывает Z-позицию карточки по индексу
+ * @param {number} index - Индекс карточки (0-based)
+ * @returns {number} Z-позиция в пикселях (отрицательная)
  */
-export function calculateSceneDepth(numberOfCards) {
-    const perspective = CONFIG.getPerspective();
-    const spacing = CONFIG.getSpacing();
-    
-    const depth = 
-        window.innerHeight + 
-        perspective + 
-        (spacing * numberOfCards);
-    
-    console.log(`📐 Scene depth calculation:`);
-    console.log(`   Window height: ${window.innerHeight}px`);
-    console.log(`   Perspective: ${perspective}px`);
-    console.log(`   Spacing: ${spacing}px × ${numberOfCards} cards`);
-    console.log(`   Total depth: ${depth}px`);
-    
-    return depth;
+export function getCardZPosition(index) {
+    // Простая формула: spacing × index
+    // Первая карточка на Z=0, вторая на -500, третья на -1000...
+    return -(CONFIG.cards.spacing * index);
 }
 
 /**
- * Обновляет CSS переменную --viewport-height
+ * Обновляет высоту viewport для scroll-режима
+ * ⚠️ В WASD-режиме НЕ используется (заглушка)
+ * @param {number} numberOfCards - Количество карточек
  */
 export function updateViewportHeight(numberOfCards) {
-    const depth = calculateSceneDepth(numberOfCards);
-    document.documentElement.style.setProperty('--viewport-height', `${depth}px`);
-    
-    console.log(`✅ --viewport-height set to ${depth}px`);
+    // В WASD-режиме viewport не нужен
+    // Эта функция вызывается из app.js, но ничего не делает
+    console.log(`ℹ️ updateViewportHeight called (${numberOfCards} cards) - skipped for WASD mode`);
 }
 
 /**
- * Рассчитывает Z-позицию для карточки по индексу
+ * Рассчитывает глубину сцены
+ * @param {number} numberOfCards - Количество карточек
+ * @returns {number} Глубина сцены в пикселях
  */
-export function getCardZPosition(cardIndex) {
-    const spacing = CONFIG.getSpacing();
-    return spacing * cardIndex * -1;  // Отрицательное значение = вглубь
+export function calculateSceneDepth(numberOfCards) {
+    return CONFIG.cards.spacing * numberOfCards;
 }

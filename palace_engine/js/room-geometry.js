@@ -1,59 +1,40 @@
 /* ============================================
    ROOM GEOMETRY UTILITIES
-   Описание: Утилиты для расчёта геометрии 3D-комнат
+   Описание: Утилиты для системы комнат-боксов
+   Last update: 2025-12-11 (Stubs for linear mode)
    ============================================ */
 
 import { CONFIG } from './config.js';
 
 /**
- * Рассчитывает Z-координату комнаты по индексу
- * @param {number} roomIndex - Индекс комнаты (0, 1, 2...)
- * @returns {number} Z-координата в пикселях
+ * Рассчитывает Z-позицию комнаты по индексу
+ * ⚠️ Используется только если roomBox.enabled = true
+ * @param {number} roomIndex - Индекс комнаты (0-based)
+ * @returns {number} Z-позиция комнаты
  */
 export function getRoomZPosition(roomIndex) {
-    const startOffset = CONFIG.getSpacing(); // используем новую формулу
-    const roomDepth = CONFIG.corridor.roomBox.roomDepth;
+    if (!CONFIG.corridor.roomBox.enabled) {
+        return 0; // В линейном режиме не используется
+    }
+    
+    const { roomDepth } = CONFIG.corridor.roomBox;
+    const startOffset = 2000; // Начальная позиция первой комнаты
+    
     return startOffset + (roomIndex * roomDepth);
 }
 
 /**
  * Определяет индекс комнаты для слова
- * @param {number} wordIndex - Индекс слова в массиве
+ * @param {number} wordIndex - Индекс слова
  * @returns {number} Индекс комнаты
  */
 export function getWordRoomIndex(wordIndex) {
-    const wordsPerRoom = CONFIG.corridor.roomBox.wordsPerRoom;
+    if (!CONFIG.corridor.roomBox.enabled) {
+        return 0; // В линейном режиме все слова в "комнате 0"
+    }
+    
+    const { wordsPerRoom } = CONFIG.corridor.roomBox;
     return Math.floor(wordIndex / wordsPerRoom);
-}
-
-/**
- * Определяет позицию слова внутри комнаты (0-4)
- * @param {number} wordIndex - Глобальный индекс слова
- * @returns {number} Локальный индекс внутри комнаты
- */
-export function getWordPositionInRoom(wordIndex) {
-    const wordsPerRoom = CONFIG.corridor.roomBox.wordsPerRoom;
-    return wordIndex % wordsPerRoom;
-}
-
-/**
- * Возвращает конфигурацию позиции карточки
- * @param {number} positionIndex - Индекс позиции (0-4)
- * @returns {Object} { x, y, z, rotY, wall }
- */
-export function getCardPosition(positionIndex) {
-    const positions = CONFIG.corridor.cardPositions;
-    return positions[positionIndex] || positions[0];
-}
-
-/**
- * Рассчитывает общее количество комнат
- * @param {number} totalWords - Количество слов
- * @returns {number} Количество комнат
- */
-export function calculateTotalRooms(totalWords) {
-    const wordsPerRoom = CONFIG.corridor.roomBox.wordsPerRoom;
-    return Math.ceil(totalWords / wordsPerRoom);
 }
 
 /**
@@ -61,10 +42,16 @@ export function calculateTotalRooms(totalWords) {
  * @param {number} totalWords - Общее количество слов
  */
 export function logRoomInfo(totalWords) {
-    const totalRooms = calculateTotalRooms(totalWords);
-    console.log('🏗️ Room System Info:');
-    console.log(`   - Total words: ${totalWords}`);
-    console.log(`   - Words per room: ${CONFIG.corridor.roomBox.wordsPerRoom}`);
-    console.log(`   - Total rooms: ${totalRooms}`);
-    console.log(`   - Room dimensions: ${CONFIG.corridor.roomBox.roomWidth}x${CONFIG.corridor.roomBox.roomHeight}x${CONFIG.corridor.roomBox.roomDepth}px`);
+    if (!CONFIG.corridor.roomBox.enabled) {
+        console.log('📏 Room-box mode: DISABLED (using linear corridor)');
+        return;
+    }
+    
+    const { wordsPerRoom, roomDepth } = CONFIG.corridor.roomBox;
+    const totalRooms = Math.ceil(totalWords / wordsPerRoom);
+    
+    console.log('🏛️ Room-box system:');
+    console.log(`   📦 Total rooms: ${totalRooms}`);
+    console.log(`   📚 Words per room: ${wordsPerRoom}`);
+    console.log(`   📐 Room depth: ${roomDepth}px`);
 }
