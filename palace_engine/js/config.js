@@ -1,66 +1,103 @@
+/* ============================================
+   CONFIGURATION & CONSTANTS
+   Описание: Все настройки приложения
+   ============================================ */
+
 const CONFIG = {
+    // === CAMERA SETTINGS (MINECRAFT-STYLE) ===
     camera: {
-        speed: 8,
-        sprintMultiplier: 1.5,
-        acceleration: 0.5,
-        deceleration: 0.3,
-        mouseSensitivity: 0.002,
-        invertY: false,
-        minPitch: -Math.PI / 2.5,
-        maxPitch: Math.PI / 2.5,
-        gravity: 0.5,
-        groundLevel: 150,
-        terminalVelocity: 20,
-        fov: 800,
-        minDepth: 0,
-        maxDepth: 50000,
+        // Движение
+        speed: 8,                   // 🎮 Базовая скорость ходьбы (units/frame)
+        sprintMultiplier: 1.5,      // 🎮 Множитель скорости при спринте
+        acceleration: 0.5,          // 🎮 Ускорение (0-1, чем больше - резче старт)
+        deceleration: 0.3,          // 🎮 Замедление (0-1, чем больше - резче стоп)
+        
+        // Управление мышью
+        mouseSensitivity: 0.002,    // 🎮 Чувствительность мыши (радианы на пиксель)
+        invertY: false,             // 🎮 Инвертировать вертикальную ось
+        
+        // Ограничения
+        minPitch: -Math.PI / 2.5,   // 🎮 Минимальный угол наклона вверх (-72°)
+        maxPitch: Math.PI / 2.5,    // 🎮 Максимальный угол наклона вниз (72°)
+        
+        // 🆕 ГРАВИТАЦИЯ И ПОЛ
+        gravity: 0.5,               // 🆕 Сила гравитации (units/frame²)
+        groundLevel: 150,           // 🆕 Уровень пола по Y (высота глаз персонажа)
+        terminalVelocity: 20,       // 🆕 Максимальная скорость падения
+        
+        // 3D
+        fov: 800,                   // ✅ FIXED: Synced to 800px to match scene-3d.css perspective
+        minDepth: 0,                // Минимальная глубина (начало)
+        maxDepth: 12000,            // ✅ OPTIMIZED: Updated to 12000px for 24 cards (was 50000)
     },
+    
+    // === CORRIDOR SETTINGS ===
     corridor: {
         width: 800,
         height: 300,
-        roomSpacing: 800,
+        roomSpacing: 500,       // ✅ CRITICAL: Updated from 800px to 500px
+        
+        // 🏛️ НОВАЯ СИСТЕМА КОМНАТ-БОКСОВ
         roomBox: {
-            enabled: false,
-            wordsPerRoom: 5,
-            roomDepth: 2000,
-            roomWidth: 1500,
-            roomHeight: 1200,
-            doorHeight: 500,
-            doorWidth: 300
+            enabled: false,      // 🔴 ВРЕМЕННО ОТКЛЮЧЕНО ДЛЯ ОТЛАДКИ
+            wordsPerRoom: 5,     // Количество слов в одной комнате
+            roomDepth: 2000,     // Глубина комнаты (Z-axis)
+            roomWidth: 1500,     // Ширина комнаты (X-axis)
+            roomHeight: 1200,    // Высота комнаты (Y-axis)
+            doorHeight: 500,     // Высота двери
+            doorWidth: 300       // Ширина двери
         },
+        
+        // 📍 Позиционирование карточек внутри комнат
         cardPositions: [
+            // Левая стена
             { x: -600, y: 0, z: 0, rotY: 90, wall: 'left' },
+            // Правая стена
             { x: 600, y: 0, z: 0, rotY: -90, wall: 'right' },
+            // Задняя стена (левая карточка)
             { x: -300, y: 100, z: -900, rotY: 0, wall: 'back' },
+            // Задняя стена (правая карточка)
             { x: 300, y: 100, z: -900, rotY: 0, wall: 'back' },
+            // Задняя стена (центр)
             { x: 0, y: -100, z: -900, rotY: 0, wall: 'back' }
         ]
     },
+    
+    // === CARD LAYOUT ===
     cards: {
-        spacing: 800,
-        offsetLeft: -250,
-        offsetRight: 250,
-        offsetY: 0,
-        alternateWalls: true,
+        spacing: 500,           // ✅ CRITICAL: Updated from 800px to 500px (matches corridor.roomSpacing)
+        offsetLeft: -250,       // Смещение левой стены (px)
+        offsetRight: 250,       // Смещение правой стены (px)
+        offsetY: 0,             // Смещение по высоте (px)
+        alternateWalls: true,   // Чередовать стены (true/false)
     },
+    
+    // === DATA SOURCE ===
     data: {
-        basePath: '/data/',
-        lessonParam: 'lesson',
+        basePath: '/data/',     // Базовый путь к JSON файлам
+        lessonParam: 'lesson',  // URL параметр для ID урока
     },
+    
+    // === UI SETTINGS ===
     ui: {
-        loadingDelay: 500,
-        errorTimeout: 5000,
-        hintFadeDelay: 3000,
+        loadingDelay: 500,      // Задержка перед скрытием загрузки (ms)
+        errorTimeout: 5000,     // Время показа ошибки (ms)
+        hintFadeDelay: 3000,    // Задержка перед исчезновением подсказки (ms)
     },
+    
+    // === COLORS ===
     colors: {
         floor: '#1a1a2e',
         wall: '#16213e',
         accent: '#0f4c75'
     },
+    
+    // === AUDIO (для будущего) ===
     audio: {
         enabled: false,
         volume: 0.5,
     }
 };
 
+// ES6 экспорт
 export { CONFIG };
