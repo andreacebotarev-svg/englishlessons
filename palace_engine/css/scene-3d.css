@@ -1,14 +1,8 @@
 /* ============================================
    3D SCENE & WORLD
    Описание: Контейнер 3D сцены, камера, туман
-   Зависимости: variables.css, animations.css
+   Last update: 2025-12-11 (Perspective formula sync)
    ============================================ */
-
-/* 🎮 ПЕРСПЕКТИВА ДЛЯ WASD - УБРАНА, ЧТОБЫ НЕ НАРУШАТЬ FIXED POSITIONING */
-/* html, body { */
-/*     perspective: var(--fov); */
-/*     perspective-origin: 50% 50%; */
-/* } */
 
 /* === SCENE CONTAINER === */
 #scene, .scene-3d {
@@ -17,28 +11,42 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    perspective: var(--fov);  /* ✅ FIXED: Use CSS variable (800px from variables.css) */
-    perspective-origin: 50% 50%;
+    
+    /* ✅ CRITICAL: Используем CSS variable с новой формулой */
+    perspective: var(--fov);  /* 200px (was 2400px) */
+    perspective-origin: calc(var(--perspective-origin-x) * 1%) 
+                       calc(var(--perspective-origin-y) * 1%);  /* 50% 30% */
+    
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: visible;
     background: radial-gradient(ellipse at center, var(--bg-dark) 0%, var(--bg-black) 100%);
-    /* transform-style: preserve-3d; moved to #world container to not break fixed positioning */
+    
+    /* 👉 transform-style перенесён на #world чтобы не ломать fixed positioning */
 }
 
 /* === WORLD CONTAINER === */
 #world, #corridor {
-    position: relative;
+    position: absolute;  /* ✅ CRITICAL: was relative, now absolute for proper Z-depth */
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh;  /* ✅ CRITICAL: fixed height */
     transform-style: preserve-3d;
-    /* 🎮 Transform теперь применяется через JS в camera.js */
+    
+    /* ✅ CRITICAL: Камера движется через translateZ */
+    transform: translateZ(calc(var(--camera-z) * 1px));
+    
+    /* GPU acceleration */
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 /* === 3D WORLD TRANSFORM === */
 #world {
-    transform-style: preserve-3d; /* 3D effects preserved here instead of on scene container */
+    /* 3D effects preserved here instead of on scene container */
+    transform-style: preserve-3d;
 }
 
 /* === FOG EFFECT === */
