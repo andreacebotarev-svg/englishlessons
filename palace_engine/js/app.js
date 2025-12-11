@@ -1,7 +1,7 @@
 /* ============================================
    MEMORY PALACE - MAIN APPLICATION
    Описание: Инициализация и загрузка данных
-   Last update: 2025-12-11 (GameLoop integration)
+   Last update: 2025-12-11 (Scroll conflicts removed)
    ============================================ */
 
 import { CONFIG } from './config.js';
@@ -9,8 +9,6 @@ import { buildWorld } from './builder.js';
 import { initCamera, Camera } from './camera.js';
 import { GameLoop } from './GameLoop.js';
 import { DebugPanel } from './DebugPanel.js';
-import { updateViewportHeight } from './scene-depth-calculator.js';
-import { ScrollCamera } from './scroll-camera.js';
 
 // 🎮 ЭКСПОРТ Camera в window для builder.js
 window.Camera = Camera;
@@ -24,7 +22,7 @@ const App = {
             console.log('⚙️ Initializing GameLoop...');
             const gameLoop = new GameLoop({
                 targetFPS: 60,
-                debug: true,  // Enable FPS monitoring
+                debug: true,
                 maxDeltaCap: 250
             });
             
@@ -61,10 +59,7 @@ const App = {
             
             console.log(`📚 Words found: ${words.length}`);
             
-            // 🏛️ 6. ✅ CRITICAL: Calculate scene depth BEFORE building world
-            updateViewportHeight(words.length);
-            
-            // 🏛️ 7. Build world with cards
+            // 🏛️ 6. Build world with cards
             const corridor = buildWorld(words);
             
             // Add corridor to #world container
@@ -77,21 +72,17 @@ const App = {
             world.appendChild(corridor);
             console.log('🏛️ Corridor appended to #world');
             
-            // 🔢 8. Update word counter
+            // 🔢 7. Update word counter
             const counter = document.getElementById('word-counter');
             if (counter) {
                 counter.textContent = `0 / ${words.length}`;
             }
             
-            // 📹 9. ✅ CRITICAL: Initialize Scroll Camera
-            const scrollCamera = new ScrollCamera();
-            scrollCamera.init();
-            
-            // 📹 10. Initialize traditional camera (optional - for WASD support)
+            // 📹 8. Initialize WASD Camera
             initCamera(words, CONFIG, gameLoop);
-            console.log('📹 Traditional and scroll cameras initialized');
+            console.log('📹 WASD Camera initialized');
             
-            // ▶️ 11. START GAMELOOP (after everything is ready)
+            // ▶️ 9. START GAMELOOP (after everything is ready)
             gameLoop.start();
             console.log('▶️ GameLoop started');
             
@@ -101,7 +92,7 @@ const App = {
             }
             
             console.log(`✅ App initialized with ${words.length} words`);
-            console.log(`🎮 Quiz-Mode ready! (LMB → Quiz, RMB → Speak, RMB×2 → Reveal)`);
+            console.log(`🎮 Controls: WASD + Mouse + LMB (quiz) + RMB (speak)`);
             console.log(`⚙️ Press 'G' to toggle GameLoop debug panel`);
             
         } catch (error) {

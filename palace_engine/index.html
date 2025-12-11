@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memory Palace - 3D English Learning</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/scene-3d.css">
+    <link rel="stylesheet" href="css/ui.css">
+    <link rel="stylesheet" href="css/room.css">
+    <link rel="stylesheet" href="css/quiz.css">
+    <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
     <!-- ══════════════════════════════════════════════════════════ -->
@@ -15,15 +20,12 @@
         <div class="loading__text">Loading Palace...</div>
     </div>
 
-    <!-- Viewport wrapper for scrolling -->
-    <div id="viewport" class="viewport">
-        <!-- ══════════════════════════════════════════════════════════ -->
-        <!-- 🎮 3D SCENE CONTAINER -->
-        <!-- ══════════════════════════════════════════════════════════ -->
-        <div id="scene">
-            <div id="world">
-                <!-- Corridor будет создан builder.js -->
-            </div>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 🎮 3D SCENE CONTAINER -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div id="scene">
+        <div id="world">
+            <!-- Corridor будет создан builder.js -->
         </div>
     </div>
 
@@ -69,17 +71,16 @@
         z-index: 10000;
         display: none;
     ">
-        <div>Camera Z: <span id="debug-camera-z">0</span>px</div>
-        <div>Perspective: <span id="debug-perspective">-</span>px</div>
-        <div>Spacing: <span id="debug-spacing">-</span>px</div>
-        <div>Cards visible: <span id="debug-cards">-</span></div>
-        <div>FPS: <span id="debug-fps">-</span></div>
+        <div>FPS: <span id="debug-fps">60</span></div>
+        <div>Camera X: <span id="debug-x">0</span></div>
+        <div>Camera Y: <span id="debug-y">150</span></div>
+        <div>Camera Z: <span id="debug-z">0</span></div>
+        <div>Mode: <span id="debug-mode">WASD</span></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- 📱 MOBILE D-PAD (created by mobile-dpad.js) -->
     <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- Auto-created if touch device detected -->
 
     <!-- ══════════════════════════════════════════════════════════ -->
     <!-- 📜 SCRIPTS (ES6 MODULES) -->
@@ -87,13 +88,22 @@
     <script type="module" src="js/app.js"></script>
     <script type="module" src="js/mobile-dpad.js"></script>
     <script>
-        // Toggle debug panel with 'D' key
+        // Toggle debug panel with 'G' key (changed from 'D')
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'd' || e.key === 'D') {
+            if (e.key === 'g' || e.key === 'G') {
                 const panel = document.getElementById('debug-panel');
                 panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
             }
         });
+        
+        // Update debug panel from Camera
+        setInterval(() => {
+            if (window.Camera && document.getElementById('debug-panel').style.display === 'block') {
+                document.getElementById('debug-x').textContent = Math.round(window.Camera.x);
+                document.getElementById('debug-y').textContent = Math.round(window.Camera.y);
+                document.getElementById('debug-z').textContent = Math.round(window.Camera.z);
+            }
+        }, 100);
     </script>
 </body>
 </html>
