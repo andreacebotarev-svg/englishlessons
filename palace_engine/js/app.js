@@ -6,7 +6,9 @@
 
 import { CONFIG } from './config.js';
 import { GameLoop } from './GameLoop.js';
-import { DebugPanel } from './DebugPanel.js';
+
+// === DEBUG SYSTEM IMPORTS ===
+import { initializeDebugSystems, updateDebugInfo } from './debug-integration.js';
 
 // === CSS MODE IMPORTS ===
 import { buildWorld } from './builder.js';
@@ -45,9 +47,8 @@ const App = {
                 maxDeltaCap: 250
             });
             
-            // 2. Initialize Debug Panel
-            const debugPanel = new DebugPanel(gameLoop);
-            console.log('✅ GameLoop and DebugPanel ready');
+            // 2. Initialize Debug Systems
+            console.log('✅ GameLoop ready');
             
             // 3. Read lesson ID from URL
             const params = new URLSearchParams(window.location.search);
@@ -136,8 +137,14 @@ const App = {
         initCamera(words, CONFIG, gameLoop);
         console.log('📹 WASD Camera initialized');
         
+        // Initialize Debug Systems
+        if (window.Camera) {
+            initializeDebugSystems(window.Camera);
+            console.log('🔧 Debug systems initialized');
+        }
+        
         console.log('🎮 Controls: WASD + Mouse + LMB (quiz) + RMB (speak)');
-        console.log('⚙️ Press "G" to toggle debug panel');
+        console.log('🔍 Press "G" to toggle debug panel | F3/F4/F5/F6 for specific debug features');
     },
     
     /**

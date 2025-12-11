@@ -132,6 +132,11 @@ export class GameLoop {
         console.error('[GameLoop] Render callback error:', error);
       }
     });
+    
+    // Update debug info
+    if (typeof updateDebugInfo === 'function' && window.Camera) {
+      updateDebugInfo(window.Camera, this);
+    }
 
     this.frameCount++;
     requestAnimationFrame(this.loop);

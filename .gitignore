@@ -1,23 +1,6 @@
 ```
-# Dependencies
-node_modules/
-
-# Build artifacts
-dist/
-build/
-*.js.map
-
-# Editors
-.vscode/
-.idea/
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Environment
-.env
-.env.local
-*.env.*
+# Debug and test files
+palace_engine/test_debug.html
+palace_engine/js/debug-*.js
+palace_engine/DEBUG_SYSTEM.md
 ```
