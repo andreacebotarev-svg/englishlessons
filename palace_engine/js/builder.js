@@ -1,142 +1,60 @@
 // palace_engine/js/builder.js
 
+import * as THREE from 'three';
 import { CONFIG } from './config.js';
 import { getCardZPosition } from './scene-depth-calculator.js';
-import { QuizManager } from './quiz-manager.js';
-import { getRoomZPosition, getWordRoomIndex, logRoomInfo } from './room-geometry.js';
-import { createRoomBox, groupWordsByRooms } from './room-builder.js';
+import { createCardTexture } from './texture-generator.js';
 
 /**
- * Создает контейнер для 3D-коридора
+ * Creates a Three.js card mesh
  */
-function createCorridor() {
-  const corridor = document.createElement('div');
-  corridor.id = 'corridor';
-  corridor.style.position = 'relative';
-  corridor.style.transformStyle = 'preserve-3d';
-  corridor.style.width = '100%';
-  corridor.style.height = '100%';
-  corridor.style.pointerEvents = 'none';
-  return corridor;
-}
-
-function createFloor() {
-  const floor = document.createElement('div');
-  floor.className = 'floor';
-  return floor;
-}
-
-function createWallLeft() {
-  const wall = document.createElement('div');
-  wall.className = 'wall-left';
-  return wall;
-}
-
-function createWallRight() {
-  const wall = document.createElement('div');
-  wall.className = 'wall-right';
-  return wall;
-}
-
-function createRoom({ position, word, translation, example, transcription, image, difficulty, index }) {
-  const room = document.createElement('div');
-  room.className = 'room';
-  room.dataset.word = word;
-  room.dataset.translation = translation;
-  room.dataset.position = position;
-  room.dataset.index = index;
-  room.dataset.state = 'idle';
+function createThreeJSCard({ position, word, translation, example, transcription, image, difficulty, index, scene }) {
+  // Create geometry for the card (PlaneGeometry for flat card)
+  const geometry = new THREE.PlaneGeometry(3, 2); // 3 units wide, 2 units high
   
-  const isLeft = index % 2 === 0;
-  room.classList.add(isLeft ? 'room--left' : 'room--right');
+  // Create texture for the card
+  const texture = createCardTexture(word, translation, image, example, transcription);
   
-  if (difficulty) {
-    room.classList.add(`room--${difficulty}`);
-  }
-  
-  const xOffset = isLeft ? -250 : 250;
-  room.style.left = `calc(50% + ${xOffset}px)`;
-  room.style.top = '50%';
-  
-  const rotation = isLeft ? 25 : -25;
-  room.style.transform = `translateZ(-${position}px) rotateY(${rotation}deg)`;
-  
-  // HEADER
-  const header = document.createElement('div');
-  header.className = 'room-card__header';
-  const wordGroup = document.createElement('div');
-  wordGroup.className = 'room-card__word-group';
-  const wordLabel = document.createElement('div');
-  wordLabel.className = 'room-card__word';
-  wordLabel.textContent = word;
-  const transcriptionEl = document.createElement('div');
-  transcriptionEl.className = 'room-card__transcription';
-  transcriptionEl.textContent = transcription || `/${word}/`;
-  wordGroup.appendChild(wordLabel);
-  wordGroup.appendChild(transcriptionEl);
-  header.appendChild(wordGroup);
-  room.appendChild(header);
-  
-  // IMAGE
-  if (image) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'room-card__image-wrapper';
-    const img = document.createElement('img');
-    img.className = 'room-card__image';
-    img.src = `../images/${image}`;
-    img.alt = word;
-    img.loading = 'lazy';
-    img.onerror = () => { wrapper.style.display = 'none'; };
-    wrapper.appendChild(img);
-    room.appendChild(wrapper);
-  }
-  
-  // QUIZ BLOCK
-  const quizBlock = document.createElement('div');
-  quizBlock.className = 'room-card__quiz';
-  quizBlock.style.display = 'none';
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'room-card__input';
-  input.placeholder = 'Введите перевод...';
-  input.autocomplete = 'off';
-  input.spellcheck = false;
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const camera = window.Camera;
-      if (camera && camera.quizManager) {
-        camera.quizManager.checkAnswer(room, input.value);
-      }
-    }
+  // Create material with the texture
+  const material = new THREE.MeshStandardMaterial({
+    map: texture,
+    side: THREE.DoubleSide, // Show material on both sides
+    transparent: true,
+    roughness: 0.8,
+    metalness: 0.2
   });
-  const hint = document.createElement('div');
-  hint.className = 'room-card__hint';
-  hint.style.display = 'none';
-  quizBlock.appendChild(input);
-  quizBlock.appendChild(hint);
-  room.appendChild(quizBlock);
   
-  // CONTENT
-  const contentWrapper = document.createElement('div');
-  contentWrapper.className = 'room-card__content';
-  const exampleEl = document.createElement('div');
-  exampleEl.className = 'room-card__example';
-  exampleEl.textContent = example || `Example: "${word}" in a sentence.`;
-  contentWrapper.appendChild(exampleEl);
-  const translationEl = document.createElement('div');
-  translationEl.className = 'room-card__translation';
-  translationEl.textContent = translation;
-  translationEl.style.display = 'none';
-  contentWrapper.appendChild(translationEl);
-  room.appendChild(contentWrapper);
+  // Create the mesh
+  const card = new THREE.Mesh(geometry, material);
   
-  // STATUS ICON
-  const statusIcon = document.createElement('div');
-  statusIcon.className = 'room-card__status-icon';
-  room.appendChild(statusIcon);
+  // Position the card in 3D space
+  const isLeft = index % 2 === 0;
+  card.position.set(
+    isLeft ? -2.5 : 2.5,  // x (left/right offset)
+    2,                     // y (height)
+    -position              // z (depth along corridor)
+  );
   
-  return room;
+  // Rotate the card slightly based on side
+  card.rotation.y = isLeft ? Math.PI / 8 : -Math.PI / 8; // ~22.5 degrees
+  
+  // Store word data in userData for later access
+  card.userData = {
+    word,
+    translation,
+    example,
+    transcription,
+    image,
+    difficulty,
+    index
+  };
+  
+  // Add the card to the scene if provided
+  if (scene) {
+    scene.add(card);
+  }
+  
+  return card;
 }
 
 function getColorByDifficulty(word) {
@@ -146,53 +64,41 @@ function getColorByDifficulty(word) {
   return 'hard';
 }
 
-function buildWorld(words) {
-  const corridor = createCorridor();
-  console.log(`🏛️ Building palace with ${words.length} words...`);
+/** 
+ * Builds the Three.js world with cards
+ */
+function buildThreeJSWorld(words, scene) {
+  console.log(`🏛️ Building Three.js palace with ${words.length} words...`);
   
-  if (CONFIG.corridor.roomBox.enabled) {
-    logRoomInfo(words.length);
-  }
+  const cards = [];
+  // Use the spacing from CONFIG and convert from pixels to Three.js units (100px = 1 unit)
+  const spacing = CONFIG.cards.spacing || 600; // Default spacing in pixels
+  const threeJSspacing = spacing / 100; // Convert pixels to Three.js units (adjust ratio as needed)
   
-  if (CONFIG.corridor.roomBox.enabled) {
-    console.log('🏠 Building in ROOM-BOX mode');
-    const roomGroups = groupWordsByRooms(words);
-    roomGroups.forEach((roomWords, roomIndex) => {
-      const roomBox = createRoomBox(roomIndex, roomWords);
-      corridor.appendChild(roomBox);
-    });
-    console.log(`✅ Created ${roomGroups.length} room-boxes`);
-  } else {
-    console.log('📏 Building in LINEAR CORRIDOR mode');
-    corridor.appendChild(createFloor());
-    corridor.appendChild(createWallLeft());
-    corridor.appendChild(createWallRight());
-    console.log('   ✅ Floor and walls added');
-    
-    words.forEach((word, index) => {
-      const zPosition = getCardZPosition(index);
-      const room = createRoom({
-        position: Math.abs(zPosition),
-        word: word.en,
-        translation: word.ru,
-        example: word.example || `Example with "${word.en}"`,
-        transcription: word.transcription || null,
-        image: word.image,
-        difficulty: getColorByDifficulty(word),
-        index: index
-      });
-      corridor.appendChild(room);
-      
-      if (index < 3) {
-        console.log(`   Card ${index}: "${word.en}" at Z=${zPosition}px`);
-      }
+  words.forEach((word, index) => {
+    const zPosition = index * threeJSspacing;
+    const card = createThreeJSCard({
+      position: zPosition,
+      word: word.en,
+      translation: word.ru,
+      example: word.example || `Example with "${word.en}"`,
+      transcription: word.transcription || null,
+      image: word.image,
+      difficulty: getColorByDifficulty(word),
+      index: index,
+      scene: scene
     });
     
-    console.log(`✅ Built corridor with ${words.length} rooms (spacing: ${CONFIG.cards.spacing}px)`);
-    console.log('🎮 Quiz-mode enabled on all cards');
-  }
+    cards.push(card);
+    
+    if (index < 3) {
+      console.log(`   Card ${index}: "${word.en}" at Z=${zPosition.toFixed(2)} units`);
+    }
+  });
   
-  return corridor;
+  console.log(`✅ Built Three.js world with ${cards.length} cards (spacing: ${threeJSspacing.toFixed(3)} units)`);
+  
+  return cards;
 }
 
-export { buildWorld, createRoom, createCorridor, createFloor, createWallLeft, createWallRight };
+export { buildThreeJSWorld, createThreeJSCard };
