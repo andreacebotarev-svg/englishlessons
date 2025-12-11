@@ -1,12 +1,14 @@
 /* ============================================
    MEMORY PALACE - MAIN APPLICATION
    Описание: Инициализация и загрузка данных
-   Last update: 2025-12-10 12:18
+   Last update: 2025-12-11 (GameLoop integration)
    ============================================ */
 
 import { CONFIG } from './config.js';
 import { buildWorld } from './builder.js';
 import { initCamera, Camera } from './camera.js';
+import { GameLoop } from './GameLoop.js';
+import { DebugPanel } from './DebugPanel.js';
 
 // 🎮 ЭКСПОРТ Camera в window для builder.js
 window.Camera = Camera;
@@ -16,13 +18,25 @@ const App = {
         const loader = document.getElementById('loading');
         
         try {
-            // 1. Читаем ID урока из URL (?lesson=263)
+            // ⚙️ 1. Initialize GameLoop FIRST
+            console.log('⚙️ Initializing GameLoop...');
+            const gameLoop = new GameLoop({
+                targetFPS: 60,
+                debug: true,  // Enable FPS monitoring
+                maxDeltaCap: 250
+            });
+            
+            // 🎮 2. Initialize Debug Panel
+            const debugPanel = new DebugPanel(gameLoop);
+            console.log('✅ GameLoop and DebugPanel ready');
+            
+            // 📖 3. Read lesson ID from URL (?lesson=263)
             const params = new URLSearchParams(window.location.search);
             const lessonId = params.get('lesson') || '263';
             
             console.log(`🎯 Loading lesson: ${lessonId}`);
             
-            // 2. Загружаем JSON
+            // 📦 4. Load JSON
             const response = await fetch(`../data/${lessonId}.json`);
             
             if (!response.ok) {
@@ -32,7 +46,7 @@ const App = {
             const data = await response.json();
             console.log('📦 Data loaded:', data);
             
-            // 3. Достаем слова
+            // 📚 5. Extract words
             let words = [];
             
             if (data.content && data.content.vocabulary && data.content.vocabulary.words) {
@@ -45,10 +59,10 @@ const App = {
             
             console.log(`📚 Words found: ${words.length}`);
             
-            // 4. Строим мир с карточками
+            // 🏛️ 6. Build world with cards
             const corridor = buildWorld(words);
             
-            // КРИТИЧНО: Добавляем corridor внутрь #world, а не в #scene!
+            // Add corridor to #world container
             const world = document.getElementById('world');
             
             if (!world) {
@@ -58,23 +72,28 @@ const App = {
             world.appendChild(corridor);
             console.log('🏛️ Corridor appended to #world');
             
-            // 5. Обновляем счётчик
+            // 🔢 7. Update word counter
             const counter = document.getElementById('word-counter');
             if (counter) {
                 counter.textContent = `0 / ${words.length}`;
             }
             
-            // 6. Запускаем камеру
-            initCamera(words, CONFIG);
-            console.log('📹 Camera initialized');
+            // 📹 8. Initialize camera WITH GameLoop
+            initCamera(words, CONFIG, gameLoop);
+            console.log('📹 Camera initialized with GameLoop');
             
-            // Скрываем лоадер
+            // ▶️ 9. START GAMELOOP (after everything is ready)
+            gameLoop.start();
+            console.log('▶️ GameLoop started');
+            
+            // Hide loader
             if (loader) {
                 loader.style.display = 'none';
             }
             
             console.log(`✅ App initialized with ${words.length} words`);
-            console.log(`🎮 Quiz-Mode ready! (ЛКМ → Quiz, ПКМ → Speak, ПКМ×2 → Reveal)`);
+            console.log(`🎮 Quiz-Mode ready! (LMB → Quiz, RMB → Speak, RMB×2 → Reveal)`);
+            console.log(`⚙️ Press 'G' to toggle GameLoop debug panel`);
             
         } catch (error) {
             console.error('❌ Initialization failed:', error);
@@ -83,7 +102,6 @@ const App = {
                 loader.style.display = 'none';
             }
             
-            // Показываем ошибку пользователю
             showError(`Ошибка: ${error.message}`);
         }
     }
@@ -109,7 +127,7 @@ function showError(message) {
     document.body.appendChild(errorDiv);
 }
 
-// Старт при загрузке страницы
+// Start on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => App.init());
 } else {
