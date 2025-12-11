@@ -1,8 +1,8 @@
 /**
  * MEMORY PALACE - MAIN APPLICATION
- * Last update: 2025-12-11 (Fixed debug initialization)
+ * Last update: 2025-12-11 (Pure Three.js mode)
  * 
- * KEY FIX #3: Debug systems now initialize in BOTH CSS and Three.js modes
+ * MIGRATION: Removed CSS 3D mode, now uses pure Three.js rendering
  */
 
 import { CONFIG } from './config.js';
@@ -16,21 +16,11 @@ import {
   setDebugLevel
 } from './debug-integration.js';
 
-// === CSS MODE IMPORTS ===
-import { buildWorld } from './builder.js';
-import { initCamera, Camera } from './camera.js';
-
 // === THREE.JS MODE IMPORTS ===
 import * as THREE from 'three';
 import { buildThreeJSWorld, createThreeJSFloor, createThreeJSWalls } from './builder-threejs.js';
 import { CinematicCamera } from '../CinematicCamera.js';
 import { CameraControls } from '../CameraControls.js';
-
-// 🔧 MODE SELECTION (toggle between CSS and Three.js)
-const USE_THREEJS = false; // ← Change to true for Three.js mode
-
-// Export camera to window (for builder.js and debug system)
-window.Camera = Camera;
 
 const App = {
     // Global variables
@@ -80,12 +70,8 @@ const App = {
             }
             console.log(`📚 Words found: ${words.length}`);
             
-            // === MODE SELECTION ===
-            if (USE_THREEJS) {
-                await this.initThreeJS(words);
-            } else {
-                await this.initCSS(words);
-            }
+            // === PURE THREE.JS MODE ===
+            await this.initThreeJS(words);
             
             // Update word counter
             const counter = document.getElementById('word-counter');
@@ -94,9 +80,9 @@ const App = {
             }
             
             // 🔧 CRITICAL: Initialize Debug Systems AFTER camera is ready
-            if (window.Camera) {
+            if (this.cinematicCamera) {
                 try {
-                  initializeDebugSystems(window.Camera);
+                  initializeDebugSystems(this.cinematicCamera);
                   setupDebugKeyboardShortcuts();
                   console.log('🔧 Debug systems initialized');
                 } catch (error) {
@@ -114,7 +100,7 @@ const App = {
             }
             
             console.log(`✅ App initialized with ${words.length} words`);
-            console.log(`🎮 Mode: ${USE_THREEJS ? 'Three.js' : 'CSS 3D'}`);
+            console.log(`🎮 Mode: Three.js only`);
             console.log('🔍 Debug: Press G to toggle panel, F3-F8 for features');
             
         } catch (error) {
@@ -128,29 +114,6 @@ const App = {
         }
     },
     
-    /**
-     * CSS MODE INITIALIZATION
-     */
-    async initCSS(words) {
-        console.log('🎨 Initializing CSS 3D mode...');
-        
-        // Build HTML corridor
-        const corridor = buildWorld(words);
-        
-        // Add to #world container
-        const world = document.getElementById('world');
-        if (!world) {
-            throw new Error('#world container not found');
-        }
-        
-        world.appendChild(corridor);
-        console.log('🏛️ Corridor appended to #world');
-        
-        // Initialize WASD Camera
-        initCamera(words, CONFIG, this.gameLoop);
-        console.log('📹 WASD Camera initialized');
-        console.log('🎮 Controls: WASD + Mouse + LMB (quiz) + RMB (speak)');
-    },
     
     /**
      * THREE.JS MODE INITIALIZATION
