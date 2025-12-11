@@ -14,6 +14,12 @@ export class CameraControls {
     this.domElement = domElement;
     this.enabled = true;
     
+    // Состояние для вращения мышью
+    this.isMouseDown = false;
+    this.rotationEnabled = false;
+    this.euler = new THREE.Euler(0, 0, 0, 'YXZ');
+    this.mouseSensitivity = 0.002;
+    
     this.init();
   }
   
@@ -22,16 +28,35 @@ export class CameraControls {
     this.domElement.addEventListener('keydown', this.onKeyDown.bind(this));
     this.domElement.addEventListener('keyup', this.onKeyUp.bind(this));
     
-    // Обработка мыши - только если domElement поддерживает мышиные события
+    // Обработка мыши
     if (this.domElement !== window) {
       this.domElement.addEventListener('click', this.onClick.bind(this));
+      this.domElement.addEventListener('mousedown', this.onMouseDown.bind(this));
+      this.domElement.addEventListener('mouseup', this.onMouseUp.bind(this));
       this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this));
     } else {
       window.addEventListener('click', this.onClick.bind(this));
+      window.addEventListener('mousedown', this.onMouseDown.bind(this));
+      window.addEventListener('mouseup', this.onMouseUp.bind(this));
       window.addEventListener('mousemove', this.onMouseMove.bind(this));
     }
     
     console.log('🎮 Camera Controls initialized');
+  }
+  
+  onMouseDown(event) {
+    if (!this.enabled) return;
+    if (event.button === 0) { // Левая кнопка мыши
+      this.isMouseDown = true;
+      this.rotationEnabled = true;
+    }
+  }
+  
+  onMouseUp(event) {
+    if (event.button === 0) {
+      this.isMouseDown = false;
+      this.rotationEnabled = false;
+    }
   }
   
   onKeyDown(event) {
@@ -77,6 +102,8 @@ export class CameraControls {
       case 'Escape':
         // Return to rail mode
         this.cinematicCamera.returnToRail();
+        // Включаем обратно автофокус
+        this.cinematicCamera.autoFocusEnabled = true;
         break;
       
       case 'KeyR':
@@ -143,11 +170,33 @@ export class CameraControls {
   }
   
   onMouseMove(event) {
-    // Опционально: можно добавить легкий parallax эффект
     if (!this.enabled) return;
     
+    // Обновление координат для raycasting
     this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    // Вращение камеры при зажатой мыши
+    if (this.rotationEnabled && this.isMouseDown) {
+      const movementX = event.movementX || 0;
+      const movementY = event.movementY || 0;
+      
+      // Получаем текущую ориентацию камеры
+      this.euler.setFromQuaternion(this.cinematicCamera.camera.quaternion);
+      
+      // Применяем вращение
+      this.euler.y -= movementX * this.mouseSensitivity;
+      this.euler.x -= movementY * this.mouseSensitivity;
+      
+      // Ограничение вращения по вертикали
+      this.euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.euler.x));
+      
+      // Обновляем quaternion камеры
+      this.cinematicCamera.camera.quaternion.setFromEuler(this.euler);
+      
+      // Отключаем автофокус при ручном вращении
+      this.cinematicCamera.autoFocusEnabled = false;
+    }
   }
   
   jumpToNextWaypoint() {
@@ -166,6 +215,8 @@ export class CameraControls {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('click', this.onClick);
+    window.removeEventListener('mousedown', this.onMouseDown);
+    window.removeEventListener('mouseup', this.onMouseUp);
     window.removeEventListener('mousemove', this.onMouseMove);
   }
 }
