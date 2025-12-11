@@ -414,3 +414,34 @@ if (document.readyState === 'loading') {
 }
 
 export default App;
+
+// ═══════════════════════════════════════════════════════════
+// 🔧 DEBUG: Export to window for Console access
+// ═══════════════════════════════════════════════════════════
+
+if (typeof window !== 'undefined') {
+  // Export THREE
+  import('three').then(THREE => {
+    window.THREE = THREE;
+    console.log('✅ THREE exported to window');
+  }).catch(err => {
+    console.warn('⚠️ Could not export THREE to window:', err);
+    // Fallback: if THREE is already imported, use it
+    if (typeof THREE !== 'undefined') {
+      window.THREE = THREE;
+      console.log('✅ THREE exported to window via fallback');
+    }
+  });
+  
+  // Export App
+  window.App = App;
+  console.log('✅ App exported to window');
+  
+  // Export shortcuts
+  window.getCamera = () => App.cinematicCamera?.camera;
+  window.getCards = () => App.cards;
+  window.getScene = () => App.scene;
+  window.tp = (index) => App.cinematicCamera?.moveToWaypoint(index);
+  
+  console.log('✅ Debug shortcuts ready: tp(index), getCamera(), getCards()');
+}
