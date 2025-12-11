@@ -3,6 +3,7 @@
  * 
  * Обработка управления камерой через клавиатуру и мышь
  */
+import * as THREE from 'three';
 
 export class CameraControls {
   constructor(cinematicCamera, domElement = window) {
