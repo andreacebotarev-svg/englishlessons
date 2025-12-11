@@ -1,104 +1,105 @@
-// palace_engine/js/builder.js
+/* ============================================
+   CSS 3D WORLD BUILDER
+   Описание: Создание HTML коридора с 3D карточками
+   Зависимости: config.js, room-builder.js, room-geometry.js
+   ============================================ */
 
-import * as THREE from 'three';
 import { CONFIG } from './config.js';
+import { groupWordsByRooms } from './room-builder.js';
 import { getCardZPosition } from './scene-depth-calculator.js';
-import { createCardTexture } from './texture-generator.js';
 
 /**
- * Creates a Three.js card mesh
+ * Создаёт HTML элемент коридора с карточками
+ * @param {Array} words - Массив слов из JSON
+ * @returns {HTMLElement} - Контейнер с 3D карточками
  */
-function createThreeJSCard({ position, word, translation, example, transcription, image, difficulty, index, scene }) {
-  // Create geometry for the card (PlaneGeometry for flat card)
-  const geometry = new THREE.PlaneGeometry(3, 2); // 3 units wide, 2 units high
-  
-  // Create texture for the card
-  const texture = createCardTexture(word, translation, image, example, transcription);
-  
-  // Create material with the texture
-  const material = new THREE.MeshStandardMaterial({
-    map: texture,
-    side: THREE.DoubleSide, // Show material on both sides
-    transparent: true,
-    roughness: 0.8,
-    metalness: 0.2
-  });
-  
-  // Create the mesh
-  const card = new THREE.Mesh(geometry, material);
-  
-  // Position the card in 3D space
-  const isLeft = index % 2 === 0;
-  card.position.set(
-    isLeft ? -2.5 : 2.5,  // x (left/right offset)
-    2,                     // y (height)
-    -position              // z (depth along corridor)
-  );
-  
-  // Rotate the card slightly based on side
-  card.rotation.y = isLeft ? Math.PI / 8 : -Math.PI / 8; // ~22.5 degrees
-  
-  // Store word data in userData for later access
-  card.userData = {
-    word,
-    translation,
-    example,
-    transcription,
-    image,
-    difficulty,
-    index
-  };
-  
-  // Add the card to the scene if provided
-  if (scene) {
-    scene.add(card);
-  }
-  
-  return card;
-}
-
-function getColorByDifficulty(word) {
-  const length = word.en.length;
-  if (length <= 4) return 'easy';
-  if (length <= 7) return 'medium';
-  return 'hard';
-}
-
-/** 
- * Builds the Three.js world with cards
- */
-function buildThreeJSWorld(words, scene) {
-  console.log(`🏛️ Building Three.js palace with ${words.length} words...`);
-  
-  const cards = [];
-  // Use the spacing from CONFIG and convert from pixels to Three.js units (100px = 1 unit)
-  const spacing = CONFIG.cards.spacing || 600; // Default spacing in pixels
-  const threeJSspacing = spacing / 100; // Convert pixels to Three.js units (adjust ratio as needed)
-  
-  words.forEach((word, index) => {
-    const zPosition = index * threeJSspacing;
-    const card = createThreeJSCard({
-      position: zPosition,
-      word: word.en,
-      translation: word.ru,
-      example: word.example || `Example with "${word.en}"`,
-      transcription: word.transcription || null,
-      image: word.image,
-      difficulty: getColorByDifficulty(word),
-      index: index,
-      scene: scene
+export function buildWorld(words) {
+    console.log(`🏛️ Building CSS 3D world with ${words.length} words...`);
+    
+    // Создаём основной контейнер коридора
+    const corridor = document.createElement('div');
+    corridor.id = 'corridor';
+    corridor.className = 'corridor';
+    
+    // Группируем слова по комнатам (если режим комнат включён)
+    const roomGroups = groupWordsByRooms(words);
+    const useRoomBoxes = roomGroups.length > 0;
+    
+    if (useRoomBoxes) {
+        console.log(`🏠 Room-box mode enabled: ${roomGroups.length} rooms`);
+    } else {
+        console.log('📏 Linear corridor mode enabled');
+    }
+    
+    // Создаём карточки
+    words.forEach((word, index) => {
+        const card = createCardElement(word, index, words.length);
+        corridor.appendChild(card);
+        
+        // Debug для первых 3 карточек
+        if (index < 3) {
+            console.log(`   Card ${index}: "${word.en}"`);
+        }
     });
     
-    cards.push(card);
+    console.log(`✅ Built CSS 3D world with ${words.length} cards`);
     
-    if (index < 3) {
-      console.log(`   Card ${index}: "${word.en}" at Z=${zPosition.toFixed(2)} units`);
-    }
-  });
-  
-  console.log(`✅ Built Three.js world with ${cards.length} cards (spacing: ${threeJSspacing.toFixed(3)} units)`);
-  
-  return cards;
+    return corridor;
 }
 
-export { buildThreeJSWorld, createThreeJSCard };
+/**
+ * Создаёт HTML элемент карточки
+ * @param {Object} word - Объект слова
+ * @param {number} index - Индекс слова
+ * @param {number} totalWords - Общее количество слов
+ * @returns {HTMLElement} - Элемент карточки
+ */
+function createCardElement(word, index, totalWords) {
+    // Вычисляем позицию Z для карточки
+    const zPosition = getCardZPosition(index, totalWords);
+    
+    // Определяем, слева или справа будет карточка
+    const isLeft = index % 2 === 0;
+    
+    // Создаём контейнер карточки
+    const card = document.createElement('div');
+    card.className = 'room';
+    card.dataset.en = word.en;
+    card.dataset.ru = word.ru;
+    card.dataset.example = word.example || '';
+    card.dataset.transcription = word.transcription || '';
+    card.dataset.position = zPosition;
+    card.dataset.state = 'idle';
+    card.dataset.index = index;
+    
+    // Устанавливаем 3D трансформацию
+    card.style.transform = `
+        translate3d(${isLeft ? -CONFIG.cards.offsetX : CONFIG.cards.offsetX}px, 0, ${zPosition}px)
+        rotateY(${isLeft ? CONFIG.cards.rotationY : -CONFIG.cards.rotationY}deg)
+    `;
+    
+    // Устанавливаем HTML содержимое карточки
+    card.innerHTML = `
+        <div class="room-card">
+            <div class="room-card__content">
+                <div class="room-card__word" data-translate="word">${word.en}</div>
+                <div class="room-card__transcription" data-translate="transcription">${word.transcription || ''}</div>
+                <div class="room-card__example" data-translate="example">${word.example || ''}</div>
+                <div class="room-card__translation" data-translate="translation">${word.ru}</div>
+            </div>
+        </div>
+    `;
+    
+    // Если есть изображение, добавляем его
+    if (word.image) {
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'room-card__image';
+        imgContainer.innerHTML = `<img src="../images/${word.image}" alt="${word.en}" loading="lazy">`;
+        
+        // Вставляем изображение перед содержимым
+        const contentDiv = card.querySelector('.room-card__content');
+        contentDiv.insertBefore(imgContainer, contentDiv.firstChild);
+    }
+    
+    return card;
+}
