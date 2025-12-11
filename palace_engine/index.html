@@ -1,120 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="3D Memory Palace for English vocabulary learning">
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Memory Palace Engine</title>
-    
-    <!-- CSS Modules -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/quiz-mode.css">
-    <link rel="stylesheet" href="css/mobile-controls.css">  <!-- ✅ NEW: Mobile D-Pad styles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Palace - 3D English Learning</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/scene-3d.css">
+    <link rel="stylesheet" href="css/ui.css">
+    <link rel="stylesheet" href="css/room.css">
+    <link rel="stylesheet" href="css/quiz.css">
+    <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
-    <!-- UI Layer -->
-    <div id="ui-layer">
-        <div id="loading">Loading Palace...</div>
-        <div id="error-msg" style="display: none;"></div>
-        <div id="controls-hint">
-            🎮 Click to lock cursor | WASD to move | Shift to sprint | ESC to exit<br>
-            🎯 LMB to Quiz | RMB to Speak | RMB×2 to Reveal
-        </div>
-        <div id="progress-bar"></div>
-        <div id="word-counter"><span>0</span> / 0</div>
-        <button id="back-btn" onclick="history.back()">← Exit</button>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 📱 LOADING SCREEN -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div id="loading" class="loading">
+        <div class="loading__spinner"></div>
+        <div class="loading__text">Loading Palace...</div>
     </div>
 
-    <!-- Minecraft-style Crosshair -->
-    <div class="crosshair">
-        <div class="crosshair__dot"></div>
-    </div>
-
-    <!-- WASD Hints -->
-    <div class="wasd-hints">
-        <div class="wasd-hint-group">
-            <div class="wasd-hint-row">
-                <div class="wasd-key" data-key="w">W</div>
-            </div>
-            <div class="wasd-hint-row">
-                <div class="wasd-key" data-key="a">A</div>
-                <div class="wasd-key" data-key="s">S</div>
-                <div class="wasd-key" data-key="d">D</div>
-            </div>
-            <div class="wasd-hint-label">Move (relative to view)</div>
-        </div>
-        
-        <div class="wasd-hint-group">
-            <div class="wasd-hint-row">
-                <div class="wasd-key" data-key="shift">⇧</div>
-            </div>
-            <div class="wasd-hint-label">Sprint</div>
-        </div>
-    </div>
-
-    <!-- 🎮 QUIZ STATS OVERLAY -->
-    <div id="quiz-stats" style="display: none;">
-        <h3>📊 Статистика</h3>
-        
-        <div class="stat">
-            <span class="stat__label">Точность:</span>
-            <span class="stat__value" id="accuracy">0%</span>
-        </div>
-        <div class="stat">
-            <span class="stat__label">Правильно:</span>
-            <span class="stat__value stat__value--green" id="correct">0</span>
-        </div>
-        <div class="stat">
-            <span class="stat__label">Ошибок:</span>
-            <span class="stat__value stat__value--red" id="errors">0</span>
-        </div>
-        <div class="stat">
-            <span class="stat__label">Серия:</span>
-            <span class="stat__value stat__value--gold" id="streak">0🔥</span>
-        </div>
-        <div class="stat">
-            <span class="stat__label">Время:</span>
-            <span class="stat__value" id="timer">0:00</span>
-        </div>
-    </div>
-
-    <!-- 🏆 ACHIEVEMENT TOAST -->
-    <div id="achievement-toast"></div>
-
-    <!-- 3D Scene -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 🎮 3D SCENE CONTAINER -->
+    <!-- ══════════════════════════════════════════════════════════ -->
     <div id="scene">
-        <div id="world"></div>
+        <div id="world">
+            <!-- Corridor будет создан builder.js -->
+        </div>
     </div>
 
-    <!-- 🐛 ERUDA: Mobile DevTools Console (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>
-        // ✅ Автозапуск только на touch-устройствах
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            eruda.init();
-            console.log('🐛 Eruda mobile console initialized!');
-            console.log('👉 Tap green button (bottom-right) to open DevTools');
-        }
-    </script>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 🎯 CROSSHAIR (ЦЕНТР ЭКРАНА) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="crosshair"></div>
 
-    <!-- ============================================
-         📱 MOBILE D-PAD MODULE (LOAD FIRST!)
-         - Independent from Camera
-         - Creates D-Pad automatically on touch devices
-         - Dispatches 'dpad-input' events
-         ============================================ -->
-    <script type="module" src="js/mobile-dpad.js"></script>
-
-    <!-- ❌ REMOVED: debug-dpad.js - file doesn't exist, causing 404 errors -->
-    <!-- <script src="debug-dpad.js"></script> -->
-
-    <!-- 🐛 DEBUG SCRIPT (after D-Pad) -->
-    <script type="module" src="js/debug-mobile.js"></script>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 📊 UI PANELS -->
+    <!-- ══════════════════════════════════════════════════════════ -->
     
-    <!-- 🎮 MAIN APPLICATION (last) -->
+    <!-- Progress Bar (Top) -->
+    <div class="progress-container">
+        <div id="progress-bar" class="progress-bar"></div>
+    </div>
+
+    <!-- Word Counter (Top Right) -->
+    <div id="word-counter" class="word-counter">0 / 0</div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ⌨️ WASD HINTS (DESKTOP) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="wasd-keys" id="wasd-keys">
+        <div class="wasd-key" data-key="w">W</div>
+        <div class="wasd-key" data-key="a">A</div>
+        <div class="wasd-key" data-key="s">S</div>
+        <div class="wasd-key" data-key="d">D</div>
+        <div class="wasd-hint">+Shift = Sprint</div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 📱 MOBILE D-PAD (created by mobile-dpad.js) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- Auto-created if touch device detected -->
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 📜 SCRIPTS (ES6 MODULES) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
     <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/mobile-dpad.js"></script>
 </body>
 </html>

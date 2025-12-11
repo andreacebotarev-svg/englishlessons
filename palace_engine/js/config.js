@@ -16,9 +16,9 @@ const CONFIG = {
         mouseSensitivity: 0.002,    // 🎮 Чувствительность мыши (радианы на пиксель)
         invertY: false,             // 🎮 Инвертировать вертикальную ось
         
-        // Ограничения
-        minPitch: -Math.PI / 2.5,   // 🎮 Минимальный угол наклона вверх (-72°)
-        maxPitch: Math.PI / 2.5,    // 🎮 Максимальный угол наклона вниз (72°)
+        // ✅ FIXED: Reduced pitch limits to prevent "floating" feeling
+        minPitch: -Math.PI / 3,     // 🎮 Минимальный угол наклона вверх (-60°, was -72°)
+        maxPitch: Math.PI / 3,      // 🎮 Максимальный угол наклона вниз (60°, was 72°)
         
         // 🆕 ГРАВИТАЦИЯ И ПОЛ
         gravity: 0.5,               // 🆕 Сила гравитации (units/frame²)

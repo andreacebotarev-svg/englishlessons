@@ -1,6 +1,6 @@
 /* ============================================
    MINECRAFT-STYLE CAMERA CONTROLLER
-   Last update: 2025-12-11 (GameLoop integrated)
+   Last update: 2025-12-11 (Camera transform FIXED)
    ============================================ */
 
 import { CONFIG } from './config.js';
@@ -43,15 +43,11 @@ const Camera = {
     roomsCache: null,
     roomUpdateCounter: 0,
     isTouchDevice: false,
-    gameLoop: null,  // ✅ NEW: GameLoop reference
+    gameLoop: null,
     
-    // ✅ MODIFIED: Now accepts gameLoop parameter
     init(gameLoop) {
         console.log('🎮 Camera init...');
-        
-        // ✅ Store GameLoop reference
         this.gameLoop = gameLoop;
-        
         this.speed = CONFIG.camera.speed;
         this.sprintMultiplier = CONFIG.camera.sprintMultiplier;
         this.acceleration = CONFIG.camera.acceleration;
@@ -66,70 +62,47 @@ const Camera = {
         this.z = firstCardWorldZ + safeViewDistance;
         this.minZ = -(CONFIG.cards.spacing * this.words.length) - 500;
         this.maxZ = this.z + 300;
-        
         this.isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-        
         this.setupKeyboard();
         this.setupMouse();
         this.setupRaycast();
         this.setupTouchControls();
-        
         if (this.isTouchDevice) {
             this.setupDPadEventListener();
             this.setupMobileCardInteractions();
         }
-        
-        // ✅ REPLACED: startGameLoop() → subscribeToGameLoop()
         this.subscribeToGameLoop();
-        
         setTimeout(() => this.cacheRooms(), 100);
         console.log('✅ Camera ready with', this.isTouchDevice ? 'Mobile D-Pad + Card Interactions' : 'Desktop controls');
     },
     
-    // ════════════════════════════════════════════════════════════
-    // ✅ NEW: Subscribe to GameLoop (replaces startGameLoop)
-    // ════════════════════════════════════════════════════════════
     subscribeToGameLoop() {
         if (!this.gameLoop) {
             console.error('❌ Camera: GameLoop not provided! Falling back to manual RAF.');
             this.startGameLoopFallback();
             return;
         }
-        
         console.log('🔗 Camera: Subscribing to GameLoop...');
-        
-        // UPDATE callback (fixed timestep)
         this.gameLoop.onUpdate((dt) => {
-            // dt is always 16.67ms (for 60 FPS)
             this.updateMovement(dt);
         });
-        
-        // RENDER callback (every frame)
         this.gameLoop.onRender((alpha) => {
-            // alpha = 0-1, можно использовать для interpolation
             this.applyTransform();
             this.updateRaycast();
-            
-            // Update rooms every 3rd frame (оптимизация)
             this.roomUpdateCounter++;
             if (this.roomUpdateCounter % 3 === 0) {
                 this.updateActiveRooms();
             }
-            
             this.updateProgress();
             this.updateWordCounter();
         });
-        
         console.log('✅ Camera subscribed to GameLoop');
     },
     
-    // ════════════════════════════════════════════════════════════
-    // ⚠️ FALLBACK: Manual RAF (if GameLoop not initialized)
-    // ════════════════════════════════════════════════════════════
     startGameLoopFallback() {
         console.warn('⚠️ Using fallback RAF loop (not recommended)');
         const update = () => {
-            this.updateMovement(16.67); // Assume 60 FPS
+            this.updateMovement(16.67);
             this.applyTransform();
             this.updateRaycast();
             this.roomUpdateCounter++;
@@ -143,25 +116,18 @@ const Camera = {
         requestAnimationFrame(update);
     },
     
-    // ════════════════════════════════════════════════════════════
-    // 📱 D-PAD EVENT LISTENER (from mobile-dpad.js)
-    // ════════════════════════════════════════════════════════════
     setupDPadEventListener() {
         console.log('📡 Camera: Setting up D-Pad event listener...');
-        
         window.addEventListener('dpad-input', (e) => {
             const { key, pressed } = e.detail;
-            
             switch(key) {
                 case 'up': this.keys.forward = pressed; break;
                 case 'down': this.keys.backward = pressed; break;
                 case 'left': this.keys.left = pressed; break;
                 case 'right': this.keys.right = pressed; break;
             }
-            
             this.updateWASDHints();
         });
-        
         console.log('✅ D-Pad event listener ready');
     },
     
@@ -169,7 +135,6 @@ const Camera = {
         this.quizManager = new QuizManager(this);
         let rightClickCount = 0;
         let rightClickTimer = null;
-        
         window.addEventListener('mousedown', (e) => {
             if (e.button === 0 && this.isPointerLocked && this.targetedCard) {
                 const state = this.targetedCard.dataset.state || 'idle';
@@ -178,7 +143,6 @@ const Camera = {
                     SoundEffects.playClick();
                 }
             }
-            
             if (e.button === 2) {
                 let targetCard = null;
                 if (CameraState.mode === 'QUIZ_MODE') {
@@ -186,11 +150,8 @@ const Camera = {
                 } else {
                     targetCard = this.targetedCard;
                 }
-                
                 if (!targetCard) return;
-                
                 rightClickCount++;
-                
                 if (rightClickCount === 1) {
                     const word = targetCard.dataset.word;
                     this.quizManager.speakWord(word);
@@ -219,84 +180,59 @@ const Camera = {
                 }
             }
         });
-        
         window.addEventListener('contextmenu', (e) => { e.preventDefault(); });
     },
     
-    // ════════════════════════════════════════════════════════════
-    // 📱 MOBILE CARD INTERACTIONS (Tap/Long-press/Double-tap)
-    // ════════════════════════════════════════════════════════════
     setupMobileCardInteractions() {
         console.log('📱 Setting up mobile card interactions...');
-        
         let longPressTimer = null;
         let longPressCard = null;
         let touchStartTime = 0;
         let touchStartPos = { x: 0, y: 0 };
         let lastTapTime = 0;
         let lastTapCard = null;
-        
         window.addEventListener('touchstart', (e) => {
             if (e.target.closest('#mobile-dpad, .quiz-stats, .wasd-keys, #back-btn')) return;
-            
             const touch = e.changedTouches[0];
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
             const card = element?.closest('.room');
-            
             if (!card) return;
-            
             touchStartTime = Date.now();
             touchStartPos = { x: touch.clientX, y: touch.clientY };
             longPressCard = card;
-            
             longPressTimer = setTimeout(() => {
                 const word = card.dataset.word;
                 this.quizManager.speakWord(word);
                 this.animateClick(card);
-                
-                if (navigator.vibrate) {
-                    navigator.vibrate(50);
-                }
-                
+                if (navigator.vibrate) { navigator.vibrate(50); }
                 this.showToast(`🔊 Speaking: "${word}"`, 1500);
                 longPressCard = null;
             }, 500);
-            
         }, { passive: true });
-        
         window.addEventListener('touchend', (e) => {
             clearTimeout(longPressTimer);
-            
             if (!longPressCard) return;
-            
             const touch = e.changedTouches[0];
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
             const card = element?.closest('.room');
-            
             if (!card || card !== longPressCard) {
                 longPressCard = null;
                 return;
             }
-            
             const touchDuration = Date.now() - touchStartTime;
             const touchMoveDistance = Math.sqrt(
                 Math.pow(touch.clientX - touchStartPos.x, 2) + 
                 Math.pow(touch.clientY - touchStartPos.y, 2)
             );
-            
             if (touchMoveDistance > 10 || touchDuration >= 500) {
                 longPressCard = null;
                 return;
             }
-            
             const distance = this.getDistanceToCard(card);
             const now = Date.now();
             const timeSinceLastTap = now - lastTapTime;
-            
-            // Double-tap
             if (lastTapCard === card && timeSinceLastTap < 300) {
                 e.preventDefault();
-                
                 const currentState = card.dataset.state || 'idle';
                 if (currentState === 'revealed') {
                     this.quizManager.hideTranslation(card);
@@ -305,14 +241,11 @@ const Camera = {
                     this.quizManager.revealTranslation(card);
                     this.showToast('👁️ Translation revealed!', 1500);
                 }
-                
                 lastTapTime = 0;
                 lastTapCard = null;
                 longPressCard = null;
                 return;
             }
-            
-            // Single tap
             const state = card.dataset.state || 'idle';
             if (state === 'idle') {
                 if (distance > 2000) {
@@ -323,13 +256,10 @@ const Camera = {
                     SoundEffects.playClick();
                 }
             }
-            
             lastTapTime = now;
             lastTapCard = card;
             longPressCard = null;
-            
         }, { passive: true });
-        
         window.addEventListener('touchmove', (e) => {
             if (longPressCard) {
                 const touch = e.changedTouches[0];
@@ -337,14 +267,12 @@ const Camera = {
                     Math.pow(touch.clientX - touchStartPos.x, 2) + 
                     Math.pow(touch.clientY - touchStartPos.y, 2)
                 );
-                
                 if (moveDistance > 10) {
                     clearTimeout(longPressTimer);
                     longPressCard = null;
                 }
             }
         }, { passive: true });
-        
         console.log('✅ Mobile card interactions initialized');
     },
     
@@ -353,35 +281,12 @@ const Camera = {
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'mobile-toast';
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 200px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.9);
-                color: white;
-                padding: 12px 24px;
-                border-radius: 24px;
-                border: 2px solid rgba(255, 214, 10, 0.5);
-                font-size: 14px;
-                font-weight: 600;
-                z-index: 100000;
-                pointer-events: none;
-                opacity: 0;
-                transition: opacity 0.3s;
-                text-align: center;
-                max-width: 80%;
-                white-space: pre-line;
-            `;
+            toast.style.cssText = `position:fixed;bottom:200px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:white;padding:12px 24px;border-radius:24px;border:2px solid rgba(255,214,10,0.5);font-size:14px;font-weight:600;z-index:100000;pointer-events:none;opacity:0;transition:opacity 0.3s;text-align:center;max-width:80%;white-space:pre-line;`;
             document.body.appendChild(toast);
         }
-        
         toast.textContent = message;
         toast.style.opacity = '1';
-        
-        setTimeout(() => {
-            toast.style.opacity = '0';
-        }, duration);
+        setTimeout(() => { toast.style.opacity = '0'; }, duration);
     },
     
     updateRaycast() {
@@ -389,9 +294,7 @@ const Camera = {
         if (!crosshair) return;
         if (CameraState.mode === 'QUIZ_MODE' && CameraState.activeCard) {
             const distance = this.getDistanceToCard(CameraState.activeCard);
-            if (distance > 2500) {
-                this.quizManager.closeQuiz(CameraState.activeCard);
-            }
+            if (distance > 2500) { this.quizManager.closeQuiz(CameraState.activeCard); }
         }
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
@@ -440,11 +343,7 @@ const Camera = {
             hint.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(255,214,10,0.9);color:black;padding:10px 20px;border-radius:8px;font-weight:bold;font-size:14px;z-index:9999;animation:fadeInUp 0.2s;`;
             document.body.appendChild(hint);
         }
-        if (action === 'hide') {
-            hint.textContent = '👉 RMB again to hide';
-        } else {
-            hint.textContent = '👉 RMB again to reveal';
-        }
+        hint.textContent = action === 'hide' ? '👉 RMB again to hide' : '👉 RMB again to reveal';
         hint.style.display = 'block';
     },
     
@@ -465,9 +364,7 @@ const Camera = {
                 if (CameraState.activeCard) this.quizManager.closeQuiz(CameraState.activeCard);
                 return;
             }
-            
             if (CameraState.mode === 'QUIZ_MODE') return;
-            
             switch(e.code) {
                 case 'KeyW': case 'ArrowUp': e.preventDefault(); this.keys.forward = true; break;
                 case 'KeyS': case 'ArrowDown': e.preventDefault(); this.keys.backward = true; break;
@@ -480,10 +377,8 @@ const Camera = {
             }
             this.updateWASDHints();
         });
-        
         window.addEventListener('keyup', (e) => {
             if (CameraState.mode === 'QUIZ_MODE') return;
-            
             switch(e.code) {
                 case 'KeyW': case 'ArrowUp': this.keys.forward = false; break;
                 case 'KeyS': case 'ArrowDown': this.keys.backward = false; break;
@@ -527,9 +422,6 @@ const Camera = {
         msg.style.opacity = show ? '1' : '0';
     },
     
-    // ════════════════════════════════════════════════════════════
-    // ✅ MODIFIED: Now accepts deltaTime parameter (fixed timestep)
-    // ════════════════════════════════════════════════════════════
     updateMovement(dt = 16.67) {
         let inputX = 0, inputZ = 0;
         if (this.keys.forward) inputZ += 1;
@@ -551,7 +443,8 @@ const Camera = {
             if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
             if (Math.abs(this.velocity.z) < 0.01) this.velocity.z = 0;
         }
-        this.x += this.velocity.x; this.z += this.velocity.z;
+        this.x += this.velocity.x;
+        this.z += this.velocity.z;
         this.velocity.y -= this.gravity;
         if (this.velocity.y < -this.terminalVelocity) this.velocity.y = -this.terminalVelocity;
         this.y += this.velocity.y;
@@ -563,14 +456,22 @@ const Camera = {
         if (this.x > maxX) { this.x = maxX; this.velocity.x = 0; }
     },
     
+    // ════════════════════════════════════════════════════════════
+    // ✅ FIXED: Correct transform order for proper FPS camera
+    // ════════════════════════════════════════════════════════════
     applyTransform() {
         const corridor = document.querySelector('#corridor');
         if (!corridor) return;
         
+        // ✅ CORRECT ORDER:
+        // 1. Rotate camera (pitch/yaw) around origin (0,0,0)
+        // 2. Then translate world opposite to camera position
+        // Result: Camera stays at origin, world rotates & moves
+        
         corridor.style.transform = `
-            translate3d(${-this.x}px, ${-this.y}px, ${-this.z}px)
-            rotateY(${-this.yaw}rad)
             rotateX(${-this.pitch}rad)
+            rotateY(${-this.yaw}rad)
+            translate3d(${this.x}px, ${this.y}px, ${this.z}px)
         `.trim();
     },
     
@@ -584,18 +485,14 @@ const Camera = {
     setupTouchControls() {
         const screenWidth = window.innerWidth;
         const cameraZoneStart = screenWidth * 0.4;
-        
         let cameraTouchId = null;
         let lastCameraX = 0;
         let lastCameraY = 0;
-        
         window.addEventListener('touchstart', (e) => {
             if (e.target.closest('#mobile-dpad, .room-card, .quiz-stats, .wasd-keys')) return;
-            
             Array.from(e.changedTouches).forEach(touch => {
                 const x = touch.clientX;
                 const y = touch.clientY;
-                
                 if (x >= cameraZoneStart && cameraTouchId === null) {
                     cameraTouchId = touch.identifier;
                     lastCameraX = x;
@@ -603,30 +500,23 @@ const Camera = {
                 }
             });
         }, { passive: true });
-        
         window.addEventListener('touchmove', (e) => {
             if (e.cancelable) e.preventDefault();
-            
             Array.from(e.changedTouches).forEach(touch => {
                 if (touch.identifier === cameraTouchId) {
                     const deltaX = touch.clientX - lastCameraX;
                     const deltaY = touch.clientY - lastCameraY;
-                    
                     this.yaw += deltaX * 0.005;
                     this.pitch -= deltaY * 0.005;
                     this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
-                    
                     lastCameraX = touch.clientX;
                     lastCameraY = touch.clientY;
                 }
             });
         }, { passive: false });
-        
         window.addEventListener('touchend', (e) => {
             Array.from(e.changedTouches).forEach(touch => {
-                if (touch.identifier === cameraTouchId) {
-                    cameraTouchId = null;
-                }
+                if (touch.identifier === cameraTouchId) { cameraTouchId = null; }
             });
         }, { passive: true });
     },
@@ -703,7 +593,6 @@ const Camera = {
     }
 };
 
-// ✅ MODIFIED: Now accepts gameLoop parameter
 function initCamera(words, config, gameLoop) {
     if (!words || words.length === 0) return;
     Camera.words = words;
