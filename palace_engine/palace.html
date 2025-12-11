@@ -5,524 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏰 Memory Palace - 3D Learning Experience</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-            overflow: hidden;
-            background: #0a0a1a;
-        }
-
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
-
-        canvas {
-            display: block;
-        }
-
-        /* Loading Screen */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0a0a1a;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-
-        .loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #FFD60A;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            margin-top: 20px;
-            color: white;
-            font-size: 16px;
-            opacity: 0.7;
-        }
-
-        /* UI Overlay */
-        .ui-overlay {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            color: white;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 16px;
-            backdrop-filter: blur(20px);
-            max-width: 320px;
-            font-size: 13px;
-            line-height: 1.6;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            transition: opacity 0.3s ease;
-        }
-
-        .ui-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .ui-overlay h1 {
-            font-size: 18px;
-            margin-bottom: 12px;
-            color: #FFD60A;
-            font-weight: 600;
-        }
-
-        .controls-list {
-            list-style: none;
-            margin-top: 12px;
-        }
-
-        .controls-list li {
-            margin: 6px 0;
-            padding-left: 18px;
-            position: relative;
-            font-size: 12px;
-        }
-
-        .controls-list li:before {
-            content: "▸";
-            position: absolute;
-            left: 0;
-            color: #FFD60A;
-        }
-
-        .key {
-            display: inline-block;
-            background: rgba(255, 215, 0, 0.15);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 600;
-            color: #FFD60A;
-            margin-right: 4px;
-            font-size: 11px;
-        }
-
-        /* Status Panel */
-        .status-panel {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 100;
-            color: white;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 12px 16px;
-            border-radius: 12px;
-            backdrop-filter: blur(20px);
-            font-size: 11px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            transition: opacity 0.3s ease;
-        }
-
-        .status-panel.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .status-item {
-            margin: 4px 0;
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .status-label {
-            color: #888;
-        }
-
-        .status-value {
-            color: #FFD60A;
-            font-weight: 600;
-        }
-
-        /* Top Bar */
-        .top-bar {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            backdrop-filter: blur(20px);
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .btn:hover {
-            background: rgba(255, 215, 0, 0.2);
-            border-color: #FFD60A;
-        }
-
-        /* Lesson Info */
-        .lesson-info {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 100;
-            color: white;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 16px;
-            border-radius: 12px;
-            backdrop-filter: blur(20px);
-            max-width: 250px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-        }
-
-        .lesson-info h2 {
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: #FFD60A;
-        }
-
-        .lesson-info .word-count {
-            font-size: 12px;
-            color: #888;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; overflow: hidden; background: #0a0a1a; }
+        #canvas-container { width: 100vw; height: 100vh; position: relative; }
+        canvas { display: block; }
+        .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
+        .loading-screen.hidden { opacity: 0; pointer-events: none; }
+        .loading-spinner { width: 50px; height: 50px; border: 3px solid rgba(255, 255, 255, 0.1); border-top-color: #FFD60A; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { margin-top: 20px; color: white; font-size: 16px; opacity: 0.7; }
+        .ui-overlay { position: fixed; top: 20px; left: 20px; z-index: 100; color: white; background: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 16px; backdrop-filter: blur(20px); max-width: 320px; font-size: 13px; line-height: 1.6; border: 1px solid rgba(255, 215, 0, 0.2); transition: opacity 0.3s ease; }
+        .ui-overlay.hidden { opacity: 0; pointer-events: none; }
+        .ui-overlay h1 { font-size: 18px; margin-bottom: 12px; color: #FFD60A; font-weight: 600; }
+        .controls-list { list-style: none; margin-top: 12px; }
+        .controls-list li { margin: 6px 0; padding-left: 18px; position: relative; font-size: 12px; }
+        .controls-list li:before { content: "▸"; position: absolute; left: 0; color: #FFD60A; }
+        .key { display: inline-block; background: rgba(255, 215, 0, 0.15); padding: 2px 6px; border-radius: 4px; font-weight: 600; color: #FFD60A; margin-right: 4px; font-size: 11px; }
+        .status-panel { position: fixed; bottom: 20px; left: 20px; z-index: 100; color: white; background: rgba(0, 0, 0, 0.7); padding: 12px 16px; border-radius: 12px; backdrop-filter: blur(20px); font-size: 11px; border: 1px solid rgba(255, 215, 0, 0.2); transition: opacity 0.3s ease; }
+        .status-panel.hidden { opacity: 0; pointer-events: none; }
+        .status-item { margin: 4px 0; display: flex; justify-content: space-between; gap: 20px; }
+        .status-label { color: #888; }
+        .status-value { color: #FFD60A; font-weight: 600; }
+        .top-bar { position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; gap: 10px; }
+        .btn { background: rgba(0, 0, 0, 0.7); color: white; border: 1px solid rgba(255, 215, 0, 0.2); padding: 10px 16px; border-radius: 10px; cursor: pointer; backdrop-filter: blur(20px); font-size: 12px; font-weight: 500; transition: all 0.2s ease; }
+        .btn:hover { background: rgba(255, 215, 0, 0.2); border-color: #FFD60A; }
+        .lesson-info { position: fixed; top: 80px; right: 20px; z-index: 100; color: white; background: rgba(0, 0, 0, 0.7); padding: 16px; border-radius: 12px; backdrop-filter: blur(20px); max-width: 250px; border: 1px solid rgba(255, 215, 0, 0.2); }
+        .lesson-info h2 { font-size: 14px; margin-bottom: 8px; color: #FFD60A; }
+        .lesson-info .word-count { font-size: 12px; color: #888; }
     </style>
 </head>
 <body>
     <div id="canvas-container"></div>
-
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">🏰 Loading Memory Palace...</div>
-    </div>
-
-    <!-- Top Bar -->
-    <div class="top-bar">
-        <button class="btn" onclick="toggleUI()">Toggle UI (H)</button>
-        <button class="btn" onclick="returnHome()">← Home</button>
-    </div>
-
-    <!-- Lesson Info -->
-    <div class="lesson-info" id="lessonInfo">
-        <h2>Lesson <span id="lessonNumber">???</span></h2>
-        <div class="word-count"><span id="wordCount">0</span> words loaded</div>
-    </div>
-
-    <!-- UI Overlay -->
-    <div class="ui-overlay" id="uiOverlay">
-        <h1>🏰 Memory Palace</h1>
-        <p style="margin-bottom: 12px; opacity: 0.8;">Navigate through your 3D vocabulary corridor</p>
-        
-        <h3 style="margin-top: 12px; color: #FFD60A; font-size: 13px;">⌨️ Controls:</h3>
-        <ul class="controls-list">
-            <li><span class="key">W</span><span class="key">↑</span> Move Forward</li>
-            <li><span class="key">S</span><span class="key">↓</span> Move Backward</li>
-            <li><span class="key">Space</span> Next Waypoint</li>
-            <li><span class="key">Home</span> Start</li>
-            <li><span class="key">End</span> Finish</li>
-            <li><span class="key">Esc</span> Return to Rail</li>
-            <li><span class="key">R</span> Toggle Path</li>
-            <li><span class="key">Click</span> Focus Card</li>
-        </ul>
-    </div>
-
-    <!-- Status Panel -->
-    <div class="status-panel" id="statusPanel">
-        <div class="status-item">
-            <span class="status-label">Position:</span>
-            <span class="status-value" id="statusPosition">0%</span>
-        </div>
-        <div class="status-item">
-            <span class="status-label">Velocity:</span>
-            <span class="status-value" id="statusVelocity">0.000</span>
-        </div>
-        <div class="status-item">
-            <span class="status-label">FOV:</span>
-            <span class="status-value" id="statusFov">35°</span>
-        </div>
-        <div class="status-item">
-            <span class="status-label">Focused:</span>
-            <span class="status-value" id="statusFocused">None</span>
-        </div>
-    </div>
-
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-            "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm"
-        }
-    }
-    </script>
-
+    <div class="loading-screen" id="loadingScreen"><div class="loading-spinner"></div><div class="loading-text">🏰 Loading Memory Palace...</div></div>
+    <div class="top-bar"><button class="btn" onclick="toggleUI()">Toggle UI (H)</button><button class="btn" onclick="returnHome()">← Home</button></div>
+    <div class="lesson-info" id="lessonInfo"><h2>Lesson <span id="lessonNumber">???</span></h2><div class="word-count"><span id="wordCount">0</span> words loaded</div></div>
+    <div class="ui-overlay" id="uiOverlay"><h1>🏰 Memory Palace</h1><p style="margin-bottom: 12px; opacity: 0.8;">Navigate through your 3D vocabulary corridor</p><h3 style="margin-top: 12px; color: #FFD60A; font-size: 13px;">⌨️ Controls:</h3><ul class="controls-list"><li><span class="key">W</span><span class="key">↑</span> Move Forward</li><li><span class="key">S</span><span class="key">↓</span> Move Backward</li><li><span class="key">Space</span> Next Waypoint</li><li><span class="key">Home</span> Start</li><li><span class="key">End</span> Finish</li><li><span class="key">Esc</span> Return to Rail</li><li><span class="key">R</span> Toggle Path</li><li><span class="key">Click</span> Focus Card</li></ul></div>
+    <div class="status-panel" id="statusPanel"><div class="status-item"><span class="status-label">Position:</span><span class="status-value" id="statusPosition">0%</span></div><div class="status-item"><span class="status-label">FPS:</span><span class="status-value" id="statusFps">60</span></div><div class="status-item"><span class="status-label">FOV:</span><span class="status-value" id="statusFov">35°</span></div></div>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","gsap":"https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm"}}</script>
     <script type="module">
         import * as THREE from 'three';
         import gsap from 'gsap';
         import { CinematicCamera } from './CinematicCamera.js';
         import { CameraControls } from './CameraControls.js';
-
-        // Получение номера урока из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const lessonNumber = urlParams.get('lesson') || '001';
-        document.getElementById('lessonNumber').textContent = lessonNumber;
-
-        // Загрузка данных урока
-        async function loadLessonData() {
-            try {
-                const response = await fetch(`../data/${lessonNumber}.json`);
-                const data = await response.json();
-                return data.words || [];
-            } catch (error) {
-                console.error('Error loading lesson data:', error);
-                return generateMockWords();
-            }
-        }
-
-        // Генерация тестовых слов (если нет JSON)
-        function generateMockWords() {
-            const mockWords = [
-                { english: 'Hello', russian: 'Привет' },
-                { english: 'World', russian: 'Мир' },
-                { english: 'Learning', russian: 'Обучение' },
-                { english: 'Memory', russian: 'Память' },
-                { english: 'Palace', russian: 'Дворец' },
-                { english: 'Camera', russian: 'Камера' },
-                { english: 'Focus', russian: 'Фокус' },
-                { english: 'Smooth', russian: 'Плавный' },
-                { english: 'Animation', russian: 'Анимация' },
-                { english: 'Portal', russian: 'Портал' }
-            ];
-            return mockWords;
-        }
-
-        // Создание 3D карточек
-        function createWordCards(scene, words) {
-            const cards = [];
-            const cardWidth = 3;
-            const cardHeight = 2;
-            const spacing = 5;
-            const startZ = 25;
-
-            words.forEach((word, index) => {
-                const canvas = document.createElement('canvas');
-                canvas.width = 512;
-                canvas.height = 256;
-                const ctx = canvas.getContext('2d');
-
-                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                gradient.addColorStop(0, '#2a2a4a');
-                gradient.addColorStop(1, '#1a1a3a');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.strokeStyle = '#FFD60A';
-                ctx.lineWidth = 4;
-                ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-
-                ctx.fillStyle = '#FFD60A';
-                ctx.font = 'bold 48px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(word.english, canvas.width / 2, canvas.height / 2 - 20);
-
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '28px Arial';
-                ctx.fillText(word.russian, canvas.width / 2, canvas.height / 2 + 40);
-
-                const texture = new THREE.CanvasTexture(canvas);
-                const material = new THREE.MeshStandardMaterial({ 
-                    map: texture,
-                    side: THREE.DoubleSide,
-                    emissive: 0x111111,
-                    emissiveIntensity: 0.2
-                });
-
-                const geometry = new THREE.PlaneGeometry(cardWidth, cardHeight);
-                const card = new THREE.Mesh(geometry, material);
-
-                card.position.set(0, 2, startZ - index * spacing);
-
-                card.userData = {
-                    word: word.english,
-                    translation: word.russian,
-                    index: index
-                };
-
-                scene.add(card);
-                cards.push(card);
-            });
-
-            return cards;
-        }
-
-        // Основная инициализация
-        async function init() {
-            const words = await loadLessonData();
-            document.getElementById('wordCount').textContent = words.length;
-
-            const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0a1a);
-            scene.fog = new THREE.Fog(0x0a0a1a, 10, 50);
-
-            const camera = new THREE.PerspectiveCamera(
-                75,
-                window.innerWidth / window.innerHeight,
-                0.1,
-                1000
-            );
-
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-            scene.add(ambientLight);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(5, 10, 5);
-            scene.add(directionalLight);
-
-            createCorridor(scene);
-            const cards = createWordCards(scene, words);
-
-            const cinematicCamera = new CinematicCamera(scene, camera, cards);
-            const controls = new CameraControls(cinematicCamera);
-
-            cinematicCamera.setParams({
-                fov: 35,
-                animationDuration: 2.5,
-                friction: 0.92,
-                rotationSpeed: 0.07
-            });
-
-            setTimeout(() => {
-                document.getElementById('loadingScreen').classList.add('hidden');
-            }, 500);
-
-            const clock = new THREE.Clock();
-
-            function animate() {
-                requestAnimationFrame(animate);
-
-                const deltaTime = clock.getDelta();
-                cinematicCamera.update(deltaTime);
-
-                renderer.render(scene, camera);
-                updateStatus(cinematicCamera, camera);
-            }
-
-            animate();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            console.log('✅ Palace Engine initialized!');
-        }
-
-        // Создание коридора
-        function createCorridor(scene) {
-            const floorGeometry = new THREE.PlaneGeometry(10, 60);
-            const floorMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x1a1a2e,
-                roughness: 0.8
-            });
-            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-            floor.rotation.x = -Math.PI / 2;
-            floor.position.y = 0;
-            scene.add(floor);
-
-            const gridHelper = new THREE.GridHelper(60, 60, 0x444444, 0x222222);
-            gridHelper.position.y = 0.01;
-            scene.add(gridHelper);
-
-            const wallGeometry = new THREE.PlaneGeometry(60, 5);
-            const wallMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x16213e,
-                side: THREE.DoubleSide,
-                opacity: 0.8,
-                transparent: true
-            });
-
-            const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
-            leftWall.rotation.y = Math.PI / 2;
-            leftWall.position.set(-5, 2.5, 0);
-            scene.add(leftWall);
-
-            const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
-            rightWall.rotation.y = -Math.PI / 2;
-            rightWall.position.set(5, 2.5, 0);
-            scene.add(rightWall);
-        }
-
-        // Обновление статуса
-        function updateStatus(cinematicCamera, camera) {
-            const position = (cinematicCamera.currentT * 100).toFixed(1);
-            const velocity = Math.abs(cinematicCamera.velocity).toFixed(3);
-            const fov = camera.fov.toFixed(0);
-            const focused = cinematicCamera.focusedCard 
-                ? cinematicCamera.focusedCard.userData.word 
-                : 'None';
-
-            document.getElementById('statusPosition').textContent = position + '%';
-            document.getElementById('statusVelocity').textContent = velocity;
-            document.getElementById('statusFov').textContent = fov + '°';
-            document.getElementById('statusFocused').textContent = focused;
-        }
-
-        window.toggleUI = function() {
-            const overlay = document.getElementById('uiOverlay');
-            const status = document.getElementById('statusPanel');
-            overlay.classList.toggle('hidden');
-            status.classList.toggle('hidden');
-        };
-
-        window.returnHome = function() {
-            window.location.href = '../index.html';
-        };
-
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'KeyH') {
-                toggleUI();
-            }
-        });
-
+        const urlParams=new URLSearchParams(window.location.search);const lessonNumber=urlParams.get('lesson')||'001';document.getElementById('lessonNumber').textContent=lessonNumber;
+        async function loadLessonData(){try{const response=await fetch(`../data/${lessonNumber}.json`);const data=await response.json();return data.words||[];}catch(error){console.error('Error loading lesson data:',error);return generateMockWords();}}
+        function generateMockWords(){return[{english:'Hello',russian:'Привет'},{english:'World',russian:'Мир'},{english:'Learning',russian:'Обучение'},{english:'Memory',russian:'Память'},{english:'Palace',russian:'Дворец'},{english:'Camera',russian:'Камера'},{english:'Focus',russian:'Фокус'},{english:'Smooth',russian:'Плавный'},{english:'Animation',russian:'Анимация'},{english:'Portal',russian:'Портал'}];}
+        function createWordCards(scene,words){const cards=[];const cardWidth=3;const cardHeight=2;const spacing=5;const startZ=25;words.forEach((word,index)=>{const canvas=document.createElement('canvas');canvas.width=256;canvas.height=128;const ctx=canvas.getContext('2d',{alpha:false});const gradient=ctx.createLinearGradient(0,0,0,canvas.height);gradient.addColorStop(0,'#2a2a4a');gradient.addColorStop(1,'#1a1a3a');ctx.fillStyle=gradient;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#FFD60A';ctx.lineWidth=2;ctx.strokeRect(5,5,canvas.width-10,canvas.height-10);ctx.fillStyle='#FFD60A';ctx.font='bold 24px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(word.english,canvas.width/2,canvas.height/2-10);ctx.fillStyle='#ffffff';ctx.font='14px Arial';ctx.fillText(word.russian,canvas.width/2,canvas.height/2+20);const texture=new THREE.CanvasTexture(canvas);texture.minFilter=THREE.LinearFilter;texture.magFilter=THREE.LinearFilter;const material=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide});const geometry=new THREE.PlaneGeometry(cardWidth,cardHeight);const card=new THREE.Mesh(geometry,material);card.position.set(0,2,startZ-index*spacing);card.userData={word:word.english,translation:word.russian,index:index};scene.add(card);cards.push(card);});return cards;}
+        async function init(){const words=await loadLessonData();document.getElementById('wordCount').textContent=words.length;const scene=new THREE.Scene();scene.background=new THREE.Color(0x0a0a1a);scene.fog=new THREE.Fog(0x0a0a1a,15,45);const camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000);const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});renderer.setSize(window.innerWidth,window.innerHeight);renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));document.getElementById('canvas-container').appendChild(renderer.domElement);const ambientLight=new THREE.AmbientLight(0xffffff,0.5);scene.add(ambientLight);const directionalLight=new THREE.DirectionalLight(0xffffff,0.6);directionalLight.position.set(5,10,5);scene.add(directionalLight);createCorridor(scene);const cards=createWordCards(scene,words);const cinematicCamera=new CinematicCamera(scene,camera,cards);const controls=new CameraControls(cinematicCamera);cinematicCamera.setParams({fov:35,animationDuration:2.5,friction:0.92,rotationSpeed:0.07});setTimeout(()=>{document.getElementById('loadingScreen').classList.add('hidden');},500);const clock=new THREE.Clock();let frameCount=0;let lastTime=performance.now();function animate(){requestAnimationFrame(animate);const deltaTime=clock.getDelta();cinematicCamera.update(deltaTime);renderer.render(scene,camera);frameCount++;const currentTime=performance.now();if(currentTime>=lastTime+1000){const fps=Math.round((frameCount*1000)/(currentTime-lastTime));document.getElementById('statusFps').textContent=fps;frameCount=0;lastTime=currentTime;}updateStatus(cinematicCamera,camera);}animate();window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});console.log('✅ Palace Engine initialized (optimized)!');}
+        function createCorridor(scene){const floorGeometry=new THREE.PlaneGeometry(10,60);const floorMaterial=new THREE.MeshBasicMaterial({color:0x1a1a2e});const floor=new THREE.Mesh(floorGeometry,floorMaterial);floor.rotation.x=-Math.PI/2;floor.position.y=0;scene.add(floor);const gridHelper=new THREE.GridHelper(60,30,0x444444,0x222222);gridHelper.position.y=0.01;scene.add(gridHelper);const wallGeometry=new THREE.PlaneGeometry(60,5);const wallMaterial=new THREE.MeshBasicMaterial({color:0x16213e,side:THREE.DoubleSide,opacity:0.5,transparent:true});const leftWall=new THREE.Mesh(wallGeometry,wallMaterial);leftWall.rotation.y=Math.PI/2;leftWall.position.set(-5,2.5,0);scene.add(leftWall);const rightWall=new THREE.Mesh(wallGeometry,wallMaterial);rightWall.rotation.y=-Math.PI/2;rightWall.position.set(5,2.5,0);scene.add(rightWall);}
+        function updateStatus(cinematicCamera,camera){const position=(cinematicCamera.currentT*100).toFixed(1);const fov=camera.fov.toFixed(0);document.getElementById('statusPosition').textContent=position+'%';document.getElementById('statusFov').textContent=fov+'°';}
+        window.toggleUI=function(){const overlay=document.getElementById('uiOverlay');const status=document.getElementById('statusPanel');overlay.classList.toggle('hidden');status.classList.toggle('hidden');};
+        window.returnHome=function(){window.location.href='../index.html';};
+        window.addEventListener('keydown',(e)=>{if(e.code==='KeyH')toggleUI();});
         init();
     </script>
 </body>
