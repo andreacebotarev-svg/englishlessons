@@ -1,14 +1,20 @@
-/* ============================================
-   MEMORY PALACE - MAIN APPLICATION
-   Описание: Инициализация с поддержкой CSS и Three.js режимов
-   Last update: 2025-12-11 (Hybrid camera system)
-   ============================================ */
+/**
+ * MEMORY PALACE - MAIN APPLICATION
+ * Last update: 2025-12-11 (Fixed debug initialization)
+ * 
+ * KEY FIX #3: Debug systems now initialize in BOTH CSS and Three.js modes
+ */
 
 import { CONFIG } from './config.js';
 import { GameLoop } from './GameLoop.js';
 
 // === DEBUG SYSTEM IMPORTS ===
-import { initializeDebugSystems, updateDebugInfo } from './debug-integration.js';
+import { 
+  initializeDebugSystems, 
+  setupDebugKeyboardShortcuts,
+  getDebugLevel,
+  setDebugLevel
+} from './debug-integration.js';
 
 // === CSS MODE IMPORTS ===
 import { buildWorld } from './builder.js';
@@ -20,20 +26,21 @@ import { buildThreeJSWorld, createThreeJSFloor, createThreeJSWalls } from './bui
 import { CinematicCamera } from '../CinematicCamera.js';
 import { CameraControls } from '../CameraControls.js';
 
-// 🔧 РЕЖИМ РАБОТЫ (можно переключать)
-const USE_THREEJS = false; // ← Измени на true для Three.js
+// 🔧 MODE SELECTION (toggle between CSS and Three.js)
+const USE_THREEJS = false; // ← Change to true for Three.js mode
 
-// Экспорт камеры в window (для builder.js)
+// Export camera to window (for builder.js and debug system)
 window.Camera = Camera;
 
 const App = {
-    // Глобальные переменные
+    // Global variables
     scene: null,
     camera: null,
     renderer: null,
     cards: null,
     cinematicCamera: null,
     controls: null,
+    gameLoop: null,
     
     async init() {
         const loader = document.getElementById('loading');
@@ -41,24 +48,20 @@ const App = {
         try {
             // 1. Initialize GameLoop
             console.log('⚙️ Initializing GameLoop...');
-            const gameLoop = new GameLoop({
+            this.gameLoop = new GameLoop({
                 targetFPS: 60,
                 debug: true,
                 maxDeltaCap: 250
             });
-            
-            // 2. Initialize Debug Systems
             console.log('✅ GameLoop ready');
             
-            // 3. Read lesson ID from URL
+            // 2. Read lesson ID from URL
             const params = new URLSearchParams(window.location.search);
             const lessonId = params.get('lesson') || '263';
-            
             console.log(`🎯 Loading lesson: ${lessonId}`);
             
-            // 4. Load JSON
+            // 3. Load JSON
             const response = await fetch(`../data/${lessonId}.json`);
-            
             if (!response.ok) {
                 throw new Error(`Lesson ${lessonId} not found`);
             }
@@ -66,9 +69,8 @@ const App = {
             const data = await response.json();
             console.log('📦 Data loaded:', data);
             
-            // 5. Extract words
+            // 4. Extract words
             let words = [];
-            
             if (data.content?.vocabulary?.words) {
                 words = data.content.vocabulary.words;
             }
@@ -76,14 +78,13 @@ const App = {
             if (words.length === 0) {
                 throw new Error('No words in this lesson');
             }
-            
             console.log(`📚 Words found: ${words.length}`);
             
-            // === РАЗВИЛКА: CSS или Three.js ===
+            // === MODE SELECTION ===
             if (USE_THREEJS) {
-                await this.initThreeJS(words, gameLoop);
+                await this.initThreeJS(words);
             } else {
-                await this.initCSS(words, gameLoop);
+                await this.initCSS(words);
             }
             
             // Update word counter
@@ -92,8 +93,19 @@ const App = {
                 counter.textContent = `0 / ${words.length}`;
             }
             
+            // 🔧 CRITICAL: Initialize Debug Systems AFTER camera is ready
+            if (window.Camera) {
+                try {
+                  initializeDebugSystems(window.Camera);
+                  setupDebugKeyboardShortcuts();
+                  console.log('🔧 Debug systems initialized');
+                } catch (error) {
+                  console.warn('⚠️ Debug system initialization failed:', error);
+                }
+            }
+            
             // Start GameLoop
-            gameLoop.start();
+            this.gameLoop.start();
             console.log('▶️ GameLoop started');
             
             // Hide loader
@@ -103,6 +115,7 @@ const App = {
             
             console.log(`✅ App initialized with ${words.length} words`);
             console.log(`🎮 Mode: ${USE_THREEJS ? 'Three.js' : 'CSS 3D'}`);
+            console.log('🔍 Debug: Press G to toggle panel, F3-F8 for features');
             
         } catch (error) {
             console.error('❌ Initialization failed:', error);
@@ -116,9 +129,9 @@ const App = {
     },
     
     /**
-     * Инициализация CSS режима (старая система)
+     * CSS MODE INITIALIZATION
      */
-    async initCSS(words, gameLoop) {
+    async initCSS(words) {
         console.log('🎨 Initializing CSS 3D mode...');
         
         // Build HTML corridor
@@ -134,31 +147,23 @@ const App = {
         console.log('🏛️ Corridor appended to #world');
         
         // Initialize WASD Camera
-        initCamera(words, CONFIG, gameLoop);
+        initCamera(words, CONFIG, this.gameLoop);
         console.log('📹 WASD Camera initialized');
-        
-        // Initialize Debug Systems
-        if (window.Camera) {
-            initializeDebugSystems(window.Camera);
-            console.log('🔧 Debug systems initialized');
-        }
-        
         console.log('🎮 Controls: WASD + Mouse + LMB (quiz) + RMB (speak)');
-        console.log('🔍 Press "G" to toggle debug panel | F3/F4/F5/F6 for specific debug features');
     },
     
     /**
-     * Инициализация Three.js режима (новая система)
+     * THREE.JS MODE INITIALIZATION
      */
-    async initThreeJS(words, gameLoop) {
+    async initThreeJS(words) {
         console.log('🎬 Initializing Three.js mode...');
         
-        // 1. Создать сцену
+        // 1. Create scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x0a0a1a);
         this.scene.fog = new THREE.Fog(0x0a0a1a, 10, 50);
         
-        // 2. Создать камеру
+        // 2. Create camera
         this.camera = new THREE.PerspectiveCamera(
             75,
             window.innerWidth / window.innerHeight,
@@ -167,7 +172,7 @@ const App = {
         );
         this.camera.position.set(0, 2, 15);
         
-        // 3. Создать рендерер
+        // 3. Create renderer
         this.renderer = new THREE.WebGLRenderer({ 
             antialias: true,
             alpha: true 
@@ -175,17 +180,17 @@ const App = {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         
-        // 4. Добавить canvas в #world
+        // 4. Add canvas to #world
         const worldContainer = document.getElementById('world');
         if (!worldContainer) {
             throw new Error('#world container not found');
         }
         
-        worldContainer.innerHTML = ''; // Очистить
+        worldContainer.innerHTML = '';
         worldContainer.appendChild(this.renderer.domElement);
         console.log('🖼️ Three.js canvas added to #world');
         
-        // 5. Освещение
+        // 5. Add lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         this.scene.add(ambientLight);
         
@@ -193,24 +198,22 @@ const App = {
         directionalLight.position.set(5, 10, 5);
         directionalLight.castShadow = true;
         this.scene.add(directionalLight);
-        
         console.log('💡 Lighting added');
         
-        // 6. Создать пол и стены
+        // 6. Create floor and walls
         createThreeJSFloor(this.scene);
         createThreeJSWalls(this.scene);
         
-        // 7. Создать карточки
+        // 7. Create cards
         this.cards = await buildThreeJSWorld(words, this.scene);
         console.log(`🎴 ${this.cards.length} cards created`);
         
-        // 8. Инициализировать Cinematic Camera
+        // 8. Initialize Cinematic Camera
         this.cinematicCamera = new CinematicCamera(this.scene, this.camera, this.cards);
         this.controls = new CameraControls(this.cinematicCamera);
-        
         console.log('🎥 Cinematic Camera initialized');
         
-        // 9. Setup raycasting для quiz
+        // 9. Setup quiz interaction
         this.setupQuizInteraction(words);
         
         // 10. Animation loop
@@ -237,23 +240,21 @@ const App = {
             this.renderer.setSize(window.innerWidth, window.innerHeight);
         });
         
-        console.log('🎮 Controls: W/S or ↑/↓ - Move, Space - Next waypoint, R - Toggle rail, Click - Focus');
+        console.log('🎮 Controls: W/S or ↑/↓ - Move, Space - Next waypoint');
     },
     
     /**
-     * Raycasting для клика по карточкам
+     * Setup raycasting for quiz
      */
     setupQuizInteraction(words) {
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         
         this.renderer.domElement.addEventListener('click', (event) => {
-            // ИСПРАВЛЕННАЯ ФОРМУЛА (БАГ #6)
             const rect = this.renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             
-            // Raycasting
             raycaster.setFromCamera(mouse, this.camera);
             const intersects = raycaster.intersectObjects(this.cards);
             
@@ -263,10 +264,8 @@ const App = {
                 
                 console.log('🎯 Clicked card:', wordData.word);
                 
-                // Показать quiz overlay
                 this.showQuizOverlay(wordData);
                 
-                // Отключить управление камерой (ИСПРАВЛЕНИЕ БАГА #6)
                 if (this.controls) {
                     this.controls.enabled = false;
                 }
@@ -277,10 +276,9 @@ const App = {
     },
     
     /**
-     * Показать quiz overlay поверх canvas
+     * Show quiz overlay
      */
     showQuizOverlay(wordData) {
-        // Создать overlay
         const overlay = document.createElement('div');
         overlay.id = 'quiz-overlay-threejs';
         overlay.style.cssText = `
@@ -296,7 +294,6 @@ const App = {
             z-index: 10000;
         `;
         
-        // Создать карточку quiz
         const quizCard = document.createElement('div');
         quizCard.style.cssText = `
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -374,11 +371,9 @@ const App = {
         overlay.appendChild(quizCard);
         document.body.appendChild(overlay);
         
-        // Автофокус на input
         const input = document.getElementById('quiz-input-threejs');
         input.focus();
         
-        // Обработчик проверки ответа
         const checkBtn = document.getElementById('check-btn-threejs');
         const hint = document.getElementById('quiz-hint-threejs');
         
@@ -408,12 +403,9 @@ const App = {
             }
         });
         
-        // Обработчик закрытия (ИСПРАВЛЕНИЕ БАГА #6)
         const closeBtn = document.getElementById('close-btn-threejs');
         const closeOverlay = () => {
             overlay.remove();
-            
-            // Восстановить управление камерой
             if (this.controls) {
                 this.controls.enabled = true;
             }
@@ -421,7 +413,6 @@ const App = {
         
         closeBtn.onclick = closeOverlay;
         
-        // Закрытие по Escape
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
                 closeOverlay();
@@ -431,8 +422,6 @@ const App = {
         document.addEventListener('keydown', handleEscape);
     }
 };
-
-
 
 function showError(message) {
     const errorDiv = document.createElement('div');
