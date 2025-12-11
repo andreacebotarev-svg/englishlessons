@@ -1,51 +1,44 @@
-/* ============================================
-   CENTRALIZED GAME LOOP WITH FIXED TIMESTEP
-   Last update: 2025-12-11
-   ============================================ */
-
 /**
- * Централизованный игровой цикл с fixed timestep
+ * CENTRALIZED GAME LOOP WITH FIXED TIMESTEP
+ * Last update: 2025-12-11
+ * KEY FIX: No circular imports - uses window.updateDebugInfo
  * 
- * АРХИТЕКТУРА:
- * - Fixed timestep (16.67ms) для update() — логика всегда одинаковая
- * - Variable timestep для render() — максимальный FPS
- * - Accumulator pattern — компенсирует lag spikes
- * - Interpolation alpha — плавность рендера между updates
- * 
- * ЗАЧЕМ:
- * - Квиз-таймеры работают точно (10 секунд = ровно 10 секунд)
- * - Анимации переходов занимают одинаковое время на любом устройстве
- * - Движение камеры предсказуемо на 60Hz и 144Hz мониторах
+ * Features:
+ * - Fixed timestep 16.67ms update (60 FPS)
+ * - Variable timestep render (supports 60Hz-144Hz+)
+ * - Accumulator pattern prevents lag spikes
+ * - Interpolation for smooth visuals
  */
+
 export class GameLoop {
   constructor(config = {}) {
-    // Конфигурация
+    // Core timing
     this.targetFPS = config.targetFPS || 60;
-    this.TIMESTEP = 1000 / this.targetFPS; // 16.67 мс для 60 FPS
-    this.maxDeltaCap = config.maxDeltaCap || 250; // Защита от спирали смерти при лагах
-    
-    // Состояние
+    this.TIMESTEP = 1000 / this.targetFPS; // 16.67ms for 60 FPS
+    this.maxDeltaCap = config.maxDeltaCap || 250; // Prevent spiral of death
+
+    // Accumulator for fixed timestep
     this.accumulator = 0;
     this.lastTime = 0;
     this.running = false;
     this.frameCount = 0;
     this.currentFPS = 0;
-    
-    // Подписчики
+
+    // Callback lists
     this.updateCallbacks = [];
     this.renderCallbacks = [];
-    
+
     // Debug
     this.debugMode = config.debug || false;
-    this.fpsUpdateInterval = 500; // Обновлять FPS каждые 500ms
+    this.fpsUpdateInterval = 500; // Update FPS every 500ms
     this.lastFPSUpdate = 0;
     this.framesSinceLastFPSUpdate = 0;
   }
 
   /**
-   * Подписка на update (вызывается с фиксированным шагом)
-   * @param {Function} callback - (deltaTime: number) => void
-   * @returns {Function} unsubscribe function
+   * Subscribe to update events (fixed timestep)
+   * @param {Function} callback - Called with (deltaTime)
+   * @returns {Function} Unsubscribe function
    */
   onUpdate(callback) {
     this.updateCallbacks.push(callback);
@@ -53,10 +46,9 @@ export class GameLoop {
   }
 
   /**
-   * Подписка на render (вызывается каждый кадр)
-   * @param {Function} callback - (alpha: number) => void
-   * alpha = прогресс между последним и следующим update (0-1)
-   * @returns {Function} unsubscribe function
+   * Subscribe to render events (variable timestep)
+   * @param {Function} callback - Called with (alpha) for interpolation
+   * @returns {Function} Unsubscribe function
    */
   onRender(callback) {
     this.renderCallbacks.push(callback);
@@ -64,35 +56,38 @@ export class GameLoop {
   }
 
   /**
-   * Запуск цикла
+   * Start the game loop
    */
   start() {
     if (this.running) return;
-    
+
     this.running = true;
     this.lastTime = performance.now();
     this.lastFPSUpdate = this.lastTime;
     this.accumulator = 0;
-    
+
     if (this.debugMode) {
-      console.log(`[GameLoop] Started with ${this.targetFPS} FPS target (${this.TIMESTEP.toFixed(2)}ms timestep)`);
+      console.log(
+        `GameLoop Started with ${this.targetFPS} FPS target, ${this.TIMESTEP.toFixed(2)}ms timestep`
+      );
     }
-    
-    requestAnimationFrame(this.loop);
+
+    requestAnimationFrame((time) => this.loop(time));
   }
 
   /**
-   * Главный цикл (приватный метод, вызывается через RAF)
+   * Main loop function (RAF callback)
+   * Implements fixed timestep pattern with variable render rate
    */
   loop = (currentTime) => {
     if (!this.running) return;
 
-    // Вычисляем deltaTime с защитой от огромных скачков
+    // Calculate delta time
     const deltaTime = Math.min(currentTime - this.lastTime, this.maxDeltaCap);
     this.lastTime = currentTime;
     this.accumulator += deltaTime;
 
-    // DEBUG: Считаем FPS
+    // DEBUG: FPS Calculation
     if (this.debugMode) {
       this.framesSinceLastFPSUpdate++;
       if (currentTime - this.lastFPSUpdate >= this.fpsUpdateInterval) {
@@ -104,78 +99,90 @@ export class GameLoop {
       }
     }
 
-    // FIXED TIMESTEP: Обновляем логику фиксированными шагами
+    // FIXED TIMESTEP UPDATES
     let updatesThisFrame = 0;
-    const maxUpdatesPerFrame = 5; // Защита от spiral of death
-    
-    while (this.accumulator >= this.TIMESTEP && updatesThisFrame < maxUpdatesPerFrame) {
-      // Вызываем все update callbacks
-      this.updateCallbacks.forEach(callback => {
+    const maxUpdatesPerFrame = 5; // Prevent spiral of death
+
+    while (
+      this.accumulator >= this.TIMESTEP &&
+      updatesThisFrame < maxUpdatesPerFrame
+    ) {
+      // Call update callbacks
+      this.updateCallbacks.forEach((callback) => {
         try {
           callback(this.TIMESTEP);
         } catch (error) {
-          console.error('[GameLoop] Update callback error:', error);
+          console.error('GameLoop Update callback error:', error);
         }
       });
-      
+
       this.accumulator -= this.TIMESTEP;
       updatesThisFrame++;
     }
 
-    // VARIABLE TIMESTEP: Рендерим с interpolation alpha
+    // VARIABLE TIMESTEP RENDER (interpolation alpha for smooth motion)
     const alpha = this.accumulator / this.TIMESTEP;
-    
-    this.renderCallbacks.forEach(callback => {
+
+    this.renderCallbacks.forEach((callback) => {
       try {
         callback(alpha);
       } catch (error) {
-        console.error('[GameLoop] Render callback error:', error);
+        console.error('GameLoop Render callback error:', error);
       }
     });
-    
-    // Update debug info
-    if (typeof updateDebugInfo === 'function' && window.Camera) {
-      updateDebugInfo(window.Camera, this);
+
+    // Update debug info if function is available
+    // NO IMPORT NEEDED - use global function if available
+    if (typeof window.updateDebugInfo === 'function' && window.Camera) {
+      try {
+        window.updateDebugInfo(window.Camera, this);
+      } catch (error) {
+        // Silently ignore debug update errors
+      }
     }
 
     this.frameCount++;
-    requestAnimationFrame(this.loop);
-  }
+    requestAnimationFrame((time) => this.loop(time));
+  };
 
   /**
-   * Остановка цикла
+   * Stop the game loop
    */
   stop() {
     this.running = false;
-    
+
     if (this.debugMode) {
-      console.log(`[GameLoop] Stopped after ${this.frameCount} frames`);
+      console.log(`GameLoop Stopped after ${this.frameCount} frames`);
     }
   }
 
   /**
-   * Пауза/возобновление
+   * Pause the game loop (preserves accumulator state)
    */
   pause() {
     this.running = false;
   }
 
+  /**
+   * Resume from pause
+   */
   resume() {
     if (this.running) return;
-    this.lastTime = performance.now(); // Сбрасываем время, чтобы не было скачка
+    this.lastTime = performance.now();
     this.running = true;
-    requestAnimationFrame(this.loop);
+    requestAnimationFrame((time) => this.loop(time));
   }
 
   /**
-   * Геттер для текущего FPS (для debug UI)
+   * Get current FPS (debug only)
+   * @returns {number} Current frames per second
    */
   getFPS() {
     return this.currentFPS;
   }
 
   /**
-   * Очистка всех подписчиков
+   * Cleanup
    */
   dispose() {
     this.stop();
@@ -183,3 +190,5 @@ export class GameLoop {
     this.renderCallbacks = [];
   }
 }
+
+export default GameLoop;
