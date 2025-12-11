@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Palace Engine - Cinematic Camera Demo (Portal 2 Style)</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #0a0a1a;
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .controls-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 0 auto;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .control-item {
+            margin: 2px 10px;
+            display: inline-block;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: white;
+            text-align: center;
+        }
+        
+        #stats {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+        
+        #card-details {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid #4a9eff;
+            display: none;
+        }
+        
+        .card-content h3 {
+            color: #4a9eff;
+            margin-top: 0;
+        }
+        
+        .card-content .translation {
+            color: #ffd700;
+            font-style: italic;
+            margin: 10px 0;
+        }
+        
+        .card-content .context {
+            color: #a0a0ff;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        
+        .card-content .example {
+            color: #00ffaa;
+            margin: 10px 0;
+            padding: 5px;
+            background: rgba(0, 50, 50, 0.3);
+            border-left: 3px solid #00ffaa;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <div class="controls-info">
+            <div class="control-item">🎮 <strong>CONTROLS:</strong></div>
+            <div class="control-item">↑/W - Forward</div>
+            <div class="control-item">↓/S - Backward</div>
+            <div class="control-item">Space - Next Card</div>
+            <div class="control-item">Home - Start</div>
+            <div class="control-item">End - End</div>
+            <div class="control-item">Esc - Return to Rail</div>
+            <div class="control-item">R - Toggle Rails</div>
+            <div class="control-item">Click - Focus on Card</div>
+        </div>
+    </div>
+    
+    <div id="loading">
+        🏰 Loading Palace Engine...
+    </div>
+    
+    <div id="stats">
+        FPS: <span id="fps-counter">0</span><br>
+        Cards: <span id="card-count">0</span><br>
+        Position: <span id="position-info">0,0,0</span>
+    </div>
+    
+    <div id="card-details">
+        <div class="card-content">
+            <h3 id="card-word">Word</h3>
+            <div class="translation" id="card-translation">Translation</div>
+            <div class="context" id="card-context">Context</div>
+            <div class="example" id="card-example">Example sentence</div>
+            <div id="card-image"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import gsap from 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm';
+        
+        // Import our palace engine modules
+        import { CinematicCamera } from './palace_engine/CinematicCamera.js';
+        import { CameraControls } from './palace_engine/CameraControls.js';
+        import { createTestCards } from './palace_engine/example_integration.js';
+        
+        // Hide loading message
+        document.getElementById('loading').style.display = 'none';
+        
+        // Initialize Three.js scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a1a);
+        scene.fog = new THREE.Fog(0x0a0a1a, 10, 50);
+        
+        // Create camera
+        const camera = new THREE.PerspectiveCamera(
+            35, // Cinematic narrow FOV
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        
+        // Create renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+        
+        // Create corridor
+        function createCorridor() {
+            // Floor
+            const floorGeometry = new THREE.PlaneGeometry(20, 100);
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a2e,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -0.5;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            
+            // Grid
+            const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x222222);
+            gridHelper.position.y = -0.49;
+            scene.add(gridHelper);
+            
+            // Side walls
+            const wallGeometry = new THREE.PlaneGeometry(100, 8);
+            const wallMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x16213e,
+                side: THREE.DoubleSide,
+                roughness: 0.7
+            });
+            
+            // Left wall
+            const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
+            leftWall.rotation.y = Math.PI / 2;
+            leftWall.position.set(-10, 3, 0);
+            leftWall.receiveShadow = true;
+            scene.add(leftWall);
+            
+            // Right wall
+            const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
+            rightWall.rotation.y = -Math.PI / 2;
+            rightWall.position.set(10, 3, 0);
+            rightWall.receiveShadow = true;
+            scene.add(rightWall);
+            
+            // Ceiling
+            const ceilingGeometry = new THREE.PlaneGeometry(20, 100);
+            const ceilingMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x0f0f1f,
+                roughness: 0.9
+            });
+            const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
+            ceiling.rotation.x = Math.PI / 2;
+            ceiling.position.y = 7;
+            ceiling.receiveShadow = true;
+            scene.add(ceiling);
+        }
+        
+        createCorridor();
+        
+        // Load card data from JSON files
+        async function loadCardData() {
+            const cardFiles = ['002.json', '004.json', '134.json', '263.json', '266.json'];
+            const allCards = [];
+            
+            for (const file of cardFiles) {
+                try {
+                    const response = await fetch(`/data/${file}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        allCards.push(...data.cards);
+                    }
+                } catch (error) {
+                    console.warn(`Failed to load ${file}:`, error);
+                }
+            }
+            
+            return allCards;
+        }
+        
+        // Create cards from loaded data
+        async function createCardsFromData() {
+            const cardData = await loadCardData();
+            const cards = [];
+            
+            const spacing = 6; // Distance between cards
+            const maxHeight = 3;
+            const maxWidth = 8;
+            
+            for (let i = 0; i < Math.min(cardData.length, 30); i++) { // Limit to 30 cards
+                const cardInfo = cardData[i];
+                
+                // Create card geometry
+                const geometry = new THREE.PlaneGeometry(4, 3);
+                
+                // Create canvas for card content
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 384;
+                const ctx = canvas.getContext('2d');
+                
+                // Background
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#2a2a4a');
+                gradient.addColorStop(1, '#1a1a2e');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Border
+                ctx.strokeStyle = '#4a9eff';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+                
+                // Word (large text)
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 70px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Wrap text if too long
+                const maxWidth = canvas.width - 40;
+                const words = cardInfo.word.split(' ');
+                let line = '';
+                let lineHeight = 80;
+                let y = canvas.height * 0.3;
+                
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + ' ';
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && n > 0) {
+                        ctx.fillText(line, canvas.width / 2, y);
+                        line = words[n] + ' ';
+                        y += lineHeight;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                ctx.fillText(line, canvas.width / 2, y);
+                
+                // Translation (smaller text)
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 40px Arial';
+                ctx.fillText(cardInfo.translation || 'No translation', canvas.width / 2, canvas.height * 0.6);
+                
+                // Context (even smaller)
+                if (cardInfo.context) {
+                    ctx.fillStyle = '#a0a0ff';
+                    ctx.font = 'italic 30px Arial';
+                    ctx.fillText(cardInfo.context.substring(0, 30) + '...', canvas.width / 2, canvas.height * 0.75);
+                }
+                
+                // Create texture
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                
+                const material = new THREE.MeshStandardMaterial({ 
+                    map: texture,
+                    side: THREE.DoubleSide,
+                    roughness: 0.8,
+                    metalness: 0.2
+                });
+                
+                const card = new THREE.Mesh(geometry, material);
+                
+                // Position along corridor with some variation
+                const zPos = 30 - i * spacing;
+                const yPos = maxHeight/2 + Math.sin(i * 0.3) * 0.5;
+                const xPos = Math.cos(i * 0.4) * maxWidth/2 * 0.5; // Gentle curve
+                
+                card.position.set(xPos, yPos, zPos);
+                card.userData = {
+                    ...cardInfo,
+                    index: i
+                };
+                
+                // Make card face the center of the corridor
+                card.lookAt(new THREE.Vector3(xPos, yPos, zPos + 1));
+                
+                card.castShadow = true;
+                card.receiveShadow = true;
+                
+                scene.add(card);
+                cards.push(card);
+            }
+            
+            document.getElementById('card-count').textContent = cards.length;
+            return cards;
+        }
+        
+        // Initialize camera system
+        let cinematicCamera, controls, cards = [];
+        
+        async function initCameraSystem() {
+            cards = await createCardsFromData();
+            
+            cinematicCamera = new CinematicCamera(scene, camera, cards);
+            controls = new CameraControls(cinematicCamera);
+            
+            // Update card details panel on click
+            document.addEventListener('click', (event) => {
+                const mouse = new THREE.Vector2();
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, camera);
+                
+                const intersects = raycaster.intersectObjects(cards, true);
+                
+                if (intersects.length > 0) {
+                    const clickedCard = intersects[0].object;
+                    
+                    // Find the actual card object (might be a child)
+                    let cardObject = clickedCard;
+                    while (cardObject.parent && !cards.includes(cardObject)) {
+                        cardObject = cardObject.parent;
+                    }
+                    
+                    if (cards.includes(cardObject)) {
+                        showCardDetails(cardObject.userData);
+                    }
+                }
+            });
+            
+            console.log('🎬 Palace Engine Cinematic Camera System Ready!');
+        }
+        
+        function showCardDetails(cardData) {
+            const detailsPanel = document.getElementById('card-details');
+            const wordEl = document.getElementById('card-word');
+            const transEl = document.getElementById('card-translation');
+            const contextEl = document.getElementById('card-context');
+            const exampleEl = document.getElementById('card-example');
+            const imageEl = document.getElementById('card-image');
+            
+            wordEl.textContent = cardData.word || 'Unknown';
+            transEl.textContent = cardData.translation || 'No translation';
+            contextEl.textContent = cardData.context || 'No context';
+            exampleEl.textContent = cardData.example || 'No example sentence';
+            
+            // Add image if available
+            if (cardData.image) {
+                imageEl.innerHTML = `<img src="${cardData.image}" style="max-width: 100%; border-radius: 5px;">`;
+            } else {
+                imageEl.innerHTML = '';
+            }
+            
+            detailsPanel.style.display = 'block';
+        }
+        
+        // FPS counter
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 0;
+        
+        function updateFPS() {
+            frameCount++;
+            const now = performance.now();
+            if (now >= lastTime + 1000) {
+                fps = Math.round((frameCount * 1000) / (now - lastTime));
+                frameCount = 0;
+                lastTime = now;
+                
+                document.getElementById('fps-counter').textContent = fps;
+            }
+        }
+        
+        // Position info
+        function updatePositionInfo() {
+            if (cinematicCamera) {
+                const pos = camera.position;
+                document.getElementById('position-info').textContent = 
+                    `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}`;
+            }
+        }
+        
+        // Animation loop
+        const clock = new THREE.Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = clock.getDelta();
+            
+            if (cinematicCamera) {
+                cinematicCamera.update(deltaTime);
+            }
+            
+            updateFPS();
+            updatePositionInfo();
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start everything
+        initCameraSystem().then(() => {
+            animate();
+        }).catch(error => {
+            console.error('Error initializing camera system:', error);
+            document.getElementById('loading').textContent = 'Error loading: ' + error.message;
+        });
+    </script>
+</body>
+</html>
