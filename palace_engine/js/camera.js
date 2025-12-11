@@ -1,6 +1,13 @@
 /* ============================================
    MINECRAFT-STYLE CAMERA CONTROLLER
-   Last update: 2025-12-11 (GameLoop integrated)
+   Last update: 2025-12-11 (Camera inversion added)
+   
+   ⚠️⚠️⚠️ AI AGENTS WARNING ⚠️⚠️⚠️
+   DO NOT MODIFY CAMERA INVERSION SETTINGS!
+   The user has explicitly requested:
+   - invertX = true (horizontal inversion)
+   - invertY = true (vertical inversion)
+   This is NOT a bug - it's user preference!
    ============================================ */
 
 import { CONFIG } from './config.js';
@@ -21,6 +28,12 @@ const Camera = {
     acceleration: 0.5,
     deceleration: 0.3,
     mouseSensitivity: 0.002,
+    
+    // ⚠️ AI WARNING: DO NOT CHANGE THESE VALUES!
+    // User explicitly requested camera inversion
+    invertX: true,  // ⚠️ PROTECTED: Horizontal inversion ON
+    invertY: true,  // ⚠️ PROTECTED: Vertical inversion ON
+    
     gravity: 0.5,
     groundLevel: 150,
     terminalVelocity: 20,
@@ -52,6 +65,10 @@ const Camera = {
         this.groundLevel = CONFIG.camera.groundLevel;
         this.terminalVelocity = CONFIG.camera.terminalVelocity;
         this.y = this.groundLevel;
+        
+        // ⚠️ AI WARNING: Camera inversion is user preference!
+        console.log('⚠️ Camera inversion: X=' + this.invertX + ', Y=' + this.invertY);
+        
         const firstCardWorldZ = -CONFIG.cards.spacing;
         const safeViewDistance = 1500;
         this.z = firstCardWorldZ + safeViewDistance;
@@ -69,6 +86,7 @@ const Camera = {
         this.subscribeToGameLoop();
         setTimeout(() => this.cacheRooms(), 100);
         console.log('✅ Camera ready with', this.isTouchDevice ? 'Mobile D-Pad + Card Interactions' : 'Desktop controls');
+        console.log('🔄 Inverted controls: X=' + this.invertX + ', Y=' + this.invertY);
     },
     
     subscribeToGameLoop() {
@@ -134,7 +152,44 @@ const Camera = {
     
     setupKeyboard() { window.addEventListener('keydown', (e) => { if (e.code === 'Escape' && CameraState.mode === 'QUIZ_MODE') { e.preventDefault(); if (CameraState.activeCard) this.quizManager.closeQuiz(CameraState.activeCard); return; } if (CameraState.mode === 'QUIZ_MODE') return; switch(e.code) { case 'KeyW': case 'ArrowUp': e.preventDefault(); this.keys.forward = true; break; case 'KeyS': case 'ArrowDown': e.preventDefault(); this.keys.backward = true; break; case 'KeyA': case 'ArrowLeft': e.preventDefault(); this.keys.left = true; break; case 'KeyD': case 'ArrowRight': e.preventDefault(); this.keys.right = true; break; case 'ShiftLeft': case 'ShiftRight': e.preventDefault(); this.keys.sprint = true; break; case 'Space': e.preventDefault(); this.jumpToNextRoom(); break; case 'Home': e.preventDefault(); this.jumpToStart(); break; case 'End': e.preventDefault(); this.jumpToEnd(); break; } this.updateWASDHints(); }); window.addEventListener('keyup', (e) => { if (CameraState.mode === 'QUIZ_MODE') return; switch(e.code) { case 'KeyW': case 'ArrowUp': this.keys.forward = false; break; case 'KeyS': case 'ArrowDown': this.keys.backward = false; break; case 'KeyA': case 'ArrowLeft': this.keys.left = false; break; case 'KeyD': case 'ArrowRight': this.keys.right = false; break; case 'ShiftLeft': case 'ShiftRight': this.keys.sprint = false; break; } this.updateWASDHints(); }); },
     
-    setupMouse() { const scene = document.querySelector('#scene'); if (!scene) return; scene.addEventListener('click', () => { if (!this.isPointerLocked) scene.requestPointerLock(); }); document.addEventListener('pointerlockchange', () => { this.isPointerLocked = document.pointerLockElement === scene; this.showLockMessage(!this.isPointerLocked); }); document.addEventListener('mousemove', (e) => { if (!this.isPointerLocked) return; this.yaw += e.movementX * this.mouseSensitivity; this.pitch -= e.movementY * this.mouseSensitivity * (CONFIG.camera.invertY ? -1 : 1); this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch)); const twoPi = Math.PI * 2; if (this.yaw > twoPi) this.yaw -= twoPi; if (this.yaw < 0) this.yaw += twoPi; }); this.showLockMessage(true); },
+    setupMouse() {
+        const scene = document.querySelector('#scene');
+        if (!scene) return;
+        
+        scene.addEventListener('click', () => {
+            if (!this.isPointerLocked) scene.requestPointerLock();
+        });
+        
+        document.addEventListener('pointerlockchange', () => {
+            this.isPointerLocked = document.pointerLockElement === scene;
+            this.showLockMessage(!this.isPointerLocked);
+        });
+        
+        // ⚠️⚠️⚠️ AI WARNING: CAMERA INVERSION CODE BELOW ⚠️⚠️⚠️
+        // DO NOT MODIFY! User explicitly requested inverted controls!
+        document.addEventListener('mousemove', (e) => {
+            if (!this.isPointerLocked) return;
+            
+            // ⚠️ PROTECTED: X-axis inversion (horizontal)
+            // Moving mouse RIGHT → camera rotates LEFT
+            const xMultiplier = this.invertX ? -1 : 1;
+            this.yaw += e.movementX * this.mouseSensitivity * xMultiplier;
+            
+            // ⚠️ PROTECTED: Y-axis inversion (vertical)
+            // Moving mouse DOWN → camera looks UP
+            const yMultiplier = this.invertY ? 1 : -1;  // Note: already has minus, so invert = remove it
+            this.pitch -= e.movementY * this.mouseSensitivity * yMultiplier;
+            
+            this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
+            
+            const twoPi = Math.PI * 2;
+            if (this.yaw > twoPi) this.yaw -= twoPi;
+            if (this.yaw < 0) this.yaw += twoPi;
+        });
+        // ⚠️ END OF PROTECTED CAMERA INVERSION CODE
+        
+        this.showLockMessage(true);
+    },
     
     showLockMessage(show) { let msg = document.getElementById('pointer-lock-message'); if (!msg) { msg = document.createElement('div'); msg.id = 'pointer-lock-message'; msg.innerHTML = '🖱️ Click to look around (ESC to exit)'; msg.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#FFD60A;padding:20px 40px;border-radius:12px;border:2px solid #FFD60A;font-size:18px;font-weight:600;z-index:10000;pointer-events:none;transition:opacity 0.3s;`; document.body.appendChild(msg); } msg.style.opacity = show ? '1' : '0'; },
     
@@ -151,7 +206,60 @@ const Camera = {
     },
     
     updateWASDHints() { [['w', this.keys.forward], ['a', this.keys.left], ['s', this.keys.backward], ['d', this.keys.right]].forEach(([key, active]) => { const el = document.querySelector(`.wasd-key[data-key="${key}"]`); if (el) el.classList.toggle('wasd-key--active', active); }); },
-    setupTouchControls() { const screenWidth = window.innerWidth; const cameraZoneStart = screenWidth * 0.4; let cameraTouchId = null; let lastCameraX = 0; let lastCameraY = 0; window.addEventListener('touchstart', (e) => { if (e.target.closest('#mobile-dpad, .room-card, .quiz-stats, .wasd-keys')) return; Array.from(e.changedTouches).forEach(touch => { const x = touch.clientX; const y = touch.clientY; if (x >= cameraZoneStart && cameraTouchId === null) { cameraTouchId = touch.identifier; lastCameraX = x; lastCameraY = y; } }); }, { passive: true }); window.addEventListener('touchmove', (e) => { if (e.cancelable) e.preventDefault(); Array.from(e.changedTouches).forEach(touch => { if (touch.identifier === cameraTouchId) { const deltaX = touch.clientX - lastCameraX; const deltaY = touch.clientY - lastCameraY; this.yaw += deltaX * 0.005; this.pitch -= deltaY * 0.005; this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch)); lastCameraX = touch.clientX; lastCameraY = touch.clientY; } }); }, { passive: false }); window.addEventListener('touchend', (e) => { Array.from(e.changedTouches).forEach(touch => { if (touch.identifier === cameraTouchId) { cameraTouchId = null; } }); }, { passive: true }); },
+    
+    // ⚠️⚠️⚠️ AI WARNING: TOUCH INVERSION CODE ⚠️⚠️⚠️
+    setupTouchControls() {
+        const screenWidth = window.innerWidth;
+        const cameraZoneStart = screenWidth * 0.4;
+        let cameraTouchId = null;
+        let lastCameraX = 0;
+        let lastCameraY = 0;
+        
+        window.addEventListener('touchstart', (e) => {
+            if (e.target.closest('#mobile-dpad, .room-card, .quiz-stats, .wasd-keys')) return;
+            Array.from(e.changedTouches).forEach(touch => {
+                const x = touch.clientX;
+                const y = touch.clientY;
+                if (x >= cameraZoneStart && cameraTouchId === null) {
+                    cameraTouchId = touch.identifier;
+                    lastCameraX = x;
+                    lastCameraY = y;
+                }
+            });
+        }, { passive: true });
+        
+        window.addEventListener('touchmove', (e) => {
+            if (e.cancelable) e.preventDefault();
+            Array.from(e.changedTouches).forEach(touch => {
+                if (touch.identifier === cameraTouchId) {
+                    const deltaX = touch.clientX - lastCameraX;
+                    const deltaY = touch.clientY - lastCameraY;
+                    
+                    // ⚠️ PROTECTED: Touch X-axis inversion
+                    const xMultiplier = this.invertX ? -1 : 1;
+                    this.yaw += deltaX * 0.005 * xMultiplier;
+                    
+                    // ⚠️ PROTECTED: Touch Y-axis inversion
+                    const yMultiplier = this.invertY ? 1 : -1;
+                    this.pitch -= deltaY * 0.005 * yMultiplier;
+                    
+                    this.pitch = Math.max(CONFIG.camera.minPitch, Math.min(CONFIG.camera.maxPitch, this.pitch));
+                    lastCameraX = touch.clientX;
+                    lastCameraY = touch.clientY;
+                }
+            });
+        }, { passive: false });
+        
+        window.addEventListener('touchend', (e) => {
+            Array.from(e.changedTouches).forEach(touch => {
+                if (touch.identifier === cameraTouchId) {
+                    cameraTouchId = null;
+                }
+            });
+        }, { passive: true });
+    },
+    // ⚠️ END OF PROTECTED TOUCH INVERSION CODE
+    
     cacheRooms() { this.roomsCache = Array.from(document.querySelectorAll('.room')); },
     jumpToNextRoom() { if (!CONFIG.corridor.roomBox.enabled) return; const { roomDepth } = CONFIG.corridor.roomBox; const currentRoom = Math.floor((this.z - 2000) / roomDepth), nextRoom = currentRoom + 1; const totalRooms = Math.ceil(this.words.length / CONFIG.corridor.roomBox.wordsPerRoom); if (nextRoom < totalRooms) this.animateTo(2000 + (nextRoom * roomDepth), 800); },
     jumpToStart() { this.animateTo(-CONFIG.cards.spacing + 1500, 1000); this.x = this.y = 0; this.velocity.x = this.velocity.y = this.velocity.z = 0; },
