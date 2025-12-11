@@ -315,8 +315,19 @@ export class CinematicCamera {
     this.isAnimating = true;
     
     // Находим ближайшую позицию на рельсах
-    const closestPoint = this.railCurve.getClosestPoint(this.camera.position);
-    const targetT = this.railCurve.getUtoTmapping(closestPoint);
+    const points = this.railCurve.getPoints(100);
+    let minDistance = Infinity;
+    let closestIndex = 0;
+    
+    points.forEach((point, index) => {
+      const distance = this.camera.position.distanceTo(point);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+    
+    const targetT = closestIndex / (points.length - 1);
     
     // Анимация возврата
     this.animateToT(targetT);
