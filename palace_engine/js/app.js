@@ -9,6 +9,8 @@ import { buildWorld } from './builder.js';
 import { initCamera, Camera } from './camera.js';
 import { GameLoop } from './GameLoop.js';
 import { DebugPanel } from './DebugPanel.js';
+import { updateViewportHeight } from './scene-depth-calculator.js';
+import { ScrollCamera } from './scroll-camera.js';
 
 // 🎮 ЭКСПОРТ Camera в window для builder.js
 window.Camera = Camera;
@@ -59,7 +61,10 @@ const App = {
             
             console.log(`📚 Words found: ${words.length}`);
             
-            // 🏛️ 6. Build world with cards
+            // 🏛️ 6. ✅ CRITICAL: Calculate scene depth BEFORE building world
+            updateViewportHeight(words.length);
+            
+            // 🏛️ 7. Build world with cards
             const corridor = buildWorld(words);
             
             // Add corridor to #world container
@@ -72,17 +77,21 @@ const App = {
             world.appendChild(corridor);
             console.log('🏛️ Corridor appended to #world');
             
-            // 🔢 7. Update word counter
+            // 🔢 8. Update word counter
             const counter = document.getElementById('word-counter');
             if (counter) {
                 counter.textContent = `0 / ${words.length}`;
             }
             
-            // 📹 8. Initialize camera WITH GameLoop
-            initCamera(words, CONFIG, gameLoop);
-            console.log('📹 Camera initialized with GameLoop');
+            // 📹 9. ✅ CRITICAL: Initialize Scroll Camera
+            const scrollCamera = new ScrollCamera();
+            scrollCamera.init();
             
-            // ▶️ 9. START GAMELOOP (after everything is ready)
+            // 📹 10. Initialize traditional camera (optional - for WASD support)
+            initCamera(words, CONFIG, gameLoop);
+            console.log('📹 Traditional and scroll cameras initialized');
+            
+            // ▶️ 11. START GAMELOOP (after everything is ready)
             gameLoop.start();
             console.log('▶️ GameLoop started');
             

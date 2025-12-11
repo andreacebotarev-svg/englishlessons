@@ -11,7 +11,7 @@ import { CONFIG } from './config.js';
  * @returns {number} Z-координата в пикселях
  */
 export function getRoomZPosition(roomIndex) {
-    const startOffset = 2000; // должно совпадать с builder.js
+    const startOffset = CONFIG.getSpacing(); // используем новую формулу
     const roomDepth = CONFIG.corridor.roomBox.roomDepth;
     return startOffset + (roomIndex * roomDepth);
 }

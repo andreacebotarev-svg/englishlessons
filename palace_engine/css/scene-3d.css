@@ -4,6 +4,12 @@
    Last update: 2025-12-11 (Perspective formula sync)
    ============================================ */
 
+/* Viewport wrapper */
+.viewport {
+    height: calc(var(--viewport-height) * 1px);
+    position: relative;
+}
+
 /* === SCENE CONTAINER === */
 #scene, .scene-3d {
     position: fixed;
@@ -36,11 +42,12 @@
     transform-style: preserve-3d;
     
     /* ✅ CRITICAL: Камера движется через translateZ */
-    transform: translateZ(calc(var(--camera-z) * 1px));
+    transform: translate3d(0, 0, 0) translateZ(calc(var(--camera-z) * 1px));
     
     /* GPU acceleration */
     will-change: transform;
     backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
 }
 
 /* === 3D WORLD TRANSFORM === */
