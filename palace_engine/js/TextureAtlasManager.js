@@ -161,6 +161,11 @@ export class TextureAtlasManager {
                     rectangles.push(rect);
                     rows.push(newRow);
                     currentY += item.height + this.padding;
+                } else {
+                    // CRITICAL: Throw error when atlas overflows
+                    console.error(`❌ Atlas overflow! Item ${item.index} does not fit.`);
+                    console.error(`Atlas size: ${this.atlasSize}, needed: ${currentY + item.height + this.padding}`);
+                    throw new Error(`Texture atlas too small! Increase atlasSize (current: ${this.atlasSize}) or reduce card count (current: ${items.length})`);
                 }
             }
         }

@@ -24,6 +24,9 @@ import { CameraControls } from '../CameraControls.js';
 import { PerformanceMonitor } from './PerformanceMonitor.js';
 import { SmartRenderer } from './SmartRenderer.js';
 
+// === AAA OPTIMIZATION IMPORTS ===
+import { AAAOptimizationManager } from './AAAOptimizationManager.js';
+
 const App = {
     // Global variables
     scene: null,
@@ -33,6 +36,7 @@ const App = {
     cinematicCamera: null,
     controls: null,
     gameLoop: null,
+    aaaManager: null,
     
     async init() {
         const loader = document.getElementById('loading');
@@ -180,8 +184,23 @@ const App = {
         createOptimizedFloor(this.scene);
         createOptimizedWalls(this.scene);
         
-        // 7. Create cards optimized with regular Mesh (instead of InstancedMesh for easier raycasting)
-        this.cards = await buildOptimizedWorld(words, this.scene);
+        // 7. Initialize AAA Optimization Manager
+        console.log('🚀 Initializing AAA Optimization System...');
+        this.aaaManager = new AAAOptimizationManager();
+        
+        const aaaResult = await this.aaaManager.initialize(
+            this.scene,
+            this.camera,
+            words
+        );
+        
+        this.cards = aaaResult.virtualCards;
+        
+        console.log('✅ AAA Optimization active:', {
+            drawCalls: aaaResult.metrics.drawCalls,
+            textures: aaaResult.metrics.textures,
+            geometries: aaaResult.metrics.geometries
+        });
         
         console.log(`✅ ${this.cards.length} cards created with regular Mesh`);
         
@@ -207,6 +226,11 @@ const App = {
             this.performanceMonitor.begin(this.renderer);
             
             const deltaTime = clock.getDelta();
+            
+            // Update AAA manager
+            if (this.aaaManager) {
+                this.aaaManager.update(deltaTime);
+            }
             
             // Update camera
             this.cinematicCamera.update(deltaTime);
@@ -234,7 +258,7 @@ const App = {
     },
     
     /**
-     * Setup raycasting for quiz
+     * Setup raycasting for quiz with InstancedMesh support
      */
     setupQuizInteraction(words) {
         const raycaster = new THREE.Raycaster();
@@ -247,23 +271,30 @@ const App = {
             
             raycaster.setFromCamera(mouse, this.camera);
             
-            // Simple raycasting for regular Mesh objects
-            const intersects = raycaster.intersectObjects(this.cards);
-            
-            if (intersects.length > 0) {
-                const wordData = intersects[0].object.userData;
+            // ✅ КРИТИЧНО: Raycast для InstancedMesh
+            if (this.aaaManager && this.aaaManager.instancedMesh) {
+                const intersects = raycaster.intersectObject(this.aaaManager.instancedMesh);
                 
-                console.log('🎯 Clicked card:', wordData.word);
-                
-                this.showQuizOverlay(wordData);
-                
-                if (this.controls) {
-                    this.controls.enabled = false;
+                if (intersects.length > 0) {
+                    const instanceId = intersects[0].instanceId;
+                    
+                    // ✅ Получить данные из virtualCards
+                    if (instanceId !== undefined && this.cards[instanceId]) {
+                        const wordData = this.cards[instanceId].userData;
+                        
+                        console.log('🎯 Clicked card:', wordData.word);
+                        
+                        this.showQuizOverlay(wordData);
+                        
+                        if (this.controls) {
+                            this.controls.enabled = false;
+                        }
+                    }
                 }
             }
         });
         
-        console.log('✅ Raycasting setup complete');
+        console.log('✅ Raycasting setup complete (InstancedMesh mode)');
     },
     
     /**
@@ -418,6 +449,12 @@ const App = {
      */
     cleanup() {
         console.log('🧹 Cleaning up resources...');
+        
+        if (this.aaaManager) {
+            this.aaaManager.dispose();
+            this.aaaManager = null;
+            console.log('✅ AAA Manager disposed');
+        }
         
         if (this.cards) {
             this.cards.forEach(card => {

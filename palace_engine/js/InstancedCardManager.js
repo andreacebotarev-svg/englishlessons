@@ -159,4 +159,35 @@ export class InstancedCardManager {
         this.uvOffsetsAttribute.setXYWH(index, uvOffset.uMin, uvOffset.vMin, uScale, vScale);
         this.uvOffsetsAttribute.needsUpdate = true;
     }
+
+    /**
+     * Получить пересечение raycast с InstancedMesh
+     * CRITICAL BUG FIX: Raycast для InstancedMesh
+     * @param {THREE.Raycaster} raycaster - raycaster объект
+     * @returns {Object|null} - информация о пересечении
+     */
+    getRaycastIntersection(raycaster) {
+        if (!this.instancedMesh) return null;
+        
+        const intersects = raycaster.intersectObject(this.instancedMesh);
+        
+        if (intersects.length > 0) {
+            const intersection = intersects[0];
+            
+            // Three.js automatically adds instanceId
+            const instanceId = intersection.instanceId;
+            
+            if (instanceId !== undefined) {
+                return {
+                    instanceId,
+                    point: intersection.point,
+                    distance: intersection.distance,
+                    face: intersection.face,
+                    object: this.instancedMesh
+                };
+            }
+        }
+        
+        return null;
+    }
 }

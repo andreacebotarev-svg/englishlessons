@@ -190,16 +190,43 @@ export class LODController {
      * @private
      */
     _applyLODChanges(index, lodLevel) {
-        // TODO: реализация применения изменений LOD
-        // В зависимости от уровня может изменяться:
-        // - Видимость (frustum culling)
-        // - Качество текстуры (если поддерживаются разные UV области)
-        // - Другие параметры рендеринга
+        if (!(this.cards instanceof THREE.InstancedMesh)) return;
         
-        // For now, just ensure visibility based on frustum
-        if (this.cards instanceof THREE.InstancedMesh) {
-            // Visibility handled by frustum culling
+        const tempMatrix = new THREE.Matrix4();
+        const tempPosition = new THREE.Vector3();
+        const tempQuaternion = new THREE.Quaternion();
+        const tempScale = new THREE.Vector3();
+        
+        // Получить текущую матрицу
+        this.cards.getMatrixAt(index, tempMatrix);
+        tempMatrix.decompose(tempPosition, tempQuaternion, tempScale);
+        
+        // FRUSTUM CULLING: Скрыть если вне поля зрения
+        const isVisible = this.frustum.containsPoint(tempPosition);
+        
+        if (!isVisible) {
+            // Скрываем через scale=0
+            tempScale.set(0, 0, 0);
+        } else {
+            // LOD применяется через uniform (если shader поддерживает)
+            // Или через разные scale уровни
+            switch (lodLevel) {
+                case LODController.LOD_LEVELS.HIGH_DETAIL:
+                    tempScale.set(1, 1, 1);
+                    break;
+                case LODController.LOD_LEVELS.MEDIUM_DETAIL:
+                    tempScale.set(0.9, 0.9, 0.9);
+                    break;
+                case LODController.LOD_LEVELS.LOW_DETAIL:
+                    tempScale.set(0.7, 0.7, 0.7);
+                    break;
+            }
         }
+        
+        // Применить обновлённую матрицу
+        tempMatrix.compose(tempPosition, tempQuaternion, tempScale);
+        this.cards.setMatrixAt(index, tempMatrix);
+        this.cards.instanceMatrix.needsUpdate = true;
     }
 
     /**
