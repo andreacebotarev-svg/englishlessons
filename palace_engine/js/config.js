@@ -27,7 +27,8 @@ const CONFIG = {
         terminalVelocity: 20,       // 🆕 Максимальная скорость падения
         
         // 3D
-        fov: 800,                   // ✅ Synced to 800px to match scene-3d.css perspective
+        fov: 75,                   // Base FOV for desktop
+        mobileFov: 80,             // Wider FOV for mobile
         minDepth: 0,                // Минимальная глубина (начало)
         maxDepth: 12000,            // ✅ OPTIMIZED: For 24 cards × 500px spacing
     },
@@ -92,6 +93,12 @@ const CONFIG = {
     audio: {
         enabled: false,
         volume: 0.5,
+    },
+    
+    // === DEBUG ===
+    debug: {
+        enabled: false,  // Disabled in production
+        level: 'WARN'    // Only warnings and errors
     }
 };
 

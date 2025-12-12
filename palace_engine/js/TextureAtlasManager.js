@@ -114,10 +114,8 @@ export class TextureAtlasManager {
             const tempTextures = [];
             const canvases = [];
 
-            // 1. Create textures for each word
-            for (let i = 0; i < words.length; i++) {
-                const word = words[i];
-                
+            // 1. Create textures for each word - PARALLEL PROCESSING TO FIX RACE CONDITION
+            const texturePromises = words.map(async (word, i) => {
                 // Import createOptimizedCardTexture dynamically to avoid circular dependencies
                 const { createOptimizedCardTexture } = await import('./optimized-texture-generator.js');
                 
@@ -129,14 +127,25 @@ export class TextureAtlasManager {
                     transcription: word.transcription
                 });
                 
-                tempTextures.push(texture);
-                canvases.push({ 
-                    canvas: texture.image, // CRITICAL BUG FIX: Get canvas from texture.image
-                    index: i,
-                    width: texture.image.width,
-                    height: texture.image.height
-                });
-            }
+                return {
+                    texture,
+                    canvasInfo: { 
+                        canvas: texture.image, // CRITICAL BUG FIX: Get canvas from texture.image
+                        index: i,
+                        width: texture.image.width,
+                        height: texture.image.height
+                    }
+                };
+            });
+            
+            // Wait for ALL textures to be created in parallel
+            const results = await Promise.all(texturePromises);
+            
+            // Extract textures and canvas info
+            results.forEach(result => {
+                tempTextures.push(result.texture);
+                canvases.push(result.canvasInfo);
+            });
 
             // 2. Pack textures using improved bin-packing algorithm
             const packedResult = this.packTextures(canvases);

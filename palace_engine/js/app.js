@@ -134,8 +134,11 @@ const App = {
         this.scene.fog = new THREE.Fog(0x0a0a1a, 10, 50);
         
         // 2. Create camera
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const fov = isMobile ? CONFIG.camera.mobileFov : CONFIG.camera.fov;
+        
         this.camera = new THREE.PerspectiveCamera(
-            75,
+            fov,
             window.innerWidth / window.innerHeight,
             0.1,
             1000
@@ -225,38 +228,47 @@ const App = {
         // 12. Smart renderer
         this.smartRenderer = new SmartRenderer(this.renderer, this.camera, this.scene);
         
-        // 13. Animation loop with performance optimizations
+        // 13. Animation loop with GameLoop integration
         const clock = new THREE.Clock();
         
-        const animate = () => {
-            // Begin performance monitoring
-            this.performanceMonitor.begin(this.renderer);
+        // Subscribe to GameLoop callbacks
+        // UPDATE callback (fixed timestep 16.67ms)
+        this.gameLoop.onUpdate((deltaTime) => {
+            // Convert ms to seconds
+            const deltaSeconds = deltaTime / 1000;
             
-            const deltaTime = clock.getDelta();
-            
-            // Update AAA manager
+            // Update AAA manager (physics, LOD)
             if (this.aaaManager) {
-                this.aaaManager.update(deltaTime);
+                this.aaaManager.update(deltaSeconds);
             }
             
-            // Update camera
-            this.cinematicCamera.update(deltaTime);
+            // Update camera (movement, collision)
+            if (this.cinematicCamera) {
+                this.cinematicCamera.update(deltaSeconds);
+            }
+        });
+        
+        // RENDER callback (variable timestep, interpolated)
+        this.gameLoop.onRender((alpha) => {
+            // Performance monitoring
+            this.performanceMonitor.begin(this.renderer);
             
             // Smart render
             this.smartRenderer.render();
             
-            // End performance monitoring
+            // End monitoring
             this.performanceMonitor.end();
             
-            // Record frame data for performance logger
+            // Record frame data
             if (this.perfLogger) {
-                this.perfLogger.recordFrame(this.renderer, this.performanceMonitor.fps);
+                this.perfLogger.recordFrame(
+                    this.renderer, 
+                    this.performanceMonitor.fps
+                );
             }
-            
-            requestAnimationFrame(animate);
-        };
+        });
         
-        animate();
+        // GameLoop already handles the animation loop, so no need for manual RAF
         
         // 14. Resize handler
         window.addEventListener('resize', () => {

@@ -26,18 +26,25 @@ export class SharedGeometryPool {
     }
 
     /**
-     * Получить общую геометрию для карточек
-     * @returns {THREE.PlaneGeometry} - плоская геометрия для карточек (3x2)
+     * Получить геометрию для карточек
+     * @param {number} aspectRatio - соотношение сторон карточки (width/height)
+     * @returns {THREE.PlaneGeometry} - плоская геометрия для карточек
      */
-    getCardGeometry() {
-        const key = 'card_geometry';
+    getCardGeometry(aspectRatio = 1.5) {
+        const key = `card_${aspectRatio.toFixed(2)}`;
         
         if (!this.geometries.has(key)) {
+            // Calculate geometry size based on aspect ratio
+            const height = 2;
+            const width = height * aspectRatio;
+            
             // Create new geometry
-            const geometry = new THREE.PlaneGeometry(3, 2);
+            const geometry = new THREE.PlaneGeometry(width, height);
             this.geometries.set(key, geometry);
             this.usageCounters.set(key, 1);
             this.cardGeometryInitialized = true;
+            
+            console.log(`✅ Created shared card geometry: ${width.toFixed(2)}×${height} (aspect: ${aspectRatio.toFixed(2)})`);
         } else {
             // Increment usage counter
             const currentCount = this.usageCounters.get(key);

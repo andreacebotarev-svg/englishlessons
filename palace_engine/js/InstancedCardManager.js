@@ -27,47 +27,90 @@ export class InstancedCardManager {
             attribute vec4 uvOffset;
             
             varying vec2 vUv;
+            varying vec3 vNormal;
+            varying vec3 vViewPosition;
             
             void main() {
                 // Map local UV coordinates to atlas UV coordinates
-                // CRITICAL BUG FIX #4: Correct UV mapping accounting for Y-axis inversion
+                // CRITICAL BUG FIX #4: Correct UV mapping - removing Y-axis inversion
                 vUv = vec2(
                     mix(uvOffset.x, uvOffset.x + uvOffset.z, uv.x),
-                    mix(uvOffset.y, uvOffset.y + uvOffset.w, 1.0 - uv.y)  // CRITICAL: Invert Y axis for correct texture orientation
+                    mix(uvOffset.y, uvOffset.y + uvOffset.w, uv.y)  // NO Y inversion - Three.js UVs already correct
                 );
                 
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                // Calculate normal and view position for lighting
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vViewPosition = -mvPosition.xyz;
+                
+                gl_Position = projectionMatrix * mvPosition;
             }
         `;
         
         // Fragment shader source
         const fragmentShaderSource = `
             uniform sampler2D atlasTexture;
+            uniform vec3 ambientLightColor;
+            uniform vec3 directionalLightDirection;
+            uniform vec3 directionalLightColor;
             
             varying vec2 vUv;
+            varying vec3 vNormal;
+            varying vec3 vViewPosition;
             
             void main() {
-                vec4 color = texture2D(atlasTexture, vUv);
-                if (color.a < 0.1) discard; // Handle transparency
-                gl_FragColor = color;
+                vec4 texColor = texture2D(atlasTexture, vUv);
+                if (texColor.a < 0.1) discard; // Handle transparency
+                
+                // Simple Lambert lighting
+                vec3 normal = normalize(vNormal);
+                vec3 lightDir = normalize(directionalLightDirection);
+                
+                float diffuse = max(dot(normal, lightDir), 0.0);
+                vec3 lighting = ambientLightColor + (directionalLightColor * diffuse);
+                
+                vec3 finalColor = texColor.rgb * lighting;
+                gl_FragColor = vec4(finalColor, texColor.a);
             }
         `;
         
-        // CRITICAL BUG FIX #1: Proper uniforms for lighting support
-        this.customShaderMaterial = new THREE.ShaderMaterial({
-            uniforms: THREE.UniformsUtils.merge([
-                THREE.UniformsLib.common,  // Base uniforms
-                THREE.UniformsLib.lights,  // Lighting uniforms
-                { 
-                    atlasTexture: { value: null }
-                }
-            ]),
-            vertexShader: vertexShaderSource,
-            fragmentShader: fragmentShaderSource,
-            transparent: true,
-            side: THREE.DoubleSide,
-            lights: true  // CRITICAL BUG FIX: Enable lighting
-        });
+        // CRITICAL BUG FIX #1: Proper uniforms for lighting support with error handling
+        try {
+            this.customShaderMaterial = new THREE.ShaderMaterial({
+                uniforms: THREE.UniformsUtils.merge([
+                    THREE.UniformsLib.common,  // Base uniforms
+                    THREE.UniformsLib.lights,  // Lighting uniforms
+                    { 
+                        atlasTexture: { value: null }
+                    }
+                ]),
+                vertexShader: vertexShaderSource,
+                fragmentShader: fragmentShaderSource,
+                transparent: true,
+                side: THREE.DoubleSide,
+                lights: true  // CRITICAL BUG FIX: Enable lighting
+            });
+            
+            // Validate shader compilation
+            this.customShaderMaterial.needsUpdate = true;
+            
+            // Listen for shader errors
+            this.customShaderMaterial.onBeforeCompile = (shader) => {
+                console.log('✅ Shader compiled successfully');
+            };
+            
+        } catch (error) {
+            console.error('❌ Shader compilation failed:', error);
+            
+            // Fallback to basic material
+            console.warn('⚠️ Falling back to MeshBasicMaterial');
+            this.customShaderMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff0000,  // Red = error indicator
+                side: THREE.DoubleSide
+            });
+            
+            throw new Error('Shader initialization failed: ' + error.message);
+        }
     }
 
     /**
@@ -75,16 +118,22 @@ export class InstancedCardManager {
      * @param {number} count - количество инстансов
      * @param {THREE.Texture} atlasTexture - текстура атласа
      * @param {Map} uvMap - карта UV координат
+     * @param {Object} cardSize - размер карточки {width, height}
      * @returns {THREE.InstancedMesh} - созданный InstancedMesh
      */
-    createInstancedMesh(count, atlasTexture, uvMap) {
+    createInstancedMesh(count, atlasTexture, uvMap, cardSize = { width: 768, height: 384 }) {
         try {
             // Update shader material with atlas texture
             this.customShaderMaterial.uniforms.atlasTexture.value = atlasTexture;
             
+            // Calculate geometry size based on card aspect ratio
+            const aspectRatio = cardSize.width / cardSize.height;
+            const geometryHeight = 2;  // Base height
+            const geometryWidth = geometryHeight * aspectRatio;
+            
             // Get shared geometry from pool
-            // NOTE: Geometry should be obtained from SharedGeometryPool
-            const geometry = new THREE.PlaneGeometry(3, 2); // Temporary - should come from pool
+            const pool = SharedGeometryPool.getInstance();
+            const geometry = pool.getCardGeometry(aspectRatio);
             
             // Create InstancedMesh
             this.instancedMesh = new THREE.InstancedMesh(geometry, this.customShaderMaterial, count);

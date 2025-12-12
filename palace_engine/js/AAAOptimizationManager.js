@@ -109,7 +109,8 @@ export class AAAOptimizationManager {
             this.instancedMesh = this.instancedCardManager.createInstancedMesh(
                 words.length,
                 atlasResult.texture,
-                atlasResult.uvMap
+                atlasResult.uvMap,
+                this.textureAtlasManager.cardSize  // Pass card size
             );
             
             // Add instanced mesh to scene
@@ -313,9 +314,32 @@ export class AAAOptimizationManager {
                 }
             }
             
-            // Dispose atlas texture
-            if (this.textureAtlasManager && this.textureAtlasManager.atlasTexture) {
-                this.textureAtlasManager.atlasTexture.dispose();
+            // Dispose atlas texture AND cleanup manager
+            if (this.textureAtlasManager) {
+                // Dispose texture
+                if (this.textureAtlasManager.atlasTexture) {
+                    this.textureAtlasManager.atlasTexture.dispose();
+                    this.textureAtlasManager.atlasTexture = null;
+                }
+                
+                // NEW: Clear canvas
+                if (this.textureAtlasManager.ctx) {
+                    this.textureAtlasManager.ctx.clearRect(0, 0, this.textureAtlasManager.canvas.width, this.textureAtlasManager.canvas.height);
+                    this.textureAtlasManager.ctx = null;
+                }
+                
+                if (this.textureAtlasManager.canvas) {
+                    this.textureAtlasManager.canvas.width = 0;
+                    this.textureAtlasManager.canvas.height = 0;
+                    this.textureAtlasManager.canvas = null;
+                }
+                
+                // NEW: Clear uvMap
+                if (this.textureAtlasManager.uvMap) {
+                    this.textureAtlasManager.uvMap.clear();
+                }
+                
+                this.textureAtlasManager = null;
             }
             
             // Dispose virtual cards
