@@ -71,14 +71,34 @@ export class AAAOptimizationManager {
             
             // CRITICAL BUG FIX #1: Proper initialization order - atlas first
             // Step 1: Initialize TextureAtlasManager and create atlas
-            this.textureAtlasManager = new TextureAtlasManager({
-                atlasSize: 4096,
-                padding: 2
-            });
-            
-            console.log('Creating texture atlas...');
-            const atlasResult = await this.textureAtlasManager.createAtlas(words);
-            console.log('Texture atlas created successfully');
+            try {
+                this.textureAtlasManager = new TextureAtlasManager({
+                    atlasSize: 8192,
+                    padding: 4,
+                    cardCount: words.length
+                });
+                
+                console.log('Creating texture atlas...');
+                const atlasResult = await this.textureAtlasManager.createAtlas(words);
+                console.log('Texture atlas created successfully');
+            } catch (atlasError) {
+                if (atlasError.message.includes('too large')) {
+                    console.warn('⚠️ Atlas too large, retrying with smaller cards...');
+                    
+                    // Пересоздать manager с меньшими карточками
+                    this.textureAtlasManager = new TextureAtlasManager({
+                        atlasSize: 8192,
+                        padding: 4,
+                        cardCount: words.length,
+                        cardSize: { width: 512, height: 256 } // ✅ Fallback размер
+                    });
+                    
+                    const atlasResult = await this.textureAtlasManager.createAtlas(words);
+                    console.log('✅ Atlas created with fallback card size');
+                } else {
+                    throw atlasError;
+                }
+            }
             
             // Step 2: Get shared geometry from pool
             this.sharedGeometryPool = SharedGeometryPool.getInstance();
@@ -117,6 +137,43 @@ export class AAAOptimizationManager {
             };
         } catch (error) {
             console.error('Error initializing AAA optimization manager:', error);
+            
+            // ✅ User-friendly error message
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 0, 0, 0.9);
+                color: white;
+                padding: 30px;
+                border-radius: 12px;
+                max-width: 500px;
+                z-index: 10000;
+                text-align: center;
+            `;
+            
+            errorDiv.innerHTML = `
+                <h2 style="margin: 0 0 15px;">⚠️ Ошибка инициализации</h2>
+                <p>${error.message}</p>
+                <p style="font-size: 14px; opacity: 0.8; margin-top: 15px;">
+                    Попробуйте уменьшить количество карточек или обновите страницу.
+                </p>
+                <button onclick="location.reload()" style="
+                    margin-top: 20px;
+                    padding: 10px 20px;
+                    background: white;
+                    color: red;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: bold;
+                ">Перезагрузить</button>
+            `;
+            
+            document.body.appendChild(errorDiv);
+            
             throw error;
         }
     }

@@ -26,7 +26,7 @@
   "license": "MIT",
   "dependencies": {
     "gsap": "^3.12.5",
-    "three": "^0.160.0"
+    "three": "^0.152.0"
   },
   "devDependencies": {
     "gh-pages": "^6.1.0",

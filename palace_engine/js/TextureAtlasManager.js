@@ -12,10 +12,40 @@ export class TextureAtlasManager {
      * @param {number} [config.padding=2] - отступ между текстурами
      */
     constructor(config = {}) {
-        this.atlasSize = this.nextPowerOfTwo(config.atlasSize || 4096); // CRITICAL BUG FIX #3: Power of 2 constraint
-        this.padding = config.padding || 2;
+        // ✅ КРИТИЧНО: Dynamic atlas size based on card count
+        const cardCount = config.cardCount || 25;
+        const cardSize = config.cardSize || { width: 768, height: 384 };
+        
+        // Calculate required atlas size
+        const totalArea = cardCount * cardSize.width * cardSize.height;
+        const efficiency = 0.75; // 75% packing efficiency
+        const requiredSize = Math.sqrt(totalArea / efficiency);
+        
+        // Round up to next power of 2
+        this.atlasSize = this.nextPowerOfTwo(Math.max(
+            requiredSize,
+            config.atlasSize || 4096
+        ));
+        
+        // ✅ Auto-scale if atlas is too large
+        if (this.atlasSize > 8192) {
+            console.warn(`⚠️ Atlas size too large (${this.atlasSize}), reducing card size`);
+            
+            // Scale down cards
+            const scaleFactor = 8192 / this.atlasSize;
+            config.cardSize = {
+                width: Math.floor(cardSize.width * scaleFactor),
+                height: Math.floor(cardSize.height * scaleFactor)
+            };
+            
+            this.atlasSize = 8192;
+        }
+        
+        this.padding = config.padding || 4; // Increased padding for quality
         this.atlasTexture = null;
         this.uvMap = new Map();
+        
+        console.log(`📐 Atlas configured: ${this.atlasSize}x${this.atlasSize} for ${cardCount} cards`);
         
         // Canvas for atlas creation
         this.canvas = document.createElement('canvas');
@@ -32,6 +62,29 @@ export class TextureAtlasManager {
      */
     async createAtlas(words, config) {
         try {
+            // ✅ КРИТИЧНО: Pre-check if cards will fit
+            const estimatedArea = words.length * 768 * 384; // card size
+            const atlasArea = this.atlasSize * this.atlasSize;
+            const efficiency = 0.7; // realistic packing efficiency
+            
+            if (estimatedArea / efficiency > atlasArea) {
+                console.error(`❌ Atlas size too small!`);
+                console.error(`Required: ${Math.sqrt(estimatedArea / efficiency).toFixed(0)}px`);
+                console.error(`Current: ${this.atlasSize}px`);
+                console.error(`Recommendation: Use atlasSize: ${this.nextPowerOfTwo(Math.sqrt(estimatedArea / efficiency))}`);
+                
+                // ✅ Auto-upgrade atlas size
+                const recommendedSize = this.nextPowerOfTwo(Math.sqrt(estimatedArea / efficiency));
+                if (recommendedSize <= 8192) {
+                    console.warn(`⚡ Auto-upgrading atlas to ${recommendedSize}px`);
+                    this.atlasSize = recommendedSize;
+                    this.canvas.width = this.atlasSize;
+                    this.canvas.height = this.atlasSize;
+                } else {
+                    throw new Error(`Atlas would be too large (${recommendedSize}px). Reduce card count or size.`);
+                }
+            }
+
             // CRITICAL BUG FIX #1: Memory leak prevention
             const tempTextures = [];
             const canvases = [];
