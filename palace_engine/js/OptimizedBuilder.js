@@ -243,6 +243,7 @@ export async function buildOptimizedWorldInstanced(words, scene) {
     const dummy = new THREE.Object3D();
     const transforms = [];
     const textures = [];
+    const cards = []; // Metadata for each card
     
     // Load all textures in parallel batches to avoid blocking
     const batchSize = 5;
@@ -272,13 +273,25 @@ export async function buildOptimizedWorldInstanced(words, scene) {
                 transcription: word.transcription
             });
             
-            return { transform: dummy.matrix.clone(), texture };
+            return { 
+                transform: dummy.matrix.clone(), 
+                texture,
+                metadata: {
+                    word: word.en,
+                    translation: word.ru,
+                    imagePath: word.image,
+                    example: word.example,
+                    transcription: word.transcription,
+                    index: globalIndex
+                }
+            };
         });
         
         const batchResults = await Promise.all(batchPromises);
         for (const result of batchResults) {
             transforms.push(result.transform);
             textures.push(result.texture);
+            cards.push(result.metadata);
         }
         
         // Yield to browser to prevent blocking
@@ -300,7 +313,8 @@ export async function buildOptimizedWorldInstanced(words, scene) {
     
     console.log(`✅ Instanced mesh created: 1 draw call for ${words.length} cards`);
     
-    return { instancedMesh, textures };
+    // Return both instancedMesh and card metadata
+    return { instancedMesh, cards };
 }
 
 /**
