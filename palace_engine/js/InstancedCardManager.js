@@ -3,6 +3,7 @@
  * Использует texture atlas и InstancedMesh для оптимизации производительности
  */
 import * as THREE from 'three';
+import { SharedGeometryPool } from './SharedGeometryPool.js';
 
 export class InstancedCardManager {
     /**
