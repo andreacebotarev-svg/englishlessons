@@ -150,11 +150,12 @@ export class InstancedCardManager {
                 const uWidth = uvData.uMax - uvData.uMin;
                 const vHeight = uvData.vMax - uvData.vMin;
                 
-                this.uvOffsetsAttribute.setXYWH(i, uvData.uMin, uvData.vMin, uWidth, vHeight);
+                // ✅ CRITICAL FIX: Use setXYZW() instead of setXYWH()
+                this.uvOffsetsAttribute.setXYZW(i, uvData.uMin, uvData.vMin, uWidth, vHeight);
             }
             
             this.instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-            this.instancedMesh.setAttribute('uvOffset', this.uvOffsetsAttribute);
+            this.instancedMesh.geometry.setAttribute('uvOffset', this.uvOffsetsAttribute);
             
             // CRITICAL BUG FIX #2: Mark attribute as needing update
             this.uvOffsetsAttribute.needsUpdate = true;
@@ -205,8 +206,8 @@ export class InstancedCardManager {
         const uScale = uvOffset.uMax - uvOffset.uMin;
         const vScale = uvOffset.vMax - uvOffset.vMin;
         
-        // Set UV offset data [uOffset, vOffset, uScale, vScale]
-        this.uvOffsetsAttribute.setXYWH(index, uvOffset.uMin, uvOffset.vMin, uScale, vScale);
+        // ✅ CRITICAL FIX: Use setXYZW() instead of setXYWH()
+        this.uvOffsetsAttribute.setXYZW(index, uvOffset.uMin, uvOffset.vMin, uScale, vScale);
         this.uvOffsetsAttribute.needsUpdate = true;
     }
 
