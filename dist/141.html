@@ -1352,22 +1352,20 @@
       }
       
       // Функция для обработки текста: делаем слова кликабельными
-      function processText(text) {
-        const words = text.split(/(\b[\w']+\b)/g);
-        return words.map(segment => {
-          const normalized = segment.toLowerCase().replace(/[.,!?;:()]/g, '');
-          if (vocabMap[normalized]) {
-            const isSaved = myWords.some(w => w.word.toLowerCase() === normalized);
-            const savedClass = isSaved ? ' saved' : '';
-            const item = vocabMap[normalized];
-            return `<span class="word-clickable${savedClass}" 
-                          data-word="${escapeHTML(item.word)}" 
-                          data-definition="${escapeHTML(item.definition)}" 
-                          data-phonetic="${escapeHTML(item.phonetic)}">${escapeHTML(segment)}</span>`;
-          }
-          return escapeHTML(segment);
-        }).join('');
-      }
+     function processText(text) {
+  // ИСПРАВЛЕНО: используем replace вместо split для сохранения всех пробелов
+  return text.replace(/\b[\w']+\b/g, (word) => {
+    const normalized = word.toLowerCase().replace(/[.,!?;:()]/g, '');
+    if (vocabMap[normalized]) {
+      const isSaved = myWords.some(w => w.word.toLowerCase() === normalized);
+      const savedClass = isSaved ? ' saved' : '';
+      const item = vocabMap[normalized];
+      return `<span class="word-clickable${savedClass}" 
+                    data-word="${escapeHTML(item.word)}" 
+                    data-definition="${escapeHTML(item.definition)}" 
+                    data-phonetic="${escapeHTML(item.phonetic)}">${escapeHTML(word)}</span>`;
+    }
+    return escapeHTML(word);
       
       const processedParagraphs = reading.map(para => {
         if (para.type === 'list') {
