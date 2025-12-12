@@ -2,15 +2,14 @@
 # Dependencies
 node_modules/
 
+# Test directories
+__tests__/
+*.test.js
+
 # Build artifacts
 dist/
 build/
-target/
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
+*.js.map
 
 # Environment
 .env
@@ -21,55 +20,20 @@ target/
 .vscode/
 .idea/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-venv/
-.venv/
-.env
-
-# Compiled files
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.a
-*.out
+# Logs
+*.log
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Compression
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+# Temporary files
+*.tmp
+*.swp
+*.swo
 
-# System files
+# OS generated files
 .DS_Store
 Thumbs.db
 ```

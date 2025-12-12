@@ -123,32 +123,65 @@ export class AAAOptimizationManager {
 
     /**
      * Создать виртуальные карточки для взаимодействия
+     * CRITICAL FIX: Proper positioning + userData
      * @param {Array} words - массив слов
      * @returns {Array} - массив виртуальных карточек
      * @private
      */
     _createVirtualCards(words) {
-        // TODO: реализация создания виртуальных карточек
-        // Эти карточки будут использоваться для raycasting и интерактивности
-        // при этом не будут рендериться (или будут невидимыми)
-        
         const virtualCards = [];
+        const dummy = new THREE.Object3D();
         
         for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            
+            // ✅ КРИТИЧНО: Позиционирование карточек в коридоре
+            const isLeft = i % 2 === 0;
+            const spacingInUnits = (i * 100) / 100; // 1 метр между карточками
+            
+            dummy.position.set(
+                isLeft ? -2.5 : 2.5,  // Слева/справа от центра
+                2,                     // Высота 2 метра
+                -spacingInUnits       // Глубина по Z
+            );
+            
+            dummy.rotation.y = isLeft ? Math.PI / 8 : -Math.PI / 8; // Поворот к центру
+            
+            dummy.updateMatrix();
+            
+            // ✅ Установить матрицу для InstancedMesh
+            this.instancedMesh.setMatrixAt(i, dummy.matrix);
+            
+            // ✅ Создать виртуальную карточку для raycast
             const virtualCard = new THREE.Mesh(
                 this.sharedGeometryPool.getCardGeometry(),
                 new THREE.MeshBasicMaterial({ visible: false })
             );
             
-            // Store reference to original word data
+            virtualCard.position.copy(dummy.position);
+            virtualCard.rotation.copy(dummy.rotation);
+            
+            // ✅ КРИТИЧНО: Сохранить полные данные слова
             virtualCard.userData = {
-                word: words[i],
+                word: word.en,
+                translation: word.ru,
+                transcription: word.transcription,
+                example: word.example,
+                image: word.image,
                 index: i,
                 originalIndex: i
             };
             
             virtualCards.push(virtualCard);
+            
+            // ✅ Добавить в сцену для raycast (но invisible)
+            this.scene.add(virtualCard);
         }
+        
+        // ✅ КРИТИЧНО: Обновить instanceMatrix
+        this.instancedMesh.instanceMatrix.needsUpdate = true;
+        
+        console.log(`✅ Positioned ${words.length} cards in corridor`);
         
         return virtualCards;
     }

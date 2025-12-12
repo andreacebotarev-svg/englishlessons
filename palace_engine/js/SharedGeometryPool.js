@@ -151,6 +151,36 @@ export class SharedGeometryPool {
     }
 
     /**
+     * Освободить геометрию из пула
+     * CRITICAL: Reference counting для предотвращения преждевременного удаления
+     * @param {string} key - ключ геометрии
+     */
+    releaseGeometry(key) {
+        if (!this.geometries.has(key)) {
+            console.warn(`Cannot release geometry: ${key} not found in pool`);
+            return;
+        }
+        
+        const currentCount = this.usageCounters.get(key);
+        
+        if (currentCount > 1) {
+            // Уменьшаем счётчик
+            this.usageCounters.set(key, currentCount - 1);
+            console.log(`📦 Geometry '${key}' released. Remaining refs: ${currentCount - 1}`);
+        } else {
+            // Последний пользователь — удаляем полностью
+            const geometry = this.geometries.get(key);
+            if (geometry) {
+                geometry.dispose();
+                console.log(`♻️ Geometry '${key}' disposed (last reference)`);
+            }
+            
+            this.geometries.delete(key);
+            this.usageCounters.delete(key);
+        }
+    }
+
+    /**
      * Получить статистику использования геометрий
      * @returns {Object} - статистика использования
      */
