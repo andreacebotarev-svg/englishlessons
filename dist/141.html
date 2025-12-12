@@ -1424,125 +1424,136 @@
     }
 
     function renderVocabList(vocabulary, phrases) {
-      const vocabItems = vocabulary.map(item => {
-        const { en: word, transcription: phonetic, ru: definition, example, part_of_speech } = item;
-        const isSaved = myWords.some(w => w.word.toLowerCase() === word.toLowerCase());
-        
+  const vocabItems = vocabulary.map(item => {
+    const { en: word, transcription: phonetic, ru: definition, example, part_of_speech } = item;
+    const isSaved = myWords.some(w => w.word.toLowerCase() === word.toLowerCase());
+    
+    // Экранируем кавычки для безопасной передачи в onclick
+    const safeWord = escapeHTML(word).replace(/'/g, "\\'");
+    const safeDef = escapeHTML(definition).replace(/'/g, "\\'");
+    const safePhonetic = escapeHTML(phonetic || '').replace(/'/g, "\\'");
+    
+    return `
+      <div class="vocab-item">
+        <div class="vocab-top-line">
+          <div>
+            <span class="vocab-word">${escapeHTML(word)}</span>
+            ${phonetic ? `<span class="vocab-phonetic">${escapeHTML(phonetic)}</span>` : ''}
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="icon-btn primary" onclick="speakWord('${safeWord}')" aria-label="Speak word">
+              <span>🔊</span>
+            </button>
+            <button class="icon-btn ${isSaved ? 'danger' : ''}" 
+                    onclick="toggleWordFromVocab('${safeWord}', '${safeDef}', '${safePhonetic}')"
+                    aria-label="${isSaved ? 'Remove word' : 'Save word'}">
+              <span>${isSaved ? '❌' : '⭐'}</span>
+            </button>
+          </div>
+        </div>
+        <div class="vocab-definition">${escapeHTML(definition)}</div>
+        ${example ? `<div class="vocab-example">"${escapeHTML(example)}"</div>` : ''}
+        ${part_of_speech ? `<div class="vocab-tags"><span class="tag">${escapeHTML(part_of_speech)}</span></div>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  const phrasesSection = phrases && Array.isArray(phrases) && phrases.length > 0 ? `
+    <div class="mt-md">
+      <h3 class="card-subtitle" style="margin-bottom: 8px;">💬 Common Phrases</h3>
+      ${phrases.map(phrase => {
+        const safePhrase = escapeHTML(phrase.en).replace(/'/g, "\\'");
         return `
           <div class="vocab-item">
             <div class="vocab-top-line">
-              <div>
-                <span class="vocab-word">${escapeHTML(word)}</span>
-                ${phonetic ? `<span class="vocab-phonetic">${escapeHTML(phonetic)}</span>` : ''}
-              </div>
-              <div style="display: flex; gap: 6px;">
-                <button class="icon-btn primary" onclick="speakWord('${escapeHTML(word)}')" aria-label="Speak word">
-                  <span>🔊</span>
-                </button>
-                <button class="icon-btn ${isSaved ? 'danger' : ''}" 
-                        onclick="toggleWord({word: '${escapeHTML(word)}', definition: '${escapeHTML(definition)}', phonetic: '${escapeHTML(phonetic || '')}'})"
-                        aria-label="${isSaved ? 'Remove word' : 'Save word'}">
-                  <span>${isSaved ? '❌' : '⭐'}</span>
-                </button>
-              </div>
+              <span class="vocab-word">${escapeHTML(phrase.en)}</span>
+              <button class="icon-btn primary" onclick="speakText('${safePhrase}')" aria-label="Speak phrase">
+                <span>🔊</span>
+              </button>
             </div>
-            <div class="vocab-definition">${escapeHTML(definition)}</div>
-            ${example ? `<div class="vocab-example">"${escapeHTML(example)}"</div>` : ''}
-            ${part_of_speech ? `<div class="vocab-tags"><span class="tag">${escapeHTML(part_of_speech)}</span></div>` : ''}
+            <div class="vocab-definition">${escapeHTML(phrase.ru)}</div>
           </div>
         `;
-      }).join('');
-      
-      const phrasesSection = phrases && Array.isArray(phrases) && phrases.length > 0 ? `
-        <div class="mt-md">
-          <h3 class="card-subtitle" style="margin-bottom: 8px;">💬 Common Phrases</h3>
-          ${phrases.map(phrase => `
-            <div class="vocab-item">
-              <div class="vocab-top-line">
-                <span class="vocab-word">${escapeHTML(phrase.en)}</span>
-                <button class="icon-btn primary" onclick="speakText('${escapeHTML(phrase.en)}')" aria-label="Speak phrase">
-                  <span>🔊</span>
-                </button>
-              </div>
-              <div class="vocab-definition">${escapeHTML(phrase.ru)}</div>
-            </div>
-          `).join('')}
+      }).join('')}
+    </div>
+  ` : '';
+  
+  return `
+    <div class="vocab-layout">
+      <div>
+        <div class="vocab-list">
+          ${vocabItems}
         </div>
-      ` : '';
-      
-      return `
-        <div class="vocab-layout">
-          <div>
-            <div class="vocab-list">
-              ${vocabItems}
-            </div>
-          </div>
-          <div>
-            ${phrasesSection}
-          </div>
-        </div>
-      `;
-    }
+      </div>
+      <div>
+        ${phrasesSection}
+      </div>
+    </div>
+  `;
+}
 
     function renderFlashcard(vocabulary) {
-      if (flashcardIndex >= vocabulary.length) {
-        flashcardIndex = 0;
-      }
-      
-      const item = vocabulary[flashcardIndex];
-      const total = vocabulary.length;
-      
-      return `
-        <div class="vocab-layout">
-          <div>
-            <div class="flashcard-shell">
-              <div class="flashcard" id="flashcard">
-                <div class="flashcard-face flashcard-front">
-                  <div class="flashcard-label">Word</div>
-                  <div class="flashcard-word">${escapeHTML(item.en)}</div>
-                  ${item.transcription ? `<div class="flashcard-definition">${escapeHTML(item.transcription)}</div>` : ''}
-                  <div style="margin-top: auto; font-size: 0.8rem; color: var(--text-soft);">
-                    Click to reveal definition
-                  </div>
-                </div>
-                <div class="flashcard-face flashcard-back">
-                  <div class="flashcard-label">Definition</div>
-                  <div class="flashcard-definition" style="font-size: 1.05rem; color: var(--text-main);">
-                    ${escapeHTML(item.ru)}
-                  </div>
-                  ${item.example ? `<div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">"${escapeHTML(item.example)}"</div>` : ''}
-                </div>
-              </div>
-              <div class="flashcard-controls">
-                <span class="flashcard-index">${flashcardIndex + 1} / ${total}</span>
-                <div style="display: flex; gap: 6px;">
-                  <button class="icon-btn" onclick="prevFlashcard()" aria-label="Previous card">
-                    <span>←</span> Prev
-                  </button>
-                  <button class="icon-btn primary" onclick="speakWord('${escapeHTML(item.en)}')" aria-label="Speak word">
-                    <span>🔊</span>
-                  </button>
-                  <button class="icon-btn" onclick="nextFlashcard()" aria-label="Next card">
-                    Next <span>→</span>
-                  </button>
-                </div>
+  if (flashcardIndex >= vocabulary.length) {
+    flashcardIndex = 0;
+  }
+  
+  const item = vocabulary[flashcardIndex];
+  const total = vocabulary.length;
+  
+  // Экранируем для безопасной передачи
+  const safeWord = escapeHTML(item.en).replace(/'/g, "\\'");
+  
+  return `
+    <div class="vocab-layout">
+      <div>
+        <div class="flashcard-shell">
+          <div class="flashcard" id="flashcard">
+            <div class="flashcard-face flashcard-front">
+              <div class="flashcard-label">Word</div>
+              <div class="flashcard-word">${escapeHTML(item.en)}</div>
+              ${item.transcription ? `<div class="flashcard-definition">${escapeHTML(item.transcription)}</div>` : ''}
+              <div style="margin-top: auto; font-size: 0.8rem; color: var(--text-soft);">
+                Click to reveal definition
               </div>
             </div>
+            <div class="flashcard-face flashcard-back">
+              <div class="flashcard-label">Definition</div>
+              <div class="flashcard-definition" style="font-size: 1.05rem; color: var(--text-main);">
+                ${escapeHTML(item.ru)}
+              </div>
+              ${item.example ? `<div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-muted);">"${escapeHTML(item.example)}"</div>` : ''}
+            </div>
           </div>
-          <div>
-            <div style="padding: 12px; background: rgba(9, 12, 31, 0.98); border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.06);">
-              <h3 class="card-subtitle" style="margin-bottom: 8px;">📝 Practice Tips</h3>
-              <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; padding-left: 20px;">
-                <li>Click the card to flip between word and definition</li>
-                <li>Use arrow buttons to navigate through cards</li>
-                <li>Listen to pronunciation with the speaker button</li>
-                <li>Try to recall the definition before flipping</li>
-              </ul>
+          <div class="flashcard-controls">
+            <span class="flashcard-index">${flashcardIndex + 1} / ${total}</span>
+            <div style="display: flex; gap: 6px;">
+              <button class="icon-btn" onclick="prevFlashcard()" aria-label="Previous card">
+                <span>←</span> Prev
+              </button>
+              <button class="icon-btn primary" onclick="speakWord('${safeWord}')" aria-label="Speak word">
+                <span>🔊</span>
+              </button>
+              <button class="icon-btn" onclick="nextFlashcard()" aria-label="Next card">
+                Next <span>→</span>
+              </button>
             </div>
           </div>
         </div>
-      `;
-    }
+      </div>
+      <div>
+        <div style="padding: 12px; background: rgba(9, 12, 31, 0.98); border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.06);">
+          <h3 class="card-subtitle" style="margin-bottom: 8px;">📝 Practice Tips</h3>
+          <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; padding-left: 20px;">
+            <li>Click the card to flip between word and definition</li>
+            <li>Use arrow buttons to navigate through cards</li>
+            <li>Listen to pronunciation with the speaker button</li>
+            <li>Try to recall the definition before flipping</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
     // ============================================================
     // РЕНДЕР: GRAMMAR
@@ -1892,6 +1903,15 @@
       } else {
         saveWord(wordObj);
       }
+    }
+    
+    // Вспомогательная функция для вызова из onclick атрибутов
+    function toggleWordFromVocab(word, definition, phonetic) {
+      toggleWord({
+        word: word,
+        definition: definition,
+        phonetic: phonetic
+      });
     }
 
     // ============================================================
