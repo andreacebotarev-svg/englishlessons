@@ -1,8 +1,8 @@
 /**
  * MEMORY PALACE - MAIN APPLICATION
- * Last update: 2025-12-11 (Pure Three.js mode)
+ * Last update: 2025-12-12 (Pure Three.js mode + InstancedMesh)
  * 
- * MIGRATION: Removed CSS 3D mode, now uses pure Three.js rendering
+ * MIGRATION: Removed CSS 3D mode, now uses pure Three.js rendering with InstancedMesh optimization
  */
 
 import { CONFIG } from './config.js';
@@ -30,6 +30,7 @@ const App = {
     camera: null,
     renderer: null,
     cards: null,
+    instancedMesh: null,
     cinematicCamera: null,
     controls: null,
     gameLoop: null,
@@ -102,7 +103,7 @@ const App = {
             }
             
             console.log(`✅ App initialized with ${words.length} words`);
-            console.log(`🎮 Mode: Three.js only`);
+            console.log(`🎮 Mode: Three.js + InstancedMesh`);
             console.log('🔍 Debug: Press G to toggle panel, F3-F8 for features');
             
         } catch (error) {
@@ -180,27 +181,63 @@ const App = {
         createOptimizedFloor(this.scene);
         createOptimizedWalls(this.scene);
         
-        // 7. Create cards (optimized with InstancedMesh)
-        const { instancedMesh, cards: cardTextures } = await buildOptimizedWorldInstanced(words, this.scene);
+        // 7. Create cards optimized with InstancedMesh
+        const { instancedMesh, cards } = await buildOptimizedWorldInstanced(words, this.scene);
         this.instancedMesh = instancedMesh;
-        this.cards = cardTextures;
-        console.log(`🎴 ${cardTextures.length} cards created with InstancedMesh (${instancedMesh.count} instances)`);
         
-        // 8. Initialize Cinematic Camera
+        // 8. Create virtual cards for CinematicCamera
+        // CinematicCamera expects array of Mesh objects with position and userData
+        // We create lightweight Object3D instances that mimic Mesh structure
+        this.cards = cards.map((cardData, i) => {
+            // Create virtual object that mimics Mesh
+            const virtualCard = new THREE.Object3D();
+            
+            // Get position from InstancedMesh
+            const matrix = new THREE.Matrix4();
+            instancedMesh.getMatrixAt(i, matrix);
+            
+            const position = new THREE.Vector3();
+            const rotation = new THREE.Quaternion();
+            const scale = new THREE.Vector3();
+            matrix.decompose(position, rotation, scale);
+            
+            virtualCard.position.copy(position);
+            virtualCard.quaternion.copy(rotation);
+            virtualCard.scale.copy(scale);
+            virtualCard.updateMatrixWorld(true);
+            
+            // Add metadata
+            virtualCard.userData = {
+                word: cardData.word,
+                translation: cardData.translation,
+                imagePath: cardData.imagePath,
+                example: cardData.example,
+                transcription: cardData.transcription,
+                index: i,
+                type: 'card'
+            };
+            
+            return virtualCard;
+        });
+        
+        console.log(`✅ ${cards.length} cards created with InstancedMesh (${instancedMesh.count} instances)`);
+        console.log(`🎭 ${this.cards.length} virtual cards created for CinematicCamera`);
+        
+        // 9. Initialize Cinematic Camera with virtual cards
         this.cinematicCamera = new CinematicCamera(this.scene, this.camera, this.cards);
         this.controls = new CameraControls(this.cinematicCamera);
         console.log('🎥 Cinematic Camera initialized');
         
-        // 9. Setup quiz interaction
+        // 10. Setup quiz interaction
         this.setupQuizInteraction(words);
         
-        // 10. Performance monitoring
+        // 11. Performance monitoring
         this.performanceMonitor = new PerformanceMonitor();
         
-        // 11. Smart renderer
+        // 12. Smart renderer
         this.smartRenderer = new SmartRenderer(this.renderer, this.camera, this.scene);
         
-        // 12. Animation loop with performance optimizations
+        // 13. Animation loop with performance optimizations
         const clock = new THREE.Clock();
         
         const animate = () => {
@@ -223,7 +260,7 @@ const App = {
         
         animate();
         
-        // 11. Resize handler
+        // 14. Resize handler
         window.addEventListener('resize', () => {
             this.camera.aspect = window.innerWidth / window.innerHeight;
             this.camera.updateProjectionMatrix();
@@ -253,9 +290,6 @@ const App = {
             
             // First, try standard intersection with the instanced mesh
             if (this.instancedMesh) {
-                const tempGroup = new THREE.Group();
-                tempGroup.add(this.instancedMesh.clone());
-                
                 // We'll need to manually calculate which instance was clicked
                 const instanceIntersections = this.checkInstanceIntersection(raycaster, this.instancedMesh, words);
                 
@@ -270,7 +304,7 @@ const App = {
             
             if (intersects.length > 0) {
                 // Use the intersected data from our custom calculation
-                const wordData = intersects[0].object.userData || intersects[0].userData;
+                const wordData = intersects[0].object?.userData || intersects[0].userData;
                 
                 console.log('🎯 Clicked card:', wordData.word);
                 
@@ -291,40 +325,34 @@ const App = {
     checkInstanceIntersection(raycaster, instancedMesh, words) {
         const intersects = [];
         
-        // Get the world matrix for each instance and create temporary objects for raycasting
+        // Get the world matrix for each instance
         const tempMatrix = new THREE.Matrix4();
         const tempPosition = new THREE.Vector3();
-        const tempRotation = new THREE.Euler();
-        const tempScale = new THREE.Vector3(1, 1, 1);
+        const tempQuaternion = new THREE.Quaternion();
+        const tempScale = new THREE.Vector3();
         
-        // Create a simple bounding box for each instance to test against
-        const geometry = instancedMesh.geometry;
         const count = instancedMesh.count;
         
         // Raycast against each instance's approximate position
         for (let i = 0; i < Math.min(count, words.length); i++) {
             instancedMesh.getMatrixAt(i, tempMatrix);
-            tempMatrix.decompose(tempPosition, tempRotation, tempScale);
+            tempMatrix.decompose(tempPosition, tempQuaternion, tempScale);
             
-            // Create a temporary object to represent this instance
-            const tempObject = new THREE.Object3D();
-            tempObject.position.copy(tempPosition);
-            tempObject.rotation.copy(tempRotation);
-            tempObject.scale.copy(tempScale);
-            tempObject.updateMatrixWorld(true);
-            
-            // Calculate the bounding sphere for this instance
+            // Create bounding box for this instance (card size: 3x2)
             const bbox = new THREE.Box3().setFromCenterAndSize(
                 tempPosition,
-                new THREE.Vector3(3, 2, 0.1) // Approximate size of a card
+                new THREE.Vector3(3, 2, 0.1) // Exact card size
             );
             
             // Test if the ray intersects with this bounding box
             if (raycaster.ray.intersectsBox(bbox)) {
+                const distance = raycaster.ray.origin.distanceTo(tempPosition);
+                
                 // Found a potential hit, create intersection data
                 const intersection = {
-                    distance: raycaster.ray.origin.distanceTo(tempPosition),
+                    distance,
                     point: tempPosition.clone(),
+                    instanceId: i,
                     object: {
                         userData: words[i],
                         position: tempPosition.clone()
@@ -333,11 +361,11 @@ const App = {
                 };
                 
                 intersects.push(intersection);
-                
-                // Only return the closest hit
-                break;
             }
         }
+        
+        // Sort by distance (closest first)
+        intersects.sort((a, b) => a.distance - b.distance);
         
         return intersects;
     },
@@ -545,7 +573,9 @@ if (typeof window !== 'undefined') {
   window.getCamera = () => App.cinematicCamera?.camera;
   window.getCards = () => App.cards;
   window.getScene = () => App.scene;
+  window.getRenderer = () => App.renderer;
+  window.getInstancedMesh = () => App.instancedMesh;
   window.tp = (index) => App.cinematicCamera?.moveToWaypoint(index);
   
-  console.log('✅ Debug shortcuts ready: tp(index), getCamera(), getCards()');
+  console.log('✅ Debug shortcuts ready: tp(index), getCamera(), getCards(), getInstancedMesh()');
 }
