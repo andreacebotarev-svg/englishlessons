@@ -18,7 +18,7 @@ import {
 
 // === THREE.JS MODE IMPORTS ===
 import * as THREE from 'three';
-import { buildOptimizedWorld, createOptimizedFloor, createOptimizedWalls, disposeScene } from './OptimizedBuilder.js';
+import { buildOptimizedWorld, buildOptimizedWorldInstanced, createOptimizedFloor, createOptimizedWalls, disposeScene } from './OptimizedBuilder.js';
 import { CinematicCamera } from '../CinematicCamera.js';
 import { CameraControls } from '../CameraControls.js';
 import { PerformanceMonitor } from './PerformanceMonitor.js';
@@ -180,9 +180,11 @@ const App = {
         createOptimizedFloor(this.scene);
         createOptimizedWalls(this.scene);
         
-        // 7. Create cards (optimized)
-        this.cards = await buildOptimizedWorld(words, this.scene);
-        console.log(`🎴 ${this.cards.length} cards created`);
+        // 7. Create cards (optimized with InstancedMesh)
+        const { instancedMesh, cards: cardTextures } = await buildOptimizedWorldInstanced(words, this.scene);
+        this.instancedMesh = instancedMesh;
+        this.cards = cardTextures;
+        console.log(`🎴 ${cardTextures.length} cards created with InstancedMesh (${instancedMesh.count} instances)`);
         
         // 8. Initialize Cinematic Camera
         this.cinematicCamera = new CinematicCamera(this.scene, this.camera, this.cards);
@@ -245,11 +247,30 @@ const App = {
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             
             raycaster.setFromCamera(mouse, this.camera);
-            const intersects = raycaster.intersectObjects(this.cards);
+            
+            // For InstancedMesh, we need special handling
+            let intersects = [];
+            
+            // First, try standard intersection with the instanced mesh
+            if (this.instancedMesh) {
+                const tempGroup = new THREE.Group();
+                tempGroup.add(this.instancedMesh.clone());
+                
+                // We'll need to manually calculate which instance was clicked
+                const instanceIntersections = this.checkInstanceIntersection(raycaster, this.instancedMesh, words);
+                
+                if (instanceIntersections.length > 0) {
+                    // Create a mock intersection object to maintain compatibility
+                    intersects = [instanceIntersections[0]];
+                }
+            } else {
+                // Fallback to original method if not using instanced mesh
+                intersects = raycaster.intersectObjects(this.cards);
+            }
             
             if (intersects.length > 0) {
-                const clickedCard = intersects[0].object;
-                const wordData = clickedCard.userData;
+                // Use the intersected data from our custom calculation
+                const wordData = intersects[0].object.userData || intersects[0].userData;
                 
                 console.log('🎯 Clicked card:', wordData.word);
                 
@@ -262,6 +283,63 @@ const App = {
         });
         
         console.log('✅ Raycasting setup complete');
+    },
+    
+    /**
+     * Check which instance of an InstancedMesh was clicked
+     */
+    checkInstanceIntersection(raycaster, instancedMesh, words) {
+        const intersects = [];
+        
+        // Get the world matrix for each instance and create temporary objects for raycasting
+        const tempMatrix = new THREE.Matrix4();
+        const tempPosition = new THREE.Vector3();
+        const tempRotation = new THREE.Euler();
+        const tempScale = new THREE.Vector3(1, 1, 1);
+        
+        // Create a simple bounding box for each instance to test against
+        const geometry = instancedMesh.geometry;
+        const count = instancedMesh.count;
+        
+        // Raycast against each instance's approximate position
+        for (let i = 0; i < Math.min(count, words.length); i++) {
+            instancedMesh.getMatrixAt(i, tempMatrix);
+            tempMatrix.decompose(tempPosition, tempRotation, tempScale);
+            
+            // Create a temporary object to represent this instance
+            const tempObject = new THREE.Object3D();
+            tempObject.position.copy(tempPosition);
+            tempObject.rotation.copy(tempRotation);
+            tempObject.scale.copy(tempScale);
+            tempObject.updateMatrixWorld(true);
+            
+            // Calculate the bounding sphere for this instance
+            const bbox = new THREE.Box3().setFromCenterAndSize(
+                tempPosition,
+                new THREE.Vector3(3, 2, 0.1) // Approximate size of a card
+            );
+            
+            // Test if the ray intersects with this bounding box
+            if (raycaster.ray.intersectsBox(bbox)) {
+                // Found a potential hit, create intersection data
+                const intersection = {
+                    distance: raycaster.ray.origin.distanceTo(tempPosition),
+                    point: tempPosition.clone(),
+                    object: {
+                        userData: words[i],
+                        position: tempPosition.clone()
+                    },
+                    userData: words[i]
+                };
+                
+                intersects.push(intersection);
+                
+                // Only return the closest hit
+                break;
+            }
+        }
+        
+        return intersects;
     },
     
     /**
