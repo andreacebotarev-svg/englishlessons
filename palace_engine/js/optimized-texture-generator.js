@@ -251,6 +251,12 @@ export async function createOptimizedCardTexture({
     
     console.log(`✅ Optimized texture created for: "${word}"`);
     
+    // 🔥 CRITICAL FIX: Clean up canvas after texture creation to prevent memory leak
+    // The canvas is now owned by Three.js, so we can clear it to free up memory
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = 0;
+    canvas.height = 0;
+    
     return texture;
 }
 

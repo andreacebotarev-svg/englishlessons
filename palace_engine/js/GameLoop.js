@@ -16,6 +16,8 @@ export class GameLoop {
     this.targetFPS = config.targetFPS || 60;
     this.TIMESTEP = 1000 / this.targetFPS; // 16.67ms for 60 FPS
     this.maxDeltaCap = config.maxDeltaCap || 250; // Prevent spiral of death
+    this.maxUpdatesPerFrame = config.maxUpdatesPerFrame || 5;
+    this.maxAccumulator = config.maxAccumulator || (this.TIMESTEP * this.maxUpdatesPerFrame);
 
     // Accumulator for fixed timestep
     this.accumulator = 0;
@@ -101,11 +103,16 @@ export class GameLoop {
 
     // FIXED TIMESTEP UPDATES
     let updatesThisFrame = 0;
-    const maxUpdatesPerFrame = 5; // Prevent spiral of death
+    
+    // Cap accumulator to prevent spiral of death
+    if (this.accumulator > this.maxAccumulator) {
+        console.warn(`⚠️ Accumulator overflow (${this.accumulator.toFixed(0)}ms), resetting`);
+        this.accumulator = this.TIMESTEP;  // Reset to single frame
+    }
 
     while (
       this.accumulator >= this.TIMESTEP &&
-      updatesThisFrame < maxUpdatesPerFrame
+      updatesThisFrame < this.maxUpdatesPerFrame
     ) {
       // Call update callbacks
       this.updateCallbacks.forEach((callback) => {
