@@ -521,11 +521,11 @@ export function createOptimizedFloor(scene) {
     scene.add(floor);
     
     // Optional: Add grid helper (toggle visibility as needed)
-    const gridHelper = new THREE.GridHelper(100, 20, 0x444444, 0x222222);
-    gridHelper.position.y = 0.01;
-    gridHelper.material.opacity = 0.3;
-    gridHelper.material.transparent = true;
-    scene.add(gridHelper);
+    // const gridHelper = new THREE.GridHelper(100, 20, 0x444444, 0x222222);
+    // gridHelper.position.y = 0.01;
+    // gridHelper.material.opacity = 0.3;
+    // gridHelper.material.transparent = true;
+    // scene.add(gridHelper);
     
     console.log('✅ Optimized floor added to scene');
 }
@@ -534,32 +534,37 @@ export function createOptimizedFloor(scene) {
  * Create optimized walls
  */
 export function createOptimizedWalls(scene) {
-    // Combine both walls into one material to reduce draw calls
-    const wallGeometry = new THREE.PlaneGeometry(100, 8, 10, 2); // Segments for performance
-    const wallMaterial = new THREE.MeshStandardMaterial({
-        color: 0x16213e,
-        side: THREE.DoubleSide,
-        opacity: 0.7,
-        transparent: true,
-        roughness: 0.9,
-        metalness: 0.1
-    });
+    const geometries = [];
+    
+    // Back wall
+    const backWall = new THREE.BoxGeometry(20, 8, 0.2);
+    backWall.translate(0, 4, -50);
+    geometries.push(backWall);
     
     // Left wall
-    const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
-    leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-5, 4, 0);
-    leftWall.frustumCulled = false; // Disable frustum culling if needed
-    scene.add(leftWall);
+    const leftWall = new THREE.BoxGeometry(0.2, 8, 100);
+    leftWall.translate(-10, 4, 0);
+    geometries.push(leftWall);
     
-    // Right wall - reuse same material and geometry
-    const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
-    rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.set(5, 4, 0);
-    rightWall.frustumCulled = false;
-    scene.add(rightWall);
+    // Right wall
+    const rightWall = new THREE.BoxGeometry(0.2, 8, 100);
+    rightWall.translate(10, 4, 0);
+    geometries.push(rightWall);
     
-    console.log('✅ Optimized walls added to scene');
+    // ✅ MERGE всех стен в одну геометрию
+    const mergedGeometry = mergeGeometries(geometries);
+    
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x1a1a2e,
+        roughness: 0.8,
+        metalness: 0.2
+    });
+    
+    const walls = new THREE.Mesh(mergedGeometry, material);
+    walls.receiveShadow = true;
+    scene.add(walls);
+    
+    console.log('✅ Optimized walls added to scene (1 draw call)');
 }
 
 /**

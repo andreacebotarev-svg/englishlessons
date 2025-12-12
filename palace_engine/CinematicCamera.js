@@ -101,8 +101,8 @@ export class CinematicCamera {
     this.railCurve.curveType = 'catmullrom';
     this.railCurve.tension = 0.5;
     
-    // Визуализация рельсов (для отладки)
-    this.visualizeRail();
+    // Визуализация рельсов (для отладки) - скрыта в production
+    this.visualizeRail(false);
   }
   
   /**
@@ -127,7 +127,7 @@ export class CinematicCamera {
     this.railLine = new THREE.Line(geometry, material);
     this.scene.add(this.railLine);
     
-    // Визуализация waypoints
+    // Визуализация waypoints (скрыты в production)
     this.waypoints.forEach((point, index) => {
       const geometry = new THREE.SphereGeometry(0.1, 8, 8);
       const material = new THREE.MeshBasicMaterial({ 
@@ -137,6 +137,7 @@ export class CinematicCamera {
       });
       const sphere = new THREE.Mesh(geometry, material);
       sphere.position.copy(point);
+      sphere.visible = false; // Скрыть debug spheres
       this.scene.add(sphere);
     });
   }
