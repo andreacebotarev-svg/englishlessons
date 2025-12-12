@@ -179,6 +179,14 @@ export class TextureAtlasManager {
                     tex.dispose();
                 }
             });
+            
+            // 6. CRITICAL FIX: Now safe to clean up canvases after atlas creation
+            canvases.forEach(canvasInfo => {
+                if (canvasInfo.canvas) {
+                    canvasInfo.canvas.width = 0;
+                    canvasInfo.canvas.height = 0;
+                }
+            });
 
             return {
                 texture: this.atlasTexture,
@@ -201,9 +209,16 @@ export class TextureAtlasManager {
             return { rectangles: [] };
         }
         
-        // ✅ Используем размер первой карточки как базовый
+        // ✅ Валидация: Canvas должен быть живым
         const cardWidth = items[0].width;
         const cardHeight = items[0].height;
+        
+        if (!cardWidth || !cardHeight || cardWidth <= 0 || cardHeight <= 0) {
+            throw new Error(
+                `❌ Invalid card canvas dimensions: ${cardWidth}×${cardHeight}\n` +
+                `Canvas was destroyed prematurely in optimized-texture-generator.js`
+            );
+        }
         
         // ✅ Рассчитываем grid
         const cols = Math.floor(this.atlasSize / (cardWidth + this.padding));
