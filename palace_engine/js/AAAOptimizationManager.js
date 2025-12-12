@@ -59,6 +59,9 @@ export class AAAOptimizationManager {
      * @returns {Promise<Object>} - результат инициализации
      */
     async initialize(scene, camera, words) {
+        // ✅ CRITICAL FIX: Declare atlasResult outside try/catch for proper scope
+        let atlasResult;
+        
         try {
             if (this.initialized) {
                 console.warn('AAAOptimizationManager already initialized');
@@ -79,8 +82,13 @@ export class AAAOptimizationManager {
                 });
                 
                 console.log('Creating texture atlas...');
-                const atlasResult = await this.textureAtlasManager.createAtlas(words);
+                atlasResult = await this.textureAtlasManager.createAtlas(words);
                 console.log('Texture atlas created successfully');
+                
+                // ✅ Store atlas data as instance properties
+                this.atlasTexture = atlasResult.texture;
+                this.uvMap = atlasResult.uvMap;
+                
             } catch (atlasError) {
                 if (atlasError.message.includes('too large')) {
                     console.warn('⚠️ Atlas too large, retrying with smaller cards...');
@@ -93,8 +101,12 @@ export class AAAOptimizationManager {
                         cardSize: { width: 512, height: 256 } // ✅ Fallback размер
                     });
                     
-                    const atlasResult = await this.textureAtlasManager.createAtlas(words);
+                    atlasResult = await this.textureAtlasManager.createAtlas(words);
                     console.log('✅ Atlas created with fallback card size');
+                    
+                    // ✅ Store atlas data
+                    this.atlasTexture = atlasResult.texture;
+                    this.uvMap = atlasResult.uvMap;
                 } else {
                     throw atlasError;
                 }
