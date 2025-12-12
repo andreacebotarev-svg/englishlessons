@@ -13,6 +13,7 @@ export class InstancedCardManager {
         this.instancedMesh = null;
         this.customShaderMaterial = null;
         this.uvOffsetsAttribute = null;
+        this.scene = null;  // Add scene reference
         
         // Initialize custom shader material
         this._initCustomShaderMaterial();
@@ -139,6 +140,11 @@ export class InstancedCardManager {
             // Create InstancedMesh
             this.instancedMesh = new THREE.InstancedMesh(geometry, this.customShaderMaterial, count);
             
+            // ✅ CRITICAL: Initialize lighting uniforms from scene
+            if (this.scene) {
+                this.updateLightingUniforms(this.scene);
+            }
+            
             // Initialize UV offsets attribute
             this.uvOffsetsAttribute = new THREE.InstancedBufferAttribute(new Float32Array(count * 4), 4);
             
@@ -217,6 +223,68 @@ export class InstancedCardManager {
      * @param {THREE.Raycaster} raycaster - raycaster объект
      * @returns {Object|null} - информация о пересечении
      */
+    /**
+     * Обновить lighting uniforms из сцены
+     * @param {THREE.Scene} scene 
+     */
+    updateLightingUniforms(scene) {
+        if (!this.customShaderMaterial?.uniforms) return;
+        
+        // Найти источники света
+        let ambientLight = null;
+        let directionalLight = null;
+        
+        scene.traverse((obj) => {
+            if (!ambientLight && obj.isAmbientLight) ambientLight = obj;
+            if (!directionalLight && obj.isDirectionalLight) directionalLight = obj;
+        });
+        
+        // Обновить ambient light
+        if (ambientLight) {
+            if (!this.customShaderMaterial.uniforms.ambientLightColor) {
+                this.customShaderMaterial.uniforms.ambientLightColor = { value: new THREE.Color() };
+            }
+            const color = ambientLight.color.clone().multiplyScalar(ambientLight.intensity);
+            this.customShaderMaterial.uniforms.ambientLightColor.value.copy(color);
+        }
+        
+        // Обновить directional light
+        if (directionalLight) {
+            if (!this.customShaderMaterial.uniforms.directionalLightColor) {
+                this.customShaderMaterial.uniforms.directionalLightColor = { value: new THREE.Color() };
+            }
+            if (!this.customShaderMaterial.uniforms.directionalLightDirection) {
+                this.customShaderMaterial.uniforms.directionalLightDirection = { value: new THREE.Vector3() };
+            }
+            
+            const color = directionalLight.color.clone().multiplyScalar(directionalLight.intensity);
+            this.customShaderMaterial.uniforms.directionalLightColor.value.copy(color);
+            
+            const dir = new THREE.Vector3();
+            directionalLight.getWorldDirection(dir);
+            this.customShaderMaterial.uniforms.directionalLightDirection.value.copy(dir);
+        }
+    }
+
+    /**
+     * Диагностика shader material
+     */
+    debugShaderMaterial() {
+        console.log('=== Shader Material Debug ===');
+        console.log('Type:', this.customShaderMaterial.type);
+        console.log('Uniforms:', this.customShaderMaterial.uniforms);
+        
+        if (this.customShaderMaterial.uniforms) {
+            console.log('atlasTexture:', this.customShaderMaterial.uniforms.atlasTexture?.value);
+            console.log('ambientLightColor:', this.customShaderMaterial.uniforms.ambientLightColor?.value);
+            console.log('directionalLightColor:', this.customShaderMaterial.uniforms.directionalLightColor?.value);
+            console.log('directionalLightDirection:', this.customShaderMaterial.uniforms.directionalLightDirection?.value);
+        }
+        
+        console.log('Vertex Shader:', this.customShaderMaterial.vertexShader);
+        console.log('Fragment Shader:', this.customShaderMaterial.fragmentShader);
+    }
+
     getRaycastIntersection(raycaster) {
         if (!this.instancedMesh) return null;
         

@@ -118,6 +118,7 @@ export class AAAOptimizationManager {
             
             // Step 3: Create InstancedMesh using InstancedCardManager
             this.instancedCardManager = new InstancedCardManager();
+            this.instancedCardManager.scene = scene; // ✅ Add this
             this.instancedMesh = this.instancedCardManager.createInstancedMesh(
                 words.length,
                 atlasResult.texture,
@@ -269,6 +270,11 @@ export class AAAOptimizationManager {
         // Update LOD system
         if (this.lodController) {
             this.lodController.update(deltaTime);
+        }
+        
+        // ✅ CRITICAL: Update lighting uniforms every frame
+        if (this.instancedCardManager) {
+            this.instancedCardManager.updateLightingUniforms(this.scene);
         }
         
         // Update performance metrics
