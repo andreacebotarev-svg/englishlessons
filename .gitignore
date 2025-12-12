@@ -1,4 +1,12 @@
 ```
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+build/
+*.js.map
+
 # Logs and temp files
 *.log
 *.tmp
@@ -7,45 +15,24 @@
 # Environment
 .env
 .env.local
-.env.*
+*.env.*
 
 # Editors
 .vscode/
 .idea/
 
-# Dependencies
-node_modules/
-.venv/
-venv/
+# Python
 __pycache__/
-.mypy_cache/
-.pytest_cache/
-dist/
-build/
-target/
-.gradle/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Compiled files
 *.pyc
-*.class
-*.o
-*.exe
-*.dll
-*.so
-*.a
-*.obj
-*.out
+*.pyo
+*.pyd
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# Compressed files
+# Compression
 *.zip
 *.gz
 *.tar

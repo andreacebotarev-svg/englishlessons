@@ -66,6 +66,33 @@ function loadImageAsync(imagePath) {
 }
 
 /**
+ * Load image specifically for canvas drawing (returns HTMLImageElement, not Three.js texture)
+ */
+function loadImageForCanvas(imagePath) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+            if (img.complete && img.naturalWidth > 0) {
+                resolve(img);
+            } else {
+                reject(new Error('Image loaded but invalid'));
+            }
+        };
+        
+        img.onerror = () => reject(new Error(`Failed to load: ${imagePath}`));
+        img.src = `../images/${imagePath}`;
+        
+        setTimeout(() => {
+            if (!img.complete) {
+                reject(new Error(`Timeout loading: ${imagePath}`));
+            }
+        }, 5000);
+    });
+}
+
+/**
  * Draw optimized background
  */
 function drawBackground(ctx, width, height) {
@@ -138,10 +165,12 @@ function drawText(ctx, word, translation, transcription, example, width, height)
  * Draw optimized image
  */
 async function drawImage(ctx, imagePath, width, height) {
+    if (!imagePath) return null;
+    
     try {
-        const img = await loadImageAsync(imagePath);
+        const img = await loadImageForCanvas(imagePath);
         
-        if (!img) return;
+        if (!img) return null;
         
         // Calculate image area
         const imageAreaWidth = width - 100;
