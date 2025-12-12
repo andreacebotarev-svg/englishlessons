@@ -38,6 +38,7 @@ const App = {
     controls: null,
     gameLoop: null,
     aaaManager: null,
+    optimizationManager: null, // ✅ Alias for aaaManager
     
     async init() {
         const loader = document.getElementById('loading');
@@ -191,6 +192,7 @@ const App = {
         // 7. Initialize AAA Optimization Manager
         console.log('🚀 Initializing AAA Optimization System...');
         this.aaaManager = new AAAOptimizationManager();
+        this.optimizationManager = this.aaaManager; // ✅ Alias for console access
         
         // Initialize Performance Logger
         this.perfLogger = new PerformanceLogger();
@@ -541,9 +543,9 @@ if (document.readyState === 'loading') {
 
 export default App;
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // 🔧 DEBUG: Export to window for Console access
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 
 if (typeof window !== 'undefined') {
   // Export THREE
@@ -559,8 +561,9 @@ if (typeof window !== 'undefined') {
     }
   });
   
-  // Export App
+  // ✅ CRITICAL FIX: Export both App (uppercase) and app (lowercase)
   window.App = App;
+  window.app = App; // ✅ Add lowercase alias for console access
   console.log('✅ App exported to window');
   
   // Export shortcuts
