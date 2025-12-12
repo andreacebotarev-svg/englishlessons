@@ -14,36 +14,11 @@ export class TextureAtlasManager {
     constructor(config = {}) {
         // ✅ КРИТИЧНО: Dynamic atlas size based on card count
         const cardCount = config.cardCount || 25;
-        const requestedCardSize = config.cardSize || { width: 768, height: 384 };
+        const cardSize = config.cardSize || { width: 768, height: 384 };
         
-        // Calculate how many cards fit in grid
-        const cols = Math.floor(8192 / (requestedCardSize.width + 4)); // Using default padding
-        const rows = Math.floor(8192 / (requestedCardSize.height + 4));
-        const capacity = cols * rows;
-        
-        if (cardCount > capacity) {
-            // ✅ Auto-scale down card size
-            const targetCols = Math.ceil(Math.sqrt(cardCount));
-            const targetRows = Math.ceil(cardCount / targetCols);
-            
-            const maxCardWidth = Math.floor((8192 / targetCols) - 4);
-            const maxCardHeight = Math.floor((8192 / targetRows) - 4);
-            
-            // Round down to power of 2
-            this.cardSize = {
-                width: Math.pow(2, Math.floor(Math.log2(maxCardWidth))),
-                height: Math.pow(2, Math.floor(Math.log2(maxCardHeight)))
-            };
-            
-            console.warn(`⚡ Auto-scaled cards: ${requestedCardSize.width}×${requestedCardSize.height} → ${this.cardSize.width}×${this.cardSize.height}`);
-        } else {
-            this.cardSize = requestedCardSize;
-        }
-        
-        // Calculate required atlas size based on actual card size
-        const totalArea = cardCount * this.cardSize.width * this.cardSize.height;
+        // Calculate required atlas size
+        const totalArea = cardCount * cardSize.width * cardSize.height;
         const efficiency = 0.75; // 75% packing efficiency
-        
         const requiredSize = Math.sqrt(totalArea / efficiency);
         
         // Round up to next power of 2
@@ -58,9 +33,9 @@ export class TextureAtlasManager {
             
             // Scale down cards
             const scaleFactor = 8192 / this.atlasSize;
-            this.cardSize = {
-                width: Math.floor(this.cardSize.width * scaleFactor),
-                height: Math.floor(this.cardSize.height * scaleFactor)
+            config.cardSize = {
+                width: Math.floor(cardSize.width * scaleFactor),
+                height: Math.floor(cardSize.height * scaleFactor)
             };
             
             this.atlasSize = 8192;
@@ -70,7 +45,7 @@ export class TextureAtlasManager {
         this.atlasTexture = null;
         this.uvMap = new Map();
         
-        console.log(`📐 Atlas configured: ${this.atlasSize}×${this.atlasSize}, Card size: ${this.cardSize.width}×${this.cardSize.height}, Capacity: ${capacity} cards`);
+        console.log(`📐 Atlas configured: ${this.atlasSize}x${this.atlasSize} for ${cardCount} cards`);
         
         // Canvas for atlas creation
         this.canvas = document.createElement('canvas');

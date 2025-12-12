@@ -124,7 +124,7 @@ function drawText(ctx, word, translation, transcription, example, width, height)
     
     // 1. Word (large, white)
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 68px "SF Pro Display", Arial, sans-serif';
+    ctx.font = 'bold 56px "SF Pro Display", Arial, sans-serif';  // Reduced from 68px for better fit
     ctx.fillText(word, width / 2, 120);
     
     // 2. Transcription (below word, gray)
