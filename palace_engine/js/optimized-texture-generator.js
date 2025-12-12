@@ -124,7 +124,7 @@ function drawText(ctx, word, translation, transcription, example, width, height)
     
     // 1. Word (large, white)
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 56px "SF Pro Display", Arial, sans-serif';
+    ctx.font = 'bold 68px "SF Pro Display", Arial, sans-serif';
     ctx.fillText(word, width / 2, 120);
     
     // 2. Transcription (below word, gray)
@@ -220,8 +220,8 @@ export async function createOptimizedCardTexture({
     transcription = null 
 }) {
     // Use power-of-two dimensions
-    const width = 1024; // was 1024 (already power of 2)
-    const height = 512; // was 512 (already power of 2)
+    const width = 768; // was 1024 (already power of 2) - reduced for better atlas packing
+    const height = 384; // was 512 (already power of 2) - reduced for better atlas packing
     
     const canvas = document.createElement('canvas');
     canvas.width = width;

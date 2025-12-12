@@ -26,6 +26,7 @@ import { SmartRenderer } from './SmartRenderer.js';
 
 // === AAA OPTIMIZATION IMPORTS ===
 import { AAAOptimizationManager } from './AAAOptimizationManager.js';
+import { PerformanceLogger } from './PerformanceLogger.js';
 
 const App = {
     // Global variables
@@ -188,11 +189,17 @@ const App = {
         console.log('🚀 Initializing AAA Optimization System...');
         this.aaaManager = new AAAOptimizationManager();
         
+        // Initialize Performance Logger
+        this.perfLogger = new PerformanceLogger();
+        
+        // Log atlas creation time
+        this.perfLogger.startAtlasCreation();
         const aaaResult = await this.aaaManager.initialize(
             this.scene,
             this.camera,
             words
         );
+        this.perfLogger.endAtlasCreation();
         
         this.cards = aaaResult.virtualCards;
         
@@ -241,6 +248,11 @@ const App = {
             // End performance monitoring
             this.performanceMonitor.end();
             
+            // Record frame data for performance logger
+            if (this.perfLogger) {
+                this.perfLogger.recordFrame(this.renderer, this.performanceMonitor.fps);
+            }
+            
             requestAnimationFrame(animate);
         };
         
@@ -255,6 +267,18 @@ const App = {
         
         console.log('🎮 Controls: W/S or ↑/↓ - Move, Space - Next waypoint');
         console.log('📊 Performance Monitor: Active');
+        
+        // Make performance logger available globally
+        window.downloadMetrics = () => {
+            if (this.perfLogger) {
+                this.perfLogger.download();
+            }
+        };
+        
+        // Make AtlasDebugger available globally
+        import('./AtlasDebugger.js').then(({ AtlasDebugger }) => {
+            window.AtlasDebugger = AtlasDebugger;
+        });
     },
     
     /**
