@@ -182,6 +182,9 @@ export async function createOptimizedCard({
         transcription,
         index,
         type: 'card',
+        // Add for CinematicCamera compatibility
+        en: word,
+        ru: translation,
         // Store materials for LOD
         highDetailMaterial: material
     };
