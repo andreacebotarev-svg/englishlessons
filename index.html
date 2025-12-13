@@ -92,6 +92,11 @@
             background: rgba(0,0,0,0.4);
             transform: translateY(-2px);
         }
+        .digit-box::-webkit-outer-spin-button,
+        .digit-box::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
         .hw-section {
             display: flex; gap: 8px; overflow: hidden;
@@ -182,20 +187,22 @@
             document.documentElement.style.setProperty('--accent', '#0A84FF');
         } 
         else if (m === 'hw') {
-            bg.style.transform = 'translateX(80px)'; // Сдвиг на 1 кнопку
+            bg.style.transform = 'translateX(84px)'; // 80px width + 4px padding
             btns[1].classList.add('active');
             container.classList.add('hw-visible');
             card.classList.add('expanded');
             document.documentElement.style.setProperty('--accent', '#BF5AF2');
         }
         else if (m === 'palace') {
-            bg.style.transform = 'translateX(160px)'; // Сдвиг на 2 кнопки
+            bg.style.transform = 'translateX(168px)'; // 2 * (80px + 4px)
             btns[2].classList.add('active');
             // Palace использует только 3 цифры, как и Lesson
             container.classList.remove('hw-visible');
             card.classList.remove('expanded');
             document.documentElement.style.setProperty('--accent', '#FFD60A');
         }
+        
+        console.log('🔄 Mode changed to:', m);
         check();
     }
 
@@ -203,19 +210,25 @@
         const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
         const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
         
+        console.log('🔍 Check:', { mode, core, coreLength: core.length, hw, hwLength: hw.length });
+        
         // Для lesson и palace нужно 3 цифры, для hw нужно 3+2
         let valid = false;
         if (mode === 'lesson' || mode === 'palace') {
             valid = core.length === 3;
-        } else {
+        } else if (mode === 'hw') {
             valid = core.length === 3 && hw.length === 2;
         }
+
+        console.log('✅ Valid:', valid);
 
         if(valid) {
             goBtn.classList.add('ready');
             
             if(mode === 'palace') {
                 goBtn.innerText = "Enter Palace";
+            } else if(mode === 'hw') {
+                goBtn.innerText = "Launch H.Work";
             } else {
                 goBtn.innerText = "Launch Module";
             }
@@ -232,14 +245,18 @@
         const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
         const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
         
+        console.log('🚀 Navigate:', { mode, core, hw });
+        
         if (mode === 'lesson') {
+            console.log('📍 Going to:', `./dist/${core}.html`);
             window.location.assign(`./dist/${core}.html`);
         } 
         else if (mode === 'hw') {
+            console.log('📍 Going to:', `./dist/${core}_hw${hw}.html`);
             window.location.assign(`./dist/${core}_hw${hw}.html`);
         }
         else if (mode === 'palace') {
-            // Ведем в новую папку с параметром
+            console.log('📍 Going to:', `./palace_engine/index.html?lesson=${core}`);
             window.location.assign(`./palace_engine/index.html?lesson=${core}`);
         }
     }
