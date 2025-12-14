@@ -1366,7 +1366,8 @@
                     data-phonetic="${escapeHTML(item.phonetic)}">${escapeHTML(word)}</span>`;
     }
     return escapeHTML(word);
-  }
+  });
+}
       
       const processedParagraphs = reading.map(para => {
         if (para.type === 'list') {
