@@ -1,340 +1,582 @@
 # Архитектура проекта: Интерактивные уроки английского языка
 
-## Оглавление
-1. [Обзор проекта](#обзор-проекта)
-2. [Архитектурные решения](#архитектурные-решения)
-3. [Структура HTML-файла урока](#структура-html-файла-урока)
-4. [Система управления состоянием](#система-управления-состоянием)
-5. [Модульная архитектура компонентов](#модульная-архитектура-компонентов)
-6. [Паттерны и best practices](#паттерны-и-best-practices)
-7. [Производительность и оптимизация](#производительность-и-оптимизация)
-8. [Будущие улучшения](#будущие-улучшения)
+> **Документ обновлён:** 14 декабря 2025  
+> **Версия:** 2.0.0 — Отражает текущую модульную реализацию
 
 ---
 
-## Обзор проекта
+## 📋 Статус документа
 
-### Назначение
-Интерактивная образовательная платформа для изучения английского языка, работающая в формате standalone HTML-файлов. Каждый урок — это полностью автономное SPA (Single Page Application), не требующее внешних зависимостей или серверной части.
+**ВАЖНО:** Этот документ описывает две параллельные архитектуры:
 
-### Ключевые принципы
-- **Self-contained**: Каждый HTML-файл содержит весь необходимый код (HTML, CSS, JS)
-- **Zero dependencies**: Без внешних библиотек, фреймворков или CDN
-- **Progressive enhancement**: Базовая функциональность работает без JavaScript
-- **Mobile-first**: Адаптивный дизайн с приоритетом мобильных устройств
-- **Offline-capable**: Полная работоспособность без интернета
+1. **🟢 Текущая реализация (Production)** — Модульная система с разделёнными CSS/JS файлами и JSON-контентом
+2. **🔵 Reference архитектура (Blueprint)** — Standalone подход для будущих специализированных проектов
 
----
-
-## Архитектурные решения
-
-### 1. Standalone SPA в одном файле
-
-**Обоснование:**
-- Простота распространения (один файл = один урок)
-- Нет проблем с CORS или загрузкой ресурсов
-- Работает локально без веб-сервера
-- Легко архивировать и версионировать
-
-**Компромиссы:**
-- Больший размер файла (30-70 KB)
-- Дублирование кода между уроками
-- Сложнее обновлять глобальные стили/логику
-
-**Решение для масштабирования:**
-Создание системы генерации через шаблоны (будущая разработка)
-
-### 2. Vanilla JavaScript вместо фреймворков
-
-**Обоснование:**
-- Нулевой overhead на парсинг и выполнение фреймворка
-- Полный контроль над производительностью
-- Меньший размер файла
-- Образовательная ценность для студентов
-
-**Паттерны из фреймворков:**
-- Реактивность через Proxy API
-- Виртуальный DOM через DocumentFragment
-- Компонентная архитектура через классы
-- Односторонний поток данных
+**Политика разработки:**
+- Существующие HTML-уроки не изменяем (обратная совместимость)
+- Новый функционал добавляем в модульную систему
+- Паттерны проектирования универсальны для обоих подходов
+- При необходимости standalone артефакт можно собрать из модулей
 
 ---
 
-## Структура HTML-файла урока
+## 📑 Оглавление
 
-### Базовый скелет
+### Текущая реализация
+1. [Модульная архитектура (Current)](#модульная-архитектура-current)
+2. [Файловая структура](#файловая-структура)
+3. [JavaScript модули](#javascript-модули)
+4. [CSS модули](#css-модули)
+5. [JSON структура данных](#json-структура-данных)
+6. [Workflow урока](#workflow-урока)
+
+### Reference архитектура
+7. [Standalone Blueprint](#standalone-blueprint-reference)
+8. [Реактивное управление состоянием](#реактивное-управление-состоянием)
+9. [Компонентная система](#компонентная-система)
+10. [Паттерны и Best Practices](#паттерны-и-best-practices)
+11. [Performance оптимизация](#performance-оптимизация)
+12. [Roadmap](#roadmap)
+
+---
+
+# 🟢 ТЕКУЩАЯ РЕАЛИЗАЦИЯ
+
+## Модульная архитектура (Current)
+
+### Обзор
+
+Проект **успешно мигрировал на модульную архитектуру** в декабре 2025. Вместо монолитных HTML-файлов теперь используется система разделённых CSS/JS модулей с JSON-driven контентом.
+
+### Ключевые преимущества
+
+✅ **Кэширование браузером** — CSS/JS файлы кэшируются один раз  
+✅ **Разделение ответственности** — Engine, Renderer, Storage, TTS  
+✅ **Повторное использование** — Один набор модулей для всех уроков  
+✅ **Лёгкость обновлений** — Изменения применяются глобально  
+✅ **Минимальный HTML** — Каждый урок ≈ 2 KB (только подключения)
+
+---
+
+## Файловая структура
+
+```
+dist/
+├── assets/
+│   ├── css/
+│   │   ├── lesson-core.css          # Ядро: переменные, reset, layout, loader
+│   │   ├── lesson-components.css    # Компоненты: header, tabs, cards, buttons
+│   │   └── lesson-responsive.css    # Адаптивность: mobile, tablet
+│   └── js/
+│       ├── lesson-storage.js        # LocalStorage для сохранённых слов
+│       ├── lesson-tts.js            # Text-to-Speech (Google TTS)
+│       ├── lesson-renderer.js       # Рендеринг UI компонентов
+│       └── lesson-engine.js         # Главный контроллер приложения
+├── data/
+│   └── {lessonId}.json              # JSON данные урока
+└── {lessonId}.html                  # Тонкая HTML-оболочка
+```
+
+### Архитектурные слои
+
+```
+┌─────────────────────────────────────────┐
+│         HTML Wrapper (Thin)             │  ← Только подключения модулей
+├─────────────────────────────────────────┤
+│         LessonEngine (Controller)       │  ← Логика и координация
+├─────────────────────────────────────────┤
+│  LessonRenderer │ LessonStorage │ TTS   │  ← Специализированные сервисы
+├─────────────────────────────────────────┤
+│         CSS Modules (Presentation)      │  ← Стили и компоненты
+├─────────────────────────────────────────┤
+│         JSON Data (Content)             │  ← Данные уроков
+└─────────────────────────────────────────┘
+```
+
+---
+
+## JavaScript модули
+
+### 1. `lesson-engine.js` — Главный контроллер
+
+**Паттерн:** MVC Controller + State Management
+
+**Класс:** `LessonEngine`
+
+**Ответственность:**
+- Инициализация приложения
+- Загрузка JSON данных урока
+- Координация между компонентами
+- Управление состоянием (tabs, vocabulary mode, quiz state)
+- Обработка пользовательских действий
+
+**Состояние:**
+```javascript
+{
+    lessonId: string,
+    lessonData: object,
+    currentTab: 'reading' | 'vocabulary' | 'grammar' | 'quiz',
+    vocabMode: 'list' | 'flashcard',
+    flashcardIndex: number,
+    myWords: Array<Word>,
+    quizState: {
+        currentQuestionIndex: number,
+        answers: Array,
+        completed: boolean
+    }
+}
+```
+
+**Ключевые методы:**
+```javascript
+class LessonEngine {
+    async init()                          // Инициализация приложения
+    async loadLessonData()                // Загрузка JSON из /data/
+    switchTab(tabName)                    // Переключение между секциями
+    renderCurrentTab()                    // Рендеринг активной вкладки
+    toggleWord(wordData)                  // Сохранить/удалить слово
+    speakAllReading()                     // Озвучить весь текст
+    speakWord(word)                       // Озвучить отдельное слово
+    flipFlashcard()                       // Перевернуть флешкарту
+    nextFlashcard() / prevFlashcard()     // Навигация по флешкартам
+    selectQuizAnswer(index)               // Ответить на вопрос
+    nextQuizQuestion()                    // Следующий вопрос
+    resetQuiz()                           // Сброс квиза
+    showNotification(message)             // Показать уведомление
+}
+```
+
+**Пример инициализации:**
+```javascript
+const lessonId = window.location.pathname.split('/').pop().replace('.html', '');
+window.lessonEngine = new LessonEngine(lessonId);
+window.lessonEngine.init();
+```
+
+---
+
+### 2. `lesson-renderer.js` — Рендеринг UI
+
+**Паттерн:** View Layer (Template Rendering)
+
+**Класс:** `LessonRenderer`
+
+**Ответственность:**
+- Генерация HTML-разметки для каждой секции
+- Обработка текста (экранирование, подсветка слов)
+- Создание интерактивных элементов
+- Безопасная вставка контента
+
+**Методы:**
+```javascript
+class LessonRenderer {
+    constructor(lessonData, tts, storage)
+    
+    // Утилиты
+    escapeHTML(text)                      // XSS защита
+    
+    // Рендеринг секций
+    renderReading(myWords)                // Reading с кликабельными словами
+    renderVocabulary(mode, myWords)       // Vocabulary (list/flashcard)
+    renderVocabList(vocab, phrases, words) // Список слов
+    renderFlashcard(vocab, index)         // Одна флешкарта
+    renderGrammar()                       // Grammar секция
+    renderQuiz(quizState)                 // Quiz вопросы
+    renderQuizResults(quizState)          // Результаты квиза
+    renderSidebar(myWords)                // Sidebar сохранённых слов
+}
+```
+
+**Особенности:**
+- **Умная подсветка слов:** Автоматически находит слова из vocabulary в тексте
+- **State-aware rendering:** Учитывает сохранённые слова пользователя
+- **Accessibility:** Semantic HTML, ARIA attributes
+- **Template strings:** Использует template literals для читаемости
+
+---
+
+### 3. `lesson-storage.js` — Персистентность
+
+**Паттерн:** Repository Pattern
+
+**Класс:** `LessonStorage`
+
+**Ответственность:**
+- LocalStorage операции для сохранённых слов
+- Валидация и дедупликация
+- Сериализация/десериализация
+
+**API:**
+```javascript
+class LessonStorage {
+    constructor(lessonId)                 // Изоляция по lessonId
+    
+    loadWords()                           // → Array<Word>
+    saveWords(words)                      // ← Array<Word>
+    addWord(wordData)                     // → boolean (success)
+    removeWord(word)                      // → boolean (success)
+    isWordSaved(word)                     // → boolean
+    clearAll()                            // Очистить все слова урока
+    getCount()                            // → number
+}
+```
+
+**Формат хранения:**
+```javascript
+// LocalStorage key: "lesson-{lessonId}-words"
+[
+    {
+        word: "example",
+        definition: "пример",
+        phonetic: "[ɪɡˈzɑːmpl]",
+        timestamp: 1702540800000
+    }
+]
+```
+
+---
+
+### 4. `lesson-tts.js` — Озвучка
+
+**Паттерн:** Service Layer
+
+**Класс:** `LessonTTS`
+
+**Ответственность:**
+- Text-to-Speech через Google Translate API
+- Управление аудио воспроизведением
+- Тактильная обратная связь (vibration)
+
+**API:**
+```javascript
+class LessonTTS {
+    speak(text, lang = 'en')              // Произнести текст
+    speakSequence(texts, delay = 800)     // Последовательность с паузами
+    stop()                                // Остановить воспроизведение
+    vibrate(duration = 10)                // Вибрация (если поддерживается)
+}
+```
+
+**Технические детали:**
+```javascript
+speak(text, lang = 'en') {
+    const cleaned = this.cleanText(text);  // Удаление [translate:] маркеров
+    
+    // Google TTS endpoint
+    const url = `https://translate.google.com/translate_tts?
+                 ie=UTF-8&q=${encodeURIComponent(cleaned)}&tl=${lang}&client=tw-ob`;
+    
+    this.currentAudio = new Audio(url);
+    this.currentAudio.play().catch(err => {
+        console.error('TTS playback error:', err);
+    });
+}
+```
+
+---
+
+## CSS модули
+
+### 1. `lesson-core.css` — Фундамент
+
+**Содержимое:**
+- `:root` CSS переменные (design tokens)
+- Modern CSS reset
+- Базовый layout: `body`, `#app-root`, `.app-shell`
+- Loader анимация с орбитами
+- Sidebar стили
+- Keyframes: `spin`, `pulse`
+
+**Design System:**
+```css
+:root {
+    /* Colors */
+    --primary-color: #2563eb;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --text-color: #1f2937;
+    --bg-color: #f9fafb;
+    
+    /* Typography */
+    --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    
+    /* Spacing (8px scale) */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    
+    /* Layout */
+    --max-width: 1200px;
+    --sidebar-width: 280px;
+    
+    /* Effects */
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --radius: 8px;
+    --transition: 0.2s ease;
+}
+```
+
+---
+
+### 2. `lesson-components.css` — UI компоненты
+
+**Компонентная библиотека:**
+```css
+/* Header */
+.lesson-header { /* Заголовок урока */ }
+.lesson-title { /* Название */ }
+.pill { /* Бейджи уровня/времени */ }
+
+/* Tabs Navigation */
+.tabs { /* Контейнер вкладок */ }
+.tab.active { /* Активная вкладка */ }
+.tab-indicator { /* Анимированный индикатор */ }
+
+/* Cards */
+.card { /* Базовая карточка */ }
+
+/* Buttons */
+.primary-btn { /* Основная кнопка */ }
+.icon-btn { /* Кнопка-иконка */ }
+
+/* Reading */
+.word-clickable { /* Кликабельное слово */ }
+.word-clickable.saved { /* Сохранённое слово */ }
+
+/* Vocabulary */
+.vocab-layout { /* Grid layout */ }
+.vocab-item { /* Карточка слова */ }
+
+/* Flashcards */
+.flashcard { /* 3D переворачиваемая карта */ }
+.flashcard.flipped { /* Перевёрнутое состояние */ }
+
+/* Quiz */
+.quiz-option { /* Вариант ответа */ }
+.quiz-feedback { /* Обратная связь */ }
+```
+
+**3D Flip эффект:**
+```css
+.flashcard {
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.flashcard.flipped {
+    transform: rotateY(180deg);
+}
+
+.flashcard-face {
+    backface-visibility: hidden;
+}
+```
+
+---
+
+### 3. `lesson-responsive.css` — Адаптивность
+
+**Breakpoints:**
+```css
+/* Tablet */
+@media (max-width: 1024px) {
+    .sidebar { width: 250px; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .vocab-layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .flashcard { width: 100%; }
+}
+```
+
+---
+
+## JSON структура данных
+
+### Формат урока (`data/{lessonId}.json`)
+
+```json
+{
+  "title": "Present Simple Tense",
+  "subtitle": "Basic usage and formation",
+  "meta": {
+    "level": "A1",
+    "duration": 30
+  },
+  
+  "content": {
+    "reading": [
+      {
+        "type": "paragraph",
+        "text": "This is a paragraph with vocabulary words..."
+      }
+    ]
+  },
+  
+  "vocabulary": {
+    "words": [
+      {
+        "en": "example",
+        "transcription": "[ɪɡˈzɑːmpl]",
+        "ru": "пример",
+        "example": "Example sentence.",
+        "part_of_speech": "noun"
+      }
+    ],
+    "phrases": [
+      {
+        "en": "for example",
+        "ru": "например"
+      }
+    ]
+  },
+  
+  "grammar": {
+    "title": "Present Simple - Formation",
+    "explanation": "We use Present Simple for...",
+    "examples": {
+      "affirmative": ["I work every day."],
+      "negative": ["I don't work on Sundays."],
+      "questions": ["Do you work here?"]
+    }
+  },
+  
+  "quiz": [
+    {
+      "question": "Choose the correct form:",
+      "options": ["She work", "She works", "She working"],
+      "correct": 1
+    }
+  ]
+}
+```
+
+---
+
+## Workflow урока
+
+### Жизненный цикл
+
+```
+1. Загрузка HTML
+   ↓
+2. Подключение CSS модулей (кэшированы)
+   ↓
+3. Подключение JS модулей (кэшированы)
+   ↓
+4. Инициализация LessonEngine
+   ↓
+5. Загрузка JSON данных (fetch)
+   ↓
+6. Создание LessonRenderer, LessonStorage, LessonTTS
+   ↓
+7. Восстановление сохранённых слов (localStorage)
+   ↓
+8. Рендеринг первой вкладки (Reading)
+   ↓
+9. Скрытие loader
+   ↓
+10. Приложение готово к взаимодействию
+```
+
+### Пример HTML-оболочки
 
 ```html
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Урок #XXX: [Название темы]</title>
-    
-    <style>
-        /* 1. CSS Reset & Variables */
-        /* 2. Layout & Grid System */
-        /* 3. Component Styles */
-        /* 4. Utility Classes */
-        /* 5. Responsive Breakpoints */
-        /* 6. Dark Mode Support */
-    </style>
+  <meta charset="UTF-8" />
+  <title>English Lesson</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- CSS Modules -->
+  <link rel="stylesheet" href="assets/css/lesson-core.css">
+  <link rel="stylesheet" href="assets/css/lesson-components.css">
+  <link rel="stylesheet" href="assets/css/lesson-responsive.css">
 </head>
 <body>
-    <!-- Структура контента -->
-    <header>
-        <!-- Навигация, метаданные урока -->
-    </header>
-    
-    <main>
-        <!-- Секции урока -->
-    </main>
-    
-    <footer>
-        <!-- Навигация, прогресс -->
-    </footer>
+  <!-- Loader -->
+  <div class="loader-container" id="loader">
+    <div class="loader">
+      <div class="loader-orbit"></div>
+      <div class="loader-core"></div>
+    </div>
+    <p>Loading lesson...</p>
+  </div>
 
-    <script>
-        /* JavaScript модули */
-    </script>
+  <!-- App Root -->
+  <div id="app-root">
+    <div id="app"></div>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification" id="notification">
+    <span id="notification-text"></span>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="assets/js/lesson-storage.js"></script>
+  <script src="assets/js/lesson-tts.js"></script>
+  <script src="assets/js/lesson-renderer.js"></script>
+  <script src="assets/js/lesson-engine.js"></script>
+  
+  <!-- Initialization -->
+  <script>
+    const lessonId = window.location.pathname
+      .split('/').pop()
+      .replace('.html', '');
+    
+    window.lessonEngine = new LessonEngine(lessonId);
+    window.lessonEngine.init();
+  </script>
 </body>
 </html>
 ```
 
-### Детальная структура для senior-разработчиков
+---
 
-#### 1. CSS Architecture
+# 🔵 STANDALONE BLUEPRINT (Reference)
 
-```css
-/* === 1. DESIGN TOKENS === */
-:root {
-    /* Color System - Семантические цвета */
-    --color-primary: #4A90E2;
-    --color-success: #4CAF50;
-    --color-error: #F44336;
-    --color-warning: #FF9800;
-    
-    /* Typography Scale - Модульная шкала (1.25 ratio) */
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-lg: 1.25rem;
-    --font-size-xl: 1.5rem;
-    
-    /* Spacing System - 8px base */
-    --space-1: 0.5rem;   /* 8px */
-    --space-2: 1rem;     /* 16px */
-    --space-3: 1.5rem;   /* 24px */
-    --space-4: 2rem;     /* 32px */
-    
-    /* Layout Constraints */
-    --max-width-content: 800px;
-    --max-width-narrow: 600px;
-    --gutter: var(--space-3);
-    
-    /* Z-index Scale */
-    --z-dropdown: 100;
-    --z-modal: 200;
-    --z-tooltip: 300;
-}
+## Standalone Blueprint (Reference)
 
-/* === 2. MODERN CSS RESET === */
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+> **Примечание:** Следующие разделы описывают альтернативный standalone подход  
+> для специализированных случаев (offline distribution, email attachments).  
+> Все паттерны применимы к текущей модульной системе.
 
-/* Улучшенный рендеринг текста */
-body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-}
+### Концепция
 
-/* Удаление стилей списков */
-ul[role="list"], ol[role="list"] {
-    list-style: none;
-}
+Standalone урок = один HTML-файл содержит:
+- Разметку (семантический HTML)
+- Стили (встроенный `<style>`)
+- Логику (встроенный `<script>`)
+- Контент (данные упражнений внутри файла)
 
-/* === 3. LAYOUT PRIMITIVES === */
-/* Stack - вертикальное размещение с gap */
-.stack {
-    display: flex;
-    flex-direction: column;
-}
-.stack > * + * {
-    margin-top: var(--stack-gap, var(--space-2));
-}
+**Преимущества:**
+- Один файл = один артефакт
+- Работает локально (file://)
+- Нет проблем с CORS
+- Легко распространять
 
-/* Cluster - горизонтальное размещение с переносом */
-.cluster {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--cluster-gap, var(--space-2));
-    justify-content: var(--cluster-justify, flex-start);
-    align-items: var(--cluster-align, center);
-}
+**Когда использовать:**
+- Offline курсы на USB
+- Email рассылки с уроками
+- Архивирование для долгосрочного хранения
+- Специальные образовательные проекты
 
-/* Center - центрирование с max-width */
-.center {
-    max-width: var(--center-max-width, var(--max-width-content));
-    margin-inline: auto;
-    padding-inline: var(--gutter);
-}
+---
 
-/* === 4. COMPONENT PATTERNS === */
+## Реактивное управление состоянием
 
-/* Card Component */
-.card {
-    background: var(--card-bg, white);
-    border-radius: var(--radius-md, 8px);
-    padding: var(--space-3);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: box-shadow 0.2s ease;
-}
-
-.card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-/* Button Component */
-.btn {
-    /* Base styles */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-1);
-    
-    /* Typography */
-    font-family: inherit;
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    text-decoration: none;
-    
-    /* Spacing */
-    padding: var(--space-2) var(--space-3);
-    
-    /* Visual */
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-    background: var(--btn-bg, var(--color-primary));
-    color: var(--btn-color, white);
-    
-    /* Interaction */
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.btn:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Button Variants */
-.btn--secondary {
-    --btn-bg: transparent;
-    --btn-color: var(--color-primary);
-    border-color: currentColor;
-}
-
-.btn--success {
-    --btn-bg: var(--color-success);
-}
-
-.btn--error {
-    --btn-bg: var(--color-error);
-}
-
-/* === 5. INTERACTIVE STATES === */
-
-/* Focus management для accessibility */
-:focus-visible {
-    outline: 3px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-/* Убираем outline для мыши, сохраняем для клавиатуры */
-:focus:not(:focus-visible) {
-    outline: none;
-}
-
-/* === 6. RESPONSIVE TYPOGRAPHY === */
-/* Fluid typography using clamp() */
-h1 {
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-}
-
-h2 {
-    font-size: clamp(1.25rem, 3vw, 2rem);
-}
-
-/* === 7. UTILITY CLASSES === */
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    white-space: nowrap;
-    border: 0;
-}
-
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-
-/* === 8. MEDIA QUERIES === */
-/* Mobile-first approach */
-@media (min-width: 768px) {
-    :root {
-        --gutter: var(--space-4);
-    }
-}
-
-/* === 9. DARK MODE === */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-bg: #1a1a1a;
-        --color-text: #e0e0e0;
-        --card-bg: #2a2a2a;
-    }
-    
-    body {
-        background: var(--color-bg);
-        color: var(--color-text);
-    }
-}
-
-/* === 10. PRINT STYLES === */
-@media print {
-    .no-print { display: none; }
-    .card { box-shadow: none; border: 1px solid #ccc; }
-}
-```
-
-#### 2. JavaScript Architecture
+### Reactive State через Proxy
 
 ```javascript
-// === ARCHITECTURAL PATTERN: MVC с реактивностью ===
-
-/**
- * 1. STATE MANAGEMENT LAYER
- * Реактивное управление состоянием через Proxy
- */
-
 class ReactiveState {
     constructor(initialState) {
         this.listeners = new Map();
@@ -348,7 +590,7 @@ class ReactiveState {
                 const oldValue = target[property];
                 target[property] = value;
                 
-                // Уведомляем подписчиков об изменении
+                // Уведомляем подписчиков
                 if (self.listeners.has(property)) {
                     self.listeners.get(property).forEach(callback => {
                         callback(value, oldValue);
@@ -360,55 +602,38 @@ class ReactiveState {
         });
     }
     
-    // Подписка на изменения
     subscribe(property, callback) {
         if (!this.listeners.has(property)) {
             this.listeners.set(property, new Set());
         }
         this.listeners.get(property).add(callback);
         
-        // Возвращаем функцию отписки
-        return () => {
-            this.listeners.get(property).delete(callback);
-        };
-    }
-    
-    // Пакетное обновление (debounced)
-    batchUpdate(updates) {
-        Object.keys(updates).forEach(key => {
-            this.state[key] = updates[key];
-        });
+        return () => this.listeners.get(property).delete(callback);
     }
 }
 
-// Пример использования
-const lessonState = new ReactiveState({
-    currentExercise: 0,
-    score: 0,
-    answers: [],
-    isCompleted: false
-});
-
-// Подписка на изменения
-lessonState.subscribe('score', (newScore, oldScore) => {
-    console.log(`Score updated: ${oldScore} → ${newScore}`);
+// Использование
+const state = new ReactiveState({ score: 0 });
+state.subscribe('score', (newScore) => {
+    console.log('Score updated:', newScore);
     updateUI();
 });
+```
 
-/**
- * 2. COMPONENT SYSTEM
- * Переиспользуемые UI компоненты
- */
+---
 
+## Компонентная система
+
+### Base Component
+
+```javascript
 class Component {
     constructor(props = {}) {
         this.props = props;
-        this.state = {};
         this.element = null;
         this.mounted = false;
     }
     
-    // Lifecycle методы
     render() {
         throw new Error('render() must be implemented');
     }
@@ -438,523 +663,14 @@ class Component {
         }
     }
     
-    // Хуки жизненного цикла
     onMount() {}
     onUnmount() {}
 }
-
-/**
- * Пример: Exercise Component
- */
-class ExerciseComponent extends Component {
-    render() {
-        const { question, options, onAnswer } = this.props;
-        
-        const div = document.createElement('div');
-        div.className = 'exercise card';
-        
-        div.innerHTML = `
-            <h3 class="exercise__question">${this._escapeHtml(question)}</h3>
-            <div class="exercise__options cluster" role="group">
-                ${options.map((opt, idx) => `
-                    <button 
-                        class="btn btn--secondary exercise__option" 
-                        data-index="${idx}"
-                        type="button"
-                    >
-                        ${this._escapeHtml(opt)}
-                    </button>
-                `).join('')}
-            </div>
-        `;
-        
-        // Event delegation
-        div.addEventListener('click', (e) => {
-            const btn = e.target.closest('.exercise__option');
-            if (btn) {
-                const index = parseInt(btn.dataset.index);
-                onAnswer(index);
-            }
-        });
-        
-        return div;
-    }
-    
-    _escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-}
-
-/**
- * 3. APPLICATION CONTROLLER
- * Координация компонентов и логики
- */
-
-class LessonController {
-    constructor(config) {
-        this.config = config;
-        this.state = new ReactiveState({
-            currentStep: 0,
-            userAnswers: [],
-            score: 0
-        });
-        
-        this.components = new Map();
-        this.init();
-    }
-    
-    init() {
-        // Инициализация компонентов
-        this.setupComponents();
-        
-        // Подписка на изменения состояния
-        this.state.subscribe('currentStep', (newStep) => {
-            this.renderCurrentStep(newStep);
-        });
-        
-        this.state.subscribe('score', (newScore) => {
-            this.updateScoreDisplay(newScore);
-        });
-        
-        // Восстановление прогресса из localStorage
-        this.loadProgress();
-        
-        // Автосохранение
-        this.setupAutosave();
-    }
-    
-    setupComponents() {
-        const exerciseContainer = document.querySelector('#exercise-container');
-        
-        // Создаем компонент упражнения
-        const exercise = new ExerciseComponent({
-            question: this.config.exercises[0].question,
-            options: this.config.exercises[0].options,
-            onAnswer: (index) => this.handleAnswer(index)
-        });
-        
-        this.components.set('exercise', exercise);
-        exercise.mount(exerciseContainer);
-    }
-    
-    handleAnswer(answerIndex) {
-        const currentExercise = this.config.exercises[this.state.state.currentStep];
-        const isCorrect = answerIndex === currentExercise.correctIndex;
-        
-        // Обновляем состояние
-        this.state.state.userAnswers.push({
-            exerciseIndex: this.state.state.currentStep,
-            answerIndex,
-            isCorrect,
-            timestamp: Date.now()
-        });
-        
-        if (isCorrect) {
-            this.state.state.score += 1;
-        }
-        
-        // Показываем feedback
-        this.showFeedback(isCorrect);
-        
-        // Переход к следующему упражнению
-        setTimeout(() => {
-            this.nextExercise();
-        }, 1500);
-    }
-    
-    nextExercise() {
-        if (this.state.state.currentStep < this.config.exercises.length - 1) {
-            this.state.state.currentStep += 1;
-        } else {
-            this.completeLesson();
-        }
-    }
-    
-    showFeedback(isCorrect) {
-        const feedback = document.createElement('div');
-        feedback.className = `feedback ${isCorrect ? 'feedback--success' : 'feedback--error'}`;
-        feedback.textContent = isCorrect ? '✓ Правильно!' : '✗ Неправильно';
-        
-        document.body.appendChild(feedback);
-        
-        // Анимация появления
-        requestAnimationFrame(() => {
-            feedback.classList.add('feedback--visible');
-        });
-        
-        // Удаление через 1.5 секунды
-        setTimeout(() => {
-            feedback.classList.remove('feedback--visible');
-            setTimeout(() => feedback.remove(), 300);
-        }, 1500);
-    }
-    
-    completeLesson() {
-        const percentage = (this.state.state.score / this.config.exercises.length) * 100;
-        
-        // Сохраняем результат
-        this.saveResult({
-            lessonId: this.config.id,
-            score: this.state.state.score,
-            total: this.config.exercises.length,
-            percentage,
-            timestamp: Date.now(),
-            answers: this.state.state.userAnswers
-        });
-        
-        // Показываем экран завершения
-        this.showCompletionScreen(percentage);
-    }
-    
-    // Persistence Layer
-    saveProgress() {
-        const data = {
-            currentStep: this.state.state.currentStep,
-            userAnswers: this.state.state.userAnswers,
-            score: this.state.state.score,
-            timestamp: Date.now()
-        };
-        
-        localStorage.setItem(`lesson_${this.config.id}_progress`, JSON.stringify(data));
-    }
-    
-    loadProgress() {
-        const saved = localStorage.getItem(`lesson_${this.config.id}_progress`);
-        if (saved) {
-            const data = JSON.parse(saved);
-            // Восстанавливаем только если прошло менее 24 часов
-            if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
-                this.state.batchUpdate(data);
-            }
-        }
-    }
-    
-    setupAutosave() {
-        // Debounced автосохранение
-        let saveTimeout;
-        this.state.subscribe('userAnswers', () => {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                this.saveProgress();
-            }, 1000);
-        });
-    }
-    
-    saveResult(result) {
-        const results = JSON.parse(localStorage.getItem('lesson_results') || '[]');
-        results.push(result);
-        // Храним только последние 100 результатов
-        if (results.length > 100) {
-            results.shift();
-        }
-        localStorage.setItem('lesson_results', JSON.stringify(results));
-    }
-}
-
-/**
- * 4. UTILITY FUNCTIONS
- * Переиспользуемые вспомогательные функции
- */
-
-const Utils = {
-    // Debounce для оптимизации событий
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    },
-    
-    // Throttle для ограничения частоты вызовов
-    throttle(func, limit) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    },
-    
-    // Shuffle массива (Fisher-Yates)
-    shuffle(array) {
-        const arr = [...array];
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    },
-    
-    // Sanitization
-    escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-    },
-    
-    // Pluralization для русского языка
-    pluralize(number, one, few, many) {
-        const mod10 = number % 10;
-        const mod100 = number % 100;
-        
-        if (mod10 === 1 && mod100 !== 11) return one;
-        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
-        return many;
-    },
-    
-    // Форматирование времени
-    formatTime(ms) {
-        const seconds = Math.floor(ms / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        
-        if (hours > 0) {
-            return `${hours}:${String(minutes % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-        }
-        return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
-    }
-};
-
-/**
- * 5. PERFORMANCE OPTIMIZATION
- * Техники оптимизации производительности
- */
-
-const Performance = {
-    // Lazy loading для изображений
-    lazyLoadImages() {
-        if ('IntersectionObserver' in window) {
-            const imageObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.classList.remove('lazy');
-                        imageObserver.unobserve(img);
-                    }
-                });
-            });
-            
-            document.querySelectorAll('img.lazy').forEach(img => {
-                imageObserver.observe(img);
-            });
-        }
-    },
-    
-    // Виртуализация длинных списков
-    virtualizeList(items, container, renderItem) {
-        const ITEM_HEIGHT = 50;
-        const VISIBLE_ITEMS = Math.ceil(container.clientHeight / ITEM_HEIGHT) + 2;
-        
-        let scrollTop = 0;
-        
-        const render = () => {
-            const startIndex = Math.floor(scrollTop / ITEM_HEIGHT);
-            const endIndex = startIndex + VISIBLE_ITEMS;
-            
-            const visibleItems = items.slice(startIndex, endIndex);
-            
-            const fragment = document.createDocumentFragment();
-            visibleItems.forEach((item, index) => {
-                const el = renderItem(item);
-                el.style.position = 'absolute';
-                el.style.top = `${(startIndex + index) * ITEM_HEIGHT}px`;
-                fragment.appendChild(el);
-            });
-            
-            container.innerHTML = '';
-            container.appendChild(fragment);
-            container.style.height = `${items.length * ITEM_HEIGHT}px`;
-        };
-        
-        container.addEventListener('scroll', Utils.throttle(() => {
-            scrollTop = container.scrollTop;
-            render();
-        }, 100));
-        
-        render();
-    },
-    
-    // RequestIdleCallback fallback
-    scheduleWork(callback) {
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(callback);
-        } else {
-            setTimeout(callback, 1);
-        }
-    }
-};
-
-/**
- * 6. INITIALIZATION
- * Точка входа в приложение
- */
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Конфигурация урока
-    const lessonConfig = {
-        id: 'lesson-xxx',
-        title: 'Название урока',
-        exercises: [
-            // ... данные упражнений
-        ]
-    };
-    
-    // Инициализация контроллера
-    const lesson = new LessonController(lessonConfig);
-    
-    // Lazy loading для изображений
-    Performance.lazyLoadImages();
-    
-    // Обработка ошибок
-    window.addEventListener('error', (event) => {
-        console.error('Application error:', event.error);
-        // Отправка в аналитику (если есть)
-    });
-    
-    // Service Worker регистрация (для PWA)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('SW registered', reg))
-            .catch(err => console.log('SW registration failed', err));
-    }
-});
 ```
 
----
-
-## Система управления состоянием
-
-### State Machine для урока
+### Пример: ProgressBar Component
 
 ```javascript
-/**
- * Конечный автомат состояний урока
- * Обеспечивает предсказуемые переходы между состояниями
- */
-
-const LESSON_STATES = {
-    INITIAL: 'initial',
-    LOADING: 'loading',
-    READY: 'ready',
-    IN_PROGRESS: 'in_progress',
-    PAUSED: 'paused',
-    REVIEWING: 'reviewing',
-    COMPLETED: 'completed',
-    ERROR: 'error'
-};
-
-const LESSON_EVENTS = {
-    LOAD: 'load',
-    START: 'start',
-    ANSWER: 'answer',
-    PAUSE: 'pause',
-    RESUME: 'resume',
-    REVIEW: 'review',
-    COMPLETE: 'complete',
-    ERROR: 'error',
-    RESET: 'reset'
-};
-
-class LessonStateMachine {
-    constructor() {
-        this.state = LESSON_STATES.INITIAL;
-        this.transitions = this._defineTransitions();
-        this.listeners = new Map();
-    }
-    
-    _defineTransitions() {
-        return {
-            [LESSON_STATES.INITIAL]: {
-                [LESSON_EVENTS.LOAD]: LESSON_STATES.LOADING
-            },
-            [LESSON_STATES.LOADING]: {
-                [LESSON_EVENTS.START]: LESSON_STATES.READY,
-                [LESSON_EVENTS.ERROR]: LESSON_STATES.ERROR
-            },
-            [LESSON_STATES.READY]: {
-                [LESSON_EVENTS.START]: LESSON_STATES.IN_PROGRESS
-            },
-            [LESSON_STATES.IN_PROGRESS]: {
-                [LESSON_EVENTS.ANSWER]: LESSON_STATES.IN_PROGRESS,
-                [LESSON_EVENTS.PAUSE]: LESSON_STATES.PAUSED,
-                [LESSON_EVENTS.COMPLETE]: LESSON_STATES.COMPLETED
-            },
-            [LESSON_STATES.PAUSED]: {
-                [LESSON_EVENTS.RESUME]: LESSON_STATES.IN_PROGRESS,
-                [LESSON_EVENTS.RESET]: LESSON_STATES.READY
-            },
-            [LESSON_STATES.COMPLETED]: {
-                [LESSON_EVENTS.REVIEW]: LESSON_STATES.REVIEWING,
-                [LESSON_EVENTS.RESET]: LESSON_STATES.READY
-            },
-            [LESSON_STATES.REVIEWING]: {
-                [LESSON_EVENTS.RESET]: LESSON_STATES.READY
-            },
-            [LESSON_STATES.ERROR]: {
-                [LESSON_EVENTS.RESET]: LESSON_STATES.INITIAL
-            }
-        };
-    }
-    
-    transition(event, payload) {
-        const currentTransitions = this.transitions[this.state];
-        const nextState = currentTransitions?.[event];
-        
-        if (!nextState) {
-            console.warn(`Invalid transition: ${this.state} -> ${event}`);
-            return false;
-        }
-        
-        const prevState = this.state;
-        this.state = nextState;
-        
-        // Уведомляем подписчиков
-        this._notify(prevState, nextState, payload);
-        
-        return true;
-    }
-    
-    on(callback) {
-        const id = Symbol();
-        this.listeners.set(id, callback);
-        return () => this.listeners.delete(id);
-    }
-    
-    _notify(from, to, payload) {
-        this.listeners.forEach(callback => {
-            callback({ from, to, payload });
-        });
-    }
-}
-```
-
----
-
-## Модульная архитектура компонентов
-
-### Компонентная система
-
-```javascript
-/**
- * Базовые переиспользуемые компоненты
- */
-
-// 1. Progressbar Component
 class ProgressBar extends Component {
     render() {
         const { current, total, label } = this.props;
@@ -964,144 +680,11 @@ class ProgressBar extends Component {
         div.className = 'progress';
         div.setAttribute('role', 'progressbar');
         div.setAttribute('aria-valuenow', current);
-        div.setAttribute('aria-valuemin', '0');
         div.setAttribute('aria-valuemax', total);
-        div.setAttribute('aria-label', label || 'Progress');
         
         div.innerHTML = `
             <div class="progress__bar" style="width: ${percentage}%"></div>
             <span class="progress__label">${current} / ${total}</span>
-        `;
-        
-        return div;
-    }
-}
-
-// 2. Modal Component
-class Modal extends Component {
-    render() {
-        const { title, content, onClose } = this.props;
-        
-        const div = document.createElement('div');
-        div.className = 'modal';
-        div.setAttribute('role', 'dialog');
-        div.setAttribute('aria-modal', 'true');
-        div.setAttribute('aria-labelledby', 'modal-title');
-        
-        div.innerHTML = `
-            <div class="modal__overlay"></div>
-            <div class="modal__container">
-                <header class="modal__header">
-                    <h2 id="modal-title">${this._escapeHtml(title)}</h2>
-                    <button class="modal__close" aria-label="Close modal">&times;</button>
-                </header>
-                <div class="modal__content">
-                    ${content}
-                </div>
-            </div>
-        `;
-        
-        // Event listeners
-        div.querySelector('.modal__close').addEventListener('click', onClose);
-        div.querySelector('.modal__overlay').addEventListener('click', onClose);
-        
-        // Trap focus внутри модального окна
-        this._trapFocus(div);
-        
-        return div;
-    }
-    
-    _trapFocus(container) {
-        const focusableElements = container.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-        
-        container.addEventListener('keydown', (e) => {
-            if (e.key === 'Tab') {
-                if (e.shiftKey && document.activeElement === firstElement) {
-                    e.preventDefault();
-                    lastElement.focus();
-                } else if (!e.shiftKey && document.activeElement === lastElement) {
-                    e.preventDefault();
-                    firstElement.focus();
-                }
-            }
-            
-            if (e.key === 'Escape') {
-                this.props.onClose();
-            }
-        });
-        
-        // Фокус на первом элементе при открытии
-        setTimeout(() => firstElement.focus(), 0);
-    }
-}
-
-// 3. Timer Component
-class Timer extends Component {
-    constructor(props) {
-        super(props);
-        this.startTime = Date.now();
-        this.elapsed = 0;
-        this.interval = null;
-    }
-    
-    onMount() {
-        this.interval = setInterval(() => {
-            this.elapsed = Date.now() - this.startTime;
-            this.update({ elapsed: this.elapsed });
-        }, 1000);
-    }
-    
-    onUnmount() {
-        clearInterval(this.interval);
-    }
-    
-    render() {
-        const { elapsed = 0 } = this.props;
-        const formatted = Utils.formatTime(elapsed);
-        
-        const span = document.createElement('span');
-        span.className = 'timer';
-        span.textContent = formatted;
-        span.setAttribute('aria-live', 'polite');
-        
-        return span;
-    }
-}
-
-// 4. Score Display Component
-class ScoreDisplay extends Component {
-    render() {
-        const { score, total } = this.props;
-        const percentage = (score / total) * 100;
-        
-        const div = document.createElement('div');
-        div.className = 'score';
-        
-        let emoji = '😐';
-        let message = 'Нормально';
-        
-        if (percentage >= 90) {
-            emoji = '🌟';
-            message = 'Отлично!';
-        } else if (percentage >= 70) {
-            emoji = '😊';
-            message = 'Хорошо!';
-        } else if (percentage >= 50) {
-            emoji = '🙂';
-            message = 'Неплохо';
-        }
-        
-        div.innerHTML = `
-            <div class="score__emoji">${emoji}</div>
-            <div class="score__text">
-                <strong>${score}</strong> из <strong>${total}</strong>
-            </div>
-            <div class="score__message">${message}</div>
-            <div class="score__percentage">${percentage.toFixed(0)}%</div>
         `;
         
         return div;
@@ -1116,252 +699,144 @@ class ScoreDisplay extends Component {
 ### 1. Error Handling
 
 ```javascript
-/**
- * Централизованная обработка ошибок
- */
-
 class ErrorHandler {
     static handle(error, context = {}) {
         console.error('Application error:', error, context);
-        
-        // Показываем пользователю дружелюбное сообщение
-        this.showErrorMessage(this.getUserMessage(error));
-        
-        // Логируем для разработчика
+        this.showUserMessage(this.getUserMessage(error));
         this.logError(error, context);
-        
-        // Отправляем в аналитику (если настроено)
-        this.reportError(error, context);
     }
     
     static getUserMessage(error) {
         if (error instanceof NetworkError) {
-            return 'Проблемы с подключением. Проверьте интернет.';
+            return 'Проблемы с подключением.';
         }
-        
-        if (error instanceof ValidationError) {
-            return 'Пожалуйста, проверьте введенные данные.';
-        }
-        
-        return 'Что-то пошло не так. Попробуйте обновить страницу.';
+        return 'Что-то пошло не так.';
     }
     
-    static showErrorMessage(message) {
+    static showUserMessage(message) {
         const toast = document.createElement('div');
         toast.className = 'toast toast--error';
         toast.textContent = message;
-        
         document.body.appendChild(toast);
         
-        setTimeout(() => {
-            toast.classList.add('toast--visible');
-        }, 10);
-        
-        setTimeout(() => {
-            toast.classList.remove('toast--visible');
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    }
-    
-    static logError(error, context) {
-        // Структурированное логирование
-        const log = {
-            timestamp: new Date().toISOString(),
-            error: {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-            },
-            context,
-            userAgent: navigator.userAgent,
-            url: window.location.href
-        };
-        
-        console.table(log);
-    }
-    
-    static reportError(error, context) {
-        // TODO: интеграция с сервисом отслеживания ошибок
-        // Например: Sentry, Rollbar, или собственный endpoint
+        setTimeout(() => toast.classList.add('visible'), 10);
+        setTimeout(() => toast.remove(), 5000);
     }
 }
 
 // Глобальный обработчик
-window.addEventListener('error', (event) => {
-    ErrorHandler.handle(event.error, {
-        type: 'uncaught',
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno
-    });
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-    ErrorHandler.handle(event.reason, {
-        type: 'unhandled-promise'
-    });
+window.addEventListener('error', (e) => {
+    ErrorHandler.handle(e.error, { type: 'uncaught' });
 });
 ```
 
-### 2. Testing Utilities
+### 2. State Management Best Practices
 
+**✅ DO:**
 ```javascript
-/**
- * Встроенные утилиты для тестирования
- * Использовать только в development режиме
- */
-
-const TestUtils = {
-    // Автоматическое заполнение упражнений (для отладки)
-    autoCompleteExercises() {
-        const exercises = lessonState.state.exercises;
-        exercises.forEach((exercise, index) => {
-            setTimeout(() => {
-                const correctAnswer = exercise.options[exercise.correctIndex];
-                console.log(`Auto-answering ${index + 1}: ${correctAnswer}`);
-                // Триггерим правильный ответ
-                document.querySelector(`[data-exercise="${index}"] [data-index="${exercise.correctIndex}"]`).click();
-            }, index * 1000);
-        });
-    },
-    
-    // Проверка accessibility
-    checkA11y() {
-        const issues = [];
-        
-        // Проверка alt текстов
-        document.querySelectorAll('img:not([alt])').forEach(img => {
-            issues.push({ element: img, issue: 'Missing alt attribute' });
-        });
-        
-        // Проверка aria-labels для интерактивных элементов
-        document.querySelectorAll('button:not([aria-label]):not(:has(text))').forEach(btn => {
-            issues.push({ element: btn, issue: 'Button without label' });
-        });
-        
-        // Проверка контрастности
-        // ... более сложная логика
-        
-        console.table(issues);
-        return issues;
-    },
-    
-    // Эмуляция медленного соединения
-    simulateSlowNetwork(delay = 3000) {
-        const originalFetch = window.fetch;
-        window.fetch = async (...args) => {
-            await new Promise(resolve => setTimeout(resolve, delay));
-            return originalFetch(...args);
-        };
-    },
-    
-    // Snapshot состояния
-    snapshotState() {
-        return JSON.parse(JSON.stringify(lessonState.state));
-    },
-    
-    // Восстановление состояния
-    restoreState(snapshot) {
-        Object.assign(lessonState.state, snapshot);
+// Централизованное состояние
+class LessonController {
+    constructor() {
+        this.state = { currentTab: 'reading' };
     }
-};
-
-// Доступ через консоль в development
-if (process.env.NODE_ENV === 'development') {
-    window.__TEST__ = TestUtils;
+    
+    switchTab(tab) {
+        this.state.currentTab = tab;
+        this.render();
+    }
 }
+```
+
+**❌ DON'T:**
+```javascript
+// Разбросанное состояние в глобальных переменных
+let currentTab = 'reading';
+let score = 0;
+```
+
+### 3. Event Delegation
+
+**✅ DO:**
+```javascript
+// Event delegation
+document.querySelector('.vocab-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.save-btn');
+    if (btn) {
+        this.toggleWord(btn.dataset.word);
+    }
+});
+```
+
+**❌ DON'T:**
+```javascript
+// Множество слушателей
+document.querySelectorAll('.save-btn').forEach(btn => {
+    btn.addEventListener('click', () => ...);
+});
 ```
 
 ---
 
-## Производительность и оптимизация
+## Performance оптимизация
 
-### Метрики производительности
+### 1. Lazy Loading изображений
 
 ```javascript
-/**
- * Performance monitoring
- */
-
-class PerformanceMonitor {
-    constructor() {
-        this.marks = new Map();
-        this.measures = [];
-    }
-    
-    // Отметить начало операции
-    mark(name) {
-        performance.mark(name);
-        this.marks.set(name, performance.now());
-    }
-    
-    // Измерить время между отметками
-    measure(name, startMark, endMark) {
-        performance.measure(name, startMark, endMark);
-        
-        const entry = performance.getEntriesByName(name)[0];
-        this.measures.push({
-            name,
-            duration: entry.duration,
-            timestamp: Date.now()
+if ('IntersectionObserver' in window) {
+    const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.remove('lazy');
+                imageObserver.unobserve(img);
+            }
         });
-        
-        return entry.duration;
-    }
+    });
     
-    // Получить метрики производительности страницы
-    getPageMetrics() {
-        const perfData = performance.getEntriesByType('navigation')[0];
-        
-        return {
-            // Time to First Byte
-            ttfb: perfData.responseStart - perfData.requestStart,
-            
-            // DOM Content Loaded
-            dcl: perfData.domContentLoadedEventEnd - perfData.domContentLoadedEventStart,
-            
-            // Load Complete
-            loadComplete: perfData.loadEventEnd - perfData.loadEventStart,
-            
-            // Total Page Load
-            totalLoad: perfData.loadEventEnd - perfData.fetchStart
+    document.querySelectorAll('img.lazy').forEach(img => {
+        imageObserver.observe(img);
+    });
+}
+```
+
+### 2. Debounce и Throttle
+
+```javascript
+const Utils = {
+    debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    },
+    
+    throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
         };
     }
-    
-    // Отчет о производительности
-    report() {
-        console.group('Performance Report');
-        console.table(this.getPageMetrics());
-        console.table(this.measures);
-        console.groupEnd();
-    }
-}
-
-const perfMonitor = new PerformanceMonitor();
+};
 
 // Использование
-document.addEventListener('DOMContentLoaded', () => {
-    perfMonitor.mark('app-init-start');
-    
-    // ... инициализация приложения
-    
-    perfMonitor.mark('app-init-end');
-    perfMonitor.measure('app-initialization', 'app-init-start', 'app-init-end');
-    
-    // Отчет через 5 секунд после загрузки
-    setTimeout(() => {
-        perfMonitor.report();
-    }, 5000);
+const debouncedSearch = Utils.debounce((query) => {
+    searchVocabulary(query);
+}, 300);
+
+input.addEventListener('input', (e) => {
+    debouncedSearch(e.target.value);
 });
 ```
 
-### Оптимизация рендеринга
+### 3. Batch DOM Updates
 
 ```javascript
-/**
- * Batch DOM updates для избежания layout thrashing
- */
-
 class DOMBatcher {
     constructor() {
         this.reads = [];
@@ -1384,11 +859,9 @@ class DOMBatcher {
         
         this.scheduled = true;
         requestAnimationFrame(() => {
-            // Сначала все чтения
             this.reads.forEach(fn => fn());
             this.reads = [];
             
-            // Потом все записи
             this.writes.forEach(fn => fn());
             this.writes = [];
             
@@ -1396,86 +869,124 @@ class DOMBatcher {
         });
     }
 }
+```
 
-const batcher = new DOMBatcher();
+---
 
-// Использование
-function updateMultipleElements() {
-    const elements = document.querySelectorAll('.element');
-    
-    elements.forEach(el => {
-        // Сначала читаем
-        batcher.read(() => {
-            const height = el.offsetHeight;
-            
-            // Потом пишем
-            batcher.write(() => {
-                el.style.height = `${height * 2}px`;
-            });
-        });
-    });
+## Roadmap
+
+### Phase 1: Template Generator (Q1 2026)
+
+**Цель:** Автоматизация создания уроков
+
+**Задачи:**
+- CLI инструмент для генерации HTML из JSON
+- JSON schema validation
+- Автоматическое создание lessonId
+- Предпросмотр урока в dev mode
+
+**Технологии:**
+- Node.js для CLI
+- JSON Schema для валидации
+- Template engine (Handlebars/EJS)
+
+**Пример использования:**
+```bash
+$ npm run create-lesson data/152.json
+✓ JSON validated
+✓ HTML generated: dist/152.html
+✓ Lesson ready: http://localhost:3000/152.html
+```
+
+---
+
+### Phase 2: Enhanced Interactivity (Q2 2026)
+
+**Цель:** Расширение интерактивности
+
+**Задачи:**
+- Speech Recognition API для произношения
+- Drag-and-drop упражнения
+- Заполнение пропусков (fill-in-the-blank)
+- Matching games
+
+**Новые типы quiz вопросов:**
+```json
+{
+  "type": "fill-blank",
+  "text": "I ___ to school every day.",
+  "correct": "go",
+  "options": ["go", "goes", "going"]
 }
 ```
 
 ---
 
-## Будущие улучшения
+### Phase 3: Analytics & Progress Tracking (Q3 2026)
 
-### Roadmap
+**Цель:** Отслеживание прогресса обучения
 
-#### Phase 1: Template System (Q1 2026)
-- Создание системы шаблонов для генерации HTML-файлов
-- CLI инструмент для создания новых уроков
-- Автоматизация обновления общих компонентов
+**Задачи:**
+- Dashboard для просмотра статистики
+- Spaced Repetition System (SRS) для слов
+- Рекомендации следующих уроков
+- Экспорт прогресса
 
-#### Phase 2: Progressive Web App (Q2 2026)
-- Service Worker для offline работы
-- Манифест приложения
-- Push уведомления о новых уроках
+**Новый модуль:**
+```javascript
+class LessonAnalytics {
+    trackEvent(event, data)
+    getProgress()
+    calculateSRSSchedule(word)
+    recommendNextLesson()
+}
+```
 
-#### Phase 3: Analytics & Insights (Q3 2026)
-- Встроенная аналитика без внешних сервисов
-- Дашборд прогресса обучения
-- Рекомендации на основе результатов
+---
 
-#### Phase 4: Advanced Interactions (Q4 2026)
-- Голосовой ввод для упражнений
-- Распознавание речи для произношения
-- Геймификация с достижениями
+### Phase 4: Progressive Web App (Q4 2026)
 
-### Технический долг
+**Цель:** Offline-доступность и нативный опыт
 
-**Приоритет 1 (Критический):**
-- Рефакторинг дублирующегося кода между уроками
-- Создание единой системы типов (TypeScript или JSDoc)
-- Автоматизированное тестирование
-
-**Приоритет 2 (Высокий):**
-- Миграция на Web Components для лучшей изоляции
-- Внедрение CSS-in-JS для динамических стилей
-- Оптимизация bundle size (code splitting)
-
-**Приоритет 3 (Средний):**
-- Документация API компонентов
-- Storybook для демонстрации компонентов
-- E2E тестирование (Playwright/Cypress)
+**Задачи:**
+- Service Worker для кэширования
+- Web App Manifest
+- Push notifications для напоминаний
+- Install prompt
 
 ---
 
 ## Заключение
 
-Данная архитектура представляет собой баланс между простотой standalone HTML-файлов и современными паттернами разработки. Код написан с учетом:
+Проект успешно реализован с использованием **модульной архитектуры**, обеспечивающей:
 
-- **Maintainability**: Легко поддерживать и расширять
-- **Performance**: Оптимизирован для быстрой загрузки и работы
-- **Accessibility**: Соответствует стандартам доступности
-- **Scalability**: Готов к масштабированию через систему шаблонов
-- **Developer Experience**: Понятен и хорошо структурирован
+✅ **Maintainability** — Лёгкая поддержка и расширение  
+✅ **Performance** — Быстрая загрузка благодаря кэшированию  
+✅ **Scalability** — Готовность к росту количества уроков  
+✅ **Developer Experience** — Понятная структура кода  
+✅ **User Experience** — Консистентный интерфейс  
 
-При работе над новыми уроками следуйте этим принципам и паттернам для сохранения консистентности кодовой базы.
+Текущая архитектура балансирует между простотой разработки и качеством продукта, используя современные веб-стандарты без внешних зависимостей.
+
+### Для новых разработчиков
+
+**Начните с:**
+1. Изучения `lesson-engine.js` — точка входа
+2. Просмотра `lesson-renderer.js` — понимание UI
+3. Анализа JSON структуры — формат данных
+4. Экспериментов с существующими уроками
+
+**Следуйте принципам:**
+- Separation of Concerns
+- DRY (Don't Repeat Yourself)
+- KISS (Keep It Simple, Stupid)
+- Progressive Enhancement
+- Accessibility First
 
 ---
 
-**Автор:** andreacebotarev-svg  
-**Версия:** 1.0.0  
-**Дата:** Декабрь 2025
+**Авторы:** andreacebotarev-svg  
+**Версия:** 2.0.0  
+**Дата обновления:** 14 декабря 2025  
+**Статус:** ✅ Production Ready  
+**Подробная документация:** [README.md](./README.md)
