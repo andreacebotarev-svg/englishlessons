@@ -116,9 +116,10 @@ class LessonRenderer {
    * Render vocabulary list or flashcards
    * @param {string} mode - 'list' or 'flashcard'
    * @param {Array} myWords - Currently saved words
+   * @param {number} flashcardIndex - Index for flashcard mode
    * @returns {string} HTML string
    */
-  renderVocabulary(mode, myWords) {
+  renderVocabulary(mode, myWords, flashcardIndex = 0) {
     const vocabulary = this.data.vocabulary?.words;
     const phrases = this.data.vocabulary?.phrases;
 
@@ -143,7 +144,7 @@ class LessonRenderer {
     if (mode === 'list') {
       return header + this.renderVocabList(vocabulary, phrases, myWords);
     } else {
-      return header + this.renderFlashcard(vocabulary, 0);
+      return header + this.renderFlashcard(vocabulary, flashcardIndex);
     }
   }
 
