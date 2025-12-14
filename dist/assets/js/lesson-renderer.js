@@ -71,11 +71,25 @@ class LessonRenderer {
     };
 
     const processedParagraphs = reading.map(para => {
+      // Handle different paragraph types
       if (para.type === 'list') {
         const items = para.text.split('\n').filter(line => line.trim());
         return `<ul style="padding-left: 20px; margin-bottom: 12px;">${items.map(item => `<li>${processText(item)}</li>`).join('')}</ul>`;
+      } else if (para.type === 'fact') {
+        // Special styling for fact boxes
+        return `
+          <div style="margin: 16px 0; padding: 12px; background: rgba(79, 140, 255, 0.1); border-left: 3px solid var(--accent); border-radius: 8px;">
+            ${para.title ? `<div style="font-weight: 600; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px;">${this.escapeHTML(para.title)}</div>` : ''}
+            <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">${processText(para.text)}</p>
+          </div>
+        `;
+      } else {
+        // Regular paragraph
+        return `
+          ${para.title ? `<h3 style="font-size: 1rem; font-weight: 600; margin: 16px 0 8px 0; color: var(--text-main);">${this.escapeHTML(para.title)}</h3>` : ''}
+          <p class="reading-paragraph">${processText(para.text)}</p>
+        `;
       }
-      return `<p class="reading-paragraph">${processText(para.text)}</p>`;
     }).join('');
 
     return `
@@ -138,7 +152,7 @@ class LessonRenderer {
    */
   renderVocabList(vocabulary, phrases, myWords) {
     const vocabItems = vocabulary.map(item => {
-      const { en: word, transcription: phonetic, ru: definition, example, part_of_speech } = item;
+      const { en: word, transcription: phonetic, ru: definition, example, part_of_speech, image } = item;
       const isSaved = myWords.some(w => w.word.toLowerCase() === word.toLowerCase());
 
       const safeWord = this.escapeHTML(word).replace(/'/g, "\\'");
@@ -147,6 +161,7 @@ class LessonRenderer {
 
       return `
         <div class="vocab-item">
+          ${image ? `<div style="margin-bottom: 8px;"><img src="../images/${image}" alt="${this.escapeHTML(word)}" style="max-width: 100%; height: auto; border-radius: 8px;" onerror="this.style.display='none'"></div>` : ''}
           <div class="vocab-top-line">
             <div>
               <span class="vocab-word">${this.escapeHTML(word)}</span>
@@ -184,6 +199,7 @@ class LessonRenderer {
                 </button>
               </div>
               <div class="vocab-definition">${this.escapeHTML(phrase.ru)}</div>
+              ${phrase.context ? `<div class="vocab-example" style="font-style: italic;">Context: ${this.escapeHTML(phrase.context)}</div>` : ''}
             </div>
           `;
         }).join('')}
@@ -208,9 +224,12 @@ class LessonRenderer {
    * Render single flashcard
    */
   renderFlashcard(vocabulary, index) {
-    if (index >= vocabulary.length) {
-      index = 0;
+    if (!vocabulary || vocabulary.length === 0) {
+      return '<p class="text-soft">No vocabulary for flashcards.</p>';
     }
+
+    // Normalize index
+    index = Math.max(0, Math.min(index, vocabulary.length - 1));
 
     const item = vocabulary[index];
     const total = vocabulary.length;
@@ -220,8 +239,9 @@ class LessonRenderer {
       <div class="vocab-layout">
         <div>
           <div class="flashcard-shell">
-            <div class="flashcard" id="flashcard">
+            <div class="flashcard" id="flashcard" onclick="window.lessonEngine.flipFlashcard()" style="cursor: pointer;">
               <div class="flashcard-face flashcard-front">
+                ${item.image ? `<div style="margin-bottom: 12px;"><img src="../images/${item.image}" alt="${this.escapeHTML(item.en)}" style="max-width: 100%; max-height: 120px; object-fit: contain; border-radius: 8px;" onerror="this.style.display='none'"></div>` : ''}
                 <div class="flashcard-label">Word</div>
                 <div class="flashcard-word">${this.escapeHTML(item.en)}</div>
                 ${item.transcription ? `<div class="flashcard-definition">${this.escapeHTML(item.transcription)}</div>` : ''}
@@ -233,15 +253,21 @@ class LessonRenderer {
                 <div class="flashcard-label">Definition</div>
                 <div class="flashcard-word">${this.escapeHTML(item.ru)}</div>
                 ${item.example ? `<div class="flashcard-definition" style="margin-top: 12px; font-size: 0.85rem;">"${this.escapeHTML(item.example)}"</div>` : ''}
+                ${item.part_of_speech ? `<div style="margin-top: 8px;"><span class="tag">${this.escapeHTML(item.part_of_speech)}</span></div>` : ''}
               </div>
             </div>
             <div class="flashcard-controls">
-              <button class="icon-btn" onclick="window.lessonEngine.prevFlashcard()" aria-label="Previous">
-                <span>⬅</span>
+              <button class="icon-btn" onclick="window.lessonEngine.prevFlashcard(); event.stopPropagation();" aria-label="Previous">
+                <span>⬅</span> Prev
               </button>
-              <span class="flashcard-index">${index + 1} / ${total}</span>
-              <button class="icon-btn" onclick="window.lessonEngine.nextFlashcard()" aria-label="Next">
-                <span>➡</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="flashcard-index">${index + 1} / ${total}</span>
+                <button class="icon-btn primary" onclick="window.lessonEngine.speakWord('${safeWord}'); event.stopPropagation();" aria-label="Speak">
+                  <span>🔊</span>
+                </button>
+              </div>
+              <button class="icon-btn" onclick="window.lessonEngine.nextFlashcard(); event.stopPropagation();" aria-label="Next">
+                Next <span>➡</span>
               </button>
             </div>
           </div>
@@ -272,31 +298,43 @@ class LessonRenderer {
   }
 
   /**
-   * Render quiz
+   * Render quiz - supports both array and object with questions
    */
   renderQuiz(quizState) {
-    const quiz = this.data.quiz;
+    let quiz = this.data.quiz;
 
-    if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+    // Handle both formats: array or object with questions
+    if (!quiz) {
+      return '<p class="text-soft">No quiz available.</p>';
+    }
+
+    // If quiz is array, wrap it
+    let questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
+
+    if (questions.length === 0) {
       return '<p class="text-soft">No quiz available.</p>';
     }
 
     if (quizState.completed) {
-      return this.renderQuizResults(quizState);
+      return this.renderQuizResults(quizState, questions.length);
     }
 
-    const question = quiz.questions[quizState.currentQuestionIndex];
-    const progress = Math.round(((quizState.currentQuestionIndex + 1) / quiz.questions.length) * 100);
+    const question = questions[quizState.currentQuestionIndex];
+    const progress = Math.round(((quizState.currentQuestionIndex + 1) / questions.length) * 100);
+
+    // Support both 'q'/'question' and 'opts'/'options'
+    const questionText = question.question || question.q || 'No question text';
+    const options = question.options || question.opts || [];
 
     return `
       <div class="card-header">
         <h2 class="card-title">⚡ Quiz</h2>
-        <div class="quiz-progress">Question ${quizState.currentQuestionIndex + 1} / ${quiz.questions.length}</div>
+        <div class="quiz-progress">Question ${quizState.currentQuestionIndex + 1} / ${questions.length}</div>
       </div>
       <div class="quiz-body">
-        <p class="quiz-question">${this.escapeHTML(question.question)}</p>
+        <p class="quiz-question">${this.escapeHTML(questionText)}</p>
         <div class="quiz-options" id="quiz-options">
-          ${question.options.map((opt, i) => `
+          ${options.map((opt, i) => `
             <button class="quiz-option" onclick="window.lessonEngine.selectQuizAnswer(${i})">
               ${this.escapeHTML(opt)}
             </button>
@@ -313,18 +351,30 @@ class LessonRenderer {
   /**
    * Render quiz results
    */
-  renderQuizResults(quizState) {
-    const total = quizState.answers.length;
+  renderQuizResults(quizState, totalQuestions) {
+    const total = totalQuestions || quizState.answers.length;
     const correct = quizState.answers.filter(a => a.correct).length;
     const percentage = Math.round((correct / total) * 100);
+
+    let emoji = '🎉';
+    let message = 'Excellent!';
+    if (percentage < 60) {
+      emoji = '💪';
+      message = 'Keep practicing!';
+    } else if (percentage < 80) {
+      emoji = '👍';
+      message = 'Good job!';
+    }
 
     return `
       <div class="card-header">
         <h2 class="card-title">🏆 Quiz Complete!</h2>
       </div>
       <div class="mt-md" style="text-align: center;">
-        <div style="font-size: 3rem; margin: 20px 0;">${percentage}%</div>
-        <p style="font-size: 1.1rem; margin-bottom: 20px;">You scored ${correct} out of ${total}</p>
+        <div style="font-size: 3rem; margin: 20px 0;">${emoji}</div>
+        <div style="font-size: 2rem; font-weight: 600; margin-bottom: 8px;">${percentage}%</div>
+        <p style="font-size: 1.1rem; margin-bottom: 8px;">${message}</p>
+        <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px;">You scored ${correct} out of ${total}</p>
         <button class="primary-btn" onclick="window.lessonEngine.resetQuiz()">
           <span>🔄</span> Try Again
         </button>
