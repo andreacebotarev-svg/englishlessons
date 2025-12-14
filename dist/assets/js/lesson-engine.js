@@ -168,6 +168,13 @@ class LessonEngine {
    */
   switchTab(tabName) {
     this.currentTab = tabName;
+    
+    // Reset flashcard when entering vocabulary tab
+    if (tabName === 'vocabulary' && this.vocabMode === 'flashcard') {
+      // Remove flipped state when switching tabs
+      this.flashcardIndex = Math.max(0, this.flashcardIndex);
+    }
+    
     this.renderCurrentTab();
     this.tts.vibrate(10);
   }
@@ -186,7 +193,7 @@ class LessonEngine {
         html = this.renderer.renderReading(this.myWords);
         break;
       case 'vocabulary':
-        html = this.renderer.renderVocabulary(this.vocabMode, this.myWords);
+        html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
         break;
       case 'grammar':
         html = this.renderer.renderGrammar();
@@ -233,16 +240,10 @@ class LessonEngine {
     modeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         this.vocabMode = btn.dataset.mode;
+        this.flashcardIndex = 0; // Reset when switching modes
         this.renderCurrentTab();
       });
     });
-
-    if (this.vocabMode === 'flashcard') {
-      const flashcard = document.querySelector('.flashcard');
-      if (flashcard) {
-        flashcard.addEventListener('click', () => this.flipFlashcard());
-      }
-    }
   }
 
   /**
@@ -306,7 +307,7 @@ class LessonEngine {
     const reading = this.lessonData.content?.reading;
     if (!reading) return;
 
-    const texts = reading.map(para => para.text);
+    const texts = reading.filter(p => p.type !== 'fact').map(para => para.text);
     this.tts.speakSequence(texts, 1500);
   }
 
@@ -328,25 +329,44 @@ class LessonEngine {
   }
 
   nextFlashcard() {
+    if (!this.lessonData.vocabulary?.words) return;
+    
     const maxIndex = this.lessonData.vocabulary.words.length - 1;
     if (this.flashcardIndex < maxIndex) {
       this.flashcardIndex++;
-      this.renderCurrentTab();
+    } else {
+      this.flashcardIndex = 0; // Loop back to start
     }
+    
+    this.renderCurrentTab();
+    this.tts.vibrate(10);
   }
 
   prevFlashcard() {
+    if (!this.lessonData.vocabulary?.words) return;
+    
     if (this.flashcardIndex > 0) {
       this.flashcardIndex--;
-      this.renderCurrentTab();
+    } else {
+      // Loop to end
+      this.flashcardIndex = this.lessonData.vocabulary.words.length - 1;
     }
+    
+    this.renderCurrentTab();
+    this.tts.vibrate(10);
   }
 
   /**
-   * Quiz methods
+   * Quiz methods - support both array and object format
    */
   selectQuizAnswer(answerIndex) {
-    const question = this.lessonData.quiz.questions[this.quizState.currentQuestionIndex];
+    // Get questions array (support both formats)
+    const quiz = this.lessonData.quiz;
+    const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
+    
+    if (questions.length === 0) return;
+    
+    const question = questions[this.quizState.currentQuestionIndex];
     const isCorrect = answerIndex === question.correct;
 
     this.quizState.answers.push({
@@ -368,20 +388,28 @@ class LessonEngine {
       }
     });
 
+    // Get feedback text (support both 'fb' and 'feedback')
+    const feedback = question.fb || question.feedback || (isCorrect ? 'Correct!' : 'Incorrect');
+
     if (feedbackEl) {
       feedbackEl.innerHTML = `
         <p class="quiz-feedback ${isCorrect ? 'correct' : 'wrong'}">
-          ${isCorrect ? '✓ Correct!' : '✗ Incorrect. Try again!'}
+          ${isCorrect ? '✓' : '✗'} ${feedback}
         </p>
         <button class="primary-btn" style="margin-top: 12px;" onclick="window.lessonEngine.nextQuizQuestion()">
-          ${this.quizState.currentQuestionIndex < this.lessonData.quiz.questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+          ${this.quizState.currentQuestionIndex < questions.length - 1 ? 'Next Question →' : 'Finish Quiz'}
         </button>
       `;
     }
+    
+    this.tts.vibrate(isCorrect ? 30 : 50);
   }
 
   nextQuizQuestion() {
-    if (this.quizState.currentQuestionIndex < this.lessonData.quiz.questions.length - 1) {
+    const quiz = this.lessonData.quiz;
+    const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
+    
+    if (this.quizState.currentQuestionIndex < questions.length - 1) {
       this.quizState.currentQuestionIndex++;
       this.renderCurrentTab();
     } else {
