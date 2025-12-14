@@ -92,6 +92,8 @@ class LessonEngine {
   renderInterface() {
     const { title, subtitle, meta } = this.lessonData;
     const { level = 'A1', duration = 30 } = meta || {};
+    
+    // ИСПРАВЛЕНО: Grammar всегда показывается, если есть данные
     const hasGrammar = this.lessonData.grammar && Object.keys(this.lessonData.grammar).length > 0;
 
     const appEl = document.getElementById('app');
@@ -131,10 +133,12 @@ class LessonEngine {
               <span class="tab-indicator"></span>
               Vocabulary
             </button>
-            <button class="tab ${hasGrammar ? '' : 'tab-grammar-hidden'} ${this.currentTab === 'grammar' ? 'active' : ''}" data-tab="grammar" onclick="window.lessonEngine.switchTab('grammar')">
+            ${hasGrammar ? `
+            <button class="tab ${this.currentTab === 'grammar' ? 'active' : ''}" data-tab="grammar" onclick="window.lessonEngine.switchTab('grammar')">
               <span class="tab-indicator"></span>
               Grammar
             </button>
+            ` : ''}
             <button class="tab ${this.currentTab === 'quiz' ? 'active' : ''}" data-tab="quiz" onclick="window.lessonEngine.switchTab('quiz')">
               <span class="tab-indicator"></span>
               Quiz
@@ -159,8 +163,8 @@ class LessonEngine {
         </aside>
       </div>
     `;
-
-    this.attachVocabularyListeners();
+    
+    // ИСПРАВЛЕНО: убран дублирующий вызов attachVocabularyListeners
   }
 
   /**
@@ -193,6 +197,7 @@ class LessonEngine {
         html = this.renderer.renderReading(this.myWords);
         break;
       case 'vocabulary':
+        // ИСПРАВЛЕНО: передаём flashcardIndex отдельным параметром
         html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
         break;
       case 'grammar':
@@ -241,7 +246,7 @@ class LessonEngine {
       btn.addEventListener('click', () => {
         this.vocabMode = btn.dataset.mode;
         this.flashcardIndex = 0; // Reset when switching modes
-        this.renderCurrentTab();
+        this.renderCurrentTab(); // КРИТИЧНО: перерисовать интерфейс
       });
     });
   }
@@ -325,6 +330,7 @@ class LessonEngine {
     const card = document.getElementById('flashcard');
     if (card) {
       card.classList.toggle('flipped');
+      this.tts.vibrate(15);
     }
   }
 
