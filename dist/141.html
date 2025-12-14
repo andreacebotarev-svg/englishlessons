@@ -1354,7 +1354,7 @@
       // Функция для обработки текста: делаем слова кликабельными
      function processText(text) {
   // ИСПРАВЛЕНО: используем replace вместо split для сохранения всех пробелов
-  return text.replace(/\b[\w']+\b/g, (word) => {
+  return text.replace(/\b[\w']+\b/g, function(word) {
     const normalized = word.toLowerCase().replace(/[.,!?;:()]/g, '');
     if (vocabMap[normalized]) {
       const isSaved = myWords.some(w => w.word.toLowerCase() === normalized);
