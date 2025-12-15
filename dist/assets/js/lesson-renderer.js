@@ -27,6 +27,32 @@ class LessonRenderer {
   }
 
   /**
+   * Make all words in text interactive (clickable)
+   * @param {string} text
+   * @returns {string}
+   */
+  makeWordsInteractive(text) {
+    // Regex to match words (letters and apostrophes)
+    const wordRegex = /\b([a-zA-Z]+(?:'[a-zA-Z]+)?)\b/g;
+    
+    return text.replace(wordRegex, (match, word) => {
+      // Skip very short words (a, I, is, to, etc.)
+      if (word.length <= 2) {
+        return this.escapeHTML(match);
+      }
+      
+      const normalized = word.toLowerCase();
+      
+      // Create interactive word span
+      return `<span class="interactive-word" 
+                    data-word="${this.escapeHTML(normalized)}"
+                    onclick="window.lessonEngine.showWordPopup('${this.escapeHTML(normalized)}', event)">
+                ${this.escapeHTML(match)}
+              </span>`;
+    });
+  }
+
+  /**
    * Render reading content with clickable words
    * @param {Array} myWords - Currently saved words
    * @returns {string} HTML string
@@ -40,7 +66,7 @@ class LessonRenderer {
     const allText = reading.map(para => para.text).join(' ');
     const wordCount = allText.split(/\s+/).length;
 
-    // Build vocabulary map
+    // Build vocabulary map for special highlighting
     const vocabMap = {};
     if (this.data.vocabulary?.words) {
       this.data.vocabulary.words.forEach(item => {
@@ -53,21 +79,9 @@ class LessonRenderer {
       });
     }
 
-    // Process text to make words clickable
+    // Process text to make words clickable (ALL WORDS now!)
     const processText = (text) => {
-      return text.replace(/\b[\w']+\b/g, (word) => {
-        const normalized = word.toLowerCase().replace(/[.,!?;:()]/g, '');
-        if (vocabMap[normalized]) {
-          const isSaved = myWords.some(w => w.word.toLowerCase() === normalized);
-          const savedClass = isSaved ? ' saved' : '';
-          const item = vocabMap[normalized];
-          return `<span class="word-clickable${savedClass}" 
-                      data-word="${this.escapeHTML(item.word)}" 
-                      data-definition="${this.escapeHTML(item.definition)}" 
-                      data-phonetic="${this.escapeHTML(item.phonetic)}">${this.escapeHTML(word)}</span>`;
-        }
-        return this.escapeHTML(word);
-      });
+      return this.makeWordsInteractive(text);
     };
 
     const processedParagraphs = reading.map(para => {
