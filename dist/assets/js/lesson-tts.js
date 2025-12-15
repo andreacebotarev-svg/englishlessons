@@ -1,11 +1,56 @@
 /**
  * LESSON TTS (Text-to-Speech) MODULE
- * Handles audio playback using Google Translate TTS
+ * Handles audio playback using Web Speech API (native browser TTS)
  */
 
 class LessonTTS {
   constructor() {
-    this.currentAudio = null;
+    this.synthesis = window.speechSynthesis;
+    this.currentUtterance = null;
+    this.voices = [];
+    
+    // Load voices when available
+    this.loadVoices();
+    if (this.synthesis.onvoiceschanged !== undefined) {
+      this.synthesis.onvoiceschanged = () => this.loadVoices();
+    }
+  }
+
+  /**
+   * Load available voices
+   */
+  loadVoices() {
+    this.voices = this.synthesis.getVoices();
+  }
+
+  /**
+   * Get best voice for language
+   * @param {string} lang - Language code (e.g., 'en', 'ru')
+   * @returns {SpeechSynthesisVoice|null}
+   */
+  getVoice(lang = 'en') {
+    // Prefer Google voices, then any native voice
+    const langPrefix = lang.toLowerCase().substring(0, 2);
+    
+    // Try to find Google voice first
+    let voice = this.voices.find(v => 
+      v.lang.toLowerCase().startsWith(langPrefix) && 
+      v.name.toLowerCase().includes('google')
+    );
+    
+    // Fallback to any voice for the language
+    if (!voice) {
+      voice = this.voices.find(v => 
+        v.lang.toLowerCase().startsWith(langPrefix)
+      );
+    }
+    
+    // Last fallback to default
+    if (!voice && this.voices.length > 0) {
+      voice = this.voices[0];
+    }
+    
+    return voice;
   }
 
   /**
@@ -27,25 +72,44 @@ class LessonTTS {
    * Speak a single word or phrase
    * @param {string} text - Text to speak
    * @param {string} lang - Language code (default: 'en')
+   * @param {Object} options - Additional options
    */
-  speak(text, lang = 'en') {
+  speak(text, lang = 'en', options = {}) {
     const cleaned = this.cleanText(text);
     if (!cleaned) return;
 
-    // Stop current audio if playing
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio = null;
-    }
+    // Stop current speech if playing
+    this.stop();
 
-    // Construct Google TTS URL
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleaned)}&tl=${lang}&client=tw-ob`;
-    
     try {
-      this.currentAudio = new Audio(url);
-      this.currentAudio.play().catch(err => {
-        console.error('TTS playback error:', err);
-      });
+      // Create utterance
+      this.currentUtterance = new SpeechSynthesisUtterance(cleaned);
+      
+      // Set voice
+      const voice = this.getVoice(lang);
+      if (voice) {
+        this.currentUtterance.voice = voice;
+      }
+      
+      // Set language
+      this.currentUtterance.lang = lang === 'ru' ? 'ru-RU' : 'en-US';
+      
+      // Set options
+      this.currentUtterance.rate = options.rate || 0.9;
+      this.currentUtterance.pitch = options.pitch || 1.0;
+      this.currentUtterance.volume = options.volume || 1.0;
+      
+      // Error handling
+      this.currentUtterance.onerror = (event) => {
+        console.warn('TTS error:', event.error);
+      };
+      
+      // Speak
+      this.synthesis.speak(this.currentUtterance);
+      
+      // Vibrate on mobile
+      this.vibrate(10);
+      
     } catch (e) {
       console.error('TTS error:', e);
     }
@@ -55,24 +119,41 @@ class LessonTTS {
    * Speak multiple texts in sequence
    * @param {Array<string>} texts - Array of texts to speak
    * @param {number} delay - Delay between each text in ms (default: 800)
+   * @param {string} lang - Language code
    */
-  async speakSequence(texts, delay = 800) {
+  async speakSequence(texts, delay = 800, lang = 'en') {
     for (let i = 0; i < texts.length; i++) {
-      this.speak(texts[i]);
-      if (i < texts.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
+      this.speak(texts[i], lang);
+      
+      // Wait for utterance to finish + delay
+      await new Promise(resolve => {
+        if (this.currentUtterance) {
+          this.currentUtterance.onend = () => {
+            setTimeout(resolve, delay);
+          };
+        } else {
+          setTimeout(resolve, delay);
+        }
+      });
     }
   }
 
   /**
-   * Stop current audio playback
+   * Stop current speech
    */
   stop() {
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio = null;
+    if (this.synthesis.speaking) {
+      this.synthesis.cancel();
     }
+    this.currentUtterance = null;
+  }
+
+  /**
+   * Check if TTS is supported
+   * @returns {boolean}
+   */
+  isSupported() {
+    return 'speechSynthesis' in window;
   }
 
   /**
