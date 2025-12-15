@@ -2812,12 +2812,7 @@
     });
   }
 
-  /* =========================================================
-     SERVICE WORKER (inline registration)
-     - Single-file limitation: we generate a SW script via Blob and register it.
-     - Caches this HTML for offline use after first load.
-     - Note: some browsers restrict blob URL SW; if it fails, app still works online.
-     ========================================================= */
+
   async function initServiceWorkerInline(){
     try{
       if(!("serviceWorker" in navigator)) return;
@@ -2877,6 +2872,7 @@
     stopSpeech(); // [web:3]
     loadLesson();
   });
+<script>
 </body>
-
 </html>
+
