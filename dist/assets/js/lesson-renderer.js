@@ -292,7 +292,7 @@ class LessonRenderer {
   }
 
   /**
-   * Render grammar section
+   * Render grammar section with rules and examples
    */
   renderGrammar() {
     const grammar = this.data.grammar;
@@ -301,13 +301,66 @@ class LessonRenderer {
       return '<p class="text-soft">No grammar content available.</p>';
     }
 
-    // Simple rendering - can be enhanced based on grammar structure
+    const { title, explanation, rules, examples } = grammar;
+
+    // Render rules section
+    const rulesHTML = rules && Array.isArray(rules) ? rules.map(rule => {
+      const examplesList = rule.examples && Array.isArray(rule.examples) 
+        ? `<ul style="padding-left: 20px; margin-top: 8px;">
+            ${rule.examples.map(ex => `<li style="margin-bottom: 4px; color: var(--text-soft);">${this.escapeHTML(ex)}</li>`).join('')}
+          </ul>`
+        : '';
+      
+      return `
+        <div style="padding: 12px; background: rgba(9, 13, 32, 0.5); border-radius: var(--radius-md); margin-bottom: 12px; border-left: 3px solid var(--accent);">
+          <div style="font-weight: 600; font-size: 0.95rem; color: var(--accent); margin-bottom: 6px;">
+            ${this.escapeHTML(rule.rule)}
+          </div>
+          ${examplesList}
+        </div>
+      `;
+    }).join('') : '';
+
+    // Render examples section
+    const examplesHTML = examples ? `
+      <div style="margin-top: 20px;">
+        <h3 style="font-size: 1rem; font-weight: 650; color: var(--text-main); margin-bottom: 12px;">📝 Practice Examples</h3>
+        ${examples.affirmative && examples.affirmative.length > 0 ? `
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">Affirmative</div>
+            <ul style="padding-left: 20px;">
+              ${examples.affirmative.map(ex => `<li style="margin-bottom: 6px; line-height: 1.5;">${this.escapeHTML(ex)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        ${examples.negative && examples.negative.length > 0 ? `
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">Negative</div>
+            <ul style="padding-left: 20px;">
+              ${examples.negative.map(ex => `<li style="margin-bottom: 6px; line-height: 1.5;">${this.escapeHTML(ex)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        ${examples.questions && examples.questions.length > 0 ? `
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">Questions</div>
+            <ul style="padding-left: 20px;">
+              ${examples.questions.map(ex => `<li style="margin-bottom: 6px; line-height: 1.5;">${this.escapeHTML(ex)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+      </div>
+    ` : '';
+
     return `
       <div class="card-header">
         <h2 class="card-title">✏️ Grammar</h2>
       </div>
-      <div class="mt-md">
-        <p class="text-soft">Grammar content rendering in progress...</p>
+      <div style="margin-top: var(--space-md);">
+        ${title ? `<h3 style="font-size: 1.1rem; font-weight: 650; color: var(--text-main); margin-bottom: 12px;">${this.escapeHTML(title)}</h3>` : ''}
+        ${explanation ? `<p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">${this.escapeHTML(explanation)}</p>` : ''}
+        ${rulesHTML}
+        ${examplesHTML}
       </div>
     `;
   }
