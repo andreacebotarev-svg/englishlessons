@@ -67,8 +67,8 @@ class LessonRenderer {
     const allText = reading.map(para => para.text).join(' ');
     const wordCount = allText.split(/\s+/).length;
 
-    // Get lesson ID for image paths
-    const lessonId = this.data.id || window.lessonEngine?.lessonId || '264';
+    // Get lesson ID for image paths - prioritize lessonEngine's ID
+    const lessonId = window.lessonEngine?.lessonId || this.data.id;
 
     // Build vocabulary map for special highlighting
     const vocabMap = {};
@@ -119,9 +119,9 @@ class LessonRenderer {
         const imageHTML = `
           <div class="reading-image-container" style="margin: var(--space-xl) 0;">
             <img class="reading-image" 
-                 src="images/${lessonId}(${imageCounter}).jpg" 
+                 src="../images/${lessonId}(${imageCounter}).jpg" 
                  alt="Illustration for paragraph ${imageCounter}"
-                 onerror="this.parentElement.style.display='none'"
+                 onerror="if(!this.dataset.fallback){this.dataset.fallback='1'; this.src=this.src.replace('.jpg','.jpeg');} else {this.parentElement.style.display='none';}"
                  loading="lazy"
                  style="width: 100%; max-width: 600px; height: auto; 
                         border-radius: var(--radius-lg); margin: 0 auto; 
