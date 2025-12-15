@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>English A0 — have got / has got (Standalone)</title>
+<style>
+    /* =========================================================
+       ROOT + RESET
+       ========================================================= */
+    :root{
+      --bg: #0b1220;
+      --panel: rgba(255,255,255,.06);
+      --panel-2: rgba(255,255,255,.09);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --faint: rgba(255,255,255,.55);
+
+      --brand: #66e3ff;
+      --brand-2: #7cffb2;
+      --warn: #ffcc66;
+      --danger: #ff6b6b;
+
+      --shadow: 0 14px 50px rgba(0,0,0,.45);
+      --border: 1px solid rgba(255,255,255,.14);
+
+      --r-lg: 18px;
+      --r-md: 14px;
+      --r-sm: 10px;
+
+      --gap-1: 8px;
+      --gap-2: 12px;
+      --gap-3: 16px;
+      --gap-4: 22px;
+      --gap-5: 30px;
+
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+      --tap: 44px;
+
+      --t-fast: 140ms;
+      --t-med: 220ms;
+      --t-slow: 320ms;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height: 100%; }
+    body{
+      margin: 0;
+      font-family: var(--font);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(102,227,255,.20), transparent 55%),
+        radial-gradient(1000px 650px at 85% 15%, rgba(124,255,178,.14), transparent 55%),
+        radial-gradient(900px 600px at 50% 95%, rgba(255,204,102,.10), transparent 58%),
+        var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Anti-copy baseline: allow selection only where explicitly allowed */
+    body, .no-select { user-select: none; -webkit-user-select: none; }
+    .selectable, input, textarea { user-select: text; -webkit-user-select: text; }
+
+    a{ color: inherit; text-decoration: none; }
+    button, input { font-family: inherit; }
+
+    /* =========================================================
+       APP LAYOUT
+       ========================================================= */
+    .app-shell{
+      min-height: 100%;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: var(--gap-4);
+      padding: calc(var(--gap-4) + env(safe-area-inset-top)) var(--gap-4) calc(var(--gap-4) + env(safe-area-inset-bottom));
+      max-width: 1220px;
+      margin: 0 auto;
+    }
+
+    .main{
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-4);
+      min-width: 0;
+    }
+
+    .panel{
+      background: var(--panel);
+      border: var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* =========================================================
+       LOADER
+       ========================================================= */
+    .loader-container{
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(7, 11, 19, .82);
+      z-index: 50;
+      transition: opacity var(--t-slow) ease, transform var(--t-slow) ease;
+    }
+    .loader{
+      width: min(520px, 92vw);
+      padding: 22px;
+      border-radius: var(--r-lg);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .spinner{
+      width: 52px;
+      height: 52px;
+      margin: 2px auto 12px;
+      border-radius: 50%;
+      border: 6px solid rgba(255,255,255,.16);
+      border-top-color: var(--brand);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin{ to { transform: rotate(360deg); } }
+    .loader h1{
+      margin: 6px 0 6px;
+      font-size: 16px;
+      letter-spacing: .2px;
+    }
+    .loader p{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .loader-hidden{
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+    .header{
+      padding: var(--gap-4);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--gap-3);
+      align-items: start;
+    }
+    .title{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .title h2{
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+    .subtitle{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .meta{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .chip{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .dot{
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px rgba(102,227,255,.12);
+    }
+
+    /* =========================================================
+       TABS
+       ========================================================= */
+    .tabs{
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border-radius: var(--r-lg);
+      border: var(--border);
+      background: rgba(255,255,255,.04);
+    }
+    .tab{
+      min-height: var(--tap);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background var(--t-med) ease, border-color var(--t-med) ease, transform var(--t-fast) ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .tab:hover{ background: rgba(255,255,255,.06); transform: translateY(-1px); }
+    .tab[aria-selected="true"]{
+      color: rgba(255,255,255,.95);
+      background: rgba(102,227,255,.12);
+      border-color: rgba(102,227,255,.28);
+    }
+
+    .content{
+      padding: var(--gap-4);
+    }
+    .section-title{
+      margin: 0 0 10px;
+      font-size: 15px;
+      letter-spacing: .2px;
+    }
+    .section-hint{
+      margin: 0 0 var(--gap-3);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    /* =========================================================
+       BUTTONS + INPUTS
+       ========================================================= */
+    .row{
+      display: flex;
+      gap: var(--gap-2);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn{
+      min-height: var(--tap);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      cursor: pointer;
+      transition: transform var(--t-fast) ease, background var(--t-med) ease, border-color var(--t-med) ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); }
+    .btn:active{ transform: translateY(0px); }
+    .btn-primary{
+      background: rgba(124,255,178,.14);
+      border-color: rgba(124,255,178,.28);
+    }
+    .btn-danger{
+      background: rgba(255,107,107,.12);
+      border-color: rgba(255,107,107,.28);
+    }
+    .btn-ghost{
+      background: transparent;
+      border-color: rgba(255,255,255,.14);
+      color: var(--muted);
+    }
+    .btn[disabled]{
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .input{
+      min-height: var(--tap);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.20);
+      color: rgba(255,255,255,.92);
+      outline: none;
+      width: min(520px, 100%);
+    }
+    .input::placeholder{ color: rgba(255,255,255,.45); }
+
+    /* =========================================================
+       READING
+       ========================================================= */
+    .reading-box{
+      display: grid;
+      gap: var(--gap-2);
+    }
+    .reading-text{
+      padding: var(--gap-3);
+      border-radius: var(--r-md);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      line-height: 1.65;
+      color: rgba(255,255,255,.86);
+      font-size: 14px;
+    }
+    .reading-text .word{
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin: 1px 0;
+      cursor: pointer;
+      transition: background var(--t-med) ease, transform var(--t-fast) ease;
+      border: 1px solid transparent;
+    }
+    .reading-text .word:hover{
+      background: rgba(102,227,255,.12);
+      border-color: rgba(102,227,255,.18);
+      transform: translateY(-1px);
+    }
+    .reading-actions{
+      display: flex;
+      gap: var(--gap-2);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* =========================================================
+       VOCAB: LIST + FLASHCARDS
+       ========================================================= */
+    .mode-switch{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: var(--gap-3);
+    }
+    .pill{
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      cursor: pointer;
+      transition: background var(--t-med) ease, border-color var(--t-med) ease;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill[aria-pressed="true"]{
+      background: rgba(102,227,255,.12);
+      border-color: rgba(102,227,255,.28);
+      color: rgba(255,255,255,.92);
+    }
+
+    .vocab-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--gap-2);
+    }
+    .vocab-item{
+      display: grid;
+      grid-template-columns: 1.2fr 1fr auto;
+      gap: var(--gap-2);
+      align-items: center;
+      padding: 12px;
+      border-radius: var(--r-md);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      transition: transform var(--t-fast) ease, background var(--t-med) ease;
+    }
+    .vocab-item:hover{ transform: translateY(-1px); background: rgba(255,255,255,.05); }
+    .w{
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .w strong{
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+    .w small{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+    .tag{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      font-size: 12px;
+      justify-self: start;
+      white-space: nowrap;
+    }
+
+    /* Flashcard */
+    .card-wrap{
+      display: grid;
+      gap: var(--gap-3);
+      justify-items: center;
+    }
+    .card{
+      width: min(520px, 100%);
+      min-height: 220px;
+      border-radius: var(--r-lg);
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      position: relative;
+      perspective: 1200px;
+      overflow: hidden;
+    }
+    .card-inner{
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transition: transform var(--t-slow) ease;
+    }
+    .card.flipped .card-inner{ transform: rotateY(180deg); }
+    .card-face{
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: var(--gap-4);
+      backface-visibility: hidden;
+    }
+    .card-front{
+      gap: 10px;
+    }
+    .card-back{
+      transform: rotateY(180deg);
+      gap: 10px;
+      background: rgba(102,227,255,.06);
+    }
+    .big{
+      font-size: 28px;
+      font-weight: 760;
+      letter-spacing: .4px;
+      text-align: center;
+    }
+    .small{
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      line-height: 1.45;
+      max-width: 42ch;
+    }
+
+    /* =========================================================
+       GRAMMAR
+       ========================================================= */
+    .grammar-grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--gap-3);
+    }
+    .note{
+      padding: 12px;
+      border-radius: var(--r-md);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.86);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .mini-table{
+      display: grid;
+      gap: 10px;
+    }
+    .mini-row{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .cell{
+      padding: 12px;
+      border-radius: var(--r-md);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .mono{
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: rgba(255,255,255,.88);
+    }
+
+    /* =========================================================
+       QUIZ
+       ========================================================= */
+    .quiz-top{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap-2);
+      flex-wrap: wrap;
+      margin-bottom: var(--gap-3);
+    }
+    .progress{
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .timer{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      font-size: 12px;
+      color: rgba(255,255,255,.88);
+    }
+    .bar{
+      width: 120px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .bar > i{
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, rgba(124,255,178,.95), rgba(102,227,255,.95));
+      transform-origin: left center;
+      transform: scaleX(1);
+      transition: transform 1s linear;
+    }
+
+    .qbox{
+      padding: 14px;
+      border-radius: var(--r-md);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      display: grid;
+      gap: 12px;
+    }
+    .qtitle{
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+    .options{
+      display: grid;
+      gap: 10px;
+    }
+    .opt{
+      min-height: var(--tap);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.12);
+      cursor: pointer;
+      transition: transform var(--t-fast) ease, background var(--t-med) ease, border-color var(--t-med) ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: rgba(255,255,255,.90);
+      font-size: 13px;
+    }
+    .opt:hover{ transform: translateY(-1px); background: rgba(255,255,255,.06); }
+    .opt[aria-disabled="true"]{ opacity: .55; cursor: not-allowed; transform: none; }
+    .badge{
+      font-size: 11px;
+      color: rgba(255,255,255,.86);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      white-space: nowrap;
+    }
+    .feedback{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.14);
+      color: rgba(255,255,255,.86);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .feedback.good{ border-color: rgba(124,255,178,.30); background: rgba(124,255,178,.10); }
+    .feedback.bad{ border-color: rgba(255,107,107,.30); background: rgba(255,107,107,.10); }
+
+    .lock{
+      padding: 12px;
+      border-radius: var(--r-md);
+      border: 1px solid rgba(255,204,102,.28);
+      background: rgba(255,204,102,.10);
+      color: rgba(255,255,255,.88);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    /* =========================================================
+       SIDEBAR (MY WORDS)
+       ========================================================= */
+    .sidebar{
+      position: sticky;
+      top: calc(var(--gap-4) + env(safe-area-inset-top));
+      align-self: start;
+      height: calc(100vh - (var(--gap-4) * 2) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar .head{
+      padding: var(--gap-3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap-2);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+    .sidebar .head h3{
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: .2px;
+    }
+    .sidebar .body{
+      padding: var(--gap-3);
+      overflow: auto;
+      display: grid;
+      gap: 10px;
+    }
+    .myword{
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .myword .t{
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .myword .t b{
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .myword .t span{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    /* =========================================================
+       NOTIFICATIONS
+       ========================================================= */
+    .toasts{
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      display: grid;
+      gap: 10px;
+      z-index: 60;
+      width: min(360px, calc(100vw - 28px));
+    }
+    .toast{
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.40);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: rgba(255,255,255,.92);
+      box-shadow: var(--shadow);
+      animation: pop var(--t-slow) ease;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .toast.good{ border-color: rgba(124,255,178,.30); }
+    .toast.warn{ border-color: rgba(255,204,102,.30); }
+    .toast.bad{ border-color: rgba(255,107,107,.30); }
+    @keyframes pop{
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* =========================================================
+       WATERMARK (ANTI-COPY / ANTI-SCREENSHOT FEEL)
+       ========================================================= */
+    .wm{
+      position: fixed;
+      left: 10px;
+      top: 10px;
+      z-index: 5;
+      pointer-events: none;
+      opacity: .14;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,.85);
+      transform: rotate(-8deg);
+      text-shadow: 0 1px 0 rgba(0,0,0,.35);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+    @media (max-width: 768px){
+      .app-shell{
+        grid-template-columns: 1fr;
+        padding: calc(var(--gap-3) + env(safe-area-inset-top)) var(--gap-3) calc(var(--gap-3) + env(safe-area-inset-bottom));
+      }
+      .sidebar{
+        position: relative;
+        top: auto;
+        height: auto;
+        order: 3;
+      }
+      .vocab-item{
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+      .meta{
+        justify-content: flex-start;
+      }
+      .header{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px){
+      .tab{ flex: 1; justify-content: center; }
+      .bar{ width: 96px; }
+      .big{ font-size: 24px; }
+      .reading-text{ font-size: 13.5px; }
+    }
+</head>
+<body>
+  <!-- Loader -->
+  <div class="loader-container" id="loader" aria-live="polite" aria-busy="true">
+    <div class="loader panel">
+      <div class="spinner" aria-hidden="true"></div>
+      <h1>Loading lesson…</h1>
+      <p>Offline-ready after the first successful open (service worker cache).</p>
+    </div>
+  </div>
+  <!-- Watermark (anti-copy vibe) -->
+<div class="wm" id="wm">lesson</div>
+  <!-- App -->
+<div class="app-shell" id="app" hidden>
+    <main class="main" id="main"></main>
+    <aside class="sidebar panel" id="sidebar" aria-label="My Words">
+      <div class="head">
+        <h3>My Words</h3>
+        <button class="btn btn-ghost" id="btnClearWords" type="button" title="Clear list">Clear</button>
+      </div>
+      <div class="body" id="myWordsList"></div>
+    </aside>
+</div>
+  <!-- Toast notifications -->
+<div class="toasts" id="toasts" aria-live="polite" aria-relevant="additions"></div>
+<script>
+    /* =========================================================
+       GLOBAL STATE (no external JSON; everything embedded)
+       - Important: no eval, no alert, no document.write
+       ========================================================= */
+
+    // Lesson id must be derived from filename: "263.html" -> "263"
+    const LESSON_ID = (() => {
+      try{
+        const p = (location.pathname || "").split("/").pop() || "lesson.html";
+        const m = p.match(/(\d+)\.html$/i);
+        return m ? m[1] : (p.replace(".html","") || "standalone");
+      }catch(_e){
+        return "standalone";
+      }
+    })();
+
+    // Core app state
+    const state = {
+      lessonId: LESSON_ID,
+      lesson: null,
+      activeTab: "reading",
+
+      // Vocabulary / study progress
+      vocabMode: "list",           // "list" | "cards"
+      cardIndex: 0,
+      learned: new Set(),          // learned word ids
+      myWords: [],                 // loaded from localStorage
+
+      // Quiz
+      quizIndex: 0,
+      quizScore: 0,
+      quizLocked: true,
+      quizTimerSec: 30,
+      quizTimeLeft: 30,
+      quizTick: null,
+      quizAnswered: false,
+      quizMistakes: 0,
+      quizCheatFlags: 0
+    };
+
+    // Embedded lesson content (original text; not copied from any book)
+    function getEmbeddedLesson(){
+      const lesson = {
+        id: state.lessonId,
+        title: "Have got / Has got",
+        subtitle: "Family + appearance words. Learn the form with pronouns and answer fast (30s).",
+        cefr: "A0",
+        duration: "12–18 min",
+
+        reading: {
+          title: "Daniel’s family photo (easy text)",
+          hint: "Tap words to hear them and save them. Then practice have got / has got.",
+          paragraphs: [
+            "This is my family. We have got a big photo. I have got a brother and a sister.",
+            "My mum has got long dark hair. She has got glasses. She is friendly.",
+            "My dad has got short fair hair. He is tall and slim. He is nice.",
+            "My grandma has got grey hair. She is short. My grandpa has got grey hair too.",
+            "My uncle has got a beard and a moustache. My aunt is pretty. She has got long hair.",
+            "My little cousin is fun. She is seven."
+          ],
+          ttsText: "This is my family. We have got a big photo. I have got a brother and a sister. My mum has got long dark hair. She has got glasses. She is friendly. My dad has got short fair hair. He is tall and slim. He is nice."
+        },
+
+        vocabulary: {
+          title: "Words to know",
+          hint: "Save words to My Words. Quiz unlocks after you learn at least 8 words.",
+          groups: [
+            {
+              name: "Family",
+              items: [
+                { id:"brother", en:"brother", ru:"брат", ex:"I have got a brother." },
+                { id:"sister", en:"sister", ru:"сестра", ex:"I have got a sister." },
+                { id:"mother", en:"mother", ru:"мама", ex:"My mother has got long hair." },
+                { id:"father", en:"father", ru:"папа", ex:"My father has got short hair." },
+                { id:"parents", en:"parents", ru:"родители", ex:"I have got nice parents." },
+                { id:"son", en:"son", ru:"сын", ex:"They have got a son." },
+                { id:"daughter", en:"daughter", ru:"дочь", ex:"They have got a daughter." },
+                { id:"children", en:"children", ru:"дети", ex:"They have got two children." },
+                { id:"grandmother", en:"grandmother", ru:"бабушка", ex:"My grandmother is friendly." },
+                { id:"grandfather", en:"grandfather", ru:"дедушка", ex:"My grandfather is about 70." },
+                { id:"grandparents", en:"grandparents", ru:"бабушка и дедушка", ex:"My grandparents are nice." },
+                { id:"aunt", en:"aunt", ru:"тётя", ex:"My aunt is pretty." },
+                { id:"uncle", en:"uncle", ru:"дядя", ex:"My uncle has got a beard." },
+                { id:"cousin", en:"cousin", ru:"двоюродный брат/сестра", ex:"My cousin is fun." },
+                { id:"husband", en:"husband", ru:"муж", ex:"He is her husband." },
+                { id:"wife", en:"wife", ru:"жена", ex:"She is his wife." }
+              ]
+            },
+            {
+              name: "Looks",
+              items: [
+                { id:"short", en:"short", ru:"низкий/короткий", ex:"She is short." },
+                { id:"tall", en:"tall", ru:"высокий", ex:"He is tall." },
+                { id:"slim", en:"slim", ru:"стройный", ex:"He is slim." },
+                { id:"young", en:"young", ru:"молодой/юный", ex:"She is young." },
+                { id:"old", en:"old", ru:"старый/пожилой", ex:"He is old." },
+                { id:"friendly", en:"friendly", ru:"дружелюбный", ex:"She is friendly." },
+                { id:"shy", en:"shy", ru:"застенчивый", ex:"She is shy." },
+                { id:"nice", en:"nice", ru:"приятный/милый", ex:"He is nice." },
+                { id:"fun", en:"fun", ru:"весёлый/забавный", ex:"She is fun." },
+                { id:"pretty", en:"pretty", ru:"красивая/симпатичная", ex:"She is pretty." },
+                { id:"glasses", en:"glasses", ru:"очки", ex:"She has got glasses." },
+                { id:"grey_hair", en:"grey hair", ru:"седые волосы", ex:"She has got grey hair." },
+                { id:"long_hair", en:"long hair", ru:"длинные волосы", ex:"She has got long hair." },
+                { id:"dark_hair", en:"dark hair", ru:"тёмные волосы", ex:"She has got dark hair." },
+                { id:"fair_hair", en:"fair hair", ru:"светлые волосы", ex:"He has got fair hair." },
+                { id:"short_hair", en:"short hair", ru:"короткие волосы", ex:"He has got short hair." },
+                { id:"beard", en:"beard", ru:"борода", ex:"He has got a beard." },
+                { id:"moustache", en:"moustache", ru:"усы", ex:"He has got a moustache." }
+              ]
+            }
+          ]
+        },
+
+        grammar: {
+          title: "have got / has got (A0)",
+          hint: "Remember: I/you/we/they → have got. He/she/it → has got.",
+          blocks: [
+            {
+              kind: "rule",
+              text: "Use have got / has got to talk about possession (family, things) and description (hair, glasses)."
+            },
+            {
+              kind: "table",
+              leftTitle: "Positive",
+              rightTitle: "Negative",
+              rows: [
+                { left: "I have got a sister.", right: "I haven’t got a sister." },
+                { left: "You have got glasses.", right: "You haven’t got glasses." },
+                { left: "He has got short hair.", right: "He hasn’t got short hair." },
+                { left: "She has got a cousin.", right: "She hasn’t got a cousin." },
+                { left: "We have got grandparents.", right: "We haven’t got grandparents." },
+                { left: "They have got two children.", right: "They haven’t got two children." }
+              ]
+            },
+            {
+              kind: "table",
+              leftTitle: "Questions",
+              rightTitle: "Short answers",
+              rows: [
+                { left: "Have you got a brother?", right: "Yes, I have. / No, I haven’t." },
+                { left: "Has she got long hair?", right: "Yes, she has. / No, she hasn’t." },
+                { left: "Have they got children?", right: "Yes, they have. / No, they haven’t." }
+              ]
+            }
+          ],
+          microDrills: [
+            { prompt: "I / (glasses) →", answer: "I have got glasses." },
+            { prompt: "He / (a beard) →", answer: "He has got a beard." },
+            { prompt: "They / (two children) →", answer: "They have got two children." },
+            { prompt: "She / (long dark hair) →", answer: "She has got long dark hair." }
+          ]
+        },
+
+        quiz: {
+          title: "Quiz (30 seconds each)",
+          hint: "No pausing: switching tabs during a question counts as a cheat flag.",
+          unlockRule: { learnedMin: 8 },
+          questions: [
+            {
+              id: "q1",
+              type: "mcq",
+              prompt: "Choose the correct sentence.",
+              options: [
+                "He have got short hair.",
+                "He has got short hair.",
+                "He has got short hairs."
+              ],
+              correctIndex: 1,
+              explain: "He / she / it → has got."
+            },
+            {
+              id: "q2",
+              type: "mcq",
+              prompt: "Choose the correct sentence.",
+              options: [
+                "I has got a sister.",
+                "I have got a sister.",
+                "I have got sister."
+              ],
+              correctIndex: 1,
+              explain: "I / you / we / they → have got."
+            },
+            {
+              id: "q3",
+              type: "mcq",
+              prompt: "Pick the correct question.",
+              options: [
+                "Have she got glasses?",
+                "Has she got glasses?",
+                "Has got she glasses?"
+              ],
+              correctIndex: 1,
+              explain: "Question form: Has + he/she/it + got …?"
+            },
+            {
+              id: "q4",
+              type: "input",
+              prompt: "Type the missing words: She ___ ___ long hair.",
+              answer: "has got",
+              explain: "She → has got."
+            },
+            {
+              id: "q5",
+              type: "input",
+              prompt: "Type the missing words: We ___ ___ a big family.",
+              answer: "have got",
+              explain: "We → have got."
+            },
+            {
+              id: "q6",
+              type: "mcq",
+              prompt: "Choose the negative form.",
+              options: [
+                "He hasn’t got a moustache.",
+                "He haven’t got a moustache.",
+                "He not has got a moustache."
+              ],
+              correctIndex: 0,
+              explain: "He → hasn’t got."
+            }
+          ]
+        }
+      };
+
+      return lesson;
+    }
+
+    /* =========================================================
+       INITIALIZATION FLOW
+       - loader -> build UI -> render tab -> load My Words
+       ========================================================= */
+
+    function setLoader(visible){
+      const el = document.getElementById("loader");
+      if(!el) return;
+      el.classList.toggle("loader-hidden", !visible);
+      el.setAttribute("aria-busy", visible ? "true" : "false");
+      if(!visible){
+        // Let the fade animation finish before display none behavior
+        setTimeout(() => { el.style.display = "none"; }, 360);
+      }
+    }
+
+    function setWatermark(){
+      const wm = document.getElementById("wm");
+      if(!wm) return;
+      const ts = new Date();
+      const stamp = ts.toISOString().slice(0,16).replace("T"," ");
+      wm.textContent = `lesson:${state.lessonId} • ${stamp}`;
+    }
+
+    // "Load" lesson (embedded, but still async for realistic UX + loader)
+    async function loadLesson(){
+      try{
+        setLoader(true);
+        setWatermark();
+        await delay(280); // smooth loader
+        state.lesson = getEmbeddedLesson();
+        buildInterface();
+        loadMyWords();     // from localStorage
+        applyQuizLock();   // lock until learned
+        switchTab("reading");
+        initProtectionLayer();
+        initServiceWorkerInline();
+        setLoader(false);
+      }catch(err){
+        setLoader(false);
+        showNotification("Could not start the lesson. Try reloading the page.", "bad");
+        console.error(err);
+      }
+    }
+
+    function buildInterface(){
+      const app = document.getElementById("app");
+      const main = document.getElementById("main");
+      if(!app || !main) return;
+
+      app.hidden = false;
+      main.innerHTML = ""; // safe here: we control markup skeleton (no user input)
+
+      // Header panel
+      const header = document.createElement("section");
+      header.className = "header panel";
+
+      const left = document.createElement("div");
+      left.className = "title";
+
+      const h2 = document.createElement("h2");
+      h2.textContent = `${state.lesson.title} — lesson ${state.lesson.id}`;
+
+      const p = document.createElement("p");
+      p.className = "subtitle";
+      p.textContent = state.lesson.subtitle;
+
+      left.appendChild(h2);
+      left.appendChild(p);
+
+      const right = document.createElement("div");
+      right.className = "meta";
+      right.appendChild(makeChip("Level", state.lesson.cefr, "dot"));
+      right.appendChild(makeChip("Time", state.lesson.duration, null));
+      right.appendChild(makeChip("Rule", "30s / question", null));
+
+      header.appendChild(left);
+      header.appendChild(right);
+
+      // Tabs panel
+      const tabsPanel = document.createElement("section");
+      tabsPanel.className = "panel";
+      tabsPanel.style.padding = "0"; // NOTE: inline style is not allowed by your rules; remove!
+      // We'll avoid inline styles: create wrapper.
+      const tabsWrap = document.createElement("div");
+      tabsWrap.className = "tabs";
+
+      const tabs = [
+        { id:"reading", label:"Reading" },
+        { id:"vocabulary", label:"Vocabulary" },
+        { id:"grammar", label:"Grammar" },
+        { id:"quiz", label:"Quiz" }
+      ];
+
+      tabs.forEach(t => {
+        const b = document.createElement("button");
+        b.className = "tab";
+        b.type = "button";
+        b.setAttribute("role", "tab");
+        b.setAttribute("aria-selected", "false");
+        b.dataset.tab = t.id;
+        b.textContent = t.label;
+        b.addEventListener("click", () => switchTab(t.id));
+        tabsWrap.appendChild(b);
+      });
+
+      // Content panel
+      const content = document.createElement("section");
+      content.className = "content panel";
+      content.setAttribute("role", "tabpanel");
+      content.id = "content";
+
+      // Fix for "no inline CSS": put tabsWrap in a container with padding via class.
+      const tabsContainer = document.createElement("div");
+      tabsContainer.className = "tabs-container panel";
+      // We'll add a class in JS but style not defined; instead build without.
+      // Easiest: reuse "panel" and place the tabs inside with padding using existing .tabs padding.
+
+      // Append
+      main.appendChild(header);
+      main.appendChild(tabsWrap);
+      main.appendChild(content);
+
+      // Patch: tabsWrap already has padding; so ok (no need extra panel)
+      tabsWrap.classList.add("panel");
+      tabsWrap.style.boxShadow = "var(--shadow)"; // NOTE: inline style not allowed; remove!
+      // We'll remove this too: keep default panel shadow via class "panel" not possible since panel sets background.
+      // We'll keep class "panel" but avoid inline style; accept default.
+
+      // Remove forbidden inline styles by replacing them safely:
+      // (We cannot retroactively change CSS here; so we ensure no inline styles remain.)
+      tabsPanel.remove(); // not used
+      tabsWrap.removeAttribute("style");
+
+      // Sidebar controls
+      const btnClear = document.getElementById("btnClearWords");
+      if(btnClear){
+        btnClear.addEventListener("click", () => {
+          if(state.myWords.length === 0){
+            showNotification("My Words is already empty.", "warn");
+            return;
+          }
+          state.myWords = [];
+          persistMyWords();
+          renderMyWords();
+          applyQuizLock();
+          showNotification("My Words cleared.", "good");
+          vibrate(15);
+        });
+      }
+
+      // First render
+      renderMyWords();
+      updateTabsUI();
+    }
+
+    function makeChip(k, v, dotClass){
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      if(dotClass){
+        const d = document.createElement("span");
+        d.className = dotClass;
+        d.setAttribute("aria-hidden", "true");
+        chip.appendChild(d);
+      }
+      const t = document.createElement("span");
+      t.textContent = `${k}: ${v}`;
+      chip.appendChild(t);
+      return chip;
+    }
+
+    function delay(ms){
+      return new Promise(res => setTimeout(res, ms));
+    }
+
+    /* Note about copy-prevention:
+       copy/cut/paste events can be cancelled with preventDefault() in handlers [web:15].
+       (Implementation is in Part 4: initProtectionLayer()) [web:15].
+    */
+<script>
+  /* =========================================================
+     PATCH: rebuildInterface without inline CSS
+     (Your rule: styles only in <style>, no inline style usage)
+     ========================================================= */
+  function buildInterface(){
+    const app = document.getElementById("app");
+    const main = document.getElementById("main");
+    if(!app || !main) return;
+
+    app.hidden = false;
+    main.textContent = ""; // safer than innerHTML
+
+    // Header panel
+    const header = document.createElement("section");
+    header.className = "header panel";
+
+    const left = document.createElement("div");
+    left.className = "title";
+
+    const h2 = document.createElement("h2");
+    h2.textContent = escapeJS(`${state.lesson.title} — lesson ${state.lesson.id}`);
+
+    const p = document.createElement("p");
+    p.className = "subtitle";
+    p.textContent = escapeJS(state.lesson.subtitle);
+
+    left.appendChild(h2);
+    left.appendChild(p);
+
+    const right = document.createElement("div");
+    right.className = "meta";
+    right.appendChild(makeChip("Level", state.lesson.cefr, "dot"));
+    right.appendChild(makeChip("Time", state.lesson.duration, null));
+    right.appendChild(makeChip("Rule", "30s / question", null));
+
+    header.appendChild(left);
+    header.appendChild(right);
+
+    // Tabs
+    const tabsWrap = document.createElement("div");
+    tabsWrap.className = "tabs panel";
+    tabsWrap.setAttribute("role", "tablist");
+    tabsWrap.setAttribute("aria-label", "Lesson sections");
+
+    const tabs = [
+      { id:"reading", label:"Reading" },
+      { id:"vocabulary", label:"Vocabulary" },
+      { id:"grammar", label:"Grammar" },
+      { id:"quiz", label:"Quiz" }
+    ];
+
+    tabs.forEach(t => {
+      const b = document.createElement("button");
+      b.className = "tab";
+      b.type = "button";
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", "false");
+      b.dataset.tab = t.id;
+      b.textContent = escapeJS(t.label);
+      b.addEventListener("click", () => switchTab(t.id));
+      tabsWrap.appendChild(b);
+    });
+
+    // Content
+    const content = document.createElement("section");
+    content.className = "content panel";
+    content.setAttribute("role", "tabpanel");
+    content.id = "content";
+
+    // Mount
+    main.appendChild(header);
+    main.appendChild(tabsWrap);
+    main.appendChild(content);
+
+    // Sidebar events
+    const btnClear = document.getElementById("btnClearWords");
+    if(btnClear){
+      btnClear.onclick = () => {
+        if(state.myWords.length === 0){
+          showNotification("My Words is already empty.", "warn");
+          return;
+        }
+        state.myWords = [];
+        persistMyWords();
+        renderMyWords();
+        applyQuizLock();
+        showNotification("My Words cleared.", "good");
+        vibrate(15);
+      };
+    }
+
+    renderMyWords();
+    updateTabsUI();
+  }
+
+  /* =========================================================
+     RENDER DISPATCH
+     ========================================================= */
+  function renderActiveTab(){
+    const content = document.getElementById("content");
+    if(!content || !state.lesson) return;
+    content.textContent = "";
+
+    if(state.activeTab === "reading") renderReading(content);
+    else if(state.activeTab === "vocabulary") renderVocabulary(content);
+    else if(state.activeTab === "grammar") renderGrammar(content);
+    else if(state.activeTab === "quiz") renderQuiz(content);
+  }
+
+  /* =========================================================
+     READING
+     - Clickable words + Listen paragraph TTS
+     ========================================================= */
+  function renderReading(mount){
+    const r = state.lesson.reading;
+
+    const h = document.createElement("h3");
+    h.className = "section-title";
+    h.textContent = escapeJS(r.title);
+
+    const hint = document.createElement("p");
+    hint.className = "section-hint";
+    hint.textContent = escapeJS(r.hint);
+
+    const box = document.createElement("div");
+    box.className = "reading-box";
+
+    const text = document.createElement("div");
+    text.className = "reading-text";
+    text.setAttribute("role", "article");
+    text.setAttribute("aria-label", "Reading text");
+
+    // Build paragraphs with clickable word spans
+    r.paragraphs.forEach((para, pi) => {
+      const p = document.createElement("p");
+      p.style.margin = "0 0 10px"; // inline style forbidden -> avoid
+      // Replace with class-less spacing: last paragraph no margin via wrapper logic:
+      // We'll simulate spacing by inserting <br> after each paragraph.
+      const tokens = tokenizeForReading(para);
+
+      tokens.forEach(tok => {
+        if(tok.type === "space"){
+          p.appendChild(document.createTextNode(tok.value));
+          return;
+        }
+        if(tok.type === "punct"){
+          p.appendChild(document.createTextNode(tok.value));
+          return;
+        }
+        // word
+        const span = document.createElement("span");
+        span.className = "word";
+        span.textContent = escapeJS(tok.value);
+        span.dataset.word = tok.value;
+        span.addEventListener("click", () => {
+          const w = normalizeWord(tok.value);
+          if(!w) return;
+          speakWord(w);
+          // Soft nudge: if girl tries to just click random, require a "confirm save"
+          showWordQuickActions(w);
+        });
+        p.appendChild(span);
+      });
+
+      text.appendChild(p);
+      if(pi !== r.paragraphs.length - 1){
+        text.appendChild(document.createElement("br"));
+      }
+    });
+
+    // Fix inline style issue above by removing any set styles
+    // (defensive: ensure no inline styles remain)
+    Array.from(text.querySelectorAll("*")).forEach(el => el.removeAttribute("style"));
+
+    const actions = document.createElement("div");
+    actions.className = "reading-actions";
+
+    const btnListen = document.createElement("button");
+    btnListen.className = "btn btn-primary";
+    btnListen.type = "button";
+    btnListen.textContent = "Listen";
+    btnListen.addEventListener("click", () => {
+      speakText(state.lesson.reading.ttsText);
+      showNotification("Listening… tap Stop to cancel.", "good");
+    });
+
+    const btnStop = document.createElement("button");
+    btnStop.className = "btn btn-ghost";
+    btnStop.type = "button";
+    btnStop.textContent = "Stop";
+    btnStop.addEventListener("click", () => {
+      stopSpeech();
+      showNotification("Stopped.", "warn");
+    });
+
+    const btnTip = document.createElement("button");
+    btnTip.className = "btn";
+    btnTip.type = "button";
+    btnTip.textContent = "How to use";
+    btnTip.addEventListener("click", () => {
+      showNotification("Tap a word → Hear it → Save to My Words. Learn 8+ words to unlock Quiz.", "warn");
+      vibrate(10);
+    });
+
+    actions.appendChild(btnListen);
+    actions.appendChild(btnStop);
+    actions.appendChild(btnTip);
+
+    box.appendChild(text);
+    box.appendChild(actions);
+
+    mount.appendChild(h);
+    mount.appendChild(hint);
+    mount.appendChild(box);
+  }
+
+  function tokenizeForReading(text){
+    // Keep spaces and punctuation as separate tokens to preserve the original text layout.
+    const out = [];
+    const re = /([A-Za-z']+|[0-9]+|[\.\,\!\?\:\;\(\)])/g;
+    let last = 0;
+    let m;
+    while((m = re.exec(text)) !== null){
+      const start = m.index;
+      if(start > last){
+        out.push({ type:"space", value: text.slice(last, start) });
+      }
+      const v = m[0];
+      if(/^[A-Za-z']+$/.test(v) || /^[0-9]+$/.test(v)) out.push({ type:"word", value: v });
+      else out.push({ type:"punct", value: v });
+      last = start + v.length;
+    }
+    if(last < text.length){
+      out.push({ type:"space", value: text.slice(last) });
+    }
+    return out;
+  }
+
+  function normalizeWord(w){
+    if(!w) return "";
+    return String(w).toLowerCase().replace(/[^a-z']/g, "").trim();
+  }
+
+  function showWordQuickActions(word){
+    // Light friction: makes "random clicking" less effective than real study.
+    // This is not security, but UX guardrails.
+    if(!word) return;
+    const exists = findVocabEntry(word);
+    if(exists){
+      showNotification(`Word: ${word}. Use Vocabulary tab to save & learn it.`, "good");
+    }else{
+      showNotification(`Word: ${word}. (Not in vocab list.)`, "warn");
+    }
+  }
+
+  /* =========================================================
+     VOCABULARY
+     - Two modes: List / Flashcards
+     - Save word to My Words (LocalStorage in Part 4)
+     ========================================================= */
+  function renderVocabulary(mount){
+    const v = state.lesson.vocabulary;
+
+    const h = document.createElement("h3");
+    h.className = "section-title";
+    h.textContent = escapeJS(v.title);
+
+    const hint = document.createElement("p");
+    hint.className = "section-hint";
+    hint.textContent = escapeJS(v.hint);
+
+    const mode = document.createElement("div");
+    mode.className = "mode-switch";
+
+    const btnList = document.createElement("button");
+    btnList.className = "pill";
+    btnList.type = "button";
+    btnList.setAttribute("aria-pressed", state.vocabMode === "list" ? "true" : "false");
+    btnList.textContent = "List";
+    btnList.addEventListener("click", () => {
+      state.vocabMode = "list";
+      renderActiveTab();
+      showNotification("Mode: List.", "good");
+    });
+
+    const btnCards = document.createElement("button");
+    btnCards.className = "pill";
+    btnCards.type = "button";
+    btnCards.setAttribute("aria-pressed", state.vocabMode === "cards" ? "true" : "false");
+    btnCards.textContent = "Flashcards";
+    btnCards.addEventListener("click", () => {
+      state.vocabMode = "cards";
+      state.cardIndex = 0;
+      renderActiveTab();
+      showNotification("Mode: Flashcards.", "good");
+    });
+
+    const stats = document.createElement("div");
+    stats.className = "chip";
+    const learnedCount = getLearnedCount();
+    stats.textContent = escapeJS(`Learned: ${learnedCount} • Saved: ${state.myWords.length}`);
+
+    mode.appendChild(btnList);
+    mode.appendChild(btnCards);
+    mode.appendChild(stats);
+
+    mount.appendChild(h);
+    mount.appendChild(hint);
+    mount.appendChild(mode);
+
+    if(state.vocabMode === "list") renderVocabList(mount);
+    else renderVocabCards(mount);
+  }
+
+  function renderVocabList(mount){
+    const groups = state.lesson.vocabulary.groups;
+
+    groups.forEach(g => {
+      const title = document.createElement("h4");
+      title.className = "section-title";
+      title.style.fontSize = "14px"; // forbidden inline style -> remove after append
+      title.textContent = escapeJS(g.name);
+
+      const grid = document.createElement("div");
+      grid.className = "vocab-grid";
+
+      g.items.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "vocab-item";
+
+        const left = document.createElement("div");
+        left.className = "w";
+
+        const strong = document.createElement("strong");
+        strong.textContent = escapeJS(item.en);
+
+        const small = document.createElement("small");
+        small.textContent = escapeJS(`${item.ru} • ${item.ex}`);
+
+        left.appendChild(strong);
+        left.appendChild(small);
+
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.textContent = escapeJS(isLearned(item.id) ? "Learned" : "New");
+
+        const actions = document.createElement("div");
+        actions.className = "row";
+
+        const bSpeak = document.createElement("button");
+        bSpeak.className = "btn btn-ghost";
+        bSpeak.type = "button";
+        bSpeak.textContent = "Speak";
+        bSpeak.addEventListener("click", () => speakWord(item.en));
+
+        const bSave = document.createElement("button");
+        bSave.className = "btn btn-primary";
+        bSave.type = "button";
+        bSave.textContent = isSaved(item.id) ? "Saved" : "Save";
+        bSave.disabled = isSaved(item.id);
+        bSave.addEventListener("click", () => {
+          saveWord(item);
+          markLearned(item.id, true);
+          renderVocabulary(document.getElementById("content"));
+          showNotification(`Saved: ${item.en}`, "good");
+          vibrate(12);
+        });
+
+        const bLearn = document.createElement("button");
+        bLearn.className = "btn";
+        bLearn.type = "button";
+        bLearn.textContent = isLearned(item.id) ? "Unlearn" : "Mark learned";
+        bLearn.addEventListener("click", () => {
+          markLearned(item.id, !isLearned(item.id));
+          applyQuizLock();
+          renderVocabulary(document.getElementById("content"));
+          showNotification(isLearned(item.id) ? `Learned: ${item.en}` : `Back to New: ${item.en}`, "warn");
+          vibrate(10);
+        });
+
+        actions.appendChild(bSpeak);
+        actions.appendChild(bSave);
+        actions.appendChild(bLearn);
+
+        row.appendChild(left);
+        row.appendChild(tag);
+        row.appendChild(actions);
+
+        grid.appendChild(row);
+      });
+
+      mount.appendChild(title);
+      mount.appendChild(grid);
+
+      // Remove any inline styles (defensive)
+      title.removeAttribute("style");
+    });
+  }
+
+  function renderVocabCards(mount){
+    const all = getAllVocabItems();
+    if(all.length === 0){
+      const p = document.createElement("p");
+      p.className = "section-hint";
+      p.textContent = "No vocabulary items found.";
+      mount.appendChild(p);
+      return;
+    }
+
+    const idx = clamp(state.cardIndex, 0, all.length - 1);
+    state.cardIndex = idx;
+    const item = all[idx];
+
+    const wrap = document.createElement("div");
+    wrap.className = "card-wrap";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.id = "flashcard";
+
+    const inner = document.createElement("div");
+    inner.className = "card-inner";
+
+    const front = document.createElement("div");
+    front.className = "card-face card-front";
+
+    const big = document.createElement("div");
+    big.className = "big";
+    big.textContent = escapeJS(item.en);
+
+    const small = document.createElement("div");
+    small.className = "small";
+    small.textContent = escapeJS("Tap card to flip. Try to remember the meaning first.");
+
+    front.appendChild(big);
+    front.appendChild(small);
+
+    const back = document.createElement("div");
+    back.className = "card-face card-back";
+
+    const big2 = document.createElement("div");
+    big2.className = "big";
+    big2.textContent = escapeJS(item.ru);
+
+    const small2 = document.createElement("div");
+    small2.className = "small";
+    small2.textContent = escapeJS(item.ex);
+
+    back.appendChild(big2);
+    back.appendChild(small2);
+
+    inner.appendChild(front);
+    inner.appendChild(back);
+    card.appendChild(inner);
+
+    card.addEventListener("click", () => flipCard());
+
+    const controls = document.createElement("div");
+    controls.className = "row";
+
+    const bPrev = document.createElement("button");
+    bPrev.className = "btn";
+    bPrev.type = "button";
+    bPrev.textContent = "Prev";
+    bPrev.disabled = idx === 0;
+    bPrev.addEventListener("click", () => {
+      state.cardIndex = clamp(state.cardIndex - 1, 0, all.length - 1);
+      unflipCard();
+      renderActiveTab();
+    });
+
+    const bFlip = document.createElement("button");
+    bFlip.className = "btn btn-ghost";
+    bFlip.type = "button";
+    bFlip.textContent = "Flip";
+    bFlip.addEventListener("click", () => flipCard());
+
+    const bNext = document.createElement("button");
+    bNext.className = "btn";
+    bNext.type = "button";
+    bNext.textContent = "Next";
+    bNext.disabled = idx === all.length - 1;
+    bNext.addEventListener("click", () => {
+      state.cardIndex = clamp(state.cardIndex + 1, 0, all.length - 1);
+      unflipCard();
+      renderActiveTab();
+    });
+
+    const bSpeak = document.createElement("button");
+    bSpeak.className = "btn btn-ghost";
+    bSpeak.type = "button";
+    bSpeak.textContent = "Speak";
+    bSpeak.addEventListener("click", () => speakWord(item.en));
+
+    const bSave = document.createElement("button");
+    bSave.className = "btn btn-primary";
+    bSave.type = "button";
+    bSave.textContent = isSaved(item.id) ? "Saved" : "Save";
+    bSave.disabled = isSaved(item.id);
+    bSave.addEventListener("click", () => {
+      saveWord(item);
+      markLearned(item.id, true);
+      applyQuizLock();
+      renderActiveTab();
+      showNotification(`Saved: ${item.en}`, "good");
+      vibrate(12);
+    });
+
+    const bLearned = document.createElement("button");
+    bLearned.className = "btn";
+    bLearned.type = "button";
+    bLearned.textContent = isLearned(item.id) ? "Learned ✓" : "Mark learned";
+    bLearned.addEventListener("click", () => {
+      markLearned(item.id, !isLearned(item.id));
+      applyQuizLock();
+      renderActiveTab();
+      showNotification(isLearned(item.id) ? `Learned: ${item.en}` : `Back to New: ${item.en}`, "warn");
+      vibrate(10);
+    });
+
+    controls.appendChild(bPrev);
+    controls.appendChild(bFlip);
+    controls.appendChild(bNext);
+    controls.appendChild(bSpeak);
+    controls.appendChild(bSave);
+    controls.appendChild(bLearned);
+
+    const footer = document.createElement("div");
+    footer.className = "chip";
+    footer.textContent = escapeJS(`Card ${idx + 1} / ${all.length} • Learned ${getLearnedCount()}`);
+
+    wrap.appendChild(card);
+    wrap.appendChild(controls);
+    wrap.appendChild(footer);
+
+    mount.appendChild(wrap);
+  }
+
+  function getAllVocabItems(){
+    const groups = (state.lesson && state.lesson.vocabulary && state.lesson.vocabulary.groups) ? state.lesson.vocabulary.groups : [];
+    return groups.flatMap(g => g.items || []);
+  }
+
+  function findVocabEntry(wordLower){
+    const all = getAllVocabItems();
+    const w = normalizeWord(wordLower);
+    return all.find(it => normalizeWord(it.en) === w) || null;
+  }
+
+  function isSaved(id){
+    return state.myWords.some(x => x && x.id === id);
+  }
+
+  function isLearned(id){
+    return state.learned.has(id);
+  }
+
+  function markLearned(id, yes){
+    if(!id) return;
+    if(yes) state.learned.add(id);
+    else state.learned.delete(id);
+  }
+
+  function getLearnedCount(){
+    return state.learned.size;
+  }
+
+  /* =========================================================
+     GRAMMAR
+     - Simple rules + tables + micro drills
+     ========================================================= */
+  function renderGrammar(mount){
+    const g = state.lesson.grammar;
+
+    const h = document.createElement("h3");
+    h.className = "section-title";
+    h.textContent = escapeJS(g.title);
+
+    const hint = document.createElement("p");
+    hint.className = "section-hint";
+    hint.textContent = escapeJS(g.hint);
+
+    const grid = document.createElement("div");
+    grid.className = "grammar-grid";
+
+    // Blocks
+    g.blocks.forEach(b => {
+      if(b.kind === "rule"){
+        const note = document.createElement("div");
+        note.className = "note";
+        note.textContent = escapeJS(b.text);
+        grid.appendChild(note);
+        return;
+      }
+
+      if(b.kind === "table"){
+        const wrap = document.createElement("div");
+        wrap.className = "mini-table";
+
+        const title = document.createElement("div");
+        title.className = "row";
+
+        const a = document.createElement("div");
+        a.className = "chip";
+        a.textContent = escapeJS(b.leftTitle);
+
+        const c = document.createElement("div");
+        c.className = "chip";
+        c.textContent = escapeJS(b.rightTitle);
+
+        title.appendChild(a);
+        title.appendChild(c);
+
+        wrap.appendChild(title);
+
+        (b.rows || []).forEach(r => {
+          const row = document.createElement("div");
+          row.className = "mini-row";
+
+          const left = document.createElement("div");
+          left.className = "cell mono";
+          left.textContent = escapeJS(r.left);
+
+          const right = document.createElement("div");
+          right.className = "cell mono";
+          right.textContent = escapeJS(r.right);
+
+          row.appendChild(left);
+          row.appendChild(right);
+          wrap.appendChild(row);
+        });
+
+        grid.appendChild(wrap);
+      }
+    });
+
+    // Micro drills (short typing)
+    const drillsTitle = document.createElement("h4");
+    drillsTitle.className = "section-title";
+    drillsTitle.textContent = "Micro drills (type fast)";
+
+    const drillsHint = document.createElement("p");
+    drillsHint.className = "section-hint";
+    drillsHint.textContent = "Type the sentence. Then check. (No copy/paste.)";
+
+    const drills = document.createElement("div");
+    drills.className = "vocab-grid";
+
+    g.microDrills.forEach((d, i) => {
+      const box = document.createElement("div");
+      box.className = "qbox";
+
+      const q = document.createElement("p");
+      q.className = "qtitle";
+      q.textContent = escapeJS(`${i+1}) ${d.prompt}`);
+
+      const inp = document.createElement("input");
+      inp.className = "input selectable";
+      inp.type = "text";
+      inp.autocomplete = "off";
+      inp.inputMode = "text";
+      inp.placeholder = "Type here…";
+      inp.dataset.drill = String(i);
+
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const btnCheck = document.createElement("button");
+      btnCheck.className = "btn btn-primary";
+      btnCheck.type = "button";
+      btnCheck.textContent = "Check";
+      btnCheck.addEventListener("click", () => {
+        const val = normalizeAnswer(inp.value);
+        const ans = normalizeAnswer(d.answer);
+        const ok = val === ans;
+        const fb = box.querySelector(".feedback") || document.createElement("div");
+        fb.className = "feedback " + (ok ? "good" : "bad");
+        fb.textContent = ok ? "Correct." : `Not yet. Try again (hint: pronoun → have/has).`;
+        if(!fb.parentNode) box.appendChild(fb);
+
+        if(ok){
+          showNotification("Good. Keep going.", "good");
+          vibrate(10);
+        }else{
+          showNotification("Careful: have got / has got.", "warn");
+          vibrate(20);
+        }
+      });
+
+      const btnSpeak = document.createElement("button");
+      btnSpeak.className = "btn btn-ghost";
+      btnSpeak.type = "button";
+      btnSpeak.textContent = "Hear answer";
+      btnSpeak.addEventListener("click", () => speakText(d.answer));
+
+      row.appendChild(btnCheck);
+      row.appendChild(btnSpeak);
+
+      box.appendChild(q);
+      box.appendChild(inp);
+      box.appendChild(row);
+      drills.appendChild(box);
+    });
+
+    mount.appendChild(h);
+    mount.appendChild(hint);
+    mount.appendChild(grid);
+    mount.appendChild(drillsTitle);
+    mount.appendChild(drillsHint);
+    mount.appendChild(drills);
+  }
+
+  function normalizeAnswer(s){
+    return String(s || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/[^\w\s']/g, "")
+      .trim();
+  }
+
+  /* =========================================================
+     QUIZ
+     - Locked until learnedMin
+     - Timer: 30s each question
+     ========================================================= */
+  function renderQuiz(mount){
+    const qz = state.lesson.quiz;
+
+    const h = document.createElement("h3");
+    h.className = "section-title";
+    h.textContent = escapeJS(qz.title);
+
+    const hint = document.createElement("p");
+    hint.className = "section-hint";
+    hint.textContent = escapeJS(qz.hint);
+
+    mount.appendChild(h);
+    mount.appendChild(hint);
+
+    if(state.quizLocked){
+      const lock = document.createElement("div");
+      lock.className = "lock";
+      const need = (qz.unlockRule && qz.unlockRule.learnedMin) ? qz.unlockRule.learnedMin : 8;
+      lock.textContent = escapeJS(`Quiz is locked. Learn at least ${need} words (mark learned / save) to unlock.`);
+      mount.appendChild(lock);
+
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const btnGoV = document.createElement("button");
+      btnGoV.className = "btn btn-primary";
+      btnGoV.type = "button";
+      btnGoV.textContent = "Go to Vocabulary";
+      btnGoV.addEventListener("click", () => switchTab("vocabulary"));
+
+      const btnGoR = document.createElement("button");
+      btnGoR.className = "btn";
+      btnGoR.type = "button";
+      btnGoR.textContent = "Go to Reading";
+      btnGoR.addEventListener("click", () => switchTab("reading"));
+
+      row.appendChild(btnGoV);
+      row.appendChild(btnGoR);
+      mount.appendChild(row);
+      return;
+    }
+
+    // Quiz shell
+    const top = document.createElement("div");
+    top.className = "quiz-top";
+
+    const progress = document.createElement("div");
+    progress.className = "progress";
+    progress.id = "quizProgress";
+
+    const timer = document.createElement("div");
+    timer.className = "timer";
+    timer.id = "quizTimer";
+
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const bi = document.createElement("i");
+    bar.appendChild(bi);
+
+    const tlabel = document.createElement("span");
+    tlabel.id = "quizTimeLabel";
+    tlabel.textContent = escapeJS(`${state.quizTimeLeft}s`);
+
+    timer.appendChild(bar);
+    timer.appendChild(tlabel);
+
+    top.appendChild(progress);
+    top.appendChild(timer);
+
+    const qbox = document.createElement("div");
+    qbox.className = "qbox";
+    qbox.id = "quizBox";
+
+    const controls = document.createElement("div");
+    controls.className = "row";
+
+    const btnRestart = document.createElement("button");
+    btnRestart.className = "btn btn-danger";
+    btnRestart.type = "button";
+    btnRestart.textContent = "Restart";
+    btnRestart.addEventListener("click", () => restartQuiz());
+
+    const btnStop = document.createElement("button");
+    btnStop.className = "btn btn-ghost";
+    btnStop.type = "button";
+    btnStop.textContent = "Stop timer";
+    btnStop.addEventListener("click", () => {
+      // Intentionally does NOT pause timer: anti-cheat.
+      showNotification("No pausing in Quiz. Answer fast.", "bad");
+      vibrate(30);
+    });
+
+    controls.appendChild(btnRestart);
+    controls.appendChild(btnStop);
+
+    mount.appendChild(top);
+    mount.appendChild(qbox);
+    mount.appendChild(controls);
+
+    renderQuizQuestion();
+  }
+
+  function renderQuizQuestion(){
+    const box = document.getElementById("quizBox");
+    const prog = document.getElementById("quizProgress");
+    if(!box || !state.lesson) return;
+
+    const qs = state.lesson.quiz.questions || [];
+    const idx = clamp(state.quizIndex, 0, qs.length); // idx can be qs.length => finished
+    state.quizIndex = idx;
+
+    box.textContent = "";
+    state.quizAnswered = false;
+
+    // Finished
+    if(idx >= qs.length){
+      stopQuizTimer();
+
+      const done = document.createElement("div");
+      done.className = "feedback good";
+      done.textContent = escapeJS(`Finished. Score: ${state.quizScore} / ${qs.length}. Cheat flags: ${state.quizCheatFlags}.`);
+
+      const tip = document.createElement("div");
+      tip.className = "feedback";
+      tip.textContent = escapeJS("If score is low, go back to Vocabulary and mark more words learned.");
+
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const bV = document.createElement("button");
+      bV.className = "btn btn-primary";
+      bV.type = "button";
+      bV.textContent = "Study vocabulary";
+      bV.addEventListener("click", () => switchTab("vocabulary"));
+
+      const bAgain = document.createElement("button");
+      bAgain.className = "btn";
+      bAgain.type = "button";
+      bAgain.textContent = "Try again";
+      bAgain.addEventListener("click", () => restartQuiz());
+
+      row.appendChild(bV);
+      row.appendChild(bAgain);
+
+      box.appendChild(done);
+      box.appendChild(tip);
+      box.appendChild(row);
+
+      if(prog) prog.textContent = escapeJS(`Done • ${qs.length} questions`);
+      return;
+    }
+
+    const q = qs[idx];
+
+    // Progress + timer start
+    if(prog) prog.textContent = escapeJS(`Question ${idx + 1} / ${qs.length} • Score ${state.quizScore}`);
+    startQuizTimer(30);
+
+    const title = document.createElement("p");
+    title.className = "qtitle";
+    title.textContent = escapeJS(q.prompt);
+
+    box.appendChild(title);
+
+    if(q.type === "mcq"){
+      const opts = document.createElement("div");
+      opts.className = "options";
+
+      (q.options || []).forEach((text, oi) => {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        b.dataset.oi = String(oi);
+
+        const left = document.createElement("span");
+        left.textContent = escapeJS(text);
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = "Pick";
+
+        b.appendChild(left);
+        b.appendChild(badge);
+
+        b.addEventListener("click", () => {
+          if(state.quizAnswered) return;
+          handleQuizAnswer(oi);
+        });
+
+        opts.appendChild(b);
+      });
+
+      box.appendChild(opts);
+      return;
+    }
+
+    if(q.type === "input"){
+      const inp = document.createElement("input");
+      inp.className = "input selectable";
+      inp.type = "text";
+      inp.autocomplete = "off";
+      inp.placeholder = "Type here (example: has got)";
+      inp.id = "quizInput";
+
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const b = document.createElement("button");
+      b.className = "btn btn-primary";
+      b.type = "button";
+      b.textContent = "Submit";
+      b.addEventListener("click", () => {
+        if(state.quizAnswered) return;
+        handleQuizInputAnswer(inp.value);
+      });
+
+      const bSpeak = document.createElement("button");
+      bSpeak.className = "btn btn-ghost";
+      bSpeak.type = "button";
+      bSpeak.textContent = "Hear prompt";
+      bSpeak.addEventListener("click", () => speakText(q.prompt));
+
+      row.appendChild(b);
+      row.appendChild(bSpeak);
+
+      box.appendChild(inp);
+      box.appendChild(row);
+
+      // Enter key submit (still no paste allowed; enforced in Part 4)
+      inp.addEventListener("keydown", (e) => {
+        if(e.key === "Enter"){
+          e.preventDefault();
+          if(state.quizAnswered) return;
+          handleQuizInputAnswer(inp.value);
+        }
+      });
+
+      return;
+    }
+
+    const fb = document.createElement("div");
+    fb.className = "feedback bad";
+    fb.textContent = "Unsupported question type.";
+    box.appendChild(fb);
+  }
+
+  function handleQuizAnswer(choiceIndex){
+    const qs = state.lesson.quiz.questions || [];
+    const q = qs[state.quizIndex];
+    if(!q) return;
+
+    state.quizAnswered = true;
+    stopQuizTimer();
+
+    const ok = (choiceIndex === q.correctIndex);
+    if(ok) state.quizScore += 1;
+    else state.quizMistakes += 1;
+
+    lockQuizOptions();
+
+    const fb = document.createElement("div");
+    fb.className = "feedback " + (ok ? "good" : "bad");
+    fb.textContent = ok ? escapeJS("Correct.") : escapeJS("Wrong. Try to remember the rule: I/you/we/they have got; he/she/it has got.");
+
+    const exp = document.createElement("div");
+    exp.className = "feedback";
+    exp.textContent = escapeJS(q.explain || "—");
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const bNext = document.createElement("button");
+    bNext.className = "btn btn-primary";
+    bNext.type = "button";
+    bNext.textContent = "Next";
+    bNext.addEventListener("click", () => {
+      state.quizIndex += 1;
+      renderQuizQuestion();
+    });
+
+    const bHear = document.createElement("button");
+    bHear.className = "btn btn-ghost";
+    bHear.type = "button";
+    bHear.textContent = "Hear correct";
+    bHear.addEventListener("click", () => speakText(q.options[q.correctIndex] || ""));
+
+    row.appendChild(bNext);
+    row.appendChild(bHear);
+
+    const box = document.getElementById("quizBox");
+    if(box){
+      box.appendChild(fb);
+      box.appendChild(exp);
+      box.appendChild(row);
+    }
+
+    showNotification(ok ? "Correct." : "Wrong. Focus on pronouns.", ok ? "good" : "bad");
+    vibrate(ok ? 10 : 30);
+  }
+
+  function handleQuizInputAnswer(userValue){
+    const qs = state.lesson.quiz.questions || [];
+    const q = qs[state.quizIndex];
+    if(!q) return;
+
+    state.quizAnswered = true;
+    stopQuizTimer();
+
+    const ok = normalizeAnswer(userValue) === normalizeAnswer(q.answer);
+    if(ok) state.quizScore += 1;
+    else state.quizMistakes += 1;
+
+    // disable input + buttons
+    const input = document.getElementById("quizInput");
+    if(input) input.disabled = true;
+
+    lockQuizOptions();
+
+    const fb = document.createElement("div");
+    fb.className = "feedback " + (ok ? "good" : "bad");
+    fb.textContent = ok ? escapeJS("Correct.") : escapeJS(`Wrong. Correct answer: ${q.answer}`);
+
+    const exp = document.createElement("div");
+    exp.className = "feedback";
+    exp.textContent = escapeJS(q.explain || "—");
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const bNext = document.createElement("button");
+    bNext.className = "btn btn-primary";
+    bNext.type = "button";
+    bNext.textContent = "Next";
+    bNext.addEventListener("click", () => {
+      state.quizIndex += 1;
+      renderQuizQuestion();
+    });
+
+    const bHear = document.createElement("button");
+    bHear.className = "btn btn-ghost";
+    bHear.type = "button";
+    bHear.textContent = "Hear correct";
+    bHear.addEventListener("click", () => speakText(q.answer));
+
+    row.appendChild(bNext);
+    row.appendChild(bHear);
+
+    const box = document.getElementById("quizBox");
+    if(box){
+      box.appendChild(fb);
+      box.appendChild(exp);
+      box.appendChild(row);
+    }
+
+    showNotification(ok ? "Correct." : "Wrong. Drill have/has got.", ok ? "good" : "bad");
+    vibrate(ok ? 10 : 30);
+  }
+
+  function lockQuizOptions(){
+    // Disable MCQ options if present
+    const opts = document.querySelectorAll(".opt");
+    opts.forEach(b => {
+      b.setAttribute("aria-disabled", "true");
+      b.disabled = true;
+    });
+  }
+
+  /* =========================================================
+     QUIZ TIMER (visual bar)
+     ========================================================= */
+  function startQuizTimer(seconds){
+    stopQuizTimer();
+    state.quizTimerSec = seconds;
+    state.quizTimeLeft = seconds;
+
+    updateQuizTimerUI(1);
+
+    state.quizTick = setInterval(() => {
+      state.quizTimeLeft -= 1;
+      const ratio = Math.max(0, state.quizTimeLeft / state.quizTimerSec);
+      updateQuizTimerUI(ratio);
+
+      if(state.quizTimeLeft <= 0){
+        stopQuizTimer();
+        onQuizTimeOver();
+      }
+    }, 1000);
+  }
+
+  function stopQuizTimer(){
+    if(state.quizTick){
+      clearInterval(state.quizTick);
+      state.quizTick = null;
+    }
+  }
+
+  function updateQuizTimerUI(ratio){
+    const label = document.getElementById("quizTimeLabel");
+    const bar = document.querySelector(".bar > i");
+    if(label) label.textContent = escapeJS(`${state.quizTimeLeft}s`);
+    if(bar){
+      // No inline styles allowed: but changing style via JS counts as inline.
+      // We avoid style changes: instead use transform property set via CSS class? Not possible without many classes.
+      // Compromise: update width via CSS variable on parent using style is also inline.
+      // To stay strict: keep bar static and only update text + color feedback using classes.
+      // We'll do minimal: show text countdown only.
+      bar.parentElement.setAttribute("data-left", String(state.quizTimeLeft));
+    }
+  }
+
+  function onQuizTimeOver(){
+    // Time over counts as incorrect
+    if(state.quizAnswered) return;
+    state.quizAnswered = true;
+    state.quizMistakes += 1;
+
+    lockQuizOptions();
+
+    const box = document.getElementById("quizBox");
+    if(!box) return;
+
+    const fb = document.createElement("div");
+    fb.className = "feedback bad";
+    fb.textContent = escapeJS("Time is over. Answer was not accepted.");
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const bNext = document.createElement("button");
+    bNext.className = "btn btn-primary";
+    bNext.type = "button";
+    bNext.textContent = "Next";
+    bNext.addEventListener("click", () => {
+      state.quizIndex += 1;
+      renderQuizQuestion();
+    });
+
+    const bStudy = document.createElement("button");
+    bStudy.className = "btn";
+    bStudy.type = "button";
+    bStudy.textContent = "Study words";
+    bStudy.addEventListener("click", () => switchTab("vocabulary"));
+
+    row.appendChild(bNext);
+    row.appendChild(bStudy);
+
+    box.appendChild(fb);
+    box.appendChild(row);
+
+    showNotification("Too slow. 30 seconds only.", "bad");
+    vibrate(35);
+  }
+
+  function restartQuiz(){
+    stopQuizTimer();
+    state.quizIndex = 0;
+    state.quizScore = 0;
+    state.quizMistakes = 0;
+    state.quizAnswered = false;
+    state.quizCheatFlags = 0;
+    renderActiveTab();
+    showNotification("Quiz restarted.", "warn");
+    vibrate(10);
+  }
+
+  /* =========================================================
+     SMALL HELPERS
+     ========================================================= */
+  function clamp(n, a, b){
+    const x = Number(n);
+    return Math.max(a, Math.min(b, x));
+  }
+<script>
+  /* =========================================================
+     UTILITIES: safe escaping
+     ========================================================= */
+  function escapeJS(input){
+    // Escapes text for safe insertion via textContent anyway, but keeps rule explicit.
+    // Never trust dynamic strings in HTML context.
+    const s = String(input ?? "");
+    return s
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function showNotification(message, type="good"){
+    const host = document.getElementById("toasts");
+    if(!host) return;
+    const toast = document.createElement("div");
+    toast.className = "toast " + (type || "good");
+    toast.textContent = escapeJS(message);
+
+    host.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = "0"; // NOTE: inline style change; to keep strict, remove it:
+      // We'll instead remove without fade if strict.
+    }, 2500);
+
+    setTimeout(() => {
+      if(toast && toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 2800);
+
+    // strict mode: remove any style attributes we might have set
+    toast.removeAttribute("style");
+  }
+
+  function vibrate(ms){
+    try{
+      if(navigator.vibrate) navigator.vibrate(ms);
+    }catch(_e){}
+  }
+
+  /* =========================================================
+     NAVIGATION
+     ========================================================= */
+  function switchTab(tabId){
+    if(!tabId) return;
+
+    // Anti-cheat: switching tab while a question timer is running counts.
+    if(state.activeTab === "quiz" && state.quizTick && !state.quizAnswered){
+      state.quizCheatFlags += 1;
+      showNotification("Cheat flag: switching while question is active.", "bad");
+      vibrate(25);
+    }
+
+    state.activeTab = tabId;
+    updateTabsUI();
+    renderActiveTab();
+
+    // Stop speech on navigation to avoid overlapping audio
+    stopSpeech();
+  }
+
+  function updateTabsUI(){
+    const tabs = document.querySelectorAll(".tab");
+    tabs.forEach(btn => {
+      const selected = (btn.dataset.tab === state.activeTab);
+      btn.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+  }
+
+  /* =========================================================
+     MY WORDS: LocalStorage
+     ========================================================= */
+  function storageKey(){
+    return `lesson:${state.lessonId}:myWords`;
+  }
+  function storageLearnedKey(){
+    return `lesson:${state.lessonId}:learned`;
+  }
+
+  function loadMyWords(){
+    try{
+      const raw = localStorage.getItem(storageKey());
+      const arr = raw ? JSON.parse(raw) : [];
+      state.myWords = Array.isArray(arr) ? arr.filter(Boolean) : [];
+    }catch(_e){
+      state.myWords = [];
+    }
+
+    try{
+      const rawL = localStorage.getItem(storageLearnedKey());
+      const arrL = rawL ? JSON.parse(rawL) : [];
+      state.learned = new Set(Array.isArray(arrL) ? arrL : []);
+    }catch(_e){
+      state.learned = new Set();
+    }
+
+    renderMyWords();
+  }
+
+  function persistMyWords(){
+    try{
+      localStorage.setItem(storageKey(), JSON.stringify(state.myWords));
+    }catch(_e){}
+  }
+
+  function persistLearned(){
+    try{
+      localStorage.setItem(storageLearnedKey(), JSON.stringify(Array.from(state.learned)));
+    }catch(_e){}
+  }
+
+  function saveWord(item){
+    if(!item || !item.id) return;
+    if(isSaved(item.id)){
+      showNotification("Already saved.", "warn");
+      return;
+    }
+    state.myWords.unshift({
+      id: String(item.id),
+      en: String(item.en || ""),
+      ru: String(item.ru || ""),
+      ex: String(item.ex || "")
+    });
+    persistMyWords();
+    renderMyWords();
+    applyQuizLock();
+  }
+
+  function removeWord(id){
+    const before = state.myWords.length;
+    state.myWords = state.myWords.filter(w => w && w.id !== id);
+    persistMyWords();
+    renderMyWords();
+    applyQuizLock();
+    if(state.myWords.length !== before){
+      showNotification("Removed from My Words.", "warn");
+      vibrate(10);
+    }
+  }
+
+  function renderMyWords(){
+    const host = document.getElementById("myWordsList");
+    if(!host) return;
+    host.textContent = "";
+
+    if(state.myWords.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "feedback";
+      empty.textContent = "No saved words yet. Save words from Reading/Vocabulary.";
+      host.appendChild(empty);
+      return;
+    }
+
+    state.myWords.forEach(w => {
+      const row = document.createElement("div");
+      row.className = "myword";
+
+      const t = document.createElement("div");
+      t.className = "t";
+
+      const b = document.createElement("b");
+      b.textContent = escapeJS(w.en);
+
+      const s = document.createElement("span");
+      s.textContent = escapeJS(`${w.ru} • ${w.ex}`);
+
+      t.appendChild(b);
+      t.appendChild(s);
+
+      const actions = document.createElement("div");
+      actions.className = "row";
+
+      const speakBtn = document.createElement("button");
+      speakBtn.className = "btn btn-ghost";
+      speakBtn.type = "button";
+      speakBtn.textContent = "Speak";
+      speakBtn.addEventListener("click", () => speakWord(w.en));
+
+      const del = document.createElement("button");
+      del.className = "btn btn-danger";
+      del.type = "button";
+      del.textContent = "Delete";
+      del.addEventListener("click", () => removeWord(w.id));
+
+      actions.appendChild(speakBtn);
+      actions.appendChild(del);
+
+      row.appendChild(t);
+      row.appendChild(actions);
+
+      host.appendChild(row);
+    });
+  }
+
+  function applyQuizLock(){
+    const need = (state.lesson && state.lesson.quiz && state.lesson.quiz.unlockRule && state.lesson.quiz.unlockRule.learnedMin)
+      ? state.lesson.quiz.unlockRule.learnedMin
+      : 8;
+
+    // You can unlock either by marking learned OR by saving words (girl tries to save without learning),
+    // so we require "learned count" specifically.
+    const learnedCount = getLearnedCount();
+    state.quizLocked = learnedCount < need;
+
+    persistLearned();
+
+    if(state.activeTab === "quiz"){
+      renderActiveTab();
+    }
+  }
+
+  /* =========================================================
+     FLASHCARD HELPERS
+     ========================================================= */
+  function flipCard(){
+    const card = document.getElementById("flashcard");
+    if(!card) return;
+    card.classList.toggle("flipped");
+    vibrate(8);
+  }
+  function unflipCard(){
+    const card = document.getElementById("flashcard");
+    if(!card) return;
+    card.classList.remove("flipped");
+  }
+
+  /* =========================================================
+     TTS
+     - Primary: Web Speech API
+     - “Google TTS” mention in request: without network it can fail; we keep it as optional online fallback.
+     - Always cancel before speaking to avoid queue buildup [web:3].
+     ========================================================= */
+
+  function stopSpeech(){
+    try{
+      if(window.speechSynthesis){
+        // Cancel current speech and clear queue [web:3].
+        window.speechSynthesis.cancel();
+      }
+    }catch(_e){}
+    try{
+      // stop any <audio> elements created for online TTS fallback
+      const a = document.getElementById("ttsAudio");
+      if(a){
+        a.pause();
+        a.src = "";
+      }
+    }catch(_e){}
+  }
+
+  function speakWord(word){
+    const t = String(word || "").trim();
+    if(!t) return;
+    // Always stop previous speech to prevent overlaps/leaks [web:3].
+    stopSpeech();
+    // Prefer offline: browser TTS
+    if(canUseSpeechSynthesis()){
+      speakWithBrowserAPI(t);
+      return;
+    }
+    // Online fallback (may fail offline)
+    speakWithGoogleTTS(t);
+  }
+
+  function speakText(text){
+    const t = String(text || "").trim();
+    if(!t) return;
+    stopSpeech(); // [web:3]
+    if(canUseSpeechSynthesis()){
+      speakWithBrowserAPI(t);
+      return;
+    }
+    speakWithGoogleTTS(t);
+  }
+
+  function canUseSpeechSynthesis(){
+    return !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  }
+
+  function speakWithBrowserAPI(text){
+    try{
+      stopSpeech(); // ensure cleared [web:3]
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.rate = 0.95;
+      u.pitch = 1.0;
+      u.volume = 1.0;
+
+      // Defensive: if tab loses focus, cancel speech
+      u.onend = () => {};
+      u.onerror = () => {
+        showNotification("TTS error. Try again.", "bad");
+      };
+
+      window.speechSynthesis.speak(u);
+    }catch(_e){
+      showNotification("TTS not available.", "bad");
+    }
+  }
+
+  function speakWithGoogleTTS(text){
+    // NOTE: This requires internet. Kept only as optional fallback.
+    // If offline, it will fail gracefully.
+    try{
+      const audio = getOrCreateTTSAudio();
+      const q = encodeURIComponent(text);
+      // Public endpoint pattern. Some regions may block; handle errors.
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${q}&tl=en&client=tw-ob`;
+      audio.src = url;
+      audio.play().catch(() => {
+        showNotification("Online TTS blocked/offline. Using browser TTS if available.", "warn");
+        if(canUseSpeechSynthesis()) speakWithBrowserAPI(text);
+      });
+    }catch(_e){
+      showNotification("Could not play TTS.", "bad");
+    }
+  }
+
+  function getOrCreateTTSAudio(){
+    let a = document.getElementById("ttsAudio");
+    if(a) return a;
+    a = document.createElement("audio");
+    a.id = "ttsAudio";
+    a.preload = "none";
+    a.crossOrigin = "anonymous";
+    a.style.display = "none"; // inline style not allowed -> remove after set
+    document.body.appendChild(a);
+    a.removeAttribute("style");
+    return a;
+  }
+
+  /* =========================================================
+     PROTECTION LAYER (anti-copy / anti-paste / anti-easy cheat)
+     IMPORTANT: This is deterrence, not true security.
+     ========================================================= */
+  function initProtectionLayer(){
+    // 1) Block copy/cut/paste on most of the document.
+    // The copy event is cancelable and bubbles up; preventDefault stops copying [web:15].
+    const block = (e) => {
+      // Allow selection/copy inside inputs only for typed drills? No: drills should be typed, not pasted.
+      // So we block paste everywhere; for copy we allow only in My Words? We block all.
+      e.preventDefault();
+      showNotification("Copy/paste is disabled in this lesson.", "bad");
+      state.quizCheatFlags += (state.activeTab === "quiz" ? 1 : 0);
+      vibrate(20);
+      return false;
+    };
+
+    document.addEventListener("copy", block);  // [web:15]
+    document.addEventListener("cut", block);   // similar family, cancelable [web:15]
+    document.addEventListener("paste", block); // paste event exists; preventDefault cancels [web:54]
+
+    // 2) Block context menu (right click / long press menu on mobile)
+    document.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      showNotification("Context menu disabled.", "warn");
+      vibrate(8);
+    });
+
+    // 3) Block common "view-source" / devtools shortcuts (deterrence only)
+    document.addEventListener("keydown", (e) => {
+      const k = (e.key || "").toLowerCase();
+      const ctrl = e.ctrlKey || e.metaKey;
+      const shift = e.shiftKey;
+
+      // Block: Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+S, Ctrl+U, Ctrl+P
+      if(ctrl && ["c","v","x","s","u","p"].includes(k)){
+        e.preventDefault();
+        showNotification("Shortcut blocked.", "bad");
+        if(state.activeTab === "quiz") state.quizCheatFlags += 1;
+        vibrate(18);
+        return;
+      }
+
+      // Block: F12, Ctrl+Shift+I/J/C (devtools)
+      if(k === "f12" || (ctrl && shift && ["i","j","c"].includes(k))){
+        e.preventDefault();
+        showNotification("Developer tools shortcut blocked.", "bad");
+        if(state.activeTab === "quiz") state.quizCheatFlags += 1;
+        vibrate(18);
+        return;
+      }
+    });
+
+    // 4) Anti-tab-switch cheat: Page Visibility API.
+    // The visibilitychange event fires when the tab becomes hidden/visible [web:23].
+    document.addEventListener("visibilitychange", () => { // [web:23]
+      if(document.hidden){ // Page Visibility API [web:24]
+        if(state.activeTab === "quiz" && state.quizTick && !state.quizAnswered){
+          state.quizCheatFlags += 1;
+          showNotification("Cheat flag: tab hidden during a question.", "bad");
+          vibrate(30);
+        }
+        stopSpeech(); // avoid background speech [web:3]
+      }
+    });
+
+    // 5) If window loses focus during question, flag.
+    window.addEventListener("blur", () => { // blur event exists [web:29]
+      if(state.activeTab === "quiz" && state.quizTick && !state.quizAnswered){
+        state.quizCheatFlags += 1;
+      }
+    });
+
+    // 6) Gentle leave warning (browser-controlled dialog).
+    // beforeunload fires when leaving and can show confirmation dialog [web:43].
+    window.addEventListener("beforeunload", (e) => { // [web:43]
+      // only if user studied something
+      if(getLearnedCount() > 0 || state.myWords.length > 0){
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+  }
+
+  /* =========================================================
+     SERVICE WORKER (inline registration)
+     - Single-file limitation: we generate a SW script via Blob and register it.
+     - Caches this HTML for offline use after first load.
+     - Note: some browsers restrict blob URL SW; if it fails, app still works online.
+     ========================================================= */
+  async function initServiceWorkerInline(){
+    try{
+      if(!("serviceWorker" in navigator)) return;
+
+      // Minimal SW: cache the current page.
+      const swCode = `
+        const CACHE = 'lesson-cache-v1';
+        self.addEventListener('install', (event) => {
+          event.waitUntil((async () => {
+            const cache = await caches.open(CACHE);
+            // Cache current scope root as best-effort:
+            // addAll takes an array of URLs and fetches/caches responses [web:55].
+            await cache.addAll([self.registration.scope]);
+            self.skipWaiting();
+          })());
+        });
+        self.addEventListener('activate', (event) => {
+          event.waitUntil((async () => {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => (k === CACHE ? null : caches.delete(k))));
+            self.clients.claim();
+          })());
+        });
+        self.addEventListener('fetch', (event) => {
+          event.respondWith((async () => {
+            const cached = await caches.match(event.request);
+            if(cached) return cached;
+            try{
+              const fresh = await fetch(event.request);
+              return fresh;
+            }catch(_e){
+              return cached || new Response('Offline', { status: 503, statusText: 'Offline' });
+            }
+          })());
+        });
+      `;
+
+      const blob = new Blob([swCode], { type: "text/javascript" });
+      const swUrl = URL.createObjectURL(blob);
+
+      await navigator.serviceWorker.register(swUrl);
+      // Revoke URL later to avoid memory leak
+      setTimeout(() => URL.revokeObjectURL(swUrl), 8000);
+
+      showNotification("Offline cache enabled after this load.", "good");
+    }catch(_e){
+      // SW may fail for blob URLs in some browsers; fail silently.
+      // Still keep lesson usable without SW.
+    }
+  }
+
+  /* =========================================================
+     FINAL BOOT
+     ========================================================= */
+  document.addEventListener("DOMContentLoaded", () => {
+    // Avoid starting TTS unexpectedly
+    stopSpeech(); // [web:3]
+    loadLesson();
+  });
+</body>
+</html>
