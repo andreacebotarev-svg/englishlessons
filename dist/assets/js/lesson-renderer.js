@@ -1,6 +1,7 @@
 /**
  * LESSON RENDERER MODULE
  * Handles UI rendering and DOM manipulation
+ * Updated: Auto-insert images after paragraphs
  */
 
 class LessonRenderer {
@@ -53,7 +54,7 @@ class LessonRenderer {
   }
 
   /**
-   * Render reading content with clickable words
+   * Render reading content with clickable words AND automatic images
    * @param {Array} myWords - Currently saved words
    * @returns {string} HTML string
    */
@@ -65,6 +66,9 @@ class LessonRenderer {
 
     const allText = reading.map(para => para.text).join(' ');
     const wordCount = allText.split(/\s+/).length;
+
+    // Get lesson ID for image paths
+    const lessonId = this.data.id || window.lessonEngine?.lessonId || '264';
 
     // Build vocabulary map for special highlighting
     const vocabMap = {};
@@ -84,14 +88,19 @@ class LessonRenderer {
       return this.makeWordsInteractive(text);
     };
 
-    const processedParagraphs = reading.map(para => {
+    // 🔥 IMAGE COUNTER - starts from 1
+    let imageCounter = 1;
+
+    const processedParagraphs = reading.map((para, index) => {
+      let paraHTML = '';
+
       // Handle different paragraph types
       if (para.type === 'list') {
         const items = para.text.split('\n').filter(line => line.trim());
-        return `<ul style="padding-left: 20px; margin-bottom: 12px;">${items.map(item => `<li>${processText(item)}</li>`).join('')}</ul>`;
+        paraHTML = `<ul style="padding-left: 20px; margin-bottom: 12px;">${items.map(item => `<li>${processText(item)}</li>`).join('')}</ul>`;
       } else if (para.type === 'fact') {
         // Special styling for fact boxes
-        return `
+        paraHTML = `
           <div style="margin: 16px 0; padding: 12px; background: rgba(79, 140, 255, 0.1); border-left: 3px solid var(--accent); border-radius: 8px;">
             ${para.title ? `<div style="font-weight: 600; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px;">${this.escapeHTML(para.title)}</div>` : ''}
             <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">${processText(para.text)}</p>
@@ -99,11 +108,34 @@ class LessonRenderer {
         `;
       } else {
         // Regular paragraph
-        return `
+        paraHTML = `
           ${para.title ? `<h3 style="font-size: 1rem; font-weight: 600; margin: 16px 0 8px 0; color: var(--text-main);">${this.escapeHTML(para.title)}</h3>` : ''}
           <p class="reading-paragraph">${processText(para.text)}</p>
         `;
       }
+
+      // 🔥 INSERT IMAGE AFTER PARAGRAPH (skip facts and lists)
+      if (para.type !== 'fact' && para.type !== 'list') {
+        const imageHTML = `
+          <div class="reading-image-container" style="margin: var(--space-xl) 0;">
+            <img class="reading-image" 
+                 src="images/${lessonId}(${imageCounter}).jpg" 
+                 alt="Illustration for paragraph ${imageCounter}"
+                 onerror="this.parentElement.style.display='none'"
+                 loading="lazy"
+                 style="width: 100%; max-width: 600px; height: auto; 
+                        border-radius: var(--radius-lg); margin: 0 auto; 
+                        display: block; box-shadow: var(--shadow-lg); 
+                        transition: transform var(--transition-base);"
+                 onmouseover="this.style.transform='scale(1.02)'"
+                 onmouseout="this.style.transform='scale(1)'">
+          </div>
+        `;
+        imageCounter++;
+        return paraHTML + imageHTML;
+      }
+
+      return paraHTML;
     }).join('');
 
     return `
