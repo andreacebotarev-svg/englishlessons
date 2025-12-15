@@ -1,7 +1,7 @@
 /* ============================================================
    LESSON COMPONENTS STYLES
    Header, Tabs, Card, Buttons, Forms, Vocabulary, etc.
-   Updated: Professional Senior-Level Design
+   Updated: Professional Cursors (10px SVG) + Saved Words Highlighting
    ============================================================ */
 
 /* Lesson Header */
@@ -400,44 +400,64 @@
 
 .reading-paragraph {
   font-size: 1.05rem;
+  font-weight: 450;
   line-height: 1.85;
   text-align: justify;
-  font-weight: 450;
-  letter-spacing: 0.01em;
+  color: var(--text-main);
 }
 
-/* Interactive Words - Professional Natural Design */
+/* ============================================================
+   PROFESSIONAL INTERACTIVE WORDS
+   - 10px SVG cursor (inline, no external files)
+   - Saved words highlighted with green tint + star indicator
+   - Natural, elegant interaction
+   ============================================================ */
+
 .interactive-word {
+  /* Small 10x10px blue cursor */
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><defs><radialGradient id="b" cx="40%25" cy="40%25" r="60%25"><stop offset="0" stop-color="%236BA3FF" stop-opacity="1"/><stop offset="1" stop-color="%234f8cff" stop-opacity="0.7"/></radialGradient></defs><circle cx="5" cy="5" r="4" fill="url(%23b)"/><circle cx="5" cy="5" r="2" fill="%23ffffff" opacity="0.8"/></svg>') 5 5, pointer !important;
+  
+  /* Typography */
   display: inline;
-  cursor: url('../cursor/Neon%20Energy%20Animated--pointer--SweezyCursors..cur') 7 7, pointer !important;
-  color: #E5E5EA;
-  position: relative;
-  padding: 0;
-  border-bottom: none;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  
+  /* Default color - same as normal text */
+  color: var(--text-main);
+  
+  /* No decoration */
   text-decoration: none;
-  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              text-shadow 0.25s ease-out,
-              background 0.25s ease-out;
-  will-change: color, transform;
+  border-bottom: none;
+  
+  /* Smooth transitions */
+  position: relative;
+  padding: 0 1px;
+  border-radius: 2px;
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              text-shadow 0.25s ease-out;
+  will-change: transform;
 }
 
+/* Subtle underline on hover only */
 .interactive-word::after {
-  content: "";
+  content: '';
   position: absolute;
-  left: -1px;
-  right: -1px;
+  left: 0;
+  right: 0;
   bottom: -1px;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(107, 163, 255, 0.4), transparent);
   opacity: 0;
   transition: opacity 0.25s ease-out;
-  pointer-events: none;
 }
 
+/* Hover state - elegant blue */
 .interactive-word:hover {
   color: #6BA3FF;
-  background: rgba(107, 163, 255, 0.08);
+  background-color: rgba(107, 163, 255, 0.08);
   border-radius: 3px;
   padding: 0 3px;
   margin: 0 -3px;
@@ -449,22 +469,54 @@
   opacity: 1;
 }
 
+/* Active state */
 .interactive-word:active {
   transform: translateY(0) scale(0.99);
+  transition-duration: 0.05s;
 }
+
+/* ============================================================
+   SAVED WORDS HIGHLIGHTING
+   - Light green tint by default
+   - Star indicator before word
+   - Bright green on hover with custom green cursor
+   ============================================================ */
 
 .interactive-word.saved {
-  color: #E5E5EA;
+  /* Light green tint to indicate saved status */
+  color: #A8E6CF;
+  
+  /* Green cursor for saved words */
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><defs><radialGradient id="g" cx="40%25" cy="40%25" r="60%25"><stop offset="0" stop-color="%235ED9A6" stop-opacity="1"/><stop offset="1" stop-color="%2332D489" stop-opacity="0.7"/></radialGradient></defs><circle cx="5" cy="5" r="4" fill="url(%23g)"/><circle cx="5" cy="5" r="2" fill="%23ffffff" opacity="0.9"/></svg>') 5 5, pointer !important;
 }
 
+/* Star indicator for saved words */
+.interactive-word.saved::before {
+  content: "⭐";
+  position: absolute;
+  left: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 7px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.interactive-word.saved:hover::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.2);
+}
+
+/* Saved word hover - bright green */
 .interactive-word.saved:hover {
   color: #5ED9A6;
-  background: rgba(94, 217, 166, 0.08);
-  text-shadow: 0 0 8px rgba(94, 217, 166, 0.25);
+  background-color: rgba(94, 217, 166, 0.12);
+  text-shadow: 0 0 10px rgba(94, 217, 166, 0.3);
 }
 
+/* Green underline for saved words */
 .interactive-word.saved::after {
-  background: linear-gradient(90deg, transparent, rgba(94, 217, 166, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(94, 217, 166, 0.5), transparent);
 }
 
 /* Word Popup - Liquid Glass Design */
