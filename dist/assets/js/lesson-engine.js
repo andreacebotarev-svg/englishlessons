@@ -93,7 +93,6 @@ class LessonEngine {
     const { title, subtitle, meta } = this.lessonData;
     const { level = 'A1', duration = 30 } = meta || {};
     
-    // ИСПРАВЛЕНО: Grammar всегда показывается, если есть данные
     const hasGrammar = this.lessonData.grammar && Object.keys(this.lessonData.grammar).length > 0;
 
     const appEl = document.getElementById('app');
@@ -163,8 +162,163 @@ class LessonEngine {
         </aside>
       </div>
     `;
+  }
+
+  /**
+   * Show word popup with translation
+   */
+  async showWordPopup(word, event) {
+    event.stopPropagation();
     
-    // ИСПРАВЛЕНО: убран дублирующий вызов attachVocabularyListeners
+    // Remove old popup if exists
+    const oldPopup = document.getElementById('word-popup');
+    if (oldPopup) oldPopup.remove();
+    
+    // Create popup
+    const popup = document.createElement('div');
+    popup.id = 'word-popup';
+    popup.className = 'word-popup loading';
+    
+    const rect = event.target.getBoundingClientRect();
+    popup.style.top = `${rect.bottom + window.scrollY + 8}px`;
+    popup.style.left = `${rect.left + window.scrollX}px`;
+    
+    popup.innerHTML = `
+      <div class="word-popup-content">
+        <div class="word-popup-header">
+          <span class="word-popup-word">${word}</span>
+          <button class="word-popup-close" onclick="this.closest('.word-popup').remove()">✕</button>
+        </div>
+        <div class="word-popup-body">
+          <div class="word-popup-loader">
+            <div class="spinner"></div>
+            Loading translation...
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // Get translation
+    try {
+      const translation = await this.translateWord(word);
+      const isInVocab = this.isWordInVocabulary(word);
+      
+      let transcription = '';
+      if (isInVocab) {
+        const vocabWord = this.lessonData.vocabulary.words.find(
+          w => w.en.toLowerCase() === word.toLowerCase()
+        );
+        transcription = vocabWord?.transcription || '';
+      }
+      
+      popup.classList.remove('loading');
+      popup.querySelector('.word-popup-body').innerHTML = `
+        ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
+        <div class="word-popup-translation">${translation}</div>
+        <div class="word-popup-actions">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word}')">
+            🔊 Listen
+          </button>
+          <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word}', '${translation.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', this)">
+            ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
+          </button>
+        </div>
+      `;
+      
+    } catch (error) {
+      console.error('Translation error:', error);
+      popup.querySelector('.word-popup-body').innerHTML = `
+        <div class="word-popup-error">
+          ⚠️ Translation unavailable
+        </div>
+        <div class="word-popup-actions">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word}')">
+            🔊 Listen
+          </button>
+        </div>
+      `;
+    }
+    
+    // Close on click outside
+    setTimeout(() => {
+      document.addEventListener('click', function closePopup(e) {
+        if (!popup.contains(e.target)) {
+          popup.remove();
+          document.removeEventListener('click', closePopup);
+        }
+      });
+    }, 100);
+  }
+
+  /**
+   * Translate word using Google Translate API
+   */
+  async translateWord(word) {
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(word)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data && data[0] && data[0][0] && data[0][0][0]) {
+        return data[0][0][0];
+      }
+      
+      throw new Error('Translation not found');
+    } catch (error) {
+      console.warn('Google Translate failed, trying fallback:', error);
+      
+      // Fallback: check if word is in vocabulary
+      const vocabWord = this.lessonData.vocabulary?.words.find(
+        w => w.en.toLowerCase() === word.toLowerCase()
+      );
+      
+      if (vocabWord) {
+        return vocabWord.ru;
+      }
+      
+      throw new Error('Translation unavailable');
+    }
+  }
+
+  /**
+   * Check if word is in vocabulary
+   */
+  isWordInVocabulary(word) {
+    if (!this.lessonData?.vocabulary?.words) return false;
+    return this.lessonData.vocabulary.words.some(
+      w => w.en.toLowerCase() === word.toLowerCase()
+    );
+  }
+
+  /**
+   * Toggle word from popup
+   */
+  toggleWordFromPopup(word, translation, button) {
+    if (this.storage.isWordSaved(word)) {
+      // Remove
+      this.storage.removeWord(word);
+      button.textContent = '💾 Save';
+      button.classList.remove('saved');
+      this.showNotification(`"${word}" removed from saved words`);
+    } else {
+      // Save
+      this.storage.addWord({
+        word: word,
+        definition: translation,
+        phonetic: '',
+        timestamp: Date.now()
+      });
+      button.textContent = '✓ Saved';
+      button.classList.add('saved');
+      this.showNotification(`"${word}" saved!`);
+    }
+    
+    // Update sidebar
+    this.myWords = this.storage.loadWords();
+    this.updateSidebar();
   }
 
   /**
@@ -173,9 +327,7 @@ class LessonEngine {
   switchTab(tabName) {
     this.currentTab = tabName;
     
-    // Reset flashcard when entering vocabulary tab
     if (tabName === 'vocabulary' && this.vocabMode === 'flashcard') {
-      // Remove flipped state when switching tabs
       this.flashcardIndex = Math.max(0, this.flashcardIndex);
     }
     
@@ -197,7 +349,6 @@ class LessonEngine {
         html = this.renderer.renderReading(this.myWords);
         break;
       case 'vocabulary':
-        // ИСПРАВЛЕНО: передаём flashcardIndex отдельным параметром
         html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
         break;
       case 'grammar':
@@ -216,25 +367,9 @@ class LessonEngine {
    * Attach event listeners for current tab
    */
   attachCurrentTabListeners() {
-    if (this.currentTab === 'reading') {
-      this.attachReadingListeners();
-    } else if (this.currentTab === 'vocabulary') {
+    if (this.currentTab === 'vocabulary') {
       this.attachVocabularyListeners();
     }
-  }
-
-  /**
-   * Attach listeners for reading tab
-   */
-  attachReadingListeners() {
-    document.querySelectorAll('.word-clickable').forEach(wordEl => {
-      wordEl.addEventListener('click', () => {
-        const word = wordEl.dataset.word;
-        const definition = wordEl.dataset.definition;
-        const phonetic = wordEl.dataset.phonetic || '';
-        this.toggleWord({ word, definition, phonetic });
-      });
-    });
   }
 
   /**
@@ -245,8 +380,8 @@ class LessonEngine {
     modeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         this.vocabMode = btn.dataset.mode;
-        this.flashcardIndex = 0; // Reset when switching modes
-        this.renderCurrentTab(); // КРИТИЧНО: перерисовать интерфейс
+        this.flashcardIndex = 0;
+        this.renderCurrentTab();
       });
     });
   }
@@ -306,6 +441,19 @@ class LessonEngine {
   }
 
   /**
+   * Clear all saved words
+   */
+  clearAllWords() {
+    if (confirm('Are you sure you want to clear all saved words?')) {
+      this.storage.clearAllWords();
+      this.myWords = [];
+      this.showNotification('All words cleared');
+      this.renderCurrentTab();
+      this.updateSidebar();
+    }
+  }
+
+  /**
    * Speak all reading content
    */
   speakAllReading() {
@@ -341,7 +489,7 @@ class LessonEngine {
     if (this.flashcardIndex < maxIndex) {
       this.flashcardIndex++;
     } else {
-      this.flashcardIndex = 0; // Loop back to start
+      this.flashcardIndex = 0;
     }
     
     this.renderCurrentTab();
@@ -354,7 +502,6 @@ class LessonEngine {
     if (this.flashcardIndex > 0) {
       this.flashcardIndex--;
     } else {
-      // Loop to end
       this.flashcardIndex = this.lessonData.vocabulary.words.length - 1;
     }
     
@@ -363,10 +510,9 @@ class LessonEngine {
   }
 
   /**
-   * Quiz methods - support both array and object format
+   * Quiz methods
    */
   selectQuizAnswer(answerIndex) {
-    // Get questions array (support both formats)
     const quiz = this.lessonData.quiz;
     const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
     
@@ -394,7 +540,6 @@ class LessonEngine {
       }
     });
 
-    // Get feedback text (support both 'fb' and 'feedback')
     const feedback = question.fb || question.feedback || (isCorrect ? 'Correct!' : 'Incorrect');
 
     if (feedbackEl) {
