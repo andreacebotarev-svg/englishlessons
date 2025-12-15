@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cooking at School - English Lesson</title>
+  <meta name="description" content="Learn about school cooking programs in Britain. Level B1, 45 minutes." />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  
+  <!-- CSS Modules -->
+  <link rel="stylesheet" href="assets/css/lesson-core.css">
+  <link rel="stylesheet" href="assets/css/lesson-components.css">
+  <link rel="stylesheet" href="assets/css/lesson-responsive.css">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="assets/js/lesson-engine.js" as="script">
+  <link rel="preload" href="data/264.json" as="fetch" crossorigin>
+</head>
+<body>
+  <!-- Loader with animation -->
+  <div class="loader-container" id="loader">
+    <div class="loader">
+      <div class="loader-orbit"></div>
+      <div class="loader-orbit loader-orbit--2"></div>
+      <div class="loader-core"></div>
+    </div>
+    <p class="loader-text">Loading lesson...</p>
+  </div>
+
+  <!-- App Root Container -->
+  <div id="app-root">
+    <!-- Main Application Container -->
+    <div id="app"></div>
+    
+    <!-- Sidebar for saved words -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3>📚 My Words</h3>
+        <button class="icon-btn" id="clear-words-btn" title="Clear all saved words">
+          <span>🗑️</span>
+        </button>
+      </div>
+      <div class="sidebar-content" id="sidebar-content">
+        <p class="sidebar-empty">No saved words yet. Click on words in the reading to save them!</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="notification" id="notification">
+    <span id="notification-text"></span>
+  </div>
+
+  <!-- JavaScript Modules (in dependency order) -->
+  <script src="assets/js/lesson-storage.js"></script>
+  <script src="assets/js/lesson-tts.js"></script>
+  <script src="assets/js/lesson-renderer.js"></script>
+  <script src="assets/js/lesson-engine.js"></script>
+  
+  <!-- Initialization Script -->
+  <script>
+    // Extract lesson ID from filename (264.html -> 264)
+    const lessonId = window.location.pathname
+      .split('/').pop()
+      .replace('.html', '');
+    
+    // Initialize lesson engine
+    window.lessonEngine = new LessonEngine(lessonId);
+    
+    // Start the application
+    window.lessonEngine.init().catch(error => {
+      console.error('Failed to initialize lesson:', error);
+      document.getElementById('loader').innerHTML = `
+        <div class="error-state">
+          <h2>😔 Failed to load lesson</h2>
+          <p>${error.message}</p>
+          <button onclick="location.reload()" class="primary-btn">Try Again</button>
+        </div>
+      `;
+    });
+    
+    // Add clear words button handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const clearBtn = document.getElementById('clear-words-btn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to clear all saved words?')) {
+            window.lessonEngine.clearAllWords();
+          }
+        });
+      }
+    });
+    
+    // Handle online/offline status
+    window.addEventListener('online', () => {
+      window.lessonEngine.showNotification('✅ Back online');
+    });
+    
+    window.addEventListener('offline', () => {
+      window.lessonEngine.showNotification('⚠️ You are offline. Some features may not work.');
+    });
+  </script>
+  
+  <!-- Performance monitoring (optional, for development) -->
+  <script>
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const perfData = performance.getEntriesByType('navigation')[0];
+          if (perfData) {
+            console.group('📊 Performance Metrics');
+            console.log('DOM Content Loaded:', Math.round(perfData.domContentLoadedEventEnd - perfData.fetchStart), 'ms');
+            console.log('Page Load:', Math.round(perfData.loadEventEnd - perfData.fetchStart), 'ms');
+            console.log('DNS Lookup:', Math.round(perfData.domainLookupEnd - perfData.domainLookupStart), 'ms');
+            console.log('Response Time:', Math.round(perfData.responseEnd - perfData.requestStart), 'ms');
+            console.groupEnd();
+          }
+        }, 0);
+      });
+    }
+  </script>
+</body>
+</html>
