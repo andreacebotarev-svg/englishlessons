@@ -1,7 +1,7 @@
 /* ============================================================
    LESSON COMPONENTS STYLES
    Header, Tabs, Card, Buttons, Forms, Vocabulary, etc.
-   Updated: Professional Cursors (10px SVG) + Saved Words Highlighting
+   Updated: Using all Neon Energy cursors from collection
    ============================================================ */
 
 /* Lesson Header */
@@ -407,15 +407,16 @@
 }
 
 /* ============================================================
-   PROFESSIONAL INTERACTIVE WORDS
-   - 10px SVG cursor (inline, no external files)
-   - Saved words highlighted with green tint + star indicator
-   - Natural, elegant interaction
+   PROFESSIONAL INTERACTIVE WORDS WITH NEON ENERGY CURSORS
+   - Normal words: pointer .cur (blue neon)
+   - Saved words: cursor .ani (animated green neon) + highlighting
    ============================================================ */
 
 .interactive-word {
-  /* Small 10x10px blue cursor */
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><defs><radialGradient id="b" cx="40%25" cy="40%25" r="60%25"><stop offset="0" stop-color="%236BA3FF" stop-opacity="1"/><stop offset="1" stop-color="%234f8cff" stop-opacity="0.7"/></radialGradient></defs><circle cx="5" cy="5" r="4" fill="url(%23b)"/><circle cx="5" cy="5" r="2" fill="%23ffffff" opacity="0.8"/></svg>') 5 5, pointer !important;
+  /* Blue neon pointer cursor for normal words */
+  cursor: url('../cursor/Neon%20Energy%20Animated--pointer--SweezyCursors..cur'), 
+          url('../cursor/Neon%20Energy%20Animated--pointer--SweezyCursors.png') 16 16, 
+          pointer !important;
   
   /* Typography */
   display: inline;
@@ -477,17 +478,20 @@
 
 /* ============================================================
    SAVED WORDS HIGHLIGHTING
+   - Animated cursor .ani (green neon energy)
    - Light green tint by default
    - Star indicator before word
-   - Bright green on hover with custom green cursor
+   - Bright green on hover
    ============================================================ */
 
 .interactive-word.saved {
+  /* Animated green neon cursor for saved words - uses .ani file! */
+  cursor: url('../cursor/Neon%20Energy%20Animated--cursor--SweezyCursors..ani'),
+          url('../cursor/Neon%20Energy%20Animated--cursor--SweezyCursors.png') 16 16,
+          pointer !important;
+  
   /* Light green tint to indicate saved status */
   color: #A8E6CF;
-  
-  /* Green cursor for saved words */
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><defs><radialGradient id="g" cx="40%25" cy="40%25" r="60%25"><stop offset="0" stop-color="%235ED9A6" stop-opacity="1"/><stop offset="1" stop-color="%2332D489" stop-opacity="0.7"/></radialGradient></defs><circle cx="5" cy="5" r="4" fill="url(%23g)"/><circle cx="5" cy="5" r="2" fill="%23ffffff" opacity="0.9"/></svg>') 5 5, pointer !important;
 }
 
 /* Star indicator for saved words */
