@@ -2,8 +2,8 @@
    Premium Liquid Glass — Tutor Landing
    File: /docs/assets/css/styles.css
    Notes:
-   - Glassmorphism via backdrop-filter with progressive enhancement. [web:94]
-   - Respects reduced motion preferences. [web:114]
+   - Glassmorphism via backdrop-filter with progressive enhancement.
+   - Respects reduced motion preferences.
    ========================================================= */
 
 /* -----------------------------
@@ -87,7 +87,7 @@
   --g-glass: linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.045));
 }
 
-/* Reduced motion: keep UX but remove non-essential movement. [web:114] */
+/* Reduced motion: keep UX but remove non-essential movement. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur-1: 0ms;
@@ -288,7 +288,7 @@ a:hover { text-decoration: underline; }
 }
 
 /* -----------------------------
-   Header / nav (optional)
+   Header / nav
 ----------------------------- */
 .header {
   position: sticky;
@@ -334,8 +334,19 @@ a:hover { text-decoration: underline; }
   border-color: rgba(255, 255, 255, 0.10);
 }
 
+@media (max-width: 720px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .nav-links {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 /* -----------------------------
-   Hero (optional)
+   Hero
 ----------------------------- */
 .hero {
   padding-block: clamp(3rem, 7vw, 6rem);
@@ -531,7 +542,50 @@ a:hover { text-decoration: underline; }
 .icon-dot.is-bad  { background: rgba(255,107,122,0.85); }
 
 /* -----------------------------
-   Reveal animations (optional)
+   Media containers (images/video)
+----------------------------- */
+.media {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Aspect ratios */
+.media--portrait { aspect-ratio: 3 / 4; }   /* портрет репетитора */
+.media--landscape { aspect-ratio: 16 / 9; } /* скрины, рабочее место */
+.media--doc { aspect-ratio: 4 / 3; }        /* сертификаты, документы */
+
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Для документов с паддингом */
+.media--padded {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.media--padded img {
+  border-radius: calc(var(--r-lg) - 6px);
+}
+
+.media-caption {
+  margin-top: var(--space-2);
+  font-size: var(--fs-0);
+  color: var(--subtle);
+}
+
+.media-card {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* -----------------------------
+   Reveal animations
 ----------------------------- */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
@@ -583,7 +637,7 @@ a:hover { text-decoration: underline; }
 }
 
 /* -----------------------------
-   Footer (optional)
+   Footer
 ----------------------------- */
 .footer {
   padding-block: 2.5rem;
