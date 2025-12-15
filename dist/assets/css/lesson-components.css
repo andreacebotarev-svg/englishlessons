@@ -1,7 +1,7 @@
 /* ============================================================
    LESSON COMPONENTS STYLES
    Header, Tabs, Card, Buttons, Forms, Vocabulary, etc.
-   Updated: Liquid Glass Effects + Quiz Text Fix
+   Updated: Liquid Glass Effects + Quiz Text Fix + Interactive Words
    ============================================================ */
 
 /* Lesson Header */
@@ -404,25 +404,242 @@
   text-align: justify;
 }
 
+/* Interactive Words - Custom Cursor + Lift Effect */
 .word-clickable {
-  cursor: pointer;
+  display: inline-block;
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><defs><radialGradient id='g' cx='30%25' cy='30%25' r='70%25'><stop offset='0' stop-color='%23ffffff'/><stop offset='1' stop-color='%234f8cff'/></radialGradient></defs><circle cx='14' cy='14' r='7' fill='url(%23g)' opacity='0.95'/><circle cx='14' cy='14' r='11' fill='none' stroke='%234f8cff' stroke-opacity='0.55'/></svg>") 14 14, pointer;
   color: var(--accent);
   position: relative;
   padding: 0 2px;
-  border-bottom: 1px dotted rgba(79, 140, 255, 0.5);
-  transition: all var(--transition-fast);
+  border-bottom: 1px dotted rgba(79, 140, 255, 0.45);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              filter 0.2s ease-out, 
+              color 0.2s ease-out,
+              background 0.2s ease-out, 
+              border-color 0.2s ease-out;
+  will-change: transform, filter;
+}
+
+.word-clickable::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  height: 10px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 20% 50%, rgba(79, 140, 255, 0.22), transparent 60%);
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+  pointer-events: none;
 }
 
 .word-clickable:hover {
-  background: rgba(79, 140, 255, 0.15);
+  background: rgba(79, 140, 255, 0.12);
   border-bottom-style: solid;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  filter: saturate(1.15) brightness(1.12);
+  text-shadow: 0 0 12px rgba(79, 140, 255, 0.35);
+}
+
+.word-clickable:hover::after {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.word-clickable:active {
+  transform: translateY(-1px) scale(0.98);
 }
 
 .word-clickable.saved {
   background: rgba(50, 212, 137, 0.12);
   color: var(--accent-success);
   border-bottom-color: rgba(50, 212, 137, 0.55);
+  text-shadow: 0 0 10px rgba(50, 212, 137, 0.28);
+}
+
+/* Word Popup - Liquid Glass Design */
+.word-popup {
+  position: fixed;
+  z-index: 10000;
+  width: 240px;
+  max-width: min(320px, calc(100vw - 16px));
+  border-radius: 14px;
+  padding: 10px;
+  color: var(--text-main);
+  background: rgba(10, 15, 35, 0.82);
+  border: 1px solid rgba(79, 140, 255, 0.35);
+  box-shadow: 0 14px 50px rgba(0,0,0,0.65),
+              0 0 24px rgba(79, 140, 255, 0.18),
+              inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  overflow: hidden;
+  animation: wordPopupIn 180ms ease-out;
+  transform-origin: top left;
+}
+
+.word-popup::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at 25% 20%, rgba(79, 140, 255, 0.18), transparent 55%);
+  opacity: 0.9;
+  animation: liquidMove 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes wordPopupIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.word-popup-content {
+  position: relative;
+  z-index: 1;
+}
+
+.word-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px 6px 8px;
+}
+
+.word-popup-word {
+  font-weight: 750;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  color: var(--text-main);
+}
+
+.word-popup-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(138, 150, 197, 0.35);
+  background: rgba(20, 27, 60, 0.75);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease-out, background 0.2s ease-out, color 0.2s ease-out;
+}
+
+.word-popup-close:hover {
+  transform: rotate(10deg) scale(1.06);
+  background: rgba(30, 37, 75, 0.9);
+  color: #fff;
+}
+
+.word-popup-body {
+  padding: 6px 8px 10px 8px;
+}
+
+.word-popup-phonetic {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+  font-family: 'Courier New', monospace;
+}
+
+.word-popup-translation {
+  font-size: 0.95rem;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+.word-popup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.word-popup-btn {
+  flex: 1;
+  border: 1px solid rgba(138, 150, 197, 0.35);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(12, 16, 36, 0.7);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: transform 0.2s ease-out, 
+              box-shadow 0.2s ease-out, 
+              background 0.2s ease-out, 
+              border-color 0.2s ease-out;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.word-popup-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(79, 140, 255, 0.55);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.35), 0 0 18px rgba(79, 140, 255, 0.18);
+}
+
+.word-popup-btn.primary {
+  background: linear-gradient(135deg, rgba(79, 140, 255, 0.85), rgba(79, 140, 255, 0.55));
+  border-color: rgba(79, 140, 255, 0.55);
+  box-shadow: 0 4px 16px rgba(79, 140, 255, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.word-popup-btn.primary:hover {
+  background: linear-gradient(135deg, rgba(79, 140, 255, 1), rgba(79, 140, 255, 0.7));
+  box-shadow: 0 10px 26px rgba(79, 140, 255, 0.4), 0 0 20px rgba(79, 140, 255, 0.25);
+}
+
+.word-popup-btn.saved {
+  background: linear-gradient(135deg, rgba(50, 212, 137, 0.75), rgba(50, 212, 137, 0.45));
+  border-color: rgba(50, 212, 137, 0.6);
+  box-shadow: 0 4px 16px rgba(50, 212, 137, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.word-popup-btn.saved:hover {
+  background: linear-gradient(135deg, rgba(50, 212, 137, 0.9), rgba(50, 212, 137, 0.6));
+  box-shadow: 0 10px 26px rgba(50, 212, 137, 0.4), 0 0 20px rgba(50, 212, 137, 0.25);
+}
+
+.word-popup-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid rgba(79, 140, 255, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.word-popup-error {
+  color: var(--accent-danger);
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  text-align: center;
 }
 
 /* Vocabulary */
