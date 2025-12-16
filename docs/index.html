@@ -297,7 +297,12 @@
             >
               <!-- Скрытые поля для Formspree -->
               <input type="hidden" name="_subject" value="🎓 Новая заявка с лендинга" />
-              <input type="hidden" name="_cc" value="andreychebotarevqw@gmail.com" />
+              <!-- ВАЖНО: _cc не работает на бесплатном тарифе Formspree.
+                   Письма приходят на email, указанный в настройках формы в личном кабинете.
+                   Проверьте настройки на https://formspree.io/forms -->
+              
+              <!-- Honeypot-защита от спам-ботов (скрытое поле) -->
+              <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
               
               <label class="label" for="name">
                 Как вас называть?
@@ -306,7 +311,7 @@
 
               <label class="label" for="contact">
                 Как с вами связаться? (email, номер телефона)
-                <input class="input" id="contact" name="contact" type="text" autocomplete="email"
+                <input class="input" id="contact" name="_replyto" type="text" autocomplete="email"
                        required placeholder="@nickname, email или телефон" />
               </label>
 
