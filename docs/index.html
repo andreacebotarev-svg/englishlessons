@@ -253,28 +253,28 @@
       <div class="container grid grid-2">
         <div class="stack">
           <h2 class="h2">Записаться на бесплатный урок</h2>
-          <p class="p">Опишите цель и текущий уровень вашего ребёнка — отвечу в течение 1 рабочего дня.</p>
+          <p class="p">Заполните форму — отвечу в течение 1 рабочего дня и подберём удобное время для занятия.</p>
 
           <div class="glass card">
             <form 
               class="form" 
               id="leadForm" 
-              action="https://formspree.io/f/mldqkzvb" 
+              action="https://formspree.io/f/mgvgbdqp" 
               method="POST"
             >
               <!-- Скрытые поля для Formspree -->
-              <input type="hidden" name="_subject" value="🎓 Новая заявка с лендинга — English Lessons" />
-              <input type="hidden" name="_cc" value="andreacebotarev@gmail.com" />
+              <input type="hidden" name="_subject" value="🎓 Новая заявка с лендинга" />
+              <input type="hidden" name="_cc" value="andreychebotarevqw@gmail.com" />
               
               <label class="label" for="name">
-                Ваше имя
+                Как вас называть?
                 <input class="input" id="name" name="name" type="text" autocomplete="name" required placeholder="Например, Анна" />
               </label>
 
               <label class="label" for="contact">
-                Контакт (Telegram / WhatsApp / Email)
+                Как с вами связаться? (email, номер телефона)
                 <input class="input" id="contact" name="contact" type="text" autocomplete="email"
-                       required placeholder="@nickname или email" />
+                       required placeholder="@nickname, email или телефон" />
               </label>
 
               <label class="label" for="goal">
@@ -283,8 +283,8 @@
               </label>
 
               <label class="label" for="message">
-                Комментарий (опционально)
-                <textarea class="textarea" id="message" name="message" placeholder="Класс ребёнка, когда хотите начать, удобный график"></textarea>
+                Опишите кратко суть (класс ребёнка, когда хотите начать, удобный график)
+                <textarea class="textarea" id="message" name="message" placeholder="Например: 5 класс, хотим начать в январе, удобно вечером после 18:00"></textarea>
               </label>
 
               <button class="btn btn-primary btn-lg" type="submit">Отправить заявку</button>
