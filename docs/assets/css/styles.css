@@ -1,7 +1,11 @@
 /* =========================================================
-   Premium Liquid Glass — Tutor Landing
+   Premium Liquid Glass — Tutor Landing (Mobile-First)
    File: /docs/assets/css/styles.css
-   Mobile-First Responsive Design
+   Senior-level mobile optimization:
+   - Touch targets ≥44×44px (Apple HIG)
+   - Safe-area-inset for notched devices
+   - Performance optimizations
+   - Reduced motion support
    ========================================================= */
 
 /* -----------------------------
@@ -28,7 +32,8 @@
 
   /* Layout - Mobile First */
   --container: 1120px;
-  --pad: clamp(1rem, 4vw, 2rem);
+  --pad: max(1rem, env(safe-area-inset-left, 1rem));
+  --pad-block: clamp(1rem, 4vw, 2rem);
 
   --space-1: 0.5rem;
   --space-2: 0.75rem;
@@ -110,6 +115,15 @@
     --dur-2: 0ms;
     --dur-3: 0ms;
   }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* -----------------------------
@@ -117,7 +131,11 @@
 ----------------------------- */
 *,
 *::before,
-*::after { box-sizing: border-box; }
+*::after { 
+  box-sizing: border-box;
+  /* Убираем синюю подсветку при tap */
+  -webkit-tap-highlight-color: transparent;
+}
 
 html {
   scroll-behavior: smooth;
@@ -127,14 +145,19 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  /* Предотвращаем iOS font scaling */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  /* Учитываем safe areas для notch */
+  padding: env(safe-area-inset-top, 0) 
+           env(safe-area-inset-right, 0) 
+           env(safe-area-inset-bottom, 0) 
+           env(safe-area-inset-left, 0);
+  
   font-family: var(--font-sans);
   font-size: var(--fs-1);
   line-height: var(--lh-normal);
@@ -150,23 +173,21 @@ body {
 }
 
 /* Отключаем grain на мобильных для производительности */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.08;
-  mix-blend-mode: overlay;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08) 0 1px, transparent 2px),
-    radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.06) 0 1px, transparent 2px),
-    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.05) 0 1px, transparent 2px);
-  background-size: 260px 260px, 320px 320px, 360px 360px;
-  filter: blur(0.2px);
-}
-
-@media (max-width: 767px) {
-  body::before { display: none; }
+@media (min-width: 768px) {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.06) 0 1px, transparent 2px),
+      radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.05) 0 1px, transparent 2px);
+    background-size: 260px 260px, 320px 320px, 360px 360px;
+    filter: blur(0.2px);
+  }
 }
 
 img {
@@ -179,7 +200,9 @@ a {
   color: inherit;
   text-decoration: none;
   /* Улучшаем область клика на touch-устройствах */
-  -webkit-tap-highlight-color: rgba(122, 167, 255, 0.2);
+  -webkit-tap-highlight-color: rgba(122, 167, 255, 0.15);
+  /* Запрещаем callout на iOS */
+  -webkit-touch-callout: none;
 }
 
 a:hover { text-decoration: underline; }
@@ -193,6 +216,13 @@ a:hover { text-decoration: underline; }
   outline: 3px solid var(--focus);
   outline-offset: 3px;
   border-radius: var(--r-sm);
+}
+
+/* Улучшаем scroll на мобильных */
+html,
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
 }
 
 /* -----------------------------
@@ -346,10 +376,6 @@ a:hover { text-decoration: underline; }
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .card:hover { transform: none; }
-}
-
 /* Transitions */
 .card,
 .btn,
@@ -373,6 +399,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   z-index: 50;
   padding-block: 0.75rem;
+  padding-inline: max(var(--pad), env(safe-area-inset-left, 1rem));
   background: rgba(6, 10, 18, 0.85);
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
 }
@@ -404,6 +431,11 @@ a:hover { text-decoration: underline; }
   min-height: var(--touch-min);
   align-items: center;
   justify-content: center;
+  border-radius: var(--r-sm);
+}
+
+.nav-toggle:active {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .nav-toggle span {
@@ -432,7 +464,7 @@ a:hover { text-decoration: underline; }
 .nav-links {
   display: none;
   position: fixed;
-  top: 60px;
+  top: calc(60px + env(safe-area-inset-top, 0));
   left: 0;
   right: 0;
   background: rgba(6, 10, 18, 0.98);
@@ -440,7 +472,7 @@ a:hover { text-decoration: underline; }
   padding: var(--space-4) var(--pad);
   flex-direction: column;
   gap: 0.5rem;
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 60px - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0));
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
@@ -459,20 +491,22 @@ a:hover { text-decoration: underline; }
 .nav-links a {
   color: var(--muted);
   text-decoration: none;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   border-radius: var(--r-md);
   border: 1px solid transparent;
   min-height: var(--touch-min);
   display: flex;
   align-items: center;
   font-size: var(--fs-2);
+  font-weight: 500;
 }
 
 .nav-links a:hover,
+.nav-links a:active,
 .nav-links a.is-active {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
   text-decoration: none;
 }
 
@@ -495,7 +529,7 @@ a:hover { text-decoration: underline; }
   }
   
   .nav-links a {
-    padding: 0.5rem 0.75rem;
+    padding: 0.625rem 0.875rem;
     font-size: var(--fs-1);
     min-height: auto;
   }
@@ -523,6 +557,17 @@ a:hover { text-decoration: underline; }
   .hero-actions { margin-top: var(--space-4); }
 }
 
+/* Mobile: full-width buttons */
+@media (max-width: 640px) {
+  .hero-actions {
+    flex-direction: column;
+  }
+  
+  .hero-actions .btn {
+    width: 100%;
+  }
+}
+
 .hero-badges {
   display: flex;
   gap: var(--space-2);
@@ -538,6 +583,7 @@ a:hover { text-decoration: underline; }
   border: 0;
   cursor: pointer;
   user-select: none;
+  -webkit-user-select: none;
 
   display: inline-flex;
   align-items: center;
@@ -551,19 +597,22 @@ a:hover { text-decoration: underline; }
 
   font-weight: 650;
   font-size: var(--fs-1);
-  line-height: 1;
+  line-height: 1.2;
   letter-spacing: -0.01em;
 
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   border: 1px solid rgba(255, 255, 255, 0.14);
+  
+  /* Предотвращаем double-tap zoom на iOS */
+  touch-action: manipulation;
 }
 
 /* Hover только на устройствах с мышью */
 @media (hover: hover) and (pointer: fine) {
   .btn:hover {
     text-decoration: none;
-    transform: translateY(-0.5px);
+    transform: translateY(-1px);
     background: rgba(255, 255, 255, 0.11);
     border-color: rgba(255, 255, 255, 0.20);
   }
@@ -572,6 +621,7 @@ a:hover { text-decoration: underline; }
 /* Active state для touch */
 .btn:active {
   transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .btn-primary {
@@ -602,18 +652,12 @@ a:hover { text-decoration: underline; }
   min-height: 52px;
 }
 
-@media (max-width: 374px) {
-  .btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
 .btn[disabled],
 .btn.is-disabled {
   cursor: not-allowed;
   opacity: 0.55;
   transform: none;
+  pointer-events: none;
 }
 
 .btn.is-loading {
@@ -631,12 +675,6 @@ a:hover { text-decoration: underline; }
   border-top-color: rgba(255,255,255,0.0);
   margin-left: 0.4rem;
   animation: spin 900ms linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .btn.is-loading::after { animation: none; }
-  .btn:hover { transform: none; }
-  .btn:active { transform: none; }
 }
 
 /* -----------------------------
@@ -665,6 +703,10 @@ a:hover { text-decoration: underline; }
   gap: var(--space-3);
 }
 
+@media (min-width: 768px) {
+  .form { gap: var(--space-4); }
+}
+
 .label {
   display: grid;
   gap: 0.5rem;
@@ -680,14 +722,20 @@ a:hover { text-decoration: underline; }
   min-height: var(--touch-min);
   padding: 0.875rem 1rem;
   border-radius: var(--r-md);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   
   /* Улучшаем читаемость на мобильных */
   font-size: max(16px, var(--fs-1)); /* Предотвращает zoom на iOS */
   line-height: 1.5;
+  font-family: inherit;
+  
+  /* Лучшее UX на мобильных */
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .textarea {
@@ -703,8 +751,9 @@ a:hover { text-decoration: underline; }
 .input:focus,
 .textarea:focus {
   outline: none;
-  border-color: rgba(122, 167, 255, 0.55);
-  box-shadow: 0 0 0 4px rgba(122, 167, 255, 0.14);
+  border-color: rgba(122, 167, 255, 0.65);
+  box-shadow: 0 0 0 4px rgba(122, 167, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .input:invalid,
@@ -731,18 +780,6 @@ a:hover { text-decoration: underline; }
   margin: 0.5rem 0;
   line-height: 1.6;
 }
-
-.icon-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  display: inline-block;
-  background: rgba(255,255,255,0.35);
-}
-
-.icon-dot.is-good { background: rgba(68,215,168,0.85); }
-.icon-dot.is-warn { background: rgba(255,204,102,0.90); }
-.icon-dot.is-bad  { background: rgba(255,107,122,0.85); }
 
 /* -----------------------------
    Media containers
@@ -774,29 +811,18 @@ a:hover { text-decoration: underline; }
   border-radius: calc(var(--r-lg) - 6px);
 }
 
-.media-caption {
-  margin-top: var(--space-2);
-  font-size: var(--fs-0);
-  color: var(--subtle);
-}
-
-.media-card {
-  display: grid;
-  gap: var(--space-3);
-}
-
 /* -----------------------------
    Animations
 ----------------------------- */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes sheen {
   0% { transform: translateX(-120%) rotate(12deg); opacity: 0; }
-  15% { opacity: 0.45; }
-  55% { opacity: 0.22; }
+  15% { opacity: 0.35; }
+  55% { opacity: 0.18; }
   100% { transform: translateX(140%) rotate(12deg); opacity: 0; }
 }
 
@@ -822,7 +848,7 @@ a:hover { text-decoration: underline; }
     background: linear-gradient(90deg,
       transparent 0%,
       rgba(255,255,255,0.00) 35%,
-      rgba(255,255,255,0.18) 50%,
+      rgba(255,255,255,0.15) 50%,
       rgba(255,255,255,0.00) 65%,
       transparent 100%);
     pointer-events: none;
@@ -832,18 +858,14 @@ a:hover { text-decoration: underline; }
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; }
-  .reveal.is-visible { animation: none; }
-  .glass.is-sheen::before { animation: none; display: none; }
-}
-
 /* -----------------------------
    Footer
 ----------------------------- */
 .footer {
   padding-block: 2rem;
+  padding-inline: max(var(--pad), env(safe-area-inset-left, 1rem));
   color: var(--subtle);
+  font-size: var(--fs-0);
   border-top: 1px solid rgba(255, 255, 255, 0.10);
   text-align: center;
 }
@@ -851,7 +873,6 @@ a:hover { text-decoration: underline; }
 @media (min-width: 768px) {
   .footer {
     padding-block: 2.5rem;
-    text-align: left;
   }
 }
 
@@ -872,15 +893,16 @@ a:hover { text-decoration: underline; }
   display: none;
   position: fixed;
   z-index: 9999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.96);
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  padding: var(--space-3);
+  /* Учитываем safe areas */
+  padding: max(var(--space-3), env(safe-area-inset-top, 16px)) 
+           max(var(--space-2), env(safe-area-inset-right, 16px)) 
+           max(var(--space-3), env(safe-area-inset-bottom, 16px)) 
+           max(var(--space-2), env(safe-area-inset-left, 16px));
   animation: fadeIn 0.25s ease;
   /* Блокируем скролл body при открытом lightbox */
   overscroll-behavior: contain;
@@ -892,8 +914,8 @@ a:hover { text-decoration: underline; }
 }
 
 .lightbox-content {
-  max-width: 100%;
-  max-height: 80vh;
+  max-width: 94%;
+  max-height: 75vh;
   object-fit: contain;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.9);
   border-radius: var(--r-md);
@@ -901,6 +923,7 @@ a:hover { text-decoration: underline; }
   /* Запрещаем перетаскивание изображения */
   user-select: none;
   -webkit-user-drag: none;
+  -webkit-user-select: none;
 }
 
 @media (min-width: 768px) {
@@ -925,21 +948,28 @@ a:hover { text-decoration: underline; }
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.12);
   border-radius: var(--r-md);
-  backdrop-filter: blur(10px);
   line-height: 1.4;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .lightbox-caption {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 
 @media (min-width: 768px) {
   .lightbox-caption {
     font-size: var(--fs-2);
     max-width: 80%;
+    padding: 1rem 1.25rem;
   }
 }
 
 .lightbox-close {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
+  top: max(12px, env(safe-area-inset-top, 12px));
+  right: max(12px, env(safe-area-inset-right, 12px));
   width: var(--touch-min);
   height: var(--touch-min);
   display: flex;
@@ -950,26 +980,35 @@ a:hover { text-decoration: underline; }
   color: white;
   cursor: pointer;
   user-select: none;
-  background: rgba(0, 0, 0, 0.5);
+  -webkit-user-select: none;
+  background: rgba(0, 0, 0, 0.6);
   border-radius: 50%;
   transition: 0.2s;
   z-index: 10;
+  touch-action: manipulation;
 }
 
 @media (min-width: 768px) {
   .lightbox-close {
-    top: var(--space-5);
-    right: var(--space-5);
+    top: max(var(--space-5), env(safe-area-inset-top, 20px));
+    right: max(var(--space-5), env(safe-area-inset-right, 20px));
     font-size: 42px;
-    background: transparent;
+    width: 52px;
+    height: 52px;
+    background: rgba(0, 0, 0, 0.4);
   }
 }
 
 @media (hover: hover) and (pointer: fine) {
   .lightbox-close:hover {
     color: #ff4444;
-    transform: scale(1.1);
+    transform: scale(1.08);
+    background: rgba(0, 0, 0, 0.8);
   }
+}
+
+.lightbox-close:active {
+  transform: scale(0.95);
 }
 
 /* Стрелки навигации - адаптивные */
@@ -988,10 +1027,12 @@ a:hover { text-decoration: underline; }
   color: white;
   cursor: pointer;
   user-select: none;
+  -webkit-user-select: none;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 50%;
   transition: 0.2s;
   z-index: 10;
+  touch-action: manipulation;
 }
 
 @media (min-width: 768px) {
@@ -1000,44 +1041,50 @@ a:hover { text-decoration: underline; }
     font-size: 32px;
     width: 56px;
     height: 56px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
   }
 }
 
 @media (hover: hover) and (pointer: fine) {
   .lightbox-prev:hover,
   .lightbox-next:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.22);
     transform: translateY(-50%) scale(1.08);
   }
 }
 
+.lightbox-prev:active,
+.lightbox-next:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
 .lightbox-prev {
-  left: var(--space-2);
+  left: max(8px, env(safe-area-inset-left, 8px));
 }
 
 .lightbox-next {
-  right: var(--space-2);
+  right: max(8px, env(safe-area-inset-right, 8px));
 }
 
 @media (min-width: 768px) {
-  .lightbox-prev { left: var(--space-5); }
-  .lightbox-next { right: var(--space-5); }
+  .lightbox-prev { left: max(var(--space-5), env(safe-area-inset-left, 20px)); }
+  .lightbox-next { right: max(var(--space-5), env(safe-area-inset-right, 20px)); }
 }
 
 /* Стили для thumbnail-карточек */
 .cert-thumbnail {
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
   overflow: hidden;
   /* Улучшаем область клика */
-  -webkit-tap-highlight-color: rgba(122, 167, 255, 0.2);
+  -webkit-tap-highlight-color: rgba(122, 167, 255, 0.15);
+  touch-action: manipulation;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .cert-thumbnail:hover {
     transform: translateY(-6px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
   }
   
   .cert-thumbnail:hover img {
@@ -1048,7 +1095,7 @@ a:hover { text-decoration: underline; }
 /* На touch-устройствах: легкое нажатие */
 @media (hover: none) {
   .cert-thumbnail:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 }
 
@@ -1056,7 +1103,7 @@ a:hover { text-decoration: underline; }
   width: 100%;
   height: auto;
   display: block;
-  transition: transform 0.3s ease;
+  transition: transform 0.25s ease;
 }
 
 .cert-thumbnail figcaption {
@@ -1070,29 +1117,7 @@ a:hover { text-decoration: underline; }
 @media (min-width: 768px) {
   .cert-thumbnail figcaption {
     font-size: var(--fs-1);
-  }
-}
-
-/* Отключаем анимации для prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-  .lightbox,
-  .lightbox-content {
-    animation: none;
-  }
-  
-  .lightbox-prev:hover,
-  .lightbox-next:hover,
-  .lightbox-close:hover {
-    transform: translateY(-50%);
-  }
-  
-  .cert-thumbnail:hover {
-    transform: translateY(-2px);
-  }
-  
-  .cert-thumbnail:hover img,
-  .cert-thumbnail:active {
-    transform: none;
+    padding: var(--space-3);
   }
 }
 
