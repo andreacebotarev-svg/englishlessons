@@ -76,72 +76,34 @@
 
   /* -----------------------------
      3. Обработка формы
+     ВАЖНО: Форма отправляется нативно через HTML action="https://api.web3forms.com/submit"
+     Этот код добавляет только визуальную обратную связь (disabled кнопки во время отправки)
   ----------------------------- */
   const leadForm = document.getElementById('leadForm');
   
   if (leadForm) {
-    leadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    leadForm.addEventListener('submit', (e) => {
+      // НЕ блокируем отправку (e.preventDefault() удалён!)
+      // Форма отправится нативно на Web3Forms
       
       const submitBtn = leadForm.querySelector('button[type="submit"]');
-      const originalText = submitBtn.textContent;
       
-      // Валидация
+      // Валидация перед отправкой
       if (!leadForm.checkValidity()) {
         leadForm.reportValidity();
+        e.preventDefault(); // Блокируем только если валидация не прошла
         return;
       }
       
-      // Собираем данные
-      const formData = new FormData(leadForm);
-      const data = Object.fromEntries(formData.entries());
-      
-      // Индикатор загрузки
+      // Визуальная индикация загрузки
       submitBtn.disabled = true;
       submitBtn.classList.add('is-loading');
       submitBtn.textContent = 'Отправляем...';
       
-      try {
-        // Здесь подключите отправку на сервер:
-        // const response = await fetch('/api/lead', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data)
-        // });
-        
-        // Или используйте Formspree, Netlify Forms, и т.д.
-        
-        // Имитация отправки (удалите в продакшене)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        console.log('Форма отправлена:', data);
-        
-        // Успех
-        submitBtn.textContent = '✓ Отправлено!';
-        submitBtn.classList.remove('is-loading');
-        submitBtn.classList.add('is-success');
-        
-        // Очистка формы
-        leadForm.reset();
-        
-        // Возврат к исходному состоянию через 3 секунды
-        setTimeout(() => {
-          submitBtn.disabled = false;
-          submitBtn.classList.remove('is-success');
-          submitBtn.textContent = originalText;
-        }, 3000);
-        
-      } catch (error) {
-        console.error('Ошибка отправки:', error);
-        
-        submitBtn.textContent = 'Ошибка. Попробуйте снова';
-        submitBtn.classList.remove('is-loading');
-        
-        setTimeout(() => {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalText;
-        }, 3000);
-      }
+      // Логируем для отладки (можно удалить в продакшене)
+      const formData = new FormData(leadForm);
+      const data = Object.fromEntries(formData.entries());
+      console.log('Форма отправлена:', data);
     });
   }
 
