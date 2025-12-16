@@ -143,11 +143,11 @@
     <section id="qualifications" class="section">
       <div class="container stack">
         <h2 class="h2">Квалификация и сертификаты</h2>
-        <p class="p">Все документы подтверждены. Копии можно запросить при записи на первый урок.</p>
+        <p class="p">Все документы подтверждены. Нажмите на изображение, чтобы посмотреть в полном размере.</p>
 
         <div class="grid grid-2">
           <div class="glass card reveal">
-            <h3 class="h3">Сертификаты и образование</h3>
+            <h3 class="h3">Сертификаты</h3>
             <ul class="ul">
               <li><strong>TEFL Professional Institute</strong> — сертификат преподавателя английского как иностранного (2024)</li>
               <li><strong>Oxford Online Placement Test</strong> — уровень C2 (Proficiency, 2025)</li>
@@ -166,19 +166,19 @@
           </div>
         </div>
 
-        <!-- Сертификаты (замените изображения на реальные скриншоты) -->
-        <div class="grid grid-3">
-          <figure class="glass card reveal">
-            <img src="assets/img/certificate-01.png" alt="Сертификат TEFL Professional Institute" />
-            <figcaption class="small mt-3">TEFL Certificate (2024)</figcaption>
+        <!-- Галерея сертификатов с превью -->
+        <div class="grid grid-3 cert-gallery">
+          <figure class="glass card reveal cert-thumbnail" onclick="openLightbox(0)" role="button" tabindex="0" aria-label="Посмотреть сертификат TEFL">
+            <img src="assets/img/certificate-01.png" alt="Сертификат TEFL Professional Institute" loading="lazy" />
+            <figcaption class="small mt-2">TEFL Certificate (2024)</figcaption>
           </figure>
-          <figure class="glass card reveal">
-            <img src="assets/img/certificate-02.png" alt="Сертификат Oxford Online Placement Test C2" />
-            <figcaption class="small mt-3">Oxford C2 Level (2025)</figcaption>
+          <figure class="glass card reveal cert-thumbnail" onclick="openLightbox(1)" role="button" tabindex="0" aria-label="Посмотреть сертификат Oxford C2">
+            <img src="assets/img/certificate-02.png" alt="Сертификат Oxford Online Placement Test C2" loading="lazy" />
+            <figcaption class="small mt-2">Oxford C2 Level (2025)</figcaption>
           </figure>
-          <figure class="glass card reveal">
-            <img src="assets/img/certificate-03.png" alt="Сертификат Лондонского университета: Teaching EFL/ESL Reading" />
-            <figcaption class="small mt-3">University of London: Task-Based Approach (2024)</figcaption>
+          <figure class="glass card reveal cert-thumbnail" onclick="openLightbox(2)" role="button" tabindex="0" aria-label="Посмотреть сертификат Лондонского университета">
+            <img src="assets/img/certificate-03.png" alt="Сертификат Лондонского университета: Teaching EFL/ESL Reading" loading="lazy" />
+            <figcaption class="small mt-2">University of London (2024)</figcaption>
           </figure>
         </div>
       </div>
@@ -300,6 +300,17 @@
     </section>
   </main>
 
+  <!-- Lightbox модальное окно -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()" style="display: none;">
+    <span class="lightbox-close" onclick="closeLightbox()" aria-label="Закрыть">&times;</span>
+    <img class="lightbox-content" id="lightbox-img" alt="Сертификат в полном размере" />
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+    
+    <!-- Навигация -->
+    <a class="lightbox-prev" onclick="navigateLightbox(-1); event.stopPropagation();" aria-label="Предыдущий сертификат">&#10094;</a>
+    <a class="lightbox-next" onclick="navigateLightbox(1); event.stopPropagation();" aria-label="Следующий сертификат">&#10095;</a>
+  </div>
+
   <footer class="footer">
     <div class="container">
       <p class="small">© <span id="year"></span> Андрей Чеботарёв. Репетитор английского языка.</p>
@@ -309,6 +320,49 @@
   <script src="assets/js/main.js" defer></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+    
+    // Lightbox функциональность
+    const certificates = [
+      { src: 'assets/img/certificate-01.png', caption: 'TEFL Professional Institute Certificate (2024)' },
+      { src: 'assets/img/certificate-02.png', caption: 'Oxford Online Placement Test - Level C2 (2025)' },
+      { src: 'assets/img/certificate-03.png', caption: 'University of London: Task-Based Approach (2024)' }
+    ];
+    
+    let currentIndex = 0;
+    
+    function openLightbox(index) {
+      currentIndex = index;
+      const lightbox = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      const caption = document.getElementById('lightbox-caption');
+      
+      img.src = certificates[currentIndex].src;
+      caption.textContent = certificates[currentIndex].caption;
+      lightbox.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeLightbox() {
+      const lightbox = document.getElementById('lightbox');
+      lightbox.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    
+    function navigateLightbox(direction) {
+      currentIndex = (currentIndex + direction + certificates.length) % certificates.length;
+      const img = document.getElementById('lightbox-img');
+      const caption = document.getElementById('lightbox-caption');
+      
+      img.src = certificates[currentIndex].src;
+      caption.textContent = certificates[currentIndex].caption;
+    }
+    
+    // Закрытие по ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') navigateLightbox(-1);
+      if (e.key === 'ArrowRight') navigateLightbox(1);
+    });
   </script>
 </body>
 </html>
