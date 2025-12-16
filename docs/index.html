@@ -25,7 +25,7 @@
 
       <nav class="nav-links" aria-label="Навигация">
         <a href="#about">Обо мне</a>
-        <a href="#method">Методика</</a>
+        <a href="#method">Методика</a>
         <a href="#qualifications">Квалификация</a>
         <a href="#pricing">Формат и цена</a>
         <a href="#faq">FAQ</a>
@@ -110,7 +110,7 @@
       </div>
     </section>
 
-    <!-- Method -->
+    <!-- Method (Новая компоновка) -->
     <section id="method" class="section">
       <div class="container stack">
         <h2 class="h2">Как проходят занятия</h2>
@@ -118,27 +118,55 @@
           Каждый урок строится вокруг практической задачи: обсудить фильм, подготовить мини-презентацию, написать письмо. Грамматика и лексика изучаются в процессе — так материал запоминается в разы лучше.
         </p>
 
-        <div class="grid grid-2">
-          <div class="glass card reveal">
-            <h3 class="h3">1. Диагностика (бесплатно)</h3>
-            <p class="p">Проверяю 4 навыка: чтение, аудирование, письмо, говорение. Выявляю сильные и слабые стороны. Составляю программу на 1-2 месяца.</p>
+        <div class="grid-method-split">
+          <!-- Левая колонка: 4 компактные карточки -->
+          <div class="method-steps">
+            <div class="glass card reveal compact">
+              <h3 class="h4">1. Диагностика (бесплатно)</h3>
+              <p class="small">Проверяю 4 навыка: чтение, аудирование, письмо, говорение. Выявляю сильные и слабые стороны.</p>
+            </div>
+            <div class="glass card reveal compact">
+              <h3 class="h4">2. План обучения</h3>
+              <p class="small">Расписываю темы, типы заданий и критерии прогресса. Обсуждаем цели: оценка, экзамен или speaking.</p>
+            </div>
+            <div class="glass card reveal compact">
+              <h3 class="h4">3. Регулярные занятия</h3>
+              <p class="small">60 минут онлайн (Zoom/Skype). Структура: разминка (5 мин) → новая тема (25 мин) → практика (20 мин) → домашка (10 мин).</p>
+            </div>
+            <div class="glass card reveal compact">
+              <h3 class="h4">4. Домашние задания</h3>
+              <p class="small">20-30 минут после каждого урока. Проверяю лично, даю обратную связь. Если непонятно — разбираем в чате.</p>
+            </div>
           </div>
-          <div class="glass card reveal">
-            <h3 class="h3">2. План обучения</h3>
-            <p class="p">Расписываю темы, типы заданий и критерии прогресса. Обсуждаем с родителями цели: улучшить оценку, подготовиться к экзамену или развить speaking.</p>
-          </div>
-          <div class="glass card reveal">
-            <h3 class="h3">3. Регулярные занятия</h3>
-            <p class="p">60 минут онлайн (Zoom/Skype) или офлайн. Структура: разминка (5 мин) → новая тема (25 мин) → практика (20 мин) → домашка (10 мин).</p>
-          </div>
-          <div class="glass card reveal">
-            <h3 class="h3">4. Домашние задания</h3>
-            <p class="p">20-30 минут после каждого урока. Проверяю лично, даю подробную обратную связь. Если что-то непонятно — разбираем в мессенджере.</p>
-          </div>
-          <div class="glass card reveal">
-            <h3 class="h3">5. Интерактивная платформа</h3>
-            <p class="p">Все задания, тесты и прогресс в одном месте. Ученик заходит в личный кабинет, выполняет интерактивные упражнения и получает мгновенную обратную связь.</p>
-            <button class="btn btn-primary" onclick="openPlatformPreview()">Посмотреть пример урока</button>
+
+          <!-- Правая колонка: акцентная карточка платформы -->
+          <div class="method-platform">
+            <div class="glass card reveal platform-card">
+              <!-- Превью платформы -->
+              <div class="platform-preview">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" opacity="0.25">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <div class="platform-badge">✨ DEMO</div>
+              </div>
+
+              <div class="platform-content">
+                <div class="kicker">Всё в одном месте</div>
+                <h3 class="h2">5. Интерактивная платформа</h3>
+                <p class="p">Все задания, тесты и прогресс в одном месте. Ученик заходит в личный кабинет, выполняет интерактивные упражнения и получает мгновенную обратную связь.</p>
+              </div>
+
+              <button class="btn btn-primary btn-lg" onclick="openPlatformPreview()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                Посмотреть пример урока
+              </button>
+            </div>
           </div>
         </div>
       </div>
