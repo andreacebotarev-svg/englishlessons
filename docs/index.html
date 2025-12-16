@@ -292,27 +292,30 @@
             <form 
               class="form" 
               id="leadForm" 
-              action="https://formspree.io/f/mgvgbdqp" 
+              action="https://api.web3forms.com/submit" 
               method="POST"
             >
-              <!-- Скрытые поля для Formspree -->
-              <input type="hidden" name="_subject" value="🎓 Новая заявка с лендинга" />
-              <!-- ВАЖНО: _cc не работает на бесплатном тарифе Formspree.
-                   Письма приходят на email, указанный в настройках формы в личном кабинете.
-                   Проверьте настройки на https://formspree.io/forms -->
+              <!-- Web3Forms: Access Key (публичный ключ, безопасно использовать в коде) -->
+              <input type="hidden" name="access_key" value="702470cb-beb9-4faa-93e7-595495a5f4da" />
+              
+              <!-- Тема письма -->
+              <input type="hidden" name="subject" value="🎓 Новая заявка с лендинга englishlessons" />
+              
+              <!-- Отправитель (для удобства в письме) -->
+              <input type="hidden" name="from_name" value="Лендинг английского" />
               
               <!-- Honeypot-защита от спам-ботов (скрытое поле) -->
-              <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
+              <input type="checkbox" name="botcheck" class="hidden" style="display: none;" />
               
               <label class="label" for="name">
                 Как вас называть?
                 <input class="input" id="name" name="name" type="text" autocomplete="name" required placeholder="Например, Анна" />
               </label>
 
-              <label class="label" for="contact">
-                Как с вами связаться? (email, номер телефона)
-                <input class="input" id="contact" name="_replyto" type="text" autocomplete="email"
-                       required placeholder="@nickname, email или телефон" />
+              <label class="label" for="email">
+                Как с вами связаться? (email или номер телефона)
+                <input class="input" id="email" name="email" type="text" autocomplete="email"
+                       required placeholder="email или телефон" />
               </label>
 
               <label class="label" for="goal">
