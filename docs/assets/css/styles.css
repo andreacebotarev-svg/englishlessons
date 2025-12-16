@@ -260,6 +260,14 @@ body {
   font-weight: 650;
 }
 
+.h4 {
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  margin: 0;
+  letter-spacing: -0.005em;
+  font-weight: 600;
+}
+
 .p {
   font-size: var(--fs-2);
   color: var(--muted);
@@ -318,6 +326,129 @@ body {
 
 @media (min-width: 768px) {
   .divider { margin-block: var(--space-5); }
+}
+
+/* =============================================
+   METHOD SECTION LAYOUT
+   Новая компоновка: 40% слева (4 карточки) + 60% справа (платформа)
+   ============================================= */
+
+/* Mobile: стеком */
+.grid-method-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+/* Desktop: 40/60 split */
+@media (min-width: 900px) {
+  .grid-method-split {
+    grid-template-columns: 40% 60%;
+    gap: var(--space-5);
+  }
+}
+
+/* Левая колонка: стек 4 компактных карточек */
+.method-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 900px) {
+  .method-steps {
+    gap: var(--space-2);
+  }
+}
+
+/* Компактные карточки (уменьшенный padding) */
+.card.compact {
+  padding: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .card.compact {
+    padding: var(--space-4);
+  }
+}
+
+/* Правая колонка: акцентная карточка платформы */
+.method-platform {
+  display: flex;
+}
+
+.platform-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+  padding: var(--space-4);
+  /* Слабый акцентный фон */
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.25);
+}
+
+@media (min-width: 768px) {
+  .platform-card {
+    padding: var(--space-5);
+  }
+}
+
+/* Превью платформы: градиент + иконка */
+.platform-preview {
+  width: 100%;
+  height: clamp(140px, 20vw, 220px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+
+/* Бейдж DEMO */
+.platform-badge {
+  position: absolute;
+  bottom: var(--space-2);
+  right: var(--space-2);
+  background: rgba(255, 255, 255, 0.25);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: var(--fs-0);
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .platform-badge {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* Контент платформы */
+.platform-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Кнопка в платформе (полная ширина на мобиле) */
+.platform-card .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .platform-card .btn {
+    width: auto;
+    align-self: flex-start;
+  }
 }
 
 /* -----------------------------
