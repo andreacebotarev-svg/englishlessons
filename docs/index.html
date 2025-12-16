@@ -256,7 +256,16 @@
           <p class="p">Опишите цель и текущий уровень вашего ребёнка — отвечу в течение 1 рабочего дня.</p>
 
           <div class="glass card">
-            <form class="form" id="leadForm" novalidate>
+            <form 
+              class="form" 
+              id="leadForm" 
+              action="https://formspree.io/f/mldqkzvb" 
+              method="POST"
+            >
+              <!-- Скрытые поля для Formspree -->
+              <input type="hidden" name="_subject" value="🎓 Новая заявка с лендинга — English Lessons" />
+              <input type="hidden" name="_cc" value="andreacebotarev@gmail.com" />
+              
               <label class="label" for="name">
                 Ваше имя
                 <input class="input" id="name" name="name" type="text" autocomplete="name" required placeholder="Например, Анна" />
