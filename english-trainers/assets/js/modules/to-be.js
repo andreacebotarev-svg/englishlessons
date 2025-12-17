@@ -36,25 +36,25 @@ class ToBeTrainer extends Trainer {
     // Sentence templates by difficulty
     this.templates = {
       easy: [
-        '{{pronoun}} {{verb}} a student.',
-        '{{pronoun}} {{verb}} happy.',
-        '{{pronoun}} {{verb}} at home.',
-        '{{pronoun}} {{verb}} tired.',
-        '{{pronoun}} {{verb}} hungry.'
+        '{{pronoun}} ____ a student.',
+        '{{pronoun}} ____ happy.',
+        '{{pronoun}} ____ at home.',
+        '{{pronoun}} ____ tired.',
+        '{{pronoun}} ____ hungry.'
       ],
       medium: [
-        '{{pronoun}} {{verb}} not ready yet.',
-        '{{verb}} {{pronoun}} from Spain?',
-        '{{pronoun}} {{verb}} always late.',
-        '{{pronoun}} {{verb}} never wrong.',
-        'Why {{verb}} {{pronoun}} here?'
+        '{{pronoun}} ____ not ready yet.',
+        '____ {{pronoun}} from Spain?',
+        '{{pronoun}} ____ always late.',
+        '{{pronoun}} ____ never wrong.',
+        'Why ____ {{pronoun}} here?'
       ],
       hard: [
-        '{{pronoun}} {{verb}} supposed to be here.',
-        '{{pronoun}} {{verb}}n\'t going to do that.',
-        'Where {{verb}} {{pronoun}} now?',
-        '{{pronoun}} {{verb}} about to leave.',
-        '{{pronoun}} {{verb}} being very careful.'
+        '{{pronoun}} ____ supposed to be here.',
+        '{{pronoun}} ____n\'t going to do that.',
+        'Where ____ {{pronoun}} now?',
+        '{{pronoun}} ____ about to leave.',
+        '{{pronoun}} ____ being very careful.'
       ]
     };
 
@@ -83,11 +83,11 @@ class ToBeTrainer extends Trainer {
     const template = templates[Math.floor(Math.random() * templates.length)];
     
     // Detect question/negative form
-    const isQuestion = template.includes('{{verb}} {{pronoun}}');
+    const isQuestion = template.includes('____ {{pronoun}}');
     const isNegative = template.includes('not') || template.includes('n\'t');
 
     // Generate sentence
-    const sentence = this._fillTemplate(template, pronoun, correctVerb);
+    const sentence = this._fillTemplate(template, pronoun);
 
     // Generate options (all verb forms)
     const options = this._generateOptions(correctVerb);
@@ -143,16 +143,15 @@ class ToBeTrainer extends Trainer {
    * Fill sentence template
    * @private
    */
-  _fillTemplate(template, pronoun, verb) {
+  _fillTemplate(template, pronoun) {
     // Capitalize first letter if pronoun starts sentence
-    const capitalizedPronoun = template.startsWith('{{pronoun}}')
+    const capitalizedPronoun = template.startsWith('{{pronoun}}') || template.startsWith('____')
       ? pronoun.charAt(0).toUpperCase() + pronoun.slice(1)
       : pronoun;
 
     return template
       .replace(/\{\{pronoun\}\}/g, capitalizedPronoun)
-      .replace(/\{\{verb\}\}/g, verb)
-      .replace('____', '<span class="blank">____</span>'); // Highlight blank
+      .replace(/____/g, '<span class="blank">____</span>'); // Highlight blank
   }
 
   /**
