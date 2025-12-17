@@ -74,7 +74,6 @@ dist/
 │       └── lesson-engine.js         # Главный контроллер приложения
 ├── data/
 │   └── {lessonId}.json              # JSON данные урока
-└── {lessonId}.html                  # Тонкая HTML-оболочка
 ```
 
 ### Архитектурные слои
