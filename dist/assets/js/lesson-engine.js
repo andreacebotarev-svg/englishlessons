@@ -493,7 +493,7 @@ class LessonEngine {
     popup.id = 'word-popup';
     popup.className = 'word-popup';
     
-    // Calculate position
+    // Calculate position (viewport-relative for position:fixed)
     const rect = event.target.getBoundingClientRect();
     const popupHeight = 200;
     const spaceAbove = rect.top;
@@ -503,13 +503,13 @@ class LessonEngine {
     
     // Smart positioning: above if space, otherwise below
     if (spaceAbove >= popupHeight || spaceAbove > spaceBelow) {
-      top = rect.top + window.scrollY - popupHeight - 12;
+      top = rect.top - popupHeight - 12;
     } else {
-      top = rect.bottom + window.scrollY + 8;
+      top = rect.bottom + 8;
     }
     
     // Horizontal positioning with edge detection
-    left = rect.left + window.scrollX;
+    left = rect.left;
     const maxLeft = window.innerWidth - 350 - 20;
     if (left > maxLeft) left = maxLeft;
     if (left < 20) left = 20;
@@ -537,7 +537,7 @@ class LessonEngine {
     // Adjust position after render
     const actualHeight = popup.offsetHeight;
     if (spaceAbove >= actualHeight || spaceAbove > spaceBelow) {
-      popup.style.top = `${rect.top + window.scrollY - actualHeight - 12}px`;
+      popup.style.top = `${rect.top - actualHeight - 12}px`;
     }
     
     // Get translation
@@ -570,7 +570,7 @@ class LessonEngine {
       // Final position adjustment
       const finalHeight = popup.offsetHeight;
       if (spaceAbove >= finalHeight || spaceAbove > spaceBelow) {
-        popup.style.top = `${rect.top + window.scrollY - finalHeight - 12}px`;
+        popup.style.top = `${rect.top - finalHeight - 12}px`;
       }
       
     } catch (error) {
@@ -739,7 +739,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'");
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'" );
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
