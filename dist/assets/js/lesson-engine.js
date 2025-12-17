@@ -19,6 +19,12 @@ class LessonEngine {
       completed: false
     };
 
+    // Glass effects state
+    this.magnifierActive = false;
+    this.glassPanel = null;
+    this.isDragging = false;
+    this.dragOffset = { x: 0, y: 0 };
+
     // Expose debugger helpers for console usage only
     window.debugPopup = {
       inspect: (word) => this.debugInspectPopup(word),
@@ -37,10 +43,221 @@ class LessonEngine {
       this.render();
       this.hideLoader();
       this.injectPopupStyles();
+      this.initTabSlider();
+      this.initGlassEffects();
     } catch (error) {
       console.error('Initialization error:', error);
       this.showError(error.message);
     }
+  }
+
+  /**
+   * Initialize animated tab slider
+   */
+  initTabSlider() {
+    const tabs = document.querySelector('.tabs');
+    if (!tabs) return;
+
+    // Remove old .tab-indicator elements if any
+    const oldIndicators = tabs.querySelectorAll('.tab-indicator');
+    oldIndicators.forEach(ind => ind.remove());
+
+    // Create slider element
+    const slider = document.createElement('div');
+    slider.className = 'tabs-slider';
+    tabs.appendChild(slider);
+
+    // Set initial position to active tab
+    const activeTab = tabs.querySelector('.tab.active');
+    if (activeTab) {
+      this.updateSliderPosition(activeTab, slider);
+    }
+
+    // Add click listeners to all tabs
+    tabs.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Update active state
+        tabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Animate slider
+        this.updateSliderPosition(tab, slider);
+      });
+    });
+
+    // Update slider on window resize
+    window.addEventListener('resize', () => {
+      const currentActive = tabs.querySelector('.tab.active');
+      if (currentActive) {
+        this.updateSliderPosition(currentActive, slider);
+      }
+    });
+  }
+
+  /**
+   * Update slider position to match active tab
+   */
+  updateSliderPosition(activeTab, slider) {
+    slider.style.left = `${activeTab.offsetLeft}px`;
+    slider.style.width = `${activeTab.offsetWidth}px`;
+  }
+
+  /**
+   * Initialize glass effects (magnifier + draggable panel)
+   */
+  initGlassEffects() {
+    // Create magnifier element
+    const magnifier = document.createElement('div');
+    magnifier.className = 'magnifier';
+    magnifier.innerHTML = '<div class="magnifier-content" style="transform: scale(2.5); transform-origin: center center;"></div>';
+    document.body.appendChild(magnifier);
+
+    // Document-level event listeners
+    document.addEventListener('click', (e) => this.handleGlassClick(e));
+    document.addEventListener('mousemove', (e) => this.handleMagnifierMove(e));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.deactivateMagnifier();
+        this.closeGlassPanel();
+      }
+    });
+  }
+
+  /**
+   * Handle clicks for glass effects
+   */
+  handleGlassClick(e) {
+    // Ctrl+Shift+Click → Draggable glass panel
+    if (e.ctrlKey && e.shiftKey) {
+      e.preventDefault();
+      this.toggleGlassPanel(e);
+      return;
+    }
+
+    // Ctrl+Click → Magnifier
+    if (e.ctrlKey) {
+      e.preventDefault();
+      this.toggleMagnifier();
+      return;
+    }
+  }
+
+  /**
+   * Toggle magnifying glass
+   */
+  toggleMagnifier() {
+    this.magnifierActive = !this.magnifierActive;
+    const magnifier = document.querySelector('.magnifier');
+    
+    if (this.magnifierActive) {
+      magnifier.classList.add('active');
+      console.log('🔍 Magnifier activated. Move mouse to magnify content.');
+    } else {
+      magnifier.classList.remove('active');
+      console.log('🔍 Magnifier deactivated.');
+    }
+  }
+
+  /**
+   * Deactivate magnifier
+   */
+  deactivateMagnifier() {
+    this.magnifierActive = false;
+    const magnifier = document.querySelector('.magnifier');
+    if (magnifier) {
+      magnifier.classList.remove('active');
+    }
+  }
+
+  /**
+   * Handle magnifier mouse movement
+   */
+  handleMagnifierMove(e) {
+    if (!this.magnifierActive) return;
+
+    const magnifier = document.querySelector('.magnifier');
+    if (!magnifier) return;
+
+    // Position magnifier at cursor
+    magnifier.style.left = `${e.clientX}px`;
+    magnifier.style.top = `${e.clientY}px`;
+
+    // Clone content under cursor (simplified version)
+    const content = magnifier.querySelector('.magnifier-content');
+    if (content) {
+      const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+      if (elementUnderCursor && elementUnderCursor !== magnifier) {
+        // Copy text content for demonstration
+        // Full implementation would use canvas/WebGL for true magnification
+        content.textContent = elementUnderCursor.textContent.substring(0, 50) + '...';
+        content.style.fontSize = '8px';
+        content.style.color = '#fff';
+        content.style.textAlign = 'center';
+        content.style.padding = '20px';
+      }
+    }
+  }
+
+  /**
+   * Toggle draggable glass panel
+   */
+  toggleGlassPanel(e) {
+    if (this.glassPanel) {
+      this.closeGlassPanel();
+      return;
+    }
+
+    // Create glass panel
+    this.glassPanel = document.createElement('div');
+    this.glassPanel.className = 'glass-panel active';
+    this.glassPanel.style.left = `${e.clientX - 200}px`;
+    this.glassPanel.style.top = `${e.clientY - 150}px`;
+    this.glassPanel.innerHTML = '<div style="padding: 20px; text-align: center; color: #fff; font-size: 14px;">📦 Draggable Glass Panel<br><small>Drag to move</small></div>';
+    document.body.appendChild(this.glassPanel);
+
+    // Add drag listeners
+    this.glassPanel.addEventListener('mousedown', (e) => this.startDrag(e));
+    document.addEventListener('mousemove', (e) => this.drag(e));
+    document.addEventListener('mouseup', () => this.stopDrag());
+
+    console.log('🪟 Glass panel created. Drag to move, Ctrl+Shift+Click again to close.');
+  }
+
+  /**
+   * Close glass panel
+   */
+  closeGlassPanel() {
+    if (this.glassPanel) {
+      this.glassPanel.remove();
+      this.glassPanel = null;
+      this.isDragging = false;
+    }
+  }
+
+  /**
+   * Start dragging glass panel
+   */
+  startDrag(e) {
+    if (!this.glassPanel) return;
+    this.isDragging = true;
+    this.dragOffset.x = e.clientX - this.glassPanel.offsetLeft;
+    this.dragOffset.y = e.clientY - this.glassPanel.offsetTop;
+  }
+
+  /**
+   * Drag glass panel
+   */
+  drag(e) {
+    if (!this.isDragging || !this.glassPanel) return;
+    this.glassPanel.style.left = `${e.clientX - this.dragOffset.x}px`;
+    this.glassPanel.style.top = `${e.clientY - this.dragOffset.y}px`;
+  }
+
+  /**
+   * Stop dragging glass panel
+   */
+  stopDrag() {
+    this.isDragging = false;
   }
 
   /**
@@ -457,25 +674,20 @@ class LessonEngine {
 
           <div class="tabs">
             <button class="tab ${this.currentTab === 'reading' ? 'active' : ''}" data-tab="reading" onclick="window.lessonEngine.switchTab('reading')">
-              <span class="tab-indicator"></span>
               Reading
             </button>
             <button class="tab ${this.currentTab === 'vocabulary' ? 'active' : ''}" data-tab="vocabulary" onclick="window.lessonEngine.switchTab('vocabulary')">
-              <span class="tab-indicator"></span>
               Vocabulary
             </button>
             ${hasGrammar ? `
             <button class="tab ${this.currentTab === 'grammar' ? 'active' : ''}" data-tab="grammar" onclick="window.lessonEngine.switchTab('grammar')">
-              <span class="tab-indicator"></span>
               Grammar
             </button>
             ` : ''}
             <button class="tab ${this.currentTab === 'quiz' ? 'active' : ''}" data-tab="quiz" onclick="window.lessonEngine.switchTab('quiz')">
-              <span class="tab-indicator"></span>
               Quiz
             </button>
             <button class="tab ${this.currentTab === 'mywords' ? 'active' : ''}" data-tab="mywords" onclick="window.lessonEngine.switchTab('mywords')">
-              <span class="tab-indicator"></span>
               My Words (<span id="words-count-badge">0</span>)
             </button>
           </div>
@@ -569,11 +781,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')")>
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\\\'" ).replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\\'" ).replace(/"/g, '&quot;')}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -592,8 +804,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\\'")}')">
-            🔊 Listen
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\\'")}')"> 🔊 Listen
           </button>
         </div>
       `;
@@ -752,7 +963,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\\'" );
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'" );
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
