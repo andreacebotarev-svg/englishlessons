@@ -33,6 +33,9 @@
       overflow: hidden;
       margin: 0.5rem auto;
     }
+    .progress-bar::before {
+      display: none; /* Remove shimmer effect */
+    }
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--accent), var(--accent-success));

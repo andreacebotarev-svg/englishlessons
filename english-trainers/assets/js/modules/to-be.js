@@ -44,32 +44,42 @@ class ToBeTrainer extends Trainer {
       'they': 1
     };
 
-    // Sentence templates by difficulty
+    // Sentence templates by difficulty (FIXED SCHEME)
     this.templates = {
       lvl0: [
         // Level 0: Just pronoun + is/am/are (no context)
         '{{pronoun}} {{verb}}'
       ],
       easy: [
+        // Easy: ONLY affirmative statements
         '{{pronoun}} ____ a student.',
         '{{pronoun}} ____ happy.',
         '{{pronoun}} ____ at home.',
         '{{pronoun}} ____ tired.',
-        '{{pronoun}} ____ hungry.'
+        '{{pronoun}} ____ hungry.',
+        '{{pronoun}} ____ from Spain.',
+        '{{pronoun}} ____ ready.'
       ],
       medium: [
+        // Medium: affirmative + negative (NO questions)
+        '{{pronoun}} ____ a student.',
         '{{pronoun}} ____ not ready yet.',
-        '____ {{pronoun}} from Spain?',
         '{{pronoun}} ____ always late.',
         '{{pronoun}} ____ never wrong.',
-        'Why ____ {{pronoun}} here?'
+        '{{pronoun}} ____ very busy.',
+        '{{pronoun}} ____ not here today.',
+        '{{pronoun}} ____ not feeling well.'
       ],
       hard: [
+        // Hard: affirmative + negative + questions
         '{{pronoun}} ____ supposed to be here.',
         '{{pronoun}} ____n\'t going to do that.',
+        '____ {{pronoun}} from Spain?',
         'Where ____ {{pronoun}} now?',
         '{{pronoun}} ____ about to leave.',
-        '{{pronoun}} ____ being very careful.'
+        'Why ____ {{pronoun}} here?',
+        '{{pronoun}} ____ being very careful.',
+        '____ {{pronoun}} ready yet?'
       ]
     };
 
