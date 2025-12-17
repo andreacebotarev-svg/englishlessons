@@ -344,7 +344,7 @@ class Trainer {
      ======================================== */
 
   /**
-   * Speak question text (removes blanks)
+   * Speak question text (removes blanks completely)
    * @private
    */
   _speakQuestion(questionText) {
@@ -353,7 +353,7 @@ class Trainer {
     // Remove HTML tags and blank placeholders
     const cleanText = questionText
       .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/____/g, 'blank') // Replace ____ with "blank"
+      .replace(/____/g, '') // Remove blank (don't say anything)
       .replace(/\s+/g, ' ') // Normalize spaces
       .trim();
 
