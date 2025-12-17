@@ -18,6 +18,13 @@ class LessonEngine {
       answers: [],
       completed: false
     };
+
+    // Expose debugger helpers for console usage only
+    window.debugPopup = {
+      inspect: (word) => this.debugInspectPopup(word),
+      highlight: (word) => this.debugHighlightPopup(word),
+      panel: (word) => this.debugPanel(word)
+    };
   }
 
   /**
@@ -173,6 +180,179 @@ class LessonEngine {
       }
     `;
     document.head.appendChild(style);
+  }
+
+  /**
+   * Non-intrusive popup debugger helpers (console only)
+   */
+  debugInspectPopup(word) {
+    const popup = document.getElementById('word-popup');
+    if (!popup) {
+      console.warn('debugInspectPopup: no popup in DOM. Click a word first.');
+      return;
+    }
+
+    const style = window.getComputedStyle(popup);
+    const rect = popup.getBoundingClientRect();
+
+    console.group('🐛 POPUP INSPECT');
+    console.log('Word:', word);
+    console.log('Computed styles:', {
+      display: style.display,
+      visibility: style.visibility,
+      opacity: style.opacity,
+      position: style.position,
+      zIndex: style.zIndex,
+      top: style.top,
+      left: style.left,
+      width: style.width,
+      height: style.height,
+      background: style.backgroundColor
+    });
+    console.log('Bounding box:', {
+      top: rect.top,
+      left: rect.left,
+      bottom: rect.bottom,
+      right: rect.right,
+      inViewport:
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= window.innerHeight &&
+        rect.right <= window.innerWidth
+    });
+
+    // Parent overflow & stacking contexts
+    let parent = popup.parentElement;
+    const overflowIssues = [];
+    while (parent && parent !== document.body) {
+      const ps = window.getComputedStyle(parent);
+      if (
+        ps.overflow !== 'visible' ||
+        ps.overflowX !== 'visible' ||
+        ps.overflowY !== 'visible'
+      ) {
+        overflowIssues.push({
+          tag: parent.tagName,
+          className: parent.className,
+          overflow: ps.overflow,
+          overflowX: ps.overflowX,
+          overflowY: ps.overflowY
+        });
+      }
+      parent = parent.parentElement;
+    }
+
+    if (overflowIssues.length) {
+      console.warn('🚨 Overflow ancestors:', overflowIssues);
+    } else {
+      console.log('No overflow clipping detected.');
+    }
+
+    console.groupEnd();
+  }
+
+  debugHighlightPopup(word) {
+    const popup = document.getElementById('word-popup');
+    if (!popup) {
+      console.warn('debugHighlightPopup: no popup in DOM. Click a word first.');
+      return;
+    }
+
+    popup.dataset.__debugOldStyle = popup.getAttribute('style') || '';
+    popup.style.outline = '4px solid red';
+    popup.style.background = 'rgba(255,0,0,0.1)';
+    popup.style.zIndex = '999999';
+
+    console.log('Popup highlighted for word:', word);
+  }
+
+  debugPanel(word) {
+    const popup = document.getElementById('word-popup');
+    if (!popup) {
+      console.warn('debugPanel: no popup in DOM. Click a word first.');
+      return;
+    }
+
+    const existing = document.getElementById('popup-debug-panel');
+    if (existing) existing.remove();
+
+    const rect = popup.getBoundingClientRect();
+    const style = window.getComputedStyle(popup);
+
+    const panel = document.createElement('div');
+    panel.id = 'popup-debug-panel';
+    panel.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 360px;
+      max-height: 80vh;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      z-index: 1000000;
+      overflow-y: auto;
+    `;
+
+    panel.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 8px; color: #4ec9b0;">
+        🐛 Popup Debugger
+      </div>
+      <div style="margin-bottom: 4px;">
+        <span style="color: #9cdcfe;">Word:</span>
+        <span>${word}</span>
+      </div>
+      <div style="margin-bottom: 4px;">
+        <span style="color: #9cdcfe;">Position:</span>
+        <span>top: ${rect.top.toFixed(1)}px, left: ${rect.left.toFixed(1)}px</span>
+      </div>
+      <div style="margin-bottom: 4px;">
+        <span style="color: #9cdcfe;">Size:</span>
+        <span>${rect.width.toFixed(1)} × ${rect.height.toFixed(1)} px</span>
+      </div>
+      <div style="margin-bottom: 4px;">
+        <span style="color: #9cdcfe;">Z-index:</span>
+        <span>${style.zIndex}</span>
+      </div>
+      <div style="margin-bottom: 4px;">
+        <span style="color: #9cdcfe;">Visibility:</span>
+        <span>opacity: ${style.opacity}, display: ${style.display}</span>
+      </div>
+      <div style="margin: 8px 0; border-top: 1px solid #333;"></div>
+      <button id="popup-debug-center" style="width: 100%; padding: 6px; margin-bottom: 4px; cursor: pointer;">
+        📍 Move popup to center
+      </button>
+      <button id="popup-debug-red" style="width: 100%; padding: 6px; margin-bottom: 4px; cursor: pointer;">
+        🔴 Paint popup red
+      </button>
+      <button id="popup-debug-close" style="width: 100%; padding: 6px; cursor: pointer;">
+        ✕ Close panel
+      </button>
+    `;
+
+    document.body.appendChild(panel);
+
+    document.getElementById('popup-debug-center').onclick = () => {
+      popup.style.top = '50%';
+      popup.style.left = '50%';
+      popup.style.transform = 'translate(-50%, -50%)';
+      popup.style.zIndex = '999999';
+    };
+
+    document.getElementById('popup-debug-red').onclick = () => {
+      popup.style.background = 'red';
+      popup.style.color = 'white';
+      popup.style.border = '4px solid yellow';
+      popup.style.zIndex = '999999';
+    };
+
+    document.getElementById('popup-debug-close').onclick = () => {
+      panel.remove();
+    };
   }
 
   /**
@@ -377,11 +557,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}'')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\\'" ).replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\'" ).replace(/"/g, '&quot;')}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -559,7 +739,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'" );
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'");
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
