@@ -457,25 +457,20 @@ class LessonEngine {
 
           <div class="tabs">
             <button class="tab ${this.currentTab === 'reading' ? 'active' : ''}" data-tab="reading" onclick="window.lessonEngine.switchTab('reading')">
-              <span class="tab-indicator"></span>
               Reading
             </button>
             <button class="tab ${this.currentTab === 'vocabulary' ? 'active' : ''}" data-tab="vocabulary" onclick="window.lessonEngine.switchTab('vocabulary')">
-              <span class="tab-indicator"></span>
               Vocabulary
             </button>
             ${hasGrammar ? `
             <button class="tab ${this.currentTab === 'grammar' ? 'active' : ''}" data-tab="grammar" onclick="window.lessonEngine.switchTab('grammar')">
-              <span class="tab-indicator"></span>
               Grammar
             </button>
             ` : ''}
             <button class="tab ${this.currentTab === 'quiz' ? 'active' : ''}" data-tab="quiz" onclick="window.lessonEngine.switchTab('quiz')">
-              <span class="tab-indicator"></span>
               Quiz
             </button>
             <button class="tab ${this.currentTab === 'mywords' ? 'active' : ''}" data-tab="mywords" onclick="window.lessonEngine.switchTab('mywords')">
-              <span class="tab-indicator"></span>
               My Words (<span id="words-count-badge">0</span>)
             </button>
           </div>
@@ -488,6 +483,58 @@ class LessonEngine {
         </div>
       </div>
     `;
+
+    // Initialize Magic Line animation AFTER DOM ready
+    this.initTabAnimations();
+  }
+
+  /**
+   * Magic Line Tab Animation Controller
+   * Injects sliding indicator and binds geometry calculations
+   */
+  initTabAnimations() {
+    const container = document.querySelector('.tabs');
+    if (!container) return;
+
+    // 1. Create indicator element if missing
+    let indicator = container.querySelector('.tab-indicator');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.className = 'tab-indicator';
+      container.appendChild(indicator);
+    }
+
+    // 2. Geometry calculation function (relative to parent)
+    const moveIndicator = (targetBtn) => {
+      if (!targetBtn) return;
+      
+      const width = targetBtn.offsetWidth;
+      const left = targetBtn.offsetLeft;
+      
+      requestAnimationFrame(() => {
+        indicator.style.width = `${width}px`;
+        indicator.style.transform = `translateX(${left}px)`;
+      });
+    };
+
+    // 3. Bind to ALL tab buttons (not just via onclick)
+    const buttons = container.querySelectorAll('.tab');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        moveIndicator(e.currentTarget);
+      });
+    });
+
+    // 4. Init position (zero-timeout to allow layout paint)
+    const activeBtn = container.querySelector('.tab.active') || buttons[0];
+    setTimeout(() => moveIndicator(activeBtn), 0);
+
+    // 5. Resize handler (responsive recalculation)
+    const resizeObserver = new ResizeObserver(() => {
+      const currentActive = container.querySelector('.tab.active');
+      if (currentActive) moveIndicator(currentActive);
+    });
+    resizeObserver.observe(container);
   }
 
   /**
@@ -569,11 +616,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')")>
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\\\'" ).replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\\'").replace(/"/g, '&quot;')}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -592,7 +639,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\'")}')">
             🔊 Listen
           </button>
         </div>
@@ -695,6 +742,25 @@ class LessonEngine {
   switchTab(tabName) {
     this.currentTab = tabName;
     
+    // Update active class
+    const buttons = document.querySelectorAll('.tab');
+    buttons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+    
+    // Move indicator to new active tab
+    const activeBtn = document.querySelector('.tab.active');
+    const indicator = document.querySelector('.tab-indicator');
+    if (activeBtn && indicator) {
+      const width = activeBtn.offsetWidth;
+      const left = activeBtn.offsetLeft;
+      
+      requestAnimationFrame(() => {
+        indicator.style.width = `${width}px`;
+        indicator.style.transform = `translateX(${left}px)`;
+      });
+    }
+    
     if (tabName === 'vocabulary' && this.vocabMode === 'flashcard') {
       this.flashcardIndex = Math.max(0, this.flashcardIndex);
     }
@@ -752,7 +818,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\\'" );
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'");
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
