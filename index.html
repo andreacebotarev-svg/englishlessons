@@ -15,10 +15,12 @@
 
         body {
             margin: 0;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            padding: 20px 0;
             background-color: #000;
             background-image: 
                 radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
@@ -26,7 +28,6 @@
                 radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
             
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-            overflow: hidden;
             color: white;
         }
         
@@ -42,6 +43,7 @@
             width: 85%;
             max-width: 340px;
             transition: all 0.4s ease;
+            margin-bottom: 40px;
         }
 
         .terminal.expanded { max-width: 440px; }
@@ -60,7 +62,7 @@
             position: relative;
             border: 1px solid rgba(255,255,255,0.08);
         }
-        /* Увеличили ширину фона переключателя для поддержки 3 кнопок */
+        
         .switch-bg {
             position: absolute; left: 4px; top: 4px; height: 32px; width: 80px;
             background: rgba(255,255,255,0.15);
@@ -117,6 +119,133 @@
             background: var(--accent); color: white; cursor: pointer;
             box-shadow: 0 5px 20px rgba(10, 132, 255, 0.3);
         }
+
+        /* ========== TRAINERS SECTION ========== */
+        .trainers-section {
+            width: 90%;
+            max-width: 900px;
+            margin-top: 20px;
+        }
+
+        .trainers-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .trainers-header h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #0A84FF, #BF5AF2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .trainers-header p {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.6;
+            letter-spacing: 0.3px;
+        }
+
+        .trainers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .trainer-card {
+            background: rgba(30, 30, 30, 0.5);
+            backdrop-filter: blur(15px) saturate(150%);
+            -webkit-backdrop-filter: blur(15px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trainer-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--card-gradient-start), var(--card-gradient-end));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .trainer-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .trainer-card:hover::before {
+            opacity: 1;
+        }
+
+        .trainer-card[data-trainer="to-be"] {
+            --card-gradient-start: #0A84FF;
+            --card-gradient-end: #00D4FF;
+        }
+
+        .trainer-card[data-trainer="present-simple"] {
+            --card-gradient-start: #30D158;
+            --card-gradient-end: #00D4FF;
+        }
+
+        .trainer-card[data-trainer="have-got"] {
+            --card-gradient-start: #BF5AF2;
+            --card-gradient-end: #FF375F;
+        }
+
+        .trainer-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(255,255,255,0.2));
+        }
+
+        .trainer-card h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .trainer-card p {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.5;
+            opacity: 0.7;
+        }
+
+        .trainer-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 11px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .trainers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -128,7 +257,6 @@
         <div class="switch-bg" id="switchBg"></div>
         <div class="switch-btn active" onclick="setMode('lesson')">Lesson</div>
         <div class="switch-btn" onclick="setMode('hw')">H.Work</div>
-        <!-- Новая кнопка Palace -->
         <div class="switch-btn" onclick="setMode('palace')">Palace</div>
     </div>
     
@@ -146,6 +274,58 @@
     <button class="launch-btn" id="goBtn" onclick="go()">Enter Code</button>
 </div>
 
+<!-- TRAINERS SECTION -->
+<div class="trainers-section">
+    <div class="trainers-header">
+        <h2>🎮 Grammar Trainers</h2>
+        <p>Interactive practice with adaptive difficulty</p>
+    </div>
+
+    <div class="trainers-grid">
+        <a href="https://andreacebotarev-svg.github.io/english-trainers/to-be.html" 
+           class="trainer-card" 
+           data-trainer="to-be"
+           target="_blank"
+           rel="noopener">
+            <span class="trainer-icon">🔵</span>
+            <h3>To Be</h3>
+            <p>Master am/is/are forms with context-aware exercises</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🎯 3 levels</span>
+                <span class="stat-item">⏱️ 5 min</span>
+            </div>
+        </a>
+
+        <a href="https://andreacebotarev-svg.github.io/english-trainers/present-simple.html" 
+           class="trainer-card" 
+           data-trainer="present-simple"
+           target="_blank"
+           rel="noopener">
+            <span class="trainer-icon">🟢</span>
+            <h3>Present Simple</h3>
+            <p>Practice do/does with 18 irregular verbs</p>
+            <div class="trainer-stats">
+                <span class="stat-item">📖 18 verbs</span>
+                <span class="stat-item">⏱️ 8 min</span>
+            </div>
+        </a>
+
+        <a href="https://andreacebotarev-svg.github.io/english-trainers/have-got.html" 
+           class="trainer-card" 
+           data-trainer="have-got"
+           target="_blank"
+           rel="noopener">
+            <span class="trainer-icon">🟣</span>
+            <h3>Have/Have Got</h3>
+            <p>British & American possession forms</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🇬🇧🇺🇸 2 styles</span>
+                <span class="stat-item">⏱️ 6 min</span>
+            </div>
+        </a>
+    </div>
+</div>
+
 <script>
     let mode = 'lesson';
     const inputs = document.querySelectorAll('.digit-box');
@@ -155,7 +335,6 @@
     const bg = document.getElementById('switchBg');
     const container = document.getElementById('inputContainer');
 
-    // Авто-фокус и переход между полями
     inputs.forEach((inp, i) => {
         inp.addEventListener('input', (e) => {
             if(e.target.value.length === 1) {
@@ -171,12 +350,8 @@
 
     function setMode(m) {
         mode = m;
-        
-        // Сброс полей
         inputs.forEach(i => i.value = '');
         inputs[0].focus();
-        
-        // Сброс активных классов кнопок
         btns.forEach(b => b.classList.remove('active'));
 
         if(m === 'lesson') {
@@ -187,22 +362,19 @@
             document.documentElement.style.setProperty('--accent', '#0A84FF');
         } 
         else if (m === 'hw') {
-            bg.style.transform = 'translateX(84px)'; // 80px width + 4px padding
+            bg.style.transform = 'translateX(84px)';
             btns[1].classList.add('active');
             container.classList.add('hw-visible');
             card.classList.add('expanded');
             document.documentElement.style.setProperty('--accent', '#BF5AF2');
         }
         else if (m === 'palace') {
-            bg.style.transform = 'translateX(168px)'; // 2 * (80px + 4px)
+            bg.style.transform = 'translateX(168px)';
             btns[2].classList.add('active');
-            // Palace использует только 3 цифры, как и Lesson
             container.classList.remove('hw-visible');
             card.classList.remove('expanded');
             document.documentElement.style.setProperty('--accent', '#FFD60A');
         }
-        
-        console.log('🔄 Mode changed to:', m);
         check();
     }
 
@@ -210,9 +382,6 @@
         const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
         const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
         
-        console.log('🔍 Check:', { mode, core, coreLength: core.length, hw, hwLength: hw.length });
-        
-        // Для lesson и palace нужно 3 цифры, для hw нужно 3+2
         let valid = false;
         if (mode === 'lesson' || mode === 'palace') {
             valid = core.length === 3;
@@ -220,11 +389,8 @@
             valid = core.length === 3 && hw.length === 2;
         }
 
-        console.log('✅ Valid:', valid);
-
         if(valid) {
             goBtn.classList.add('ready');
-            
             if(mode === 'palace') {
                 goBtn.innerText = "Enter Palace";
             } else if(mode === 'hw') {
@@ -232,7 +398,6 @@
             } else {
                 goBtn.innerText = "Launch Module";
             }
-            
             goBtn.style.pointerEvents = "auto";
         } else {
             goBtn.classList.remove('ready');
@@ -245,18 +410,13 @@
         const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
         const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
         
-        console.log('🚀 Navigate:', { mode, core, hw });
-        
         if (mode === 'lesson') {
-            console.log('📍 Going to:', `./dist/${core}.html`);
             window.location.assign(`./dist/${core}.html`);
         } 
         else if (mode === 'hw') {
-            console.log('📍 Going to:', `./dist/${core}_hw${hw}.html`);
             window.location.assign(`./dist/${core}_hw${hw}.html`);
         }
         else if (mode === 'palace') {
-            console.log('📍 Going to:', `./palace_engine/index.html?lesson=${core}`);
             window.location.assign(`./palace_engine/index.html?lesson=${core}`);
         }
     }
