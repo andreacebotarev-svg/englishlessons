@@ -88,26 +88,26 @@ class LessonEngine {
       .word-popup-word {
         font-weight: 600;
         font-size: 16px;
-        color: #1a1a1a;
+        color: #1a1a1a !important;
       }
       .word-popup-close {
         background: none;
         border: none;
         font-size: 20px;
         cursor: pointer;
-        color: #666;
+        color: #666 !important;
         padding: 4px 8px;
         line-height: 1;
         transition: color 0.2s;
       }
       .word-popup-close:hover {
-        color: #000;
+        color: #000 !important;
       }
       .word-popup-body {
         padding: 16px;
       }
       .word-popup-phonetic {
-        color: #666;
+        color: #666 !important;
         font-size: 13px;
         margin-bottom: 8px;
         font-style: italic;
@@ -115,10 +115,10 @@ class LessonEngine {
       .word-popup-translation {
         font-size: 15px;
         margin-bottom: 12px;
-        color: #1a1a1a;
+        color: #1a1a1a !important;
       }
       .word-popup-error {
-        color: #d73a49;
+        color: #d73a49 !important;
         font-size: 14px;
         margin-bottom: 12px;
       }
@@ -137,6 +137,7 @@ class LessonEngine {
         font-weight: 500;
         transition: all 0.2s;
         white-space: nowrap;
+        color: #1a1a1a;
       }
       .word-popup-btn:hover {
         background: #f5f5f5;
@@ -147,7 +148,7 @@ class LessonEngine {
       }
       .word-popup-btn.primary {
         background: #0969da;
-        color: white;
+        color: white !important;
         border-color: #0969da;
       }
       .word-popup-btn.primary:hover {
@@ -156,7 +157,7 @@ class LessonEngine {
       }
       .word-popup-btn.saved {
         background: #1a7f37;
-        color: white;
+        color: white !important;
         border-color: #1a7f37;
       }
       .word-popup-btn.saved:hover {
@@ -167,7 +168,7 @@ class LessonEngine {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: #666;
+        color: #666 !important;
         font-size: 14px;
       }
       .word-popup .spinner {
@@ -177,6 +178,16 @@ class LessonEngine {
         border-top-color: #0969da;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
+      }
+      
+      /* Saved words highlighting */
+      .word-saved {
+        background: rgba(26, 127, 55, 0.15) !important;
+        border-bottom: 2px solid #1a7f37;
+        font-weight: 500;
+      }
+      .word-saved:hover {
+        background: rgba(26, 127, 55, 0.25) !important;
       }
     `;
     document.head.appendChild(style);
@@ -207,7 +218,8 @@ class LessonEngine {
       left: style.left,
       width: style.width,
       height: style.height,
-      background: style.backgroundColor
+      background: style.backgroundColor,
+      color: style.color
     });
     console.log('Bounding box:', {
       top: rect.top,
@@ -557,11 +569,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')")>
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\'" ).replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\\\'" ).replace(/"/g, '&quot;')}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -580,7 +592,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\\'")}')">
             🔊 Listen
           </button>
         </div>
@@ -661,9 +673,10 @@ class LessonEngine {
       this.showNotification(`"${word}" saved!`);
     }
     
-    // Update saved words count
+    // Update saved words count and re-render to update highlighting
     this.myWords = this.storage.loadWords();
     this.updateSavedWordsCount();
+    this.renderCurrentTab();
   }
 
   /**
@@ -739,7 +752,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'" );
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\\'" );
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">

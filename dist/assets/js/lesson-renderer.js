@@ -1,7 +1,7 @@
 /**
  * LESSON RENDERER MODULE
  * Handles UI rendering and DOM manipulation
- * Updated: Auto-insert images after paragraphs
+ * Updated: Auto-insert images after paragraphs + highlight saved words
  */
 
 class LessonRenderer {
@@ -28,7 +28,7 @@ class LessonRenderer {
   }
 
   /**
-   * Make all words in text interactive (clickable)
+   * Make all words in text interactive (clickable) with saved words highlighting
    * @param {string} text
    * @returns {string}
    */
@@ -43,9 +43,11 @@ class LessonRenderer {
       }
       
       const normalized = word.toLowerCase();
+      const isSaved = this.storage.isWordSaved(normalized);
+      const savedClass = isSaved ? ' word-saved' : '';
       
       // Create interactive word span
-      return `<span class="interactive-word" 
+      return `<span class="interactive-word${savedClass}" 
                     data-word="${this.escapeHTML(normalized)}"
                     onclick="window.lessonEngine.showWordPopup('${this.escapeHTML(normalized)}', event)">
                 ${this.escapeHTML(match)}
@@ -202,12 +204,12 @@ class LessonRenderer {
       const { en: word, transcription: phonetic, ru: definition, example, part_of_speech, image } = item;
       const isSaved = myWords.some(w => w.word.toLowerCase() === word.toLowerCase());
 
-      const safeWord = this.escapeHTML(word).replace(/'/g, "\\'");
-      const safeDef = this.escapeHTML(definition).replace(/'/g, "\\'");
-      const safePhonetic = this.escapeHTML(phonetic || '').replace(/'/g, "\\'");
+      const safeWord = this.escapeHTML(word).replace(/'/g, "\\\'" );
+      const safeDef = this.escapeHTML(definition).replace(/'/g, "\\\'" );
+      const safePhonetic = this.escapeHTML(phonetic || '').replace(/'/g, "\\\'" );
 
       return `
-        <div class="vocab-item">
+        <div class="vocab-item ${isSaved ? 'word-saved' : ''}">
           ${image ? `<div style="margin-bottom: 8px;"><img src="../images/${image}" alt="${this.escapeHTML(word)}" style="max-width: 100%; height: auto; border-radius: 8px;" onerror="this.style.display='none'"></div>` : ''}
           <div class="vocab-top-line">
             <div>
@@ -236,7 +238,7 @@ class LessonRenderer {
       <div class="mt-md">
         <h3 class="card-subtitle" style="margin-bottom: 8px;">💬 Common Phrases</h3>
         ${phrases.map(phrase => {
-          const safePhrase = this.escapeHTML(phrase.en).replace(/'/g, "\\'");
+          const safePhrase = this.escapeHTML(phrase.en).replace(/'/g, "\\\'" );
           return `
             <div class="vocab-item">
               <div class="vocab-top-line">
@@ -280,7 +282,7 @@ class LessonRenderer {
 
     const item = vocabulary[index];
     const total = vocabulary.length;
-    const safeWord = this.escapeHTML(item.en).replace(/'/g, "\\'");
+    const safeWord = this.escapeHTML(item.en).replace(/'/g, "\\\'" );
 
     return `
       <div class="vocab-layout">
@@ -495,7 +497,7 @@ class LessonRenderer {
     }
 
     return myWords.map(word => {
-      const safeWord = this.escapeHTML(word.word).replace(/'/g, "\\'");
+      const safeWord = this.escapeHTML(word.word).replace(/'/g, "\\\'" );
       return `
         <div class="sidebar-word">
           <div class="sidebar-word-main">
