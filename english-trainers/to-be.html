@@ -70,6 +70,7 @@
       background: rgba(0,0,0,0.2);
       padding: 4px;
       border-radius: 8px;
+      flex-wrap: wrap;
     }
     .setting-btn {
       padding: 6px 12px;
@@ -80,6 +81,7 @@
       cursor: pointer;
       border-radius: 6px;
       transition: all 0.2s;
+      white-space: nowrap;
     }
     .setting-btn.active {
       background: var(--accent);
@@ -87,6 +89,14 @@
     }
     .setting-btn:hover:not(.active) {
       background: rgba(255,255,255,0.1);
+    }
+
+    /* Pronoun hint */
+    .pronoun-hint {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-style: italic;
     }
   </style>
 </head>
@@ -145,6 +155,7 @@
               <div class="setting-label">🎯 Difficulty</div>
               <div class="setting-buttons">
                 <button class="setting-btn active" data-difficulty="auto" onclick="setDifficulty('auto')">Auto</button>
+                <button class="setting-btn" data-difficulty="lvl0" onclick="setDifficulty('lvl0')">0 Level</button>
                 <button class="setting-btn" data-difficulty="easy" onclick="setDifficulty('easy')">Easy</button>
                 <button class="setting-btn" data-difficulty="medium" onclick="setDifficulty('medium')">Medium</button>
                 <button class="setting-btn" data-difficulty="hard" onclick="setDifficulty('hard')">Hard</button>

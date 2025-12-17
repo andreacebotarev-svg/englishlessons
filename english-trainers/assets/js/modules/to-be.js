@@ -22,6 +22,17 @@ class ToBeTrainer extends Trainer {
       'they': 'are'
     };
 
+    // Russian translations for Level 0
+    this.pronounTranslations = {
+      'I': 'я',
+      'you': 'ты/вы',
+      'he': 'он',
+      'she': 'она',
+      'it': 'оно',
+      'we': 'мы',
+      'they': 'они'
+    };
+
     // Weighted pronoun pool (avoid monotony)
     this.pronounWeights = {
       'I': 1,
@@ -35,6 +46,10 @@ class ToBeTrainer extends Trainer {
 
     // Sentence templates by difficulty
     this.templates = {
+      lvl0: [
+        // Level 0: Just pronoun + is/am/are (no context)
+        '{{pronoun}} {{verb}}'
+      ],
       easy: [
         '{{pronoun}} ____ a student.',
         '{{pronoun}} ____ happy.',
@@ -82,6 +97,7 @@ class ToBeTrainer extends Trainer {
     // Select pronoun (weighted + avoid recent)
     const pronoun = this._selectPronoun();
     const correctVerb = this.verbMap[pronoun];
+    const isLvl0 = this._currentDifficulty === 'lvl0';
 
     // Pick template and fill
     const templates = this.templates[this._currentDifficulty];
@@ -92,23 +108,46 @@ class ToBeTrainer extends Trainer {
     const isNegative = template.includes('not') || template.includes('n\'t');
 
     // Generate sentence
-    const sentence = this._fillTemplate(template, pronoun);
+    let sentence;
+    if (isLvl0) {
+      // Level 0: Show completed sentence, ask for pronoun
+      sentence = template
+        .replace('{{pronoun}}', '<span class="blank">____</span>')
+        .replace('{{verb}}', correctVerb);
+    } else {
+      sentence = this._fillTemplate(template, pronoun);
+    }
 
-    // Generate options (all verb forms)
-    const options = this._generateOptions(correctVerb);
+    // Generate options
+    const options = isLvl0 
+      ? this._generatePronounOptions(pronoun)
+      : this._generateVerbOptions(correctVerb);
 
     return {
       question: sentence,
       options,
-      correctIndex: options.indexOf(correctVerb),
+      correctIndex: options.indexOf(isLvl0 ? pronoun : correctVerb),
       metadata: {
         pronoun,
         correctVerb,
         difficulty: this._currentDifficulty,
         isQuestion,
-        isNegative
+        isNegative,
+        isLvl0,
+        translation: this.pronounTranslations[pronoun]
       }
     };
+  }
+
+  /**
+   * Generate pronoun options for Level 0
+   * @private
+   */
+  _generatePronounOptions(correctPronoun) {
+    const allPronouns = ['I', 'you', 'he', 'she', 'it', 'we', 'they'];
+    const shuffled = this._shuffle(allPronouns.filter(p => p !== correctPronoun));
+    const options = [correctPronoun, ...shuffled.slice(0, 3)];
+    return this._shuffle(options);
   }
 
   /**
@@ -160,10 +199,10 @@ class ToBeTrainer extends Trainer {
   }
 
   /**
-   * Generate shuffled options
+   * Generate shuffled verb options
    * @private
    */
-  _generateOptions(correctVerb) {
+  _generateVerbOptions(correctVerb) {
     const allVerbs = ['am', 'is', 'are'];
     
     // Add contracted forms for variety (30% chance)
@@ -220,7 +259,19 @@ class ToBeTrainer extends Trainer {
       return messages[Math.floor(Math.random() * messages.length)];
     }
 
-    const { pronoun, correctVerb } = this.state.currentQuestion.metadata;
+    const { pronoun, correctVerb, isLvl0, translation } = this.state.currentQuestion.metadata;
+    
+    if (isLvl0) {
+      // Level 0 feedback
+      return `
+        <div>Wrong. Correct: <strong>${pronoun}</strong> (${translation})</div>
+        <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+          💡 Tip: "${pronoun}" means "${translation}" in Russian
+        </div>
+      `;
+    }
+
+    // Regular feedback
     const tips = {
       'I': 'I always uses "am"',
       'you': '"You" always uses "are" (singular & plural)',
@@ -236,6 +287,39 @@ class ToBeTrainer extends Trainer {
       <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
         💡 Tip: ${tips[pronoun]}
       </div>
+    `;
+  }
+
+  /**
+   * Override render to show translation in Level 0
+   * @override
+   */
+  _renderQuestion(question) {
+    const container = this._dom.questionContainer;
+    if (!container) return;
+
+    const { isLvl0, translation } = this.state.currentQuestion?.metadata || {};
+
+    // Add translation hint for Level 0
+    const hint = isLvl0 ? `<div class="pronoun-hint">(🇷🇺 ${translation})</div>` : '';
+
+    container.innerHTML = `
+      <div class="question" role="heading" aria-level="2">
+        ${question.question}
+        ${hint}
+      </div>
+      <div class="options" role="radiogroup" aria-label="Answer options">
+        ${question.options.map((opt, i) => `
+          <button class="option" 
+                  role="radio" 
+                  aria-checked="false"
+                  data-index="${i}"
+                  onclick="window.trainer.submitAnswer(${i})">
+            ${this._escapeHTML(opt)}
+          </button>
+        `).join('')}
+      </div>
+      <div id="feedback" class="feedback hidden" role="alert" aria-live="polite"></div>
     `;
   }
 
