@@ -17,6 +17,78 @@
   
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Progress bar */
+    .progress-container {
+      margin: 1rem 0;
+      text-align: center;
+    }
+    .progress-bar {
+      width: 100%;
+      max-width: 300px;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 0.5rem auto;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-success));
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .progress-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Difficulty selector */
+    .settings-panel {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .setting-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    .setting-buttons {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(0,0,0,0.2);
+      padding: 4px;
+      border-radius: 8px;
+    }
+    .setting-btn {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .setting-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+    .setting-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.1);
+    }
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -47,6 +119,14 @@
     </div>
   </div>
 
+  <!-- Progress Bar -->
+  <div id="progress-container" class="progress-container" style="display: none;">
+    <div class="progress-bar">
+      <div id="progress-fill" class="progress-fill"></div>
+    </div>
+    <div id="progress-text" class="progress-text">0 / 0 questions</div>
+  </div>
+
   <!-- Main Game Area -->
   <main class="trainer-content">
     <div class="container">
@@ -56,18 +136,30 @@
           <div class="emoji" style="font-size: 5rem; margin-bottom: 1.5rem;">🎯</div>
           <h2 style="margin-bottom: 1rem;">Ready to Practice?</h2>
           <p style="color: var(--text-muted); margin-bottom: 2rem;">
-            Choose the correct form of "to be" (am/is/are) for each sentence.<br>
-            Questions adapt to your skill level automatically.
+            Choose the correct form of "to be" (am/is/are) for each sentence.
           </p>
           
-          <div class="rules card" style="text-align: left; max-width: 500px; margin: 0 auto 2rem; padding: 1.5rem;">
-            <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">📜 Rules</h3>
-            <ul style="list-style: none; padding: 0; margin: 0; line-height: 2;">
-              <li>✅ +10 points for correct answer</li>
-              <li>🔥 Bonus points for streaks (5+, 10+, 15+)</li>
-              <li>❤️ Lose 1 life for wrong answer</li>
-              <li>🏆 Game ends when lives = 0</li>
-            </ul>
+          <!-- Settings -->
+          <div class="settings-panel">
+            <div class="setting-group">
+              <div class="setting-label">🎯 Difficulty</div>
+              <div class="setting-buttons">
+                <button class="setting-btn active" data-difficulty="auto" onclick="setDifficulty('auto')">Auto</button>
+                <button class="setting-btn" data-difficulty="easy" onclick="setDifficulty('easy')">Easy</button>
+                <button class="setting-btn" data-difficulty="medium" onclick="setDifficulty('medium')">Medium</button>
+                <button class="setting-btn" data-difficulty="hard" onclick="setDifficulty('hard')">Hard</button>
+              </div>
+            </div>
+            
+            <div class="setting-group">
+              <div class="setting-label">⏱️ Timer</div>
+              <div class="setting-buttons">
+                <button class="setting-btn active" data-timer="off" onclick="setTimer('off')">Off</button>
+                <button class="setting-btn" data-timer="10" onclick="setTimer(10)">10s</button>
+                <button class="setting-btn" data-timer="15" onclick="setTimer(15)">15s</button>
+                <button class="setting-btn" data-timer="30" onclick="setTimer(30)">30s</button>
+              </div>
+            </div>
           </div>
 
           <button class="btn btn-primary btn-lg" onclick="window.trainer.start()">
@@ -82,11 +174,72 @@
   <script src="assets/js/trainer-base.js"></script>
   <script src="assets/js/modules/to-be.js"></script>
   <script>
+    // Settings state
+    let settings = {
+      difficulty: 'auto',
+      timerMode: false,
+      timeLimit: 30
+    };
+
+    function setDifficulty(level) {
+      settings.difficulty = level;
+      document.querySelectorAll('[data-difficulty]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.difficulty === level);
+      });
+    }
+
+    function setTimer(seconds) {
+      if (seconds === 'off') {
+        settings.timerMode = false;
+        settings.timeLimit = 30;
+      } else {
+        settings.timerMode = true;
+        settings.timeLimit = parseInt(seconds);
+      }
+      document.querySelectorAll('[data-timer]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.timer === (seconds === 'off' ? 'off' : seconds.toString()));
+      });
+    }
+
     // Init trainer instance
     window.trainer = new ToBeTrainer({
       maxLives: 3,
-      streakBonus: 10,
-      timerMode: false // Set true for timed challenges
+      streakBonus: 10
+    });
+
+    // Override start to apply settings
+    const originalStart = trainer.start.bind(trainer);
+    trainer.start = function() {
+      // Apply settings
+      this.config = Object.freeze({
+        ...this.config,
+        timerMode: settings.timerMode,
+        timeLimit: settings.timeLimit
+      });
+      
+      // Lock difficulty if not auto
+      if (settings.difficulty !== 'auto') {
+        this._manualDifficulty = settings.difficulty;
+      } else {
+        this._manualDifficulty = null;
+      }
+      
+      originalStart();
+      
+      // Show progress bar
+      document.getElementById('progress-container').style.display = 'block';
+    };
+
+    // Update progress on state change
+    trainer.on('stateChange', ({ current }) => {
+      const total = current.lives > 0 ? current.questionsAnswered + 10 : current.questionsAnswered;
+      const progress = (current.questionsAnswered / total) * 100;
+      
+      const fillEl = document.getElementById('progress-fill');
+      const textEl = document.getElementById('progress-text');
+      
+      if (fillEl) fillEl.style.width = `${progress}%`;
+      if (textEl) textEl.textContent = `${current.questionsAnswered} / ${total} questions`;
     });
 
     // Initialize on DOM ready
@@ -96,14 +249,11 @@
       window.trainer.init();
     }
 
-    // Event listeners for analytics/debugging
-    trainer.on('start', () => console.log('🎮 Game started'));
+    // Event listeners
+    trainer.on('start', () => console.log('🎮 Game started', settings));
     trainer.on('end', (stats) => {
       console.log('🏁 Game ended', stats);
-    });
-    trainer.on('answer', ({ isCorrect }) => {
-      if (isCorrect) console.log('✅ Correct!');
-      else console.log('❌ Wrong');
+      document.getElementById('progress-container').style.display = 'none';
     });
   </script>
 </body>

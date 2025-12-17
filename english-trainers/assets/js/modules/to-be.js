@@ -64,6 +64,7 @@ class ToBeTrainer extends Trainer {
 
     // Difficulty progression (auto-scales with score)
     this._currentDifficulty = 'easy';
+    this._manualDifficulty = null; // Locked difficulty
   }
 
   /**
@@ -71,8 +72,12 @@ class ToBeTrainer extends Trainer {
    * @returns {Object}
    */
   generateQuestion() {
-    // Auto-scale difficulty
-    this._updateDifficulty();
+    // Auto-scale difficulty (unless locked)
+    if (!this._manualDifficulty) {
+      this._updateDifficulty();
+    } else {
+      this._currentDifficulty = this._manualDifficulty;
+    }
 
     // Select pronoun (weighted + avoid recent)
     const pronoun = this._selectPronoun();
