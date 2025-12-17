@@ -17,6 +17,7 @@ class Trainer {
    * @param {number} config.streakBonus - Points for streak milestones (default: 10)
    * @param {boolean} config.timerMode - Enable countdown timer (default: false)
    * @param {number} config.timeLimit - Seconds per question in timer mode (default: 30)
+   * @param {boolean} config.enableTTS - Enable text-to-speech (default: true)
    */
   constructor(config = {}) {
     // Immutable config with defaults
@@ -26,6 +27,7 @@ class Trainer {
       streakBonus: config.streakBonus ?? 10,
       timerMode: config.timerMode ?? false,
       timeLimit: config.timeLimit ?? 30,
+      enableTTS: config.enableTTS ?? true,
       ...config
     });
 
@@ -59,6 +61,12 @@ class Trainer {
 
     // Debounced resize handler
     this._resizeDebounce = null;
+
+    // TTS (Text-to-Speech)
+    this._tts = null;
+    if (this.config.enableTTS && 'speechSynthesis' in window) {
+      this._tts = window.speechSynthesis;
+    }
 
     // Bind methods for event listeners
     this._handleResize = this._handleResize.bind(this);
@@ -108,6 +116,7 @@ class Trainer {
   pause() {
     if (this.state.phase !== 'PLAYING') return;
     this._stopTimer();
+    this._stopTTS();
     this._setState({ phase: 'PAUSED' });
     this.emit('pause');
   }
@@ -127,6 +136,7 @@ class Trainer {
    */
   end() {
     this._stopTimer();
+    this._stopTTS();
     const stats = this._calculateStats();
     this._setState({ phase: 'GAME_OVER' });
     this.emit('end', stats);
@@ -138,6 +148,7 @@ class Trainer {
    */
   destroy() {
     this._stopTimer();
+    this._stopTTS();
     this._cancelRAF();
     window.removeEventListener('resize', this._handleResize);
     document.removeEventListener('visibilitychange', this._handleVisibilityChange);
@@ -194,6 +205,7 @@ class Trainer {
     if (this.state.phase !== 'PLAYING') return;
 
     this._stopTimer();
+    this._stopTTS();
     this._setState({ phase: 'FEEDBACK' });
 
     const isCorrect = this.validateAnswer(selectedIndex);
@@ -249,6 +261,7 @@ class Trainer {
       });
 
       this._renderQuestion(question);
+      this._speakQuestion(question.question); // TTS
       this.emit('question', question);
 
       if (this.config.timerMode) {
@@ -327,6 +340,45 @@ class Trainer {
   }
 
   /* ========================================
+     TEXT-TO-SPEECH
+     ======================================== */
+
+  /**
+   * Speak question text (removes blanks)
+   * @private
+   */
+  _speakQuestion(questionText) {
+    if (!this._tts || !this.config.enableTTS) return;
+
+    // Remove HTML tags and blank placeholders
+    const cleanText = questionText
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/____/g, 'blank') // Replace ____ with "blank"
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
+
+    if (!cleanText) return;
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    this._tts.speak(utterance);
+  }
+
+  /**
+   * Stop TTS
+   * @private
+   */
+  _stopTTS() {
+    if (this._tts) {
+      this._tts.cancel();
+    }
+  }
+
+  /* ========================================
      STATE MANAGEMENT
      ======================================== */
 
@@ -389,9 +441,10 @@ class Trainer {
     const container = this._dom.questionContainer;
     if (!container) return;
 
+    // Sanitize options but allow HTML in question (for <span class="blank">)
     container.innerHTML = `
       <div class="question" role="heading" aria-level="2">
-        ${this._escapeHTML(question.question)}
+        ${question.question}
       </div>
       <div class="options" role="radiogroup" aria-label="Answer options">
         ${question.options.map((opt, i) => `
@@ -453,7 +506,7 @@ class Trainer {
     const livesEl = this._dom.lives;
     if (livesEl) {
       livesEl.innerHTML = '❤️'.repeat(this.state.lives) + 
-                          '🖤'.repeat(this.config.maxLives - this.state.lives);
+                          '💔'.repeat(this.config.maxLives - this.state.lives);
     }
   }
 
