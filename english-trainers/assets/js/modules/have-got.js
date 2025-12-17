@@ -1,71 +1,70 @@
 /**
- * HAVE/HAVE GOT TRAINER
- * British vs American usage + possession expressions
+ * HAVE GOT/HAS GOT TRAINER
+ * British structure only: have got/has got (positive, negative, questions)
  */
 
 class HaveGotTrainer extends Trainer {
   constructor(config = {}) {
     super({
-      name: 'Have/Have Got Trainer',
+      name: 'Have Got Trainer',
       maxLives: 3,
       ...config
     });
 
-    // Subject mapping
-    this.subjects = {
-      singular: [
-        { pronoun: 'I', haveForm: 'have', hasForm: 'have' },
-        { pronoun: 'you', haveForm: 'have', hasForm: 'have' },
-        { pronoun: 'he', haveForm: 'has', hasForm: 'has' },
-        { pronoun: 'she', haveForm: 'has', hasForm: 'has' },
-        { pronoun: 'it', haveForm: 'has', hasForm: 'has' },
-        { pronoun: 'my friend', haveForm: 'has', hasForm: 'has' },
-        { pronoun: 'the dog', haveForm: 'has', hasForm: 'has' }
-      ],
-      plural: [
-        { pronoun: 'we', haveForm: 'have', hasForm: 'have' },
-        { pronoun: 'they', haveForm: 'have', hasForm: 'have' },
-        { pronoun: 'my friends', haveForm: 'have', hasForm: 'have' }
-      ]
-    };
+    // Subject mapping (have vs has)
+    this.subjects = [
+      { pronoun: 'I', verb: 'have', isPlural: true },
+      { pronoun: 'you', verb: 'have', isPlural: true },
+      { pronoun: 'he', verb: 'has', isPlural: false },
+      { pronoun: 'she', verb: 'has', isPlural: false },
+      { pronoun: 'it', verb: 'has', isPlural: false },
+      { pronoun: 'we', verb: 'have', isPlural: true },
+      { pronoun: 'they', verb: 'have', isPlural: true },
+      { pronoun: 'Tom', verb: 'has', isPlural: false },
+      { pronoun: 'my friend', verb: 'has', isPlural: false },
+      { pronoun: 'the cat', verb: 'has', isPlural: false }
+    ];
 
-    // Possession vocabulary by category
-    this.possessions = {
-      family: ['a brother', 'a sister', 'two brothers', 'three sisters', 'a big family'],
-      pets: ['a dog', 'a cat', 'two cats', 'a parrot', 'three goldfish'],
-      objects: ['a car', 'a bike', 'a laptop', 'a phone', 'a new watch', 'blue eyes'],
-      abilities: ['a lot of free time', 'a good memory', 'a question', 'an idea'],
-      physical: ['a headache', 'a cold', 'long hair', 'brown eyes', 'a new haircut']
-    };
+    // Possessions vocabulary
+    this.possessions = [
+      'a brother', 'a sister', 'two brothers', 'three sisters',
+      'a dog', 'a cat', 'two cats', 'a parrot',
+      'a car', 'a bike', 'a laptop', 'a new phone',
+      'blue eyes', 'long hair', 'brown eyes', 'a headache',
+      'a lot of free time', 'a good idea', 'a question',
+      'a big family', 'a new watch', 'an old bike'
+    ];
 
-    // Flatten all possessions
-    this.allPossessions = Object.values(this.possessions).flat();
-
-    // Sentence templates
+    // Templates by difficulty
     this.templates = {
+      // EASY: Positive statements
       positive: [
-        '{{subject}} {{have}} {{possession}}.',
-        '{{subject}} {{have}} got {{possession}}.',
-        '{{subject}} {{have}} {{possession}} at home.'
+        '{{subject}} ____ got {{possession}}.',
+        '{{subject}} ____ got {{possession}} at home.',
+        '{{subject}} ____ got {{possession}} now.'
       ],
+      
+      // MEDIUM: Negatives (haven't got / hasn't got)
       negative: [
-        '{{subject}} {{do}} not {{have}} {{possession}}.',
-        '{{subject}} {{have}} not got {{possession}}.',
-        '{{subject}} {{do}}n\'t {{have}} {{possession}}.'
+        '{{subject}} ____n\'t got {{possession}}.',
+        '{{subject}} ____ not got {{possession}}.',
+        '{{subject}} ____n\'t got {{possession}} at home.'
       ],
+      
+      // HARD: Questions (Have ... got? / Has ... got?)
       question: [
-        '{{do}} {{subject}} {{have}} {{possession}}?',
-        '{{have}} {{subject}} got {{possession}}?',
-        'How many siblings {{do}} {{subject}} {{have}}?'
+        '____ {{subject}} got {{possession}}?',
+        '____ {{subject}} got {{possession}} at home?',
+        'How many pets ____ {{subject}} got?'
       ]
     };
 
-    // Recent cache
+    // Recent cache to avoid repetition
     this._recentSubjects = [];
     this._recentPossessions = [];
     this._maxCache = 3;
 
-    // Difficulty
+    // Auto-difficulty
     this._currentDifficulty = 'positive';
   }
 
@@ -75,25 +74,19 @@ class HaveGotTrainer extends Trainer {
   generateQuestion() {
     this._updateDifficulty();
 
-    // Select subject and possession
     const subjectObj = this._selectSubject();
     const possession = this._selectPossession();
-    const formType = this._currentDifficulty;
+    const difficulty = this._currentDifficulty;
 
-    // Pick template
-    const templates = this.templates[formType];
+    const templates = this.templates[difficulty];
     const template = templates[Math.floor(Math.random() * templates.length)];
-
-    // Determine if "have got" or "have" structure
-    const isHaveGot = template.includes('got');
 
     // Build sentence
     const { sentence, correctAnswer, options } = this._buildSentence(
       template,
       subjectObj,
       possession,
-      formType,
-      isHaveGot
+      difficulty
     );
 
     return {
@@ -103,118 +96,75 @@ class HaveGotTrainer extends Trainer {
       metadata: {
         subject: subjectObj.pronoun,
         possession,
-        formType,
-        isHaveGot,
-        correctAnswer
+        difficulty,
+        correctAnswer,
+        correctVerb: subjectObj.verb
       }
     };
   }
 
   /**
-   * Build sentence with correct have/has form
+   * Build sentence with correct have/has
    * @private
    */
-  _buildSentence(template, subjectObj, possession, formType, isHaveGot) {
+  _buildSentence(template, subjectObj, possession, difficulty) {
     const subject = subjectObj.pronoun;
-    const haveForm = subjectObj.haveForm; // have/has
-    const isThirdPerson = haveForm === 'has';
-
-    // Capitalize subject
-    const capitalizedSubject = template.startsWith('{{subject}}') ||
-                                template.startsWith('{{do}}') ||
-                                template.startsWith('{{have}}')
-      ? subject.charAt(0).toUpperCase() + subject.slice(1)
-      : subject;
+    const verb = subjectObj.verb; // have or has
+    const isPlural = subjectObj.isPlural;
 
     let sentence, correctAnswer, options;
 
-    if (formType === 'positive') {
-      if (isHaveGot) {
-        // "have/has got" structure
-        correctAnswer = haveForm;
-        sentence = template
-          .replace('{{subject}}', capitalizedSubject)
-          .replace('{{have}}', '____')
-          .replace('{{possession}}', possession);
-        options = ['have', 'has'];
-      } else {
-        // Simple "have/has"
-        correctAnswer = haveForm;
-        sentence = template
-          .replace('{{subject}}', capitalizedSubject)
-          .replace('{{have}}', '____')
-          .replace('{{possession}}', possession);
-        options = ['have', 'has'];
-      }
+    // Capitalize subject if starts sentence
+    const capitalizeSubject = template.startsWith('{{subject}}');
+    const displaySubject = capitalizeSubject
+      ? subject.charAt(0).toUpperCase() + subject.slice(1)
+      : subject;
 
-    } else if (formType === 'negative') {
-      if (isHaveGot) {
-        // "have/has not got"
-        correctAnswer = haveForm;
-        sentence = template
-          .replace('{{subject}}', capitalizedSubject)
-          .replace('{{have}}', '____')
-          .replace('{{possession}}', possession);
-        options = ['have', 'has'];
-      } else {
-        // "do/does not have"
-        const doForm = isThirdPerson ? 'does' : 'do';
-        correctAnswer = doForm;
-        sentence = template
-          .replace('{{subject}}', capitalizedSubject)
-          .replace('{{do}}', '____')
-          .replace('{{have}}', 'have')
-          .replace('{{possession}}', possession);
-        options = ['do', 'does'];
-      }
+    if (difficulty === 'positive') {
+      // I ____ got a dog. → have
+      correctAnswer = verb;
+      sentence = template
+        .replace('{{subject}}', displaySubject)
+        .replace('{{possession}}', possession);
+      options = ['have', 'has'];
+
+    } else if (difficulty === 'negative') {
+      // I ____n't got a dog. → have (haven't)
+      // She ____n't got a cat. → has (hasn't)
+      correctAnswer = verb;
+      sentence = template
+        .replace('{{subject}}', displaySubject)
+        .replace('{{possession}}', possession);
+      options = ['have', 'has'];
 
     } else { // question
-      if (isHaveGot) {
-        // "Have/Has ... got?"
-        correctAnswer = haveForm.charAt(0).toUpperCase() + haveForm.slice(1);
-        sentence = template
-          .replace('{{have}}', '____')
-          .replace('{{subject}}', subject)
-          .replace('{{possession}}', possession);
-        options = ['Have', 'Has'];
-      } else {
-        // "Do/Does ... have?"
-        const doForm = isThirdPerson ? 'Does' : 'Do';
-        correctAnswer = doForm;
-        sentence = template
-          .replace('{{do}}', '____')
-          .replace('{{subject}}', subject)
-          .replace('{{have}}', 'have')
-          .replace('{{possession}}', possession);
-        options = ['Do', 'Does'];
-      }
+      // ____ you got a dog? → Have
+      // ____ she got a cat? → Has
+      correctAnswer = verb.charAt(0).toUpperCase() + verb.slice(1); // Have/Has
+      sentence = template
+        .replace('{{subject}}', subject) // lowercase in questions
+        .replace('{{possession}}', possession);
+      options = ['Have', 'Has'];
     }
 
-    // Ensure unique options
-    options = [...new Set(options)];
-    if (options.length < 3) {
-      // Add common mistake
-      if (formType === 'question') {
-        options.push(isThirdPerson ? 'Do' : 'Does');
-      } else {
-        options.push(isThirdPerson ? 'have' : 'has');
-      }
+    // Add extra distractor for variety
+    if (difficulty !== 'question') {
+      options.push(isPlural ? 'has' : 'have'); // Wrong option
     }
 
     return {
-      sentence,
+      sentence: sentence.replace(/\s+/g, ' ').trim(),
       correctAnswer,
-      options: this._shuffle(options)
+      options: this._shuffle([...new Set(options)]) // Unique + shuffled
     };
   }
 
   /**
-   * Select subject avoiding recent
+   * Select subject (avoid recent)
    * @private
    */
   _selectSubject() {
-    const allSubjects = [...this.subjects.singular, ...this.subjects.plural];
-    const available = allSubjects.filter(s => !this._recentSubjects.includes(s.pronoun));
+    const available = this.subjects.filter(s => !this._recentSubjects.includes(s.pronoun));
     
     if (available.length === 0) {
       this._recentSubjects = [];
@@ -231,11 +181,11 @@ class HaveGotTrainer extends Trainer {
   }
 
   /**
-   * Select possession avoiding recent
+   * Select possession (avoid recent)
    * @private
    */
   _selectPossession() {
-    const available = this.allPossessions.filter(p => !this._recentPossessions.includes(p));
+    const available = this.possessions.filter(p => !this._recentPossessions.includes(p));
     
     if (available.length === 0) {
       this._recentPossessions = [];
@@ -252,7 +202,7 @@ class HaveGotTrainer extends Trainer {
   }
 
   /**
-   * Update difficulty
+   * Auto-scale difficulty based on performance
    * @private
    */
   _updateDifficulty() {
@@ -272,41 +222,59 @@ class HaveGotTrainer extends Trainer {
   }
 
   /**
-   * Enhanced feedback
+   * Enhanced feedback with grammar tips
    * @override
    */
   getFeedback(isCorrect) {
     if (isCorrect) {
-      return ['Perfect! 🎯', 'Correct! ✅', 'Excellent! ⭐', 'Great! 🔥'][Math.floor(Math.random() * 4)];
+      const messages = [
+        'Perfect! 🎯',
+        'Correct! ✅',
+        'Excellent! ⭐',
+        'Great job! 🔥',
+        'Well done! 👏'
+      ];
+      return messages[Math.floor(Math.random() * messages.length)];
     }
 
-    const { subject, formType, isHaveGot, correctAnswer } = this.state.currentQuestion.metadata;
+    const { subject, correctAnswer, difficulty, correctVerb } = this.state.currentQuestion.metadata;
     
-    let tip = '';
-    if (formType === 'positive' || (formType === 'negative' && isHaveGot)) {
-      tip = subject === 'I' || subject === 'you' || subject === 'we' || subject === 'they'
-        ? 'Use <strong>have</strong> with I/you/we/they'
-        : 'Use <strong>has</strong> with he/she/it';
-    } else if (formType === 'negative' && !isHaveGot) {
-      tip = subject === 'he' || subject === 'she' || subject === 'it'
-        ? 'Use <strong>does not</strong> with he/she/it'
-        : 'Use <strong>do not</strong> with I/you/we/they';
+    // Grammar tips
+    const tips = {
+      'I': 'I/you/we/they use <strong>have</strong> got',
+      'you': 'I/you/we/they use <strong>have</strong> got',
+      'he': 'He/she/it uses <strong>has</strong> got',
+      'she': 'He/she/it uses <strong>has</strong> got',
+      'it': 'He/she/it uses <strong>has</strong> got',
+      'we': 'I/you/we/they use <strong>have</strong> got',
+      'they': 'I/you/we/they use <strong>have</strong> got'
+    };
+
+    const tip = tips[subject] || (correctVerb === 'has' 
+      ? 'He/she/it uses <strong>has</strong> got'
+      : 'I/you/we/they use <strong>have</strong> got');
+
+    // Example sentence
+    let example = '';
+    if (difficulty === 'positive') {
+      example = `${subject.charAt(0).toUpperCase() + subject.slice(1)} ${correctAnswer} got a dog.`;
+    } else if (difficulty === 'negative') {
+      example = `${subject.charAt(0).toUpperCase() + subject.slice(1)} ${correctAnswer}n't got a cat.`;
     } else {
-      tip = isHaveGot
-        ? (subject === 'he' || subject === 'she' ? '<strong>Has</strong> for he/she/it' : '<strong>Have</strong> for I/you/we/they')
-        : (subject === 'he' || subject === 'she' ? '<strong>Does</strong> for he/she/it' : '<strong>Do</strong> for I/you/we/they');
+      example = `${correctAnswer} ${subject} got a bike?`;
     }
 
     return `
       <div>Wrong. Correct: <strong>${correctAnswer}</strong></div>
-      <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
-        💡 Tip: ${tip}
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem;">
+        💡 ${tip}<br>
+        <em style="opacity: 0.8; margin-top: 0.25rem; display: block;">${example}</em>
       </div>
     `;
   }
 
   /**
-   * Shuffle array
+   * Fisher-Yates shuffle
    * @private
    */
   _shuffle(array) {
@@ -319,7 +287,7 @@ class HaveGotTrainer extends Trainer {
   }
 }
 
-// Export
+// Auto-init on page load
 if (typeof window !== 'undefined') {
   window.HaveGotTrainer = HaveGotTrainer;
 }
