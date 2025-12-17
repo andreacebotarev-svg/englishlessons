@@ -11,6 +11,14 @@ class LessonDebugger {
     this.performanceMarks = {};
     this.isVisible = false;
     this.maxLogs = 500;
+    this._loggingInProgress = false;
+    
+    // Сохраняем нативный консоль ДО подмены
+    this.originalConsole = {
+      log: console.log.bind(console),
+      warn: console.warn.bind(console),
+      error: console.error.bind(console)
+    };
     
     this.init();
   }
@@ -266,29 +274,38 @@ class LessonDebugger {
   // ============================================
   
   log(message, type = 'info', meta = {}) {
-    const entry = {
-      timestamp: new Date().toISOString(),
-      message,
-      type,
-      meta,
-      stack: type === 'error' ? new Error().stack : null
-    };
+    // Защита от рекурсии
+    if (this._loggingInProgress) return;
     
-    this.logs.push(entry);
-    if (this.logs.length > this.maxLogs) this.logs.shift();
+    this._loggingInProgress = true;
     
-    if (type === 'error') this.errors.push(entry);
-    if (type === 'warn') this.warnings.push(entry);
-    
-    this.updateStatus();
-    
-    if (this.isVisible && this.currentTab === 'console') {
-      this.renderConsole();
+    try {
+      const entry = {
+        timestamp: new Date().toISOString(),
+        message,
+        type,
+        meta,
+        stack: type === 'error' ? new Error().stack : null
+      };
+      
+      this.logs.push(entry);
+      if (this.logs.length > this.maxLogs) this.logs.shift();
+      
+      if (type === 'error') this.errors.push(entry);
+      if (type === 'warn') this.warnings.push(entry);
+      
+      this.updateStatus();
+      
+      if (this.isVisible && this.currentTab === 'console') {
+        this.renderConsole();
+      }
+      
+      // Используем НАТИВНЫЙ консоль, а не подменённый
+      const method = type === 'error' ? 'error' : type === 'warn' ? 'warn' : 'log';
+      this.originalConsole[method](`[Debugger] ${message}`, meta);
+    } finally {
+      this._loggingInProgress = false;
     }
-    
-    // Оригинальный console
-    const method = type === 'error' ? 'error' : type === 'warn' ? 'warn' : 'log';
-    console[method](`[Debugger] ${message}`, meta);
   }
 
   // ============================================
@@ -296,25 +313,21 @@ class LessonDebugger {
   // ============================================
   
   interceptConsole() {
-    const original = {
-      log: console.log,
-      warn: console.warn,
-      error: console.error
+    const self = this;
+    
+    console.log = function(...args) {
+      self.log(args.join(' '), 'info');
+      self.originalConsole.log.apply(console, args);
     };
     
-    console.log = (...args) => {
-      this.log(args.join(' '), 'info');
-      original.log.apply(console, args);
+    console.warn = function(...args) {
+      self.log(args.join(' '), 'warn');
+      self.originalConsole.warn.apply(console, args);
     };
     
-    console.warn = (...args) => {
-      this.log(args.join(' '), 'warn');
-      original.warn.apply(console, args);
-    };
-    
-    console.error = (...args) => {
-      this.log(args.join(' '), 'error');
-      original.error.apply(console, args);
+    console.error = function(...args) {
+      self.log(args.join(' '), 'error');
+      self.originalConsole.error.apply(console, args);
     };
   }
 
