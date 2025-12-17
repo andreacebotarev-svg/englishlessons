@@ -123,8 +123,13 @@
   color: var(--text-muted);
 }
 
-/* Tabs - Liquid Glass Effect */
+/* ============================================================
+   TABS - MAGIC LINE ANIMATION (60fps GPU-accelerated)
+   Container creates stacking context, indicator slides via transform
+   ============================================================ */
 .tabs {
+  position: relative; /* Context for absolute indicator */
+  isolation: isolate;  /* Creates stacking context */
   display: flex;
   gap: 6px;
   padding: 4px;
@@ -136,7 +141,6 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
               inset 0 1px 0 rgba(255, 255, 255, 0.1);
   width: fit-content;
-  position: relative;
   overflow: hidden;
 }
 
@@ -158,31 +162,49 @@
   66% { transform: translate(-5%, 10%) scale(0.9); }
 }
 
+/* Tab buttons - transparent, text sits above indicator */
 .tab {
   position: relative;
+  z-index: 2; /* Above indicator */
   border: none;
   outline: none;
-  background: transparent;
+  background: transparent !important; /* Override old .active background */
   padding: 8px 14px;
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 550;
   color: var(--text-soft);
   cursor: pointer;
-  transition: all var(--transition-fast);
-  z-index: 1;
+  transition: color 0.3s ease;
 }
 
+/* Active state: only color change (no background) */
 .tab.active {
+  color: #fff;
+}
+
+/* Magic Line indicator - slides under text */
+.tab-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
   background: rgba(30, 37, 75, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  color: #fff;
+  border-radius: 999px;
+  z-index: 1; /* Below text */
   box-shadow: 0 4px 16px rgba(79, 140, 255, 0.3),
               inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform-origin: left center;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+              width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, width; /* GPU layer promotion */
+  pointer-events: none; /* Clicks pass through */
 }
 
-.tab.active::before {
+/* Gradient overlay on indicator */
+.tab-indicator::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -191,25 +213,9 @@
   pointer-events: none;
 }
 
-.tab-indicator {
-  position: absolute;
-  inset-inline: 4px;
-  bottom: 2px;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--accent);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.tab.active .tab-indicator {
-  opacity: 1;
-  animation: indicatorGlow 2s ease-in-out infinite;
-}
-
-@keyframes indicatorGlow {
-  0%, 100% { box-shadow: 0 0 4px var(--accent); }
-  50% { box-shadow: 0 0 12px var(--accent); }
+/* Legacy indicator removed - kept for backwards compat */
+.tab .tab-indicator {
+  display: none; /* Old per-tab indicator hidden */
 }
 
 .tab-grammar-hidden {
