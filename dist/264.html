@@ -31,21 +31,8 @@
 
   <!-- App Root Container -->
   <div id="app-root">
-    <!-- Main Application Container -->
+    <!-- Main Application Container (sidebar removed - now in bottom panel) -->
     <div id="app"></div>
-    
-    <!-- Sidebar for saved words -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <h3>📚 My Words</h3>
-        <button class="icon-btn" id="clear-words-btn" title="Clear all saved words">
-          <span>🗑️</span>
-        </button>
-      </div>
-      <div class="sidebar-content" id="sidebar-content">
-        <p class="sidebar-empty">No saved words yet. Click on words in the reading to save them!</p>
-      </div>
-    </aside>
   </div>
 
   <!-- Notification Toast -->
@@ -82,18 +69,6 @@
           <button onclick="location.reload()" class="primary-btn">Try Again</button>
         </div>
       `;
-    });
-    
-    // Add clear words button handler
-    document.addEventListener('DOMContentLoaded', () => {
-      const clearBtn = document.getElementById('clear-words-btn');
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-          if (confirm('Are you sure you want to clear all saved words?')) {
-            window.lessonEngine.clearAllWords();
-          }
-        });
-      }
     });
     
     // Handle online/offline status
