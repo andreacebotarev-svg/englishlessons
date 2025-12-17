@@ -29,10 +29,150 @@ class LessonEngine {
       this.myWords = this.storage.loadWords();
       this.render();
       this.hideLoader();
+      this.injectPopupStyles();
     } catch (error) {
       console.error('Initialization error:', error);
       this.showError(error.message);
     }
+  }
+
+  /**
+   * Inject critical popup styles into document
+   */
+  injectPopupStyles() {
+    if (document.getElementById('popup-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'popup-styles';
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .word-popup {
+        position: fixed;
+        z-index: 10000;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.1);
+        min-width: 280px;
+        max-width: 350px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #1a1a1a;
+        animation: fadeIn 0.2s ease-out;
+      }
+      .word-popup-content {
+        display: flex;
+        flex-direction: column;
+      }
+      .word-popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+      }
+      .word-popup-word {
+        font-weight: 600;
+        font-size: 16px;
+        color: #1a1a1a;
+      }
+      .word-popup-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #666;
+        padding: 4px 8px;
+        line-height: 1;
+        transition: color 0.2s;
+      }
+      .word-popup-close:hover {
+        color: #000;
+      }
+      .word-popup-body {
+        padding: 16px;
+      }
+      .word-popup-phonetic {
+        color: #666;
+        font-size: 13px;
+        margin-bottom: 8px;
+        font-style: italic;
+      }
+      .word-popup-translation {
+        font-size: 15px;
+        margin-bottom: 12px;
+        color: #1a1a1a;
+      }
+      .word-popup-error {
+        color: #d73a49;
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+      .word-popup-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .word-popup-btn {
+        flex: 1;
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .word-popup-btn:hover {
+        background: #f5f5f5;
+        border-color: #ccc;
+      }
+      .word-popup-btn:active {
+        transform: scale(0.98);
+      }
+      .word-popup-btn.primary {
+        background: #0969da;
+        color: white;
+        border-color: #0969da;
+      }
+      .word-popup-btn.primary:hover {
+        background: #0860ca;
+        border-color: #0860ca;
+      }
+      .word-popup-btn.saved {
+        background: #1a7f37;
+        color: white;
+        border-color: #1a7f37;
+      }
+      .word-popup-btn.saved:hover {
+        background: #1a7038;
+        border-color: #1a7038;
+      }
+      .word-popup-loader {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-size: 14px;
+      }
+      .word-popup .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #eee;
+        border-top-color: #0969da;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   /**
@@ -159,7 +299,7 @@ class LessonEngine {
   }
 
   /**
-   * Show word popup with translation - FIXED POSITIONING ABOVE WORD
+   * Show word popup with translation
    */
   async showWordPopup(word, event) {
     event.stopPropagation();
@@ -171,24 +311,31 @@ class LessonEngine {
     // Create popup
     const popup = document.createElement('div');
     popup.id = 'word-popup';
-    popup.className = 'word-popup loading';
+    popup.className = 'word-popup';
     
-    // Calculate position ABOVE the word
+    // Calculate position
     const rect = event.target.getBoundingClientRect();
-    const popupHeight = 200; // estimated height
+    const popupHeight = 200;
     const spaceAbove = rect.top;
     const spaceBelow = window.innerHeight - rect.bottom;
     
+    let top, left;
+    
     // Smart positioning: above if space, otherwise below
     if (spaceAbove >= popupHeight || spaceAbove > spaceBelow) {
-      // Position ABOVE word
-      popup.style.top = `${rect.top + window.scrollY - popupHeight - 12}px`;
+      top = rect.top + window.scrollY - popupHeight - 12;
     } else {
-      // Fallback: position BELOW word
-      popup.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      top = rect.bottom + window.scrollY + 8;
     }
     
-    popup.style.left = `${rect.left + window.scrollX}px`;
+    // Horizontal positioning with edge detection
+    left = rect.left + window.scrollX;
+    const maxLeft = window.innerWidth - 350 - 20;
+    if (left > maxLeft) left = maxLeft;
+    if (left < 20) left = 20;
+    
+    popup.style.top = `${top}px`;
+    popup.style.left = `${left}px`;
     
     popup.innerHTML = `
       <div class="word-popup-content">
@@ -207,7 +354,7 @@ class LessonEngine {
     
     document.body.appendChild(popup);
     
-    // Get actual height after render and adjust if needed
+    // Adjust position after render
     const actualHeight = popup.offsetHeight;
     if (spaceAbove >= actualHeight || spaceAbove > spaceBelow) {
       popup.style.top = `${rect.top + window.scrollY - actualHeight - 12}px`;
@@ -226,22 +373,21 @@ class LessonEngine {
         transcription = vocabWord?.transcription || '';
       }
       
-      popup.classList.remove('loading');
       popup.querySelector('.word-popup-body').innerHTML = `
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}'')">
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word}', '${translation.replace(/'/g, "\\'" ).replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\\'" ).replace(/"/g, '&quot;')}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
       `;
       
-      // Adjust position again after content loaded
+      // Final position adjustment
       const finalHeight = popup.offsetHeight;
       if (spaceAbove >= finalHeight || spaceAbove > spaceBelow) {
         popup.style.top = `${rect.top + window.scrollY - finalHeight - 12}px`;
@@ -254,7 +400,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\'")}')">
             🔊 Listen
           </button>
         </div>
