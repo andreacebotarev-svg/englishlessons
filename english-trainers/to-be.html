@@ -91,6 +91,67 @@
       background: rgba(255,255,255,0.1);
     }
 
+    /* Grammar reference */
+    .grammar-reference {
+      max-width: 600px;
+      margin: 2rem auto 0;
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .grammar-toggle {
+      width: 100%;
+      padding: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .grammar-toggle:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .grammar-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      padding: 0 1rem;
+    }
+    .grammar-content.open {
+      max-height: 500px;
+      padding: 0 1rem 1rem;
+    }
+    .grammar-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    .grammar-table th {
+      background: rgba(255,255,255,0.05);
+      padding: 0.75rem;
+      text-align: left;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .grammar-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.9rem;
+    }
+    .grammar-table td:first-child {
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .grammar-table tr:last-child td {
+      border-bottom: none;
+    }
+
     /* Pronoun hint */
     .pronoun-hint {
       font-size: 0.9rem;
@@ -176,6 +237,70 @@
           <button class="btn btn-primary btn-lg" onclick="window.trainer.start()">
             🚀 Start Training
           </button>
+
+          <!-- Grammar Reference Table -->
+          <div class="grammar-reference">
+            <button class="grammar-toggle" onclick="toggleGrammar()">
+              <span>📖 Правило: Личные местоимения + To Be</span>
+              <span id="grammar-arrow">▼</span>
+            </button>
+            <div id="grammar-content" class="grammar-content">
+              <table class="grammar-table">
+                <thead>
+                  <tr>
+                    <th>Местоимение</th>
+                    <th>Перевод</th>
+                    <th>To Be</th>
+                    <th>Пример</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>I</td>
+                    <td>я</td>
+                    <td><strong>am</strong></td>
+                    <td>I am happy</td>
+                  </tr>
+                  <tr>
+                    <td>you</td>
+                    <td>ты/вы</td>
+                    <td><strong>are</strong></td>
+                    <td>You are ready</td>
+                  </tr>
+                  <tr>
+                    <td>he</td>
+                    <td>он</td>
+                    <td><strong>is</strong></td>
+                    <td>He is tired</td>
+                  </tr>
+                  <tr>
+                    <td>she</td>
+                    <td>она</td>
+                    <td><strong>is</strong></td>
+                    <td>She is at home</td>
+                  </tr>
+                  <tr>
+                    <td>it</td>
+                    <td>оно</td>
+                    <td><strong>is</strong></td>
+                    <td>It is cold</td>
+                  </tr>
+                  <tr>
+                    <td>we</td>
+                    <td>мы</td>
+                    <td><strong>are</strong></td>
+                    <td>We are students</td>
+                  </tr>
+                  <tr>
+                    <td>they</td>
+                    <td>они</td>
+                    <td><strong>are</strong></td>
+                    <td>They are here</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -210,6 +335,14 @@
       document.querySelectorAll('[data-timer]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.timer === (seconds === 'off' ? 'off' : seconds.toString()));
       });
+    }
+
+    // Grammar reference toggle
+    function toggleGrammar() {
+      const content = document.getElementById('grammar-content');
+      const arrow = document.getElementById('grammar-arrow');
+      content.classList.toggle('open');
+      arrow.textContent = content.classList.contains('open') ? '▲' : '▼';
     }
 
     // Init trainer instance
