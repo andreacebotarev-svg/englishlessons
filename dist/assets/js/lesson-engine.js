@@ -39,7 +39,7 @@ class LessonEngine {
    * Load lesson JSON data
    */
   async loadLessonData() {
-    const response = await fetch(`data/${this.lessonId}.json`);
+    const response = await fetch(`../data/${this.lessonId}.json`);
     
     if (!response.ok) {
       throw new Error(`Failed to load lesson data: ${response.status}`);
