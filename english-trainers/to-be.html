@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Master 'am/is/are' with interactive exercises. Adaptive difficulty, streak tracking, instant feedback.">
+  <title>To Be Trainer | English Trainers</title>
+  
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="assets/css/core.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/trainers.css">
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="trainer-header">
+    <div class="container">
+      <a href="index.html" class="back-btn" aria-label="Back to trainers hub">
+        ← Trainers
+      </a>
+      <h1>🔵 To Be Trainer</h1>
+      <p class="subtitle">Master am/is/are forms</p>
+    </div>
+  </header>
+
+  <!-- Game Stats Bar -->
+  <div class="stats-bar" role="region" aria-label="Game statistics">
+    <div class="container">
+      <div class="stat">
+        <span class="label">Score</span>
+        <span id="score" class="value">0</span>
+      </div>
+      <div id="streak" class="stat hidden">
+        <span class="value">🔥 0</span>
+      </div>
+      <div class="stat">
+        <span class="label">Lives</span>
+        <span id="lives" class="value">❤️❤️❤️</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Game Area -->
+  <main class="trainer-content">
+    <div class="container">
+      <div id="question-container" class="question-wrapper">
+        <!-- Start Screen -->
+        <div class="start-screen" style="text-align: center;">
+          <div class="emoji" style="font-size: 5rem; margin-bottom: 1.5rem;">🎯</div>
+          <h2 style="margin-bottom: 1rem;">Ready to Practice?</h2>
+          <p style="color: var(--text-muted); margin-bottom: 2rem;">
+            Choose the correct form of "to be" (am/is/are) for each sentence.<br>
+            Questions adapt to your skill level automatically.
+          </p>
+          
+          <div class="rules card" style="text-align: left; max-width: 500px; margin: 0 auto 2rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">📜 Rules</h3>
+            <ul style="list-style: none; padding: 0; margin: 0; line-height: 2;">
+              <li>✅ +10 points for correct answer</li>
+              <li>🔥 Bonus points for streaks (5+, 10+, 15+)</li>
+              <li>❤️ Lose 1 life for wrong answer</li>
+              <li>🏆 Game ends when lives = 0</li>
+            </ul>
+          </div>
+
+          <button class="btn btn-primary btn-lg" onclick="window.trainer.start()">
+            🚀 Start Training
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="trainer-footer">
+    <div class="container">
+      <p>
+        Made with ❤️ by 
+        <a href="https://github.com/andreacebotarev-svg/english-trainers" target="_blank" rel="noopener">
+          @andreacebotarev-svg
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/trainer-base.js"></script>
+  <script src="assets/js/modules/to-be.js"></script>
+  <script>
+    // Init trainer instance
+    window.trainer = new ToBeTrainer({
+      maxLives: 3,
+      streakBonus: 10,
+      timerMode: false // Set true for timed challenges
+    });
+
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => window.trainer.init());
+    } else {
+      window.trainer.init();
+    }
+
+    // Event listeners for analytics/debugging
+    trainer.on('start', () => console.log('🎮 Game started'));
+    trainer.on('end', (stats) => {
+      console.log('🏁 Game ended', stats);
+      // TODO: Save to localStorage leaderboard
+    });
+    trainer.on('answer', ({ isCorrect }) => {
+      if (isCorrect) console.log('✅ Correct!');
+      else console.log('❌ Wrong');
+    });
+  </script>
+</body>
+</html>
