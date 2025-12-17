@@ -22,8 +22,8 @@
   <!-- Header -->
   <header class="trainer-header">
     <div class="container">
-      <a href="index.html" class="back-btn" aria-label="Back to trainers hub">
-        ← Trainers
+      <a href="../index.html" class="back-btn" aria-label="Back to main portal">
+        ← Portal
       </a>
       <h1>🔵 To Be Trainer</h1>
       <p class="subtitle">Master am/is/are forms</p>
@@ -78,18 +78,6 @@
     </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="trainer-footer">
-    <div class="container">
-      <p>
-        Made with ❤️ by 
-        <a href="https://github.com/andreacebotarev-svg/english-trainers" target="_blank" rel="noopener">
-          @andreacebotarev-svg
-        </a>
-      </p>
-    </div>
-  </footer>
-
   <!-- Scripts -->
   <script src="assets/js/trainer-base.js"></script>
   <script src="assets/js/modules/to-be.js"></script>
@@ -112,7 +100,6 @@
     trainer.on('start', () => console.log('🎮 Game started'));
     trainer.on('end', (stats) => {
       console.log('🏁 Game ended', stats);
-      // TODO: Save to localStorage leaderboard
     });
     trainer.on('answer', ({ isCorrect }) => {
       if (isCorrect) console.log('✅ Correct!');
