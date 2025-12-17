@@ -71,6 +71,30 @@ class Trainer {
     // Bind methods for event listeners
     this._handleResize = this._handleResize.bind(this);
     this._handleVisibilityChange = this._handleVisibilityChange.bind(this);
+
+    // Motivational phrases
+    this._motivationalPhrases = {
+      streak: [
+        'Огонь! 🔥 Не останавливайся!',
+        'Отлично! Продолжай в том же духе!',
+        'Ты в ударе! Вперёд к победе!',
+        'Превосходно! Ещё немного!',
+        'Невероятная серия! 🏆'
+      ],
+      accuracy: [
+        'Молодчина! Ещё чуть-чуть и ты станешь профи!',
+        'Отличная работа! Так держать!',
+        'Прекрасно! Ты быстро учишься!',
+        'Великолепно! Ты на верном пути!'
+      ],
+      random: [
+        'Правильно! ✅',
+        'Точно! 🎯',
+        'Супер! ⭐',
+        'Класс! 👏',
+        'Браво! 🎉'
+      ]
+    };
   }
 
   /* ========================================
@@ -84,6 +108,7 @@ class Trainer {
     this._cacheDOMElements();
     this._attachEventListeners();
     this._setState({ phase: 'IDLE' });
+    this._injectEffectsCSS();
     this.emit('init');
   }
 
@@ -185,8 +210,7 @@ class Trainer {
    */
   getFeedback(isCorrect) {
     if (isCorrect) {
-      const messages = ['Correct!', 'Great!', 'Perfect!', 'Excellent!', 'Well done!'];
-      return messages[Math.floor(Math.random() * messages.length)];
+      return this._getMotivationalPraise();
     } else {
       const correct = this.state.currentQuestion.options[this.state.currentQuestion.correctIndex];
       return `Wrong. Correct answer: <strong>${correct}</strong>`;
@@ -221,6 +245,9 @@ class Trainer {
       newState.streak = this.state.streak + 1;
       newState.maxStreak = Math.max(this.state.maxStreak, newState.streak);
       newState.correctAnswers = this.state.correctAnswers + 1;
+
+      // Visual effects
+      this._triggerSuccessEffects(newState.streak);
     } else {
       // Wrong answer logic
       newState.streak = 0;
@@ -311,6 +338,152 @@ class Trainer {
       maxStreak: this.state.maxStreak,
       duration
     };
+  }
+
+  /* ========================================
+     MOTIVATIONAL SYSTEM
+     ======================================== */
+
+  /**
+   * Get contextual motivational praise
+   * @private
+   */
+  _getMotivationalPraise() {
+    const { streak, questionsAnswered, correctAnswers } = this.state;
+    const accuracy = correctAnswers / questionsAnswered;
+
+    let category;
+    if (streak >= 5) {
+      category = 'streak';
+    } else if (accuracy >= 0.85 && questionsAnswered >= 3) {
+      category = 'accuracy';
+    } else {
+      category = 'random';
+    }
+
+    const phrases = this._motivationalPhrases[category];
+    return phrases[Math.floor(Math.random() * phrases.length)];
+  }
+
+  /**
+   * Trigger success visual effects
+   * @private
+   */
+  _triggerSuccessEffects(streak) {
+    const container = this._dom.questionContainer;
+    if (!container) return;
+
+    // Flash effect on correct
+    container.classList.add('correct-flash');
+    setTimeout(() => container.classList.remove('correct-flash'), 500);
+
+    // Confetti on milestones
+    if (streak === 5 || streak === 10 || streak === 15) {
+      this._launchConfetti();
+    }
+
+    // Particle burst for combos
+    if (streak >= 3) {
+      this._createParticleBurst();
+    }
+  }
+
+  /**
+   * Launch confetti animation
+   * @private
+   */
+  _launchConfetti() {
+    const colors = ['#0A84FF', '#30D158', '#FFD60A', '#FF375F', '#BF5AF2'];
+    const confettiCount = 50;
+
+    for (let i = 0; i < confettiCount; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDelay = Math.random() * 0.3 + 's';
+      confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+      document.body.appendChild(confetti);
+
+      setTimeout(() => confetti.remove(), 3000);
+    }
+  }
+
+  /**
+   * Create particle burst effect
+   * @private
+   */
+  _createParticleBurst() {
+    const container = this._dom.questionContainer;
+    if (!container) return;
+
+    const particleCount = 8;
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.setProperty('--angle', (360 / particleCount) * i + 'deg');
+      container.appendChild(particle);
+
+      setTimeout(() => particle.remove(), 600);
+    }
+  }
+
+  /**
+   * Inject effects CSS
+   * @private
+   */
+  _injectEffectsCSS() {
+    if (document.getElementById('trainer-effects-css')) return;
+
+    const style = document.createElement('style');
+    style.id = 'trainer-effects-css';
+    style.textContent = `
+      @keyframes correctFlash {
+        0% { box-shadow: 0 0 0 rgba(48, 209, 88, 0); }
+        50% { box-shadow: 0 0 30px rgba(48, 209, 88, 0.8); }
+        100% { box-shadow: 0 0 0 rgba(48, 209, 88, 0); }
+      }
+      .correct-flash {
+        animation: correctFlash 0.5s ease-out;
+      }
+
+      @keyframes confettiFall {
+        to {
+          transform: translateY(100vh) rotate(720deg);
+          opacity: 0;
+        }
+      }
+      .confetti {
+        position: fixed;
+        width: 8px;
+        height: 8px;
+        top: -10px;
+        z-index: 9999;
+        animation: confettiFall linear forwards;
+      }
+
+      @keyframes particleBurst {
+        0% {
+          transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(var(--angle)) translateY(50px) scale(0);
+          opacity: 0;
+        }
+      }
+      .particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #FFD60A;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        animation: particleBurst 0.6s ease-out forwards;
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   /* ========================================
