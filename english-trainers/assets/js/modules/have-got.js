@@ -1,6 +1,6 @@
 /**
- * HAVE GOT/HAS GOT TRAINER
- * British structure only: have got/has got (positive, negative, questions)
+ * HAVE GOT TRAINER V2
+ * Dynamic question generation via 5 generator classes
  */
 
 class HaveGotTrainer extends Trainer {
@@ -11,7 +11,7 @@ class HaveGotTrainer extends Trainer {
       ...config
     });
 
-    // Subject mapping (have vs has)
+    // Subject mapping
     this.subjects = [
       { pronoun: 'I', verb: 'have', isPlural: true },
       { pronoun: 'you', verb: 'have', isPlural: true },
@@ -35,189 +35,77 @@ class HaveGotTrainer extends Trainer {
       'a big family', 'a new watch', 'an old bike'
     ];
 
-    // Templates by difficulty
-    this.templates = {
-      // EASY: Positive statements
-      positive: [
-        '{{subject}} ____ got {{possession}}.',
-        '{{subject}} ____ got {{possession}} at home.',
-        '{{subject}} ____ got {{possession}} now.'
-      ],
-      
-      // MEDIUM: Negatives (haven't got / hasn't got)
-      negative: [
-        '{{subject}} ____n\'t got {{possession}}.',
-        '{{subject}} ____ not got {{possession}}.',
-        '{{subject}} ____n\'t got {{possession}} at home.'
-      ],
-      
-      // HARD: Questions (Have ... got? / Has ... got?)
-      question: [
-        '____ {{subject}} got {{possession}}?',
-        '____ {{subject}} got {{possession}} at home?',
-        'How many pets ____ {{subject}} got?'
-      ]
+    // Initialize generators
+    const genConfig = {
+      subjects: this.subjects,
+      possessions: this.possessions
     };
 
-    // Recent cache to avoid repetition
-    this._recentSubjects = [];
-    this._recentPossessions = [];
-    this._maxCache = 3;
+    this.generators = {
+      recognition: new HGRecognitionGenerator(genConfig),
+      'fill-in': new HGFillInGenerator(genConfig),
+      'error-correction': new HGErrorCorrectionGenerator(genConfig),
+      transformation: new HGTransformationGenerator(genConfig),
+      context: new HGContextGenerator(genConfig)
+    };
 
-    // Auto-difficulty
-    this._currentDifficulty = 'positive';
+    // Question type weights by difficulty
+    this.typeWeights = {
+      easy: { recognition: 0.6, 'fill-in': 0.4 },
+      medium: { 'fill-in': 0.5, 'error-correction': 0.3, recognition: 0.2 },
+      hard: { transformation: 0.4, context: 0.2, 'error-correction': 0.25, 'fill-in': 0.15 }
+    };
+
+    this._currentDifficulty = 'easy';
   }
 
   /**
-   * Generate question
+   * Generate question using selected generator
    */
   generateQuestion() {
     this._updateDifficulty();
 
-    const subjectObj = this._selectSubject();
-    const possession = this._selectPossession();
-    const difficulty = this._currentDifficulty;
+    const questionType = this._selectQuestionType();
+    const generator = this.generators[questionType];
 
-    const templates = this.templates[difficulty];
-    const template = templates[Math.floor(Math.random() * templates.length)];
-
-    // Build sentence
-    const { sentence, correctAnswer, options } = this._buildSentence(
-      template,
-      subjectObj,
-      possession,
-      difficulty
-    );
-
-    return {
-      question: sentence,
-      options,
-      correctIndex: options.indexOf(correctAnswer),
-      metadata: {
-        subject: subjectObj.pronoun,
-        possession,
-        difficulty,
-        correctAnswer,
-        correctVerb: subjectObj.verb
-      }
-    };
+    return generator.generate();
   }
 
   /**
-   * Build sentence with correct have/has
+   * Select question type by weighted randomness
    * @private
    */
-  _buildSentence(template, subjectObj, possession, difficulty) {
-    const subject = subjectObj.pronoun;
-    const verb = subjectObj.verb; // have or has
-    const isPlural = subjectObj.isPlural;
-
-    let sentence, correctAnswer, options;
-
-    // Capitalize subject if starts sentence
-    const capitalizeSubject = template.startsWith('{{subject}}');
-    const displaySubject = capitalizeSubject
-      ? subject.charAt(0).toUpperCase() + subject.slice(1)
-      : subject;
-
-    if (difficulty === 'positive') {
-      // I ____ got a dog. → have
-      correctAnswer = verb;
-      sentence = template
-        .replace('{{subject}}', displaySubject)
-        .replace('{{possession}}', possession);
-      options = ['have', 'has'];
-
-    } else if (difficulty === 'negative') {
-      // I ____n't got a dog. → have (haven't)
-      // She ____n't got a cat. → has (hasn't)
-      correctAnswer = verb;
-      sentence = template
-        .replace('{{subject}}', displaySubject)
-        .replace('{{possession}}', possession);
-      options = ['have', 'has'];
-
-    } else { // question
-      // ____ you got a dog? → Have
-      // ____ she got a cat? → Has
-      correctAnswer = verb.charAt(0).toUpperCase() + verb.slice(1); // Have/Has
-      sentence = template
-        .replace('{{subject}}', subject) // lowercase in questions
-        .replace('{{possession}}', possession);
-      options = ['Have', 'Has'];
-    }
-
-    // Add extra distractor for variety
-    if (difficulty !== 'question') {
-      options.push(isPlural ? 'has' : 'have'); // Wrong option
-    }
-
-    return {
-      sentence: sentence.replace(/\s+/g, ' ').trim(),
-      correctAnswer,
-      options: this._shuffle([...new Set(options)]) // Unique + shuffled
-    };
-  }
-
-  /**
-   * Select subject (avoid recent)
-   * @private
-   */
-  _selectSubject() {
-    const available = this.subjects.filter(s => !this._recentSubjects.includes(s.pronoun));
+  _selectQuestionType() {
+    const weights = this.typeWeights[this._currentDifficulty] || this.typeWeights.easy;
+    const types = Object.keys(weights);
+    const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
     
-    if (available.length === 0) {
-      this._recentSubjects = [];
-      return this._selectSubject();
+    let random = Math.random() * totalWeight;
+    for (const type of types) {
+      random -= weights[type];
+      if (random <= 0) return type;
     }
-
-    const subject = available[Math.floor(Math.random() * available.length)];
-    this._recentSubjects.push(subject.pronoun);
-    if (this._recentSubjects.length > this._maxCache) {
-      this._recentSubjects.shift();
-    }
-
-    return subject;
-  }
-
-  /**
-   * Select possession (avoid recent)
-   * @private
-   */
-  _selectPossession() {
-    const available = this.possessions.filter(p => !this._recentPossessions.includes(p));
     
-    if (available.length === 0) {
-      this._recentPossessions = [];
-      return this._selectPossession();
-    }
-
-    const possession = available[Math.floor(Math.random() * available.length)];
-    this._recentPossessions.push(possession);
-    if (this._recentPossessions.length > this._maxCache) {
-      this._recentPossessions.shift();
-    }
-
-    return possession;
+    return types[0];
   }
 
   /**
-   * Auto-scale difficulty based on performance
+   * Update difficulty based on performance
    * @private
    */
   _updateDifficulty() {
     const { questionsAnswered, correctAnswers } = this.state;
     
     if (questionsAnswered < 5) {
-      this._currentDifficulty = 'positive';
+      this._currentDifficulty = 'easy';
     } else if (questionsAnswered < 12) {
       const accuracy = correctAnswers / questionsAnswered;
-      this._currentDifficulty = accuracy >= 0.75 ? 'negative' : 'positive';
+      this._currentDifficulty = accuracy >= 0.75 ? 'medium' : 'easy';
     } else {
       const accuracy = correctAnswers / questionsAnswered;
-      if (accuracy >= 0.85) this._currentDifficulty = 'question';
-      else if (accuracy >= 0.7) this._currentDifficulty = 'negative';
-      else this._currentDifficulty = 'positive';
+      if (accuracy >= 0.85) this._currentDifficulty = 'hard';
+      else if (accuracy >= 0.7) this._currentDifficulty = 'medium';
+      else this._currentDifficulty = 'easy';
     }
   }
 
@@ -237,57 +125,33 @@ class HaveGotTrainer extends Trainer {
       return messages[Math.floor(Math.random() * messages.length)];
     }
 
-    const { subject, correctAnswer, difficulty, correctVerb } = this.state.currentQuestion.metadata;
+    const meta = this.state.currentQuestion.metadata;
     
-    // Grammar tips
-    const tips = {
-      'I': 'I/you/we/they use <strong>have</strong> got',
-      'you': 'I/you/we/they use <strong>have</strong> got',
-      'he': 'He/she/it uses <strong>has</strong> got',
-      'she': 'He/she/it uses <strong>has</strong> got',
-      'it': 'He/she/it uses <strong>has</strong> got',
-      'we': 'I/you/we/they use <strong>have</strong> got',
-      'they': 'I/you/we/they use <strong>have</strong> got'
-    };
-
-    const tip = tips[subject] || (correctVerb === 'has' 
-      ? 'He/she/it uses <strong>has</strong> got'
-      : 'I/you/we/they use <strong>have</strong> got');
-
-    // Example sentence
-    let example = '';
-    if (difficulty === 'positive') {
-      example = `${subject.charAt(0).toUpperCase() + subject.slice(1)} ${correctAnswer} got a dog.`;
-    } else if (difficulty === 'negative') {
-      example = `${subject.charAt(0).toUpperCase() + subject.slice(1)} ${correctAnswer}n't got a cat.`;
-    } else {
-      example = `${correctAnswer} ${subject} got a bike?`;
+    // Use explanation from generator
+    if (meta.explanation) {
+      return `
+        <div>Wrong. Correct: <strong>${meta.correctVerb}</strong></div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem;">
+          💡 ${meta.explanation}
+        </div>
+      `;
     }
 
+    // Fallback
+    const tip = meta.isPlural
+      ? 'I/you/we/they use <strong>have</strong> got'
+      : 'He/she/it uses <strong>has</strong> got';
+
     return `
-      <div>Wrong. Correct: <strong>${correctAnswer}</strong></div>
+      <div>Wrong. Try again!</div>
       <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem;">
-        💡 ${tip}<br>
-        <em style="opacity: 0.8; margin-top: 0.25rem; display: block;">${example}</em>
+        💡 ${tip}
       </div>
     `;
   }
-
-  /**
-   * Fisher-Yates shuffle
-   * @private
-   */
-  _shuffle(array) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
 }
 
-// Auto-init on page load
+// Auto-init
 if (typeof window !== 'undefined') {
   window.HaveGotTrainer = HaveGotTrainer;
 }
