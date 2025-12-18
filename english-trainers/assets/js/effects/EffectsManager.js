@@ -1,6 +1,7 @@
 /**
  * EFFECTS MANAGER
- * Production-grade visual effects with memory safety, performance optimization, mobile scaling.
+ * Production-grade visual + audio + haptic effects.
+ * Phase 2: Extracted CSS, integrated audio/haptic.
  */
 
 class EffectsManager {
@@ -8,6 +9,8 @@ class EffectsManager {
     this.config = {
       enableConfetti: config.enableConfetti ?? true,
       enableParticles: config.enableParticles ?? true,
+      enableAudio: config.enableAudio ?? true,
+      enableHaptic: config.enableHaptic ?? true,
       confettiCount: config.confettiCount ?? (this._isMobile() ? 25 : 50),
       particleCount: config.particleCount ?? 8,
       ...config
@@ -22,8 +25,28 @@ class EffectsManager {
     // Motivational phrases (localization-ready)
     this.phrases = config.phrases || MOTIVATIONAL_PHRASES_RU;
 
-    // Inject CSS once
-    this._injectEffectsCSS();
+    // Audio manager
+    this._audio = new AudioEffectsManager({
+      enabled: this.config.enableAudio,
+      volume: config.audioVolume ?? 0.5
+    });
+
+    // Haptic manager
+    this._haptic = new HapticFeedback({
+      enabled: this.config.enableHaptic
+    });
+
+    // Note: CSS now loaded from assets/css/effects.css (not injected)
+  }
+
+  /**
+   * Load audio files (call after init)
+   */
+  async loadAudioAssets(sounds) {
+    const promises = Object.entries(sounds).map(([name, url]) => 
+      this._audio.loadSound(name, url)
+    );
+    await Promise.all(promises);
   }
 
   /**
@@ -123,7 +146,7 @@ class EffectsManager {
   }
 
   /**
-   * Orchestrator for success effects
+   * Orchestrator for success effects (visual + audio + haptic)
    */
   triggerSuccessEffects(streak, container) {
     if (this._isDestroyed) return;
@@ -132,6 +155,20 @@ class EffectsManager {
     if (container) {
       container.classList.add('correct-flash');
       this._setTimeout(() => container.classList.remove('correct-flash'), 500);
+    }
+
+    // Audio feedback
+    if (streak >= 5) {
+      this._audio.play('milestone');
+    } else {
+      this._audio.play('correct');
+    }
+
+    // Haptic feedback
+    if (streak >= 5) {
+      this._haptic.vibrate('milestone');
+    } else {
+      this._haptic.vibrate('success');
     }
 
     // Confetti on milestones
@@ -143,6 +180,16 @@ class EffectsManager {
     if (streak >= 3) {
       this.createParticleBurst(container);
     }
+  }
+
+  /**
+   * Trigger error effects
+   */
+  triggerErrorEffects() {
+    if (this._isDestroyed) return;
+
+    this._audio.play('error');
+    this._haptic.vibrate('error');
   }
 
   /**
@@ -159,6 +206,10 @@ class EffectsManager {
     this._rafHandles.forEach(handle => cancelAnimationFrame(handle));
     this._rafHandles.clear();
 
+    // Cleanup audio + haptic
+    this._audio.destroy();
+    this._haptic.destroy();
+
     window.debugEffects && window.debugEffects('destroyed');
   }
 
@@ -167,72 +218,6 @@ class EffectsManager {
    */
   _isMobile() {
     return window.matchMedia('(max-width: 768px)').matches;
-  }
-
-  /**
-   * Inject effects CSS (once per instance)
-   */
-  _injectEffectsCSS() {
-    if (document.getElementById('trainer-effects-css')) return;
-
-    const style = document.createElement('style');
-    style.id = 'trainer-effects-css';
-    style.textContent = `
-      @keyframes correctFlash {
-        0% { box-shadow: 0 0 0 rgba(48, 209, 88, 0); }
-        50% { box-shadow: 0 0 30px rgba(48, 209, 88, 0.8); }
-        100% { box-shadow: 0 0 0 rgba(48, 209, 88, 0); }
-      }
-      .correct-flash {
-        animation: correctFlash 0.5s ease-out;
-      }
-
-      @keyframes confettiFall {
-        to {
-          transform: translateY(100vh) rotate(720deg);
-          opacity: 0;
-        }
-      }
-      .confetti {
-        position: fixed;
-        width: 8px;
-        height: 8px;
-        top: -10px;
-        z-index: 9999;
-        animation: confettiFall linear forwards;
-        will-change: transform;
-      }
-
-      @media (max-width: 768px) {
-        .confetti {
-          width: 6px;
-          height: 6px;
-        }
-      }
-
-      @keyframes particleBurst {
-        0% {
-          transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(1);
-          opacity: 1;
-        }
-        100% {
-          transform: translate(-50%, -50%) rotate(var(--angle)) translateY(50px) scale(0);
-          opacity: 0;
-        }
-      }
-      .particle {
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        background: #FFD60A;
-        border-radius: 50%;
-        top: 50%;
-        left: 50%;
-        animation: particleBurst 0.6s ease-out forwards;
-        will-change: transform;
-      }
-    `;
-    document.head.appendChild(style);
   }
 }
 

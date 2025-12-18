@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="assets/css/core.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/trainers.css">
+  <link rel="stylesheet" href="assets/css/effects.css">
   
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -85,10 +86,22 @@
     </div>
   </main>
 
-  <!-- Scripts -->
-  <script src="assets/js/trainer-base.js"></script>
+  <!-- Scripts: Phase 2 order with audio/haptic -->
+  <script src="assets/js/effects/AudioEffectsManager.js"></script>
+  <script src="assets/js/effects/HapticFeedback.js"></script>
+  <script src="assets/js/effects/EffectsManager.js"></script>
+  <script src="assets/js/trainer-core.js"></script>
+  <script src="assets/js/trainer-ui.js"></script>
+  <script src="assets/js/trainer-timer-tts.js"></script>
+  <script src="assets/js/trainer-dom-events-utils.js"></script>
   <script src="assets/js/modules/have-got.js"></script>
+
   <script>
+    // Debug hook
+    window.debugEffects = (event, data) => {
+      console.log(`[Effects] ${event}`, data);
+    };
+
     // Init trainer
     window.trainer = new HaveGotTrainer({
       maxLives: 3,
