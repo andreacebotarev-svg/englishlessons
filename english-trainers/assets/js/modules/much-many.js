@@ -8,7 +8,7 @@ class MuchManyTrainer {
     this.config = {
       maxLives: config.maxLives ?? 5,
       lanes: config.lanes ?? 3,
-      baseSpawnInterval: 2500,
+      baseSpawnInterval: 4000, // Увеличено с 2500 до 4000ms
       baseFallDuration: 10000,
       powerUpInterval: 120000, // 2 minutes
       ...config
@@ -215,7 +215,6 @@ class MuchManyTrainer {
       const word = this.vocabulary.countable[Math.floor(Math.random() * this.vocabulary.countable.length)];
       return {
         text: `How ___ ${word.en} do you need?`,
-        textRu: `Сколько ___ ${word.ru} тебе нужно?`,
         correctAnswer: 'many',
         hint: 'Исчисляемое → many',
         type: 'countable'
@@ -225,7 +224,6 @@ class MuchManyTrainer {
       const word = this.vocabulary.uncountable[Math.floor(Math.random() * this.vocabulary.uncountable.length)];
       return {
         text: `How ___ ${word.en} is there?`,
-        textRu: `Сколько ___ ${word.ru} там?`,
         correctAnswer: 'much',
         hint: 'Неисчисляемое → much',
         type: 'uncountable'
@@ -236,7 +234,6 @@ class MuchManyTrainer {
       const word = allWords[Math.floor(Math.random() * allWords.length)];
       return {
         text: `There are ___ ${word.en}`,
-        textRu: `Там ___ ${word.ru}`,
         correctAnswer: 'a lot of',
         hint: 'Универсальное → a lot of',
         type: 'universal'
@@ -249,7 +246,7 @@ class MuchManyTrainer {
     div.className = 'falling-question';
     div.dataset.lane = lane;
     div.innerHTML = `
-      <div class="question-text">${data.textRu}</div>
+      <div class="question-text">${data.text}</div>
     `;
     return div;
   }
