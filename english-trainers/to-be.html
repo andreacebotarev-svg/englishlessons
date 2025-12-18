@@ -3,27 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Master 'am/is/are' with interactive exercises. Adaptive difficulty, streak tracking, instant feedback.">
+  <meta name="description" content="Master am/is/are with interactive exercises. Adaptive difficulty, streak tracking, instant feedback.">
   <title>To Be Trainer | English Trainers</title>
-  
+
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  
+
   <!-- CSS -->
   <link rel="stylesheet" href="assets/css/core.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/trainers.css">
-  
+
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  
+
   <style>
     /* Progress bar */
     .progress-container {
       margin: 1rem 0;
       text-align: center;
     }
+
     .progress-bar {
       width: 100%;
       max-width: 300px;
@@ -33,15 +34,18 @@
       overflow: hidden;
       margin: 0.5rem auto;
     }
+
     .progress-bar::before {
       display: none; /* Remove shimmer effect */
     }
+
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--accent), var(--accent-success));
       transition: width 0.3s ease;
-      width: 0%;
+      width: 0;
     }
+
     .progress-text {
       font-size: 0.85rem;
       color: var(--text-muted);
@@ -56,17 +60,20 @@
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
     }
+
     .setting-group {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
     }
+
     .setting-label {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
     }
+
     .setting-buttons {
       display: flex;
       gap: 0.5rem;
@@ -75,6 +82,7 @@
       border-radius: 8px;
       flex-wrap: wrap;
     }
+
     .setting-btn {
       padding: 6px 12px;
       font-size: 0.85rem;
@@ -86,10 +94,12 @@
       transition: all 0.2s;
       white-space: nowrap;
     }
+
     .setting-btn.active {
       background: var(--accent);
       color: white;
     }
+
     .setting-btn:hover:not(.active) {
       background: rgba(255,255,255,0.1);
     }
@@ -103,6 +113,7 @@
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.1);
     }
+
     .grammar-toggle {
       width: 100%;
       padding: 1rem;
@@ -116,24 +127,29 @@
       font-size: 0.9rem;
       transition: all 0.2s;
     }
+
     .grammar-toggle:hover {
       background: rgba(255,255,255,0.05);
     }
+
     .grammar-content {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease;
       padding: 0 1rem;
     }
+
     .grammar-content.open {
       max-height: 500px;
       padding: 0 1rem 1rem;
     }
+
     .grammar-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 0.5rem;
     }
+
     .grammar-table th {
       background: rgba(255,255,255,0.05);
       padding: 0.75rem;
@@ -142,15 +158,18 @@
       font-weight: 600;
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
+
     .grammar-table td {
       padding: 0.75rem;
       border-bottom: 1px solid rgba(255,255,255,0.05);
       font-size: 0.9rem;
     }
+
     .grammar-table td:first-child {
       color: var(--accent);
       font-weight: 500;
     }
+
     .grammar-table tr:last-child td {
       border-bottom: none;
     }
@@ -165,13 +184,12 @@
   </style>
 </head>
 <body>
+
   <!-- Header -->
   <header class="trainer-header">
     <div class="container">
-      <a href="../index.html" class="back-btn" aria-label="Back to main portal">
-        ← Portal
-      </a>
-      <h1>🔵 To Be Trainer</h1>
+      <a href="../index.html" class="back-btn" aria-label="Back to main portal">← Portal</a>
+      <h1>To Be Trainer</h1>
       <p class="subtitle">Master am/is/are forms</p>
     </div>
   </header>
@@ -188,7 +206,7 @@
       </div>
       <div class="stat">
         <span class="label">Lives</span>
-        <span id="lives" class="value">❤️❤️❤️</span>
+        <span id="lives" class="value"></span>
       </div>
     </div>
   </div>
@@ -212,7 +230,7 @@
           <p style="color: var(--text-muted); margin-bottom: 2rem;">
             Choose the correct form of "to be" (am/is/are) for each sentence.
           </p>
-          
+
           <!-- Settings -->
           <div class="settings-panel">
             <div class="setting-group">
@@ -225,7 +243,7 @@
                 <button class="setting-btn" data-difficulty="hard" onclick="setDifficulty('hard')">Hard</button>
               </div>
             </div>
-            
+
             <div class="setting-group">
               <div class="setting-label">⏱️ Timer</div>
               <div class="setting-buttons">
@@ -237,81 +255,84 @@
             </div>
           </div>
 
-          <button class="btn btn-primary btn-lg" onclick="window.trainer.start()">
-            🚀 Start Training
-          </button>
+          <button class="btn btn-primary btn-lg" onclick="window.trainer.start()">🚀 Start Training</button>
+        </div>
 
-          <!-- Grammar Reference Table -->
-          <div class="grammar-reference">
-            <button class="grammar-toggle" onclick="toggleGrammar()">
-              <span>📖 Правило: Личные местоимения + To Be</span>
-              <span id="grammar-arrow">▼</span>
-            </button>
-            <div id="grammar-content" class="grammar-content">
-              <table class="grammar-table">
-                <thead>
-                  <tr>
-                    <th>Местоимение</th>
-                    <th>Перевод</th>
-                    <th>To Be</th>
-                    <th>Пример</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>I</td>
-                    <td>я</td>
-                    <td><strong>am</strong></td>
-                    <td>I am happy</td>
-                  </tr>
-                  <tr>
-                    <td>you</td>
-                    <td>ты/вы</td>
-                    <td><strong>are</strong></td>
-                    <td>You are ready</td>
-                  </tr>
-                  <tr>
-                    <td>he</td>
-                    <td>он</td>
-                    <td><strong>is</strong></td>
-                    <td>He is tired</td>
-                  </tr>
-                  <tr>
-                    <td>she</td>
-                    <td>она</td>
-                    <td><strong>is</strong></td>
-                    <td>She is at home</td>
-                  </tr>
-                  <tr>
-                    <td>it</td>
-                    <td>оно</td>
-                    <td><strong>is</strong></td>
-                    <td>It is cold</td>
-                  </tr>
-                  <tr>
-                    <td>we</td>
-                    <td>мы</td>
-                    <td><strong>are</strong></td>
-                    <td>We are students</td>
-                  </tr>
-                  <tr>
-                    <td>they</td>
-                    <td>они</td>
-                    <td><strong>are</strong></td>
-                    <td>They are here</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <!-- Grammar Reference Table -->
+        <div class="grammar-reference">
+          <button class="grammar-toggle" onclick="toggleGrammar()">
+            <span>📚 "To Be" Reference</span>
+            <span id="grammar-arrow">▼</span>
+          </button>
+          <div id="grammar-content" class="grammar-content">
+            <table class="grammar-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th></th>
+                  <th>To Be</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>I</td>
+                  <td></td>
+                  <td><strong>am</strong></td>
+                  <td>I am happy</td>
+                </tr>
+                <tr>
+                  <td>you</td>
+                  <td></td>
+                  <td><strong>are</strong></td>
+                  <td>You are ready</td>
+                </tr>
+                <tr>
+                  <td>he</td>
+                  <td></td>
+                  <td><strong>is</strong></td>
+                  <td>He is tired</td>
+                </tr>
+                <tr>
+                  <td>she</td>
+                  <td></td>
+                  <td><strong>is</strong></td>
+                  <td>She is at home</td>
+                </tr>
+                <tr>
+                  <td>it</td>
+                  <td></td>
+                  <td><strong>is</strong></td>
+                  <td>It is cold</td>
+                </tr>
+                <tr>
+                  <td>we</td>
+                  <td></td>
+                  <td><strong>are</strong></td>
+                  <td>We are students</td>
+                </tr>
+                <tr>
+                  <td>they</td>
+                  <td></td>
+                  <td><strong>are</strong></td>
+                  <td>They are here</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Scripts -->
-  <script src="assets/js/trainer-base.js"></script>
+  <!-- Scripts: load Trainer core + extensions in correct order -->
+  <script src="assets/js/trainer-core.js"></script>
+  <script src="assets/js/trainer-effects.js"></script>
+  <script src="assets/js/trainer-ui.js"></script>
+  <script src="assets/js/trainer-timer-tts.js"></script>
+  <script src="assets/js/trainer-dom-events-utils.js"></script>
   <script src="assets/js/modules/to-be.js"></script>
+
   <script>
     // Settings state
     let settings = {
@@ -363,29 +384,29 @@
         timerMode: settings.timerMode,
         timeLimit: settings.timeLimit
       });
-      
+
       // Lock difficulty if not auto
       if (settings.difficulty !== 'auto') {
-        this._manualDifficulty = settings.difficulty;
+        this.manualDifficulty = settings.difficulty;
       } else {
-        this._manualDifficulty = null;
+        this.manualDifficulty = null;
       }
-      
+
       originalStart();
-      
+
       // Show progress bar
       document.getElementById('progress-container').style.display = 'block';
     };
 
     // Update progress on state change
     trainer.on('stateChange', ({ current }) => {
-      const total = current.lives > 0 ? current.questionsAnswered + 10 : current.questionsAnswered;
+      const total = current.lives <= 0 ? current.questionsAnswered : 10;
       const progress = (current.questionsAnswered / total) * 100;
-      
+
       const fillEl = document.getElementById('progress-fill');
       const textEl = document.getElementById('progress-text');
-      
-      if (fillEl) fillEl.style.width = `${progress}%`;
+
+      if (fillEl) fillEl.style.width = progress + '%';
       if (textEl) textEl.textContent = `${current.questionsAnswered} / ${total} questions`;
     });
 
@@ -397,9 +418,9 @@
     }
 
     // Event listeners
-    trainer.on('start', () => console.log('🎮 Game started', settings));
+    trainer.on('start', () => console.log('Game started', settings));
     trainer.on('end', (stats) => {
-      console.log('🏁 Game ended', stats);
+      console.log('Game ended', stats);
       document.getElementById('progress-container').style.display = 'none';
     });
   </script>
