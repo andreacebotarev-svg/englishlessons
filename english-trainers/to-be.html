@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Master am/is/are with interactive exercises. Adaptive difficulty, streak tracking, instant feedback.">
+  <meta name="description" content="Master am/is/are with 5 interactive question types: recognition, fill-in, error correction, transformation, context. Adaptive difficulty with streak tracking.">
   <title>To Be Trainer | English Trainers</title>
 
   <!-- Preconnect for performance -->
@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/trainers.css">
   <link rel="stylesheet" href="assets/css/effects.css">
+  <link rel="stylesheet" href="assets/css/question-types.css">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -37,7 +38,7 @@
     }
 
     .progress-bar::before {
-      display: none; /* Remove shimmer effect */
+      display: none;
     }
 
     .progress-fill {
@@ -53,7 +54,7 @@
       margin-top: 0.25rem;
     }
 
-    /* Difficulty selector */
+    /* Settings */
     .settings-panel {
       display: flex;
       gap: 1rem;
@@ -174,14 +175,6 @@
     .grammar-table tr:last-child td {
       border-bottom: none;
     }
-
-    /* Pronoun hint */
-    .pronoun-hint {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-      font-style: italic;
-    }
   </style>
 </head>
 <body>
@@ -229,7 +222,8 @@
           <div class="emoji" style="font-size: 5rem; margin-bottom: 1.5rem;">🎯</div>
           <h2 style="margin-bottom: 1rem;">Ready to Practice?</h2>
           <p style="color: var(--text-muted); margin-bottom: 2rem;">
-            Choose the correct form of "to be" (am/is/are) for each sentence.
+            Master "to be" (am/is/are) with <strong>5 question types</strong>:<br>
+            👁️ Recognition • ✏️ Fill-in • ❌ Error Correction • 🔄 Transformation • 💬 Context
           </p>
 
           <!-- Settings -->
@@ -326,7 +320,7 @@
     </div>
   </main>
 
-  <!-- Scripts: Phase 2 order with audio/haptic -->
+  <!-- Scripts -->
   <script src="assets/js/effects/AudioEffectsManager.js"></script>
   <script src="assets/js/effects/HapticFeedback.js"></script>
   <script src="assets/js/effects/EffectsManager.js"></script>
@@ -337,7 +331,6 @@
   <script src="assets/js/modules/to-be.js"></script>
 
   <script>
-    // Settings state
     let settings = {
       difficulty: 'auto',
       timerMode: false,
@@ -364,7 +357,6 @@
       });
     }
 
-    // Grammar reference toggle
     function toggleGrammar() {
       const content = document.getElementById('grammar-content');
       const arrow = document.getElementById('grammar-arrow');
@@ -372,18 +364,16 @@
       arrow.textContent = content.classList.contains('open') ? '▲' : '▼';
     }
 
-    // Debug hook for effects
     window.debugEffects = (event, data) => {
       console.log(`[Effects] ${event}`, data);
     };
 
-    // Init trainer instance
     window.trainer = new ToBeTrainer({
       maxLives: 3,
       streakBonus: 10
     });
 
-    // Load audio assets after first user interaction (AudioContext unlock)
+    // Load audio
     let audioLoaded = false;
     document.addEventListener('click', () => {
       if (!audioLoaded && trainer._effects) {
@@ -392,23 +382,18 @@
           correct: 'assets/audio/correct.mp3',
           milestone: 'assets/audio/milestone.mp3',
           error: 'assets/audio/error.mp3'
-        }).then(() => {
-          console.log('🔊 Audio loaded');
-        });
+        }).then(() => console.log('🔊 Audio loaded'));
       }
     }, { once: false });
 
-    // Override start to apply settings
     const originalStart = trainer.start.bind(trainer);
     trainer.start = function() {
-      // Apply settings
       this.config = Object.freeze({
         ...this.config,
         timerMode: settings.timerMode,
         timeLimit: settings.timeLimit
       });
 
-      // Lock difficulty if not auto
       if (settings.difficulty !== 'auto') {
         this.manualDifficulty = settings.difficulty;
       } else {
@@ -416,31 +401,24 @@
       }
 
       originalStart();
-
-      // Show progress bar
       document.getElementById('progress-container').style.display = 'block';
     };
 
-    // Update progress on state change
     trainer.on('stateChange', ({ current }) => {
       const total = current.lives <= 0 ? current.questionsAnswered : 10;
       const progress = (current.questionsAnswered / total) * 100;
-
       const fillEl = document.getElementById('progress-fill');
       const textEl = document.getElementById('progress-text');
-
       if (fillEl) fillEl.style.width = progress + '%';
       if (textEl) textEl.textContent = `${current.questionsAnswered} / ${total} questions`;
     });
 
-    // Initialize on DOM ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => window.trainer.init());
     } else {
       window.trainer.init();
     }
 
-    // Event listeners
     trainer.on('start', () => console.log('Game started', settings));
     trainer.on('end', (stats) => {
       console.log('Game ended', stats);
