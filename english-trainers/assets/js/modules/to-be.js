@@ -1,6 +1,6 @@
 /**
- * TO BE TRAINER
- * Weighted randomization + context templates + difficulty scaling
+ * TO BE TRAINER V2
+ * 5 question types + adaptive progression + weighted randomization
  */
 
 class ToBeTrainer extends Trainer {
@@ -11,7 +11,6 @@ class ToBeTrainer extends Trainer {
       ...config
     });
 
-    // Pronoun-to-verb mapping
     this.verbMap = {
       'I': 'am',
       'you': 'are',
@@ -22,321 +21,384 @@ class ToBeTrainer extends Trainer {
       'they': 'are'
     };
 
-    // Russian translations for Level 0
-    this.pronounTranslations = {
-      'I': 'я',
-      'you': 'ты/вы',
-      'he': 'он',
-      'she': 'она',
-      'it': 'оно',
-      'we': 'мы',
-      'they': 'они'
+    // Question type weights by difficulty
+    this.typeWeights = {
+      lvl0: { recognition: 1.0 },
+      easy: { recognition: 0.3, 'fill-in': 0.7 },
+      medium: { recognition: 0.1, 'fill-in': 0.6, 'error-correction': 0.3 },
+      hard: { 'fill-in': 0.4, 'error-correction': 0.25, transformation: 0.25, context: 0.1 }
     };
 
-    // Weighted pronoun pool (avoid monotony)
-    this.pronounWeights = {
-      'I': 1,
-      'you': 1,
-      'he': 1.2,  // Slightly more common for learners
-      'she': 1.2,
-      'it': 0.8,  // Less common in natural speech
-      'we': 1,
-      'they': 1
-    };
+    // Content pools for each question type
+    this._initQuestionPools();
 
-    // Sentence templates by difficulty (FIXED SCHEME)
-    this.templates = {
-      lvl0: [
-        // Level 0: Just pronoun + is/am/are (no context)
-        '{{pronoun}} {{verb}}'
-      ],
+    this._currentDifficulty = 'easy';
+    this._manualDifficulty = null;
+    this._recentPronouns = [];
+  }
+
+  _initQuestionPools() {
+    // Pool 1: Recognition tasks
+    this.recognitionPool = [
+      { correct: 'I am happy', wrong: ['I is happy', 'I are happy', 'I be happy'] },
+      { correct: 'You are ready', wrong: ['You is ready', 'You am ready', 'You be ready'] },
+      { correct: 'He is tired', wrong: ['He am tired', 'He are tired', 'He be tired'] },
+      { correct: 'She is at home', wrong: ['She am at home', 'She are at home', 'She be at home'] },
+      { correct: 'It is cold', wrong: ['It am cold', 'It are cold', 'It be cold'] },
+      { correct: 'We are students', wrong: ['We is students', 'We am students', 'We be students'] },
+      { correct: 'They are here', wrong: ['They is here', 'They am here', 'They be here'] }
+    ];
+
+    // Pool 2: Fill-in templates (existing)
+    this.fillInTemplates = {
       easy: [
-        // Easy: ONLY affirmative statements
-        '{{pronoun}} ____ a student.',
-        '{{pronoun}} ____ happy.',
-        '{{pronoun}} ____ at home.',
-        '{{pronoun}} ____ tired.',
-        '{{pronoun}} ____ hungry.',
-        '{{pronoun}} ____ from Spain.',
-        '{{pronoun}} ____ ready.'
+        'I ____ a student',
+        'You ____ my friend',
+        'He ____ very tall',
+        'She ____ a doctor',
+        'It ____ sunny today',
+        'We ____ at school',
+        'They ____ happy'
       ],
       medium: [
-        // Medium: affirmative + negative (NO questions)
-        '{{pronoun}} ____ a student.',
-        '{{pronoun}} ____ not ready yet.',
-        '{{pronoun}} ____ always late.',
-        '{{pronoun}} ____ never wrong.',
-        '{{pronoun}} ____ very busy.',
-        '{{pronoun}} ____ not here today.',
-        '{{pronoun}} ____ not feeling well.'
+        'I ____ not ready',
+        'You ____ always late',
+        'He ____ never wrong',
+        'She ____ not here',
+        'It ____ not working',
+        'We ____ very busy',
+        'They ____ not coming'
       ],
       hard: [
-        // Hard: affirmative + negative + questions
-        '{{pronoun}} ____ supposed to be here.',
-        '{{pronoun}} ____n\'t going to do that.',
-        '____ {{pronoun}} from Spain?',
-        'Where ____ {{pronoun}} now?',
-        '{{pronoun}} ____ about to leave.',
-        'Why ____ {{pronoun}} here?',
-        '{{pronoun}} ____ being very careful.',
-        '____ {{pronoun}} ready yet?'
+        'I ____ about to leave',
+        'You ____ supposed to call',
+        'He ____ being careful',
+        'She ____ going to win',
+        'It ____ getting dark',
+        'We ____ running late',
+        'They ____ always fighting'
       ]
     };
 
-    // Recent pronouns cache (avoid repeats)
-    this._recentPronouns = [];
-    this._maxRecentCache = 3;
+    // Pool 3: Error correction
+    this.errorPool = [
+      {
+        sentence: 'She <span class="error-highlight">are</span> a teacher',
+        options: [
+          "Change 'are' to 'is'",
+          "Change 'She' to 'They'",
+          "Add 'not' after 'are'",
+          'No error'
+        ],
+        correctIndex: 0,
+        explanation: "Use 'is' with 3rd person singular (he/she/it)"
+      },
+      {
+        sentence: 'They <span class="error-highlight">is</span> at home',
+        options: [
+          "Change 'is' to 'are'",
+          "Change 'They' to 'He'",
+          "Remove 'at'",
+          'No error'
+        ],
+        correctIndex: 0,
+        explanation: "Use 'are' with plural subjects (we/they)"
+      },
+      {
+        sentence: 'I <span class="error-highlight">is</span> happy',
+        options: [
+          "Change 'is' to 'am'",
+          "Change 'I' to 'He'",
+          "Remove 'happy'",
+          'No error'
+        ],
+        correctIndex: 0,
+        explanation: "'I' always uses 'am'"
+      },
+      {
+        sentence: 'You <span class="error-highlight">is</span> my friend',
+        options: [
+          "Change 'is' to 'are'",
+          "Change 'You' to 'She'",
+          "Add 'not' after 'is'",
+          'No error'
+        ],
+        correctIndex: 0,
+        explanation: "'You' always uses 'are' (singular and plural)"
+      },
+      {
+        sentence: 'We <span class="error-highlight">am</span> students',
+        options: [
+          "Change 'am' to 'are'",
+          "Change 'We' to 'I'",
+          "Remove 'students'",
+          'No error'
+        ],
+        correctIndex: 0,
+        explanation: "'We' uses 'are'"
+      }
+    ];
 
-    // Difficulty progression (auto-scales with score)
-    this._currentDifficulty = 'easy';
-    this._manualDifficulty = null; // Locked difficulty
+    // Pool 4: Transformation tasks
+    this.transformationPool = [
+      {
+        instruction: 'Make this sentence <strong>negative</strong>:',
+        sentence: 'We are at home',
+        options: [
+          'We are not at home',
+          'We not are at home',
+          'We are at not home',
+          'Not we are at home'
+        ],
+        correctIndex: 0,
+        hint: "Place 'not' after 'to be'"
+      },
+      {
+        instruction: 'Make this a <strong>question</strong>:',
+        sentence: 'They are ready',
+        options: [
+          'Are they ready?',
+          'They are ready?',
+          'Are ready they?',
+          'They ready are?'
+        ],
+        correctIndex: 0,
+        hint: "Move 'to be' before the subject"
+      },
+      {
+        instruction: 'Make this sentence <strong>negative</strong>:',
+        sentence: 'She is happy',
+        options: [
+          'She is not happy',
+          'She not is happy',
+          'She is happy not',
+          'Not she is happy'
+        ],
+        correctIndex: 0,
+        hint: "Use 'is not' or 'isn't'"
+      },
+      {
+        instruction: 'Make this a <strong>question</strong>:',
+        sentence: 'You are tired',
+        options: [
+          'Are you tired?',
+          'You are tired?',
+          'Are tired you?',
+          'You tired are?'
+        ],
+        correctIndex: 0,
+        hint: "Invert 'to be' and subject"
+      },
+      {
+        instruction: 'Change to <strong>plural</strong>:',
+        sentence: 'He is a student',
+        options: [
+          'They are students',
+          'They is students',
+          'He are students',
+          'They are student'
+        ],
+        correctIndex: 0,
+        hint: "He → They, is → are, student → students"
+      }
+    ];
+
+    // Pool 5: Context (dialogues)
+    this.contextPool = [
+      {
+        context: `
+          <div class="dialogue">
+            <p><strong>A:</strong> Where ____ your friends?</p>
+            <p><strong>B:</strong> They ____ at the park.</p>
+          </div>
+        `,
+        options: ['are / are', 'is / are', 'are / is', 'is / is'],
+        correctIndex: 0,
+        explanation: "'Your friends' = plural → 'are'. 'They' → 'are'"
+      },
+      {
+        context: `
+          <div class="dialogue">
+            <p><strong>A:</strong> ____ you ready?</p>
+            <p><strong>B:</strong> Yes, I ____ ready!</p>
+          </div>
+        `,
+        options: ['Are / am', 'Is / am', 'Are / is', 'Is / are'],
+        correctIndex: 0,
+        explanation: "Question: 'Are you...?', Answer: 'I am...'"
+      },
+      {
+        context: `
+          <div class="dialogue">
+            <p><strong>A:</strong> She ____ not here today.</p>
+            <p><strong>B:</strong> Where ____ she?</p>
+          </div>
+        `,
+        options: ['is / is', 'are / is', 'is / are', 'are / are'],
+        correctIndex: 0,
+        explanation: "'She' always uses 'is'"
+      },
+      {
+        context: `
+          <div class="dialogue">
+            <p><strong>Teacher:</strong> ____ we all ready?</p>
+            <p><strong>Students:</strong> Yes, we ____!</p>
+          </div>
+        `,
+        options: ['Are / are', 'Is / are', 'Are / is', 'Is / is'],
+        correctIndex: 0,
+        explanation: "'We' uses 'are'"
+      }
+    ];
   }
 
-  /**
-   * Generate question with weighted randomization
-   * @returns {Object}
-   */
   generateQuestion() {
-    // Auto-scale difficulty (unless locked)
     if (!this._manualDifficulty) {
       this._updateDifficulty();
     } else {
       this._currentDifficulty = this._manualDifficulty;
     }
 
-    // Select pronoun (weighted + avoid recent)
-    const pronoun = this._selectPronoun();
-    const correctVerb = this.verbMap[pronoun];
-    const isLvl0 = this._currentDifficulty === 'lvl0';
+    // Select question type by weighted random
+    const questionType = this._selectQuestionType();
 
-    // Pick template and fill
-    const templates = this.templates[this._currentDifficulty];
-    const template = templates[Math.floor(Math.random() * templates.length)];
+    // Generate question by type
+    return this[`_generate${this._capitalize(questionType)}`]();
+  }
+
+  _selectQuestionType() {
+    const weights = this.typeWeights[this._currentDifficulty];
+    const types = Object.keys(weights);
+    const totalWeight = types.reduce((sum, t) => sum + weights[t], 0);
     
-    // Detect question/negative form
-    const isQuestion = template.includes('____ {{pronoun}}');
-    const isNegative = template.includes('not') || template.includes('n\'t');
-
-    // Generate sentence
-    let sentence;
-    if (isLvl0) {
-      // Level 0: Show completed sentence, ask for pronoun
-      sentence = template
-        .replace('{{pronoun}}', '<span class="blank">____</span>')
-        .replace('{{verb}}', correctVerb);
-    } else {
-      sentence = this._fillTemplate(template, pronoun);
+    let random = Math.random() * totalWeight;
+    for (const type of types) {
+      random -= weights[type];
+      if (random <= 0) return type;
     }
+    return types[0];
+  }
 
-    // Generate options
-    const options = isLvl0 
-      ? this._generatePronounOptions(pronoun)
-      : this._generateVerbOptions(correctVerb);
+  _generateRecognition() {
+    const item = this._randomItem(this.recognitionPool);
+    const options = this._shuffle([item.correct, ...item.wrong]);
+
+    return {
+      question: 'Which sentence is <strong>correct</strong>?',
+      options,
+      correctIndex: options.indexOf(item.correct),
+      metadata: { type: 'recognition', difficulty: this._currentDifficulty }
+    };
+  }
+
+  _generateFillIn() {
+    const templates = this.fillInTemplates[this._currentDifficulty] || this.fillInTemplates.easy;
+    const template = this._randomItem(templates);
+    
+    // Extract pronoun from template
+    const pronoun = template.split(' ')[0];
+    const correctVerb = this.verbMap[pronoun.toLowerCase()];
+    const sentence = template.replace('____', '<span class="blank">____</span>');
+
+    const options = this._shuffle(['am', 'is', 'are']);
 
     return {
       question: sentence,
       options,
-      correctIndex: options.indexOf(isLvl0 ? pronoun : correctVerb),
-      metadata: {
-        pronoun,
-        correctVerb,
-        difficulty: this._currentDifficulty,
-        isQuestion,
-        isNegative,
-        isLvl0,
-        translation: this.pronounTranslations[pronoun]
-      }
+      correctIndex: options.indexOf(correctVerb),
+      metadata: { type: 'fill-in', pronoun, correctVerb, difficulty: this._currentDifficulty }
     };
   }
 
-  /**
-   * Generate pronoun options for Level 0
-   * @private
-   */
-  _generatePronounOptions(correctPronoun) {
-    const allPronouns = ['I', 'you', 'he', 'she', 'it', 'we', 'they'];
-    const shuffled = this._shuffle(allPronouns.filter(p => p !== correctPronoun));
-    const options = [correctPronoun, ...shuffled.slice(0, 3)];
-    return this._shuffle(options);
+  _generateErrorCorrection() {
+    const item = this._randomItem(this.errorPool);
+
+    return {
+      question: `<div style="margin-bottom: 1rem;">Find and fix the error:</div><div class="error-sentence">${item.sentence}</div>`,
+      options: item.options,
+      correctIndex: item.correctIndex,
+      metadata: { type: 'error-correction', explanation: item.explanation, difficulty: this._currentDifficulty }
+    };
   }
 
-  /**
-   * Select pronoun with weighted random + recency filter
-   * @private
-   */
-  _selectPronoun() {
-    const available = Object.keys(this.pronounWeights)
-      .filter(p => !this._recentPronouns.includes(p));
+  _generateTransformation() {
+    const item = this._randomItem(this.transformationPool);
 
-    // If all cached, clear cache
-    if (available.length === 0) {
-      this._recentPronouns = [];
-      return this._selectPronoun();
-    }
-
-    // Weighted random selection
-    const totalWeight = available.reduce((sum, p) => sum + this.pronounWeights[p], 0);
-    let random = Math.random() * totalWeight;
-
-    for (const pronoun of available) {
-      random -= this.pronounWeights[pronoun];
-      if (random <= 0) {
-        // Update recency cache
-        this._recentPronouns.push(pronoun);
-        if (this._recentPronouns.length > this._maxRecentCache) {
-          this._recentPronouns.shift();
-        }
-        return pronoun;
-      }
-    }
-
-    return available[0]; // Fallback
+    return {
+      question: `
+        <div style="margin-bottom: 0.5rem;">${item.instruction}</div>
+        <div class="transformation-sentence" style="font-size: 1.1rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; margin: 1rem 0;">
+          "${item.sentence}"
+        </div>
+      `,
+      options: item.options,
+      correctIndex: item.correctIndex,
+      metadata: { type: 'transformation', hint: item.hint, difficulty: this._currentDifficulty }
+    };
   }
 
-  /**
-   * Fill sentence template
-   * @private
-   */
-  _fillTemplate(template, pronoun) {
-    // Capitalize first letter if pronoun starts sentence
-    const capitalizedPronoun = template.startsWith('{{pronoun}}') || template.startsWith('____')
-      ? pronoun.charAt(0).toUpperCase() + pronoun.slice(1)
-      : pronoun;
+  _generateContext() {
+    const item = this._randomItem(this.contextPool);
 
-    return template
-      .replace(/\{\{pronoun\}\}/g, capitalizedPronoun)
-      .replace(/____/g, '<span class="blank">____</span>'); // Highlight blank
+    return {
+      question: `<div style="margin-bottom: 1rem; font-weight: 600;">Complete the dialogue:</div>${item.context}`,
+      options: item.options,
+      correctIndex: item.correctIndex,
+      metadata: { type: 'context', explanation: item.explanation, difficulty: this._currentDifficulty }
+    };
   }
 
-  /**
-   * Generate shuffled verb options
-   * @private
-   */
-  _generateVerbOptions(correctVerb) {
-    const allVerbs = ['am', 'is', 'are'];
-    
-    // Add contracted forms for variety (30% chance)
-    if (Math.random() < 0.3) {
-      allVerbs.push('\'m', '\'s', '\'re');
+  getFeedback(isCorrect) {
+    if (isCorrect) {
+      return this._getMotivationalPraise();
     }
 
-    // Shuffle and return unique 3-4 options including correct
-    const shuffled = this._shuffle(allVerbs);
-    const options = [correctVerb];
+    const metadata = this.state.currentQuestion?.metadata || {};
+    const correctOption = this.state.currentQuestion.options[this.state.currentQuestion.correctIndex];
 
-    for (const verb of shuffled) {
-      if (verb !== correctVerb && options.length < 4) {
-        options.push(verb);
-      }
+    let feedback = `<div>Wrong. Correct answer: <strong>${correctOption}</strong></div>`;
+
+    // Add type-specific hints
+    if (metadata.explanation) {
+      feedback += `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">💡 ${metadata.explanation}</div>`;
+    } else if (metadata.hint) {
+      feedback += `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">💡 Hint: ${metadata.hint}</div>`;
+    } else if (metadata.type === 'fill-in') {
+      const tips = {
+        'I': 'I always uses "am"',
+        'you': '"You" always uses "are"',
+        'he': 'He/She/It uses "is"',
+        'she': 'He/She/It uses "is"',
+        'it': 'He/She/It uses "is"',
+        'we': 'We/They use "are"',
+        'they': 'We/They use "are"'
+      };
+      feedback += `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">💡 Tip: ${tips[metadata.pronoun?.toLowerCase()]}</div>`;
     }
 
-    return this._shuffle(options);
+    return feedback;
   }
 
-  /**
-   * Auto-scale difficulty based on performance
-   * @private
-   */
   _updateDifficulty() {
-    const { score, questionsAnswered, correctAnswers } = this.state;
-    
+    const { questionsAnswered, correctAnswers } = this.state;
+    const accuracy = questionsAnswered > 0 ? correctAnswers / questionsAnswered : 0;
+
     if (questionsAnswered < 5) {
       this._currentDifficulty = 'easy';
     } else if (questionsAnswered < 15) {
-      const accuracy = correctAnswers / questionsAnswered;
-      this._currentDifficulty = accuracy >= 0.8 ? 'medium' : 'easy';
+      this._currentDifficulty = accuracy >= 0.75 ? 'medium' : 'easy';
     } else {
-      const accuracy = correctAnswers / questionsAnswered;
       if (accuracy >= 0.85) this._currentDifficulty = 'hard';
       else if (accuracy >= 0.7) this._currentDifficulty = 'medium';
       else this._currentDifficulty = 'easy';
     }
   }
 
-  /**
-   * Enhanced feedback with grammar tip
-   * @override
-   */
-  getFeedback(isCorrect) {
-    if (isCorrect) {
-      const messages = [
-        'Perfect! 💯',
-        'Correct! 🎯',
-        'Excellent! ⭐',
-        'Well done! 👏',
-        'Great job! 🔥'
-      ];
-      return messages[Math.floor(Math.random() * messages.length)];
-    }
-
-    const { pronoun, correctVerb, isLvl0, translation } = this.state.currentQuestion.metadata;
-    
-    if (isLvl0) {
-      // Level 0 feedback
-      return `
-        <div>Wrong. Correct: <strong>${pronoun}</strong> (${translation})</div>
-        <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
-          💡 Tip: "${pronoun}" means "${translation}" in Russian
-        </div>
-      `;
-    }
-
-    // Regular feedback
-    const tips = {
-      'I': 'I always uses "am"',
-      'you': '"You" always uses "are" (singular & plural)',
-      'he': 'He/She/It uses "is"',
-      'she': 'He/She/It uses "is"',
-      'it': 'He/She/It uses "is"',
-      'we': 'We/They use "are"',
-      'they': 'We/They use "are"'
-    };
-
-    return `
-      <div>Wrong. Correct: <strong>${pronoun} ${correctVerb}</strong></div>
-      <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
-        💡 Tip: ${tips[pronoun]}
-      </div>
-    `;
+  // Utility methods
+  _randomItem(array) {
+    return array[Math.floor(Math.random() * array.length)];
   }
 
-  /**
-   * Override render to show translation in Level 0
-   * @override
-   */
-  _renderQuestion(question) {
-    const container = this._dom.questionContainer;
-    if (!container) return;
-
-    const { isLvl0, translation } = this.state.currentQuestion?.metadata || {};
-
-    // Add translation hint for Level 0
-    const hint = isLvl0 ? `<div class="pronoun-hint">(🇷🇺 ${translation})</div>` : '';
-
-    container.innerHTML = `
-      <div class="question" role="heading" aria-level="2">
-        ${question.question}
-        ${hint}
-      </div>
-      <div class="options" role="radiogroup" aria-label="Answer options">
-        ${question.options.map((opt, i) => `
-          <button class="option" 
-                  role="radio" 
-                  aria-checked="false"
-                  data-index="${i}"
-                  onclick="window.trainer.submitAnswer(${i})">
-            ${this._escapeHTML(opt)}
-          </button>
-        `).join('')}
-      </div>
-      <div id="feedback" class="feedback hidden" role="alert" aria-live="polite"></div>
-    `;
-  }
-
-  /**
-   * Fisher-Yates shuffle
-   * @private
-   */
   _shuffle(array) {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -345,9 +407,14 @@ class ToBeTrainer extends Trainer {
     }
     return arr;
   }
+
+  _capitalize(str) {
+    return str.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join('');
+  }
 }
 
-// Auto-init on page load
 if (typeof window !== 'undefined') {
   window.ToBeTrainer = ToBeTrainer;
 }
