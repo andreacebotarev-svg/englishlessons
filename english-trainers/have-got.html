@@ -86,7 +86,13 @@
     </div>
   </main>
 
-  <!-- Scripts: Phase 2 order with audio/haptic -->
+  <!-- Scripts: Load generators first -->
+  <script src="assets/js/generators/have-got/HGRecognitionGenerator.js"></script>
+  <script src="assets/js/generators/have-got/HGFillInGenerator.js"></script>
+  <script src="assets/js/generators/have-got/HGErrorCorrectionGenerator.js"></script>
+  <script src="assets/js/generators/have-got/HGTransformationGenerator.js"></script>
+  <script src="assets/js/generators/have-got/HGContextGenerator.js"></script>
+
   <script src="assets/js/effects/AudioEffectsManager.js"></script>
   <script src="assets/js/effects/HapticFeedback.js"></script>
   <script src="assets/js/effects/EffectsManager.js"></script>
