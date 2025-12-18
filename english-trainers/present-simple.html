@@ -85,7 +85,13 @@
     </div>
   </main>
 
-  <!-- Scripts: Phase 2 order with audio/haptic -->
+  <!-- Scripts: Load generators first -->
+  <script src="assets/js/generators/present-simple/PSRecognitionGenerator.js"></script>
+  <script src="assets/js/generators/present-simple/PSFillInGenerator.js"></script>
+  <script src="assets/js/generators/present-simple/PSErrorCorrectionGenerator.js"></script>
+  <script src="assets/js/generators/present-simple/PSTransformationGenerator.js"></script>
+  <script src="assets/js/generators/present-simple/PSContextGenerator.js"></script>
+
   <script src="assets/js/effects/AudioEffectsManager.js"></script>
   <script src="assets/js/effects/HapticFeedback.js"></script>
   <script src="assets/js/effects/EffectsManager.js"></script>
