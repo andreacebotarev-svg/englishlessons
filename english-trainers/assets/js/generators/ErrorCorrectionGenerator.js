@@ -1,82 +1,90 @@
 /**
- * ERROR CORRECTION GENERATOR
- * Auto-generates sentences with wrong verb forms
+ * ERROR CORRECTION QUESTION GENERATOR
+ * Generates "Find the error" questions by injecting wrong verb forms.
  */
 
 class ErrorCorrectionGenerator {
-  constructor() {
-    this.subjects = [
-      { pronoun: 'I', correctVerb: 'am', wrongVerbs: ['is', 'are'] },
-      { pronoun: 'you', correctVerb: 'are', wrongVerbs: ['am', 'is'] },
-      { pronoun: 'he', correctVerb: 'is', wrongVerbs: ['am', 'are'] },
-      { pronoun: 'she', correctVerb: 'is', wrongVerbs: ['am', 'are'] },
-      { pronoun: 'it', correctVerb: 'is', wrongVerbs: ['am', 'are'] },
-      { pronoun: 'we', correctVerb: 'are', wrongVerbs: ['am', 'is'] },
-      { pronoun: 'they', correctVerb: 'are', wrongVerbs: ['am', 'is'] }
+  constructor(config = {}) {
+    this.verbMap = config.verbMap || {
+      'I': 'am',
+      'you': 'are',
+      'he': 'is',
+      'she': 'is',
+      'it': 'is',
+      'we': 'are',
+      'they': 'are'
+    };
+
+    this.templates = [
+      '{{pronoun}} {{wrongVerb}} a teacher',
+      '{{pronoun}} {{wrongVerb}} at home',
+      '{{pronoun}} {{wrongVerb}} very happy',
+      '{{pronoun}} {{wrongVerb}} my friend',
+      '{{pronoun}} {{wrongVerb}} always busy',
+      '{{pronoun}} {{wrongVerb}} ready now',
+      '{{pronoun}} {{wrongVerb}} from Russia',
+      '{{pronoun}} {{wrongVerb}} a student',
+      '{{pronoun}} {{wrongVerb}} tired today',
+      '{{pronoun}} {{wrongVerb}} here'
     ];
 
-    this.predicates = [
-      'happy', 'a teacher', 'at home', 'ready', 'students',
-      'tired', 'my friend', 'busy', 'here', 'late'
-    ];
-
-    this.explanations = {
-      'I': '\'I\' always uses "am"',
-      'you': '\'You\' always uses "are"',
-      'he': 'He/She/It uses "is"',
-      'she': 'He/She/It uses "is"',
-      'it': 'He/She/It uses "is"',
-      'we': 'We/They use "are"',
-      'they': 'We/They use "are"'
+    this.errorExplanations = {
+      'I': "'I' всегда использует 'am'",
+      'you': "'You' всегда использует 'are' (ед. и мн. число)",
+      'he': "С he/she/it используется 'is'",
+      'she': "С he/she/it используется 'is'",
+      'it': "С he/she/it используется 'is'",
+      'we': "С we/they используется 'are'",
+      'they': "С we/they используется 'are'"
     };
   }
 
-  generate(difficulty = 'medium') {
-    const subject = this._randomItem(this.subjects);
-    const predicate = this._randomItem(this.predicates);
-    const wrongVerb = this._randomItem(subject.wrongVerbs);
+  generate() {
+    const pronouns = Object.keys(this.verbMap);
+    const pronoun = pronouns[Math.floor(Math.random() * pronouns.length)];
+    const correctVerb = this.verbMap[pronoun];
+    const wrongVerbs = ['am', 'is', 'are'].filter(v => v !== correctVerb);
+    const wrongVerb = wrongVerbs[Math.floor(Math.random() * wrongVerbs.length)];
 
-    const pronoun = this._capitalize(subject.pronoun);
-    const sentence = `${pronoun} <span class="error-highlight">${wrongVerb}</span> ${predicate}`;
+    const template = this.templates[Math.floor(Math.random() * this.templates.length)];
+    
+    const sentence = template
+      .replace('{{pronoun}}', this._capitalize(pronoun))
+      .replace('{{wrongVerb}}', `<span class="error-highlight">${wrongVerb}</span>`);
 
-    // Generate fix options
-    const correctFix = `Change '${wrongVerb}' to '${subject.correctVerb}'`;
-    const wrongOptions = [
-      `Change '${pronoun}' to another pronoun`,
-      `Add 'not' after '${wrongVerb}'`,
-      'No error'
+    const options = [
+      `Заменить '${wrongVerb}' на '${correctVerb}'`,
+      `Заменить '${this._capitalize(pronoun)}' на другое местоимение`,
+      `Добавить 'not' после '${wrongVerb}'`,
+      'Ошибки нет'
     ];
 
-    const options = this._shuffle([correctFix, ...wrongOptions]);
-
     return {
-      question: `<div style="margin-bottom: 1rem;">Find and fix the error:</div><div class="error-sentence">${sentence}</div>`,
-      options,
-      correctIndex: options.indexOf(correctFix),
+      question: `<div style="margin-bottom: 1rem;">Найди и исправь ошибку:</div><div class="error-sentence">${sentence}</div>`,
+      options: this._shuffle(options),
+      correctIndex: this._shuffle(options).indexOf(options[0]),
       metadata: {
         type: 'error-correction',
-        difficulty,
-        explanation: this.explanations[subject.pronoun],
-        correctVerb: subject.correctVerb
+        pronoun,
+        correctVerb,
+        wrongVerb,
+        explanation: this.errorExplanations[pronoun],
+        generatedFrom: 'ErrorCorrectionGenerator'
       }
     };
   }
 
-  _randomItem(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  _shuffle(arr) {
-    const array = [...arr];
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
   _capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  _shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 }
 

@@ -1,154 +1,144 @@
 /**
- * CONTEXT/DIALOGUE GENERATOR
- * Procedural dialogue generation with multiple blanks
+ * CONTEXT/DIALOGUE QUESTION GENERATOR
+ * Generates dialogue completion tasks with contextual clues.
  */
 
 class ContextGenerator {
-  constructor() {
-    this.dialogueTemplates = [
+  constructor(config = {}) {
+    this.verbMap = config.verbMap || {
+      'I': 'am',
+      'you': 'are',
+      'he': 'is',
+      'she': 'is',
+      'it': 'is',
+      'we': 'are',
+      'they': 'are'
+    };
+
+    // Dialogue patterns
+    this.patterns = [
       {
-        pattern: 'location',
         template: [
-          '<p><strong>A:</strong> Where {verb1} {subject1}?</p>',
-          '<p><strong>B:</strong> {Subject1} {verb1} at {location}.</p>'
-        ]
+          'Where ____ your {{object}}?',
+          'They ____ at the {{location}}.'
+        ],
+        pronouns: ['you', 'they'],
+        objects: ['friends', 'parents', 'books', 'keys'],
+        locations: ['park', 'office', 'table', 'car']
       },
       {
-        pattern: 'readiness',
         template: [
-          '<p><strong>A:</strong> {Verb2} {subject2} ready?</p>',
-          '<p><strong>B:</strong> Yes, {subject3} {verb3} ready!</p>'
-        ]
+          '____ you ready?',
+          'Yes, I ____ ready!'
+        ],
+        pronouns: ['you', 'I'],
+        objects: [],
+        locations: []
       },
       {
-        pattern: 'activity',
         template: [
-          '<p><strong>A:</strong> What {verb1} {subject1} doing?</p>',
-          '<p><strong>B:</strong> {Subject1} {verb1} {activity}.</p>'
-        ]
+          '{{name}} ____ not here today.',
+          'Where ____ {{pronoun}}?'
+        ],
+        pronouns: ['he', 'she'],
+        names: ['John', 'Sarah', 'Tom', 'Lisa'],
+        objects: [],
+        locations: []
       },
       {
-        pattern: 'status',
         template: [
-          '<p><strong>A:</strong> {Verb1} {subject1} {adjective}?</p>',
-          '<p><strong>B:</strong> No, {subject1} {verb1} not {adjective}.</p>'
-        ]
+          '____ we all ready?',
+          'Yes, we ____!'
+        ],
+        pronouns: ['we', 'we'],
+        objects: [],
+        locations: []
+      },
+      {
+        template: [
+          'How ____ you feeling?',
+          'I ____ feeling great!'
+        ],
+        pronouns: ['you', 'I'],
+        objects: [],
+        locations: []
+      },
+      {
+        template: [
+          'What ____ this?',
+          'It ____ a book.'
+        ],
+        pronouns: ['it', 'it'],
+        objects: [],
+        locations: []
       }
     ];
-
-    this.subjects = [
-      { pronoun: 'you', verb: 'are', pair: { pronoun: 'I', verb: 'am' } },
-      { pronoun: 'he', verb: 'is', pair: { pronoun: 'he', verb: 'is' } },
-      { pronoun: 'she', verb: 'is', pair: { pronoun: 'she', verb: 'is' } },
-      { pronoun: 'they', verb: 'are', pair: { pronoun: 'they', verb: 'are' } },
-      { pronoun: 'we', verb: 'are', pair: { pronoun: 'we', verb: 'are' } }
-    ];
-
-    this.vocabulary = {
-      location: ['school', 'home', 'work', 'the park', 'the store'],
-      activity: ['studying', 'working', 'playing', 'reading', 'cooking'],
-      adjective: ['happy', 'tired', 'busy', 'ready', 'late']
-    };
   }
 
-  generate(difficulty = 'hard') {
-    const dialogueTemplate = this._randomItem(this.dialogueTemplates);
-    const subject = this._randomItem(this.subjects);
-    
-    // Build dialogue
-    let dialogue = dialogueTemplate.template.join('\n');
+  generate() {
+    const pattern = this.patterns[Math.floor(Math.random() * this.patterns.length)];
+    const [pronoun1, pronoun2] = pattern.pronouns;
+    const verb1 = this.verbMap[pronoun1];
+    const verb2 = this.verbMap[pronoun2];
 
-    // Replace placeholders
-    dialogue = dialogue
-      .replace(/{subject1}/g, subject.pronoun)
-      .replace(/{Subject1}/g, this._capitalize(subject.pronoun))
-      .replace(/{verb1}/g, subject.verb)
-      .replace(/{Verb1}/g, this._capitalize(subject.verb))
-      .replace(/{subject2}/g, subject.pair.pronoun)
-      .replace(/{Verb2}/g, this._capitalize(subject.pair.verb))
-      .replace(/{subject3}/g, subject.pair.pronoun)
-      .replace(/{verb3}/g, subject.pair.verb);
+    // Fill template placeholders
+    let line1 = pattern.template[0];
+    let line2 = pattern.template[1];
 
-    // Fill vocabulary
-    if (dialogueTemplate.pattern === 'location') {
-      dialogue = dialogue.replace('{location}', this._randomItem(this.vocabulary.location));
-    } else if (dialogueTemplate.pattern === 'activity') {
-      dialogue = dialogue.replace('{activity}', this._randomItem(this.vocabulary.activity));
-    } else if (dialogueTemplate.pattern === 'status') {
-      dialogue = dialogue.replace(/{adjective}/g, this._randomItem(this.vocabulary.adjective));
+    if (pattern.objects && pattern.objects.length > 0) {
+      const object = pattern.objects[Math.floor(Math.random() * pattern.objects.length)];
+      line1 = line1.replace('{{object}}', object);
     }
 
-    // Convert verbs to blanks
-    const blanks = [];
-    dialogue = dialogue.replace(/\{verb1\}/g, () => {
-      blanks.push(subject.verb);
-      return '____';
-    });
-    dialogue = dialogue.replace(/\{Verb2\}/g, () => {
-      blanks.push(this._capitalize(subject.pair.verb));
-      return '____';
-    });
-    dialogue = dialogue.replace(/\{verb3\}/g, () => {
-      blanks.push(subject.pair.verb);
-      return '____';
-    });
+    if (pattern.locations && pattern.locations.length > 0) {
+      const location = pattern.locations[Math.floor(Math.random() * pattern.locations.length)];
+      line2 = line2.replace('{{location}}', location);
+    }
 
-    // Generate answer (verb combination)
-    const correctAnswer = blanks.join(' / ');
-    const wrongOptions = this._generateWrongCombinations(blanks);
+    if (pattern.names && pattern.names.length > 0) {
+      const name = pattern.names[Math.floor(Math.random() * pattern.names.length)];
+      line1 = line1.replace('{{name}}', name);
+      line2 = line2.replace('{{pronoun}}', pronoun2);
+    }
 
-    const options = this._shuffle([correctAnswer, ...wrongOptions]);
+    const context = `
+      <div class="dialogue">
+        <p><strong>A:</strong> ${line1}</p>
+        <p><strong>B:</strong> ${line2}</p>
+      </div>
+    `;
+
+    // Generate answer options
+    const correctAnswer = `${verb1} / ${verb2}`;
+    const wrongOptions = [
+      `${verb1 === 'am' ? 'is' : 'am'} / ${verb2}`,
+      `${verb1} / ${verb2 === 'am' ? 'is' : 'am'}`,
+      `${verb1 === 'are' ? 'is' : 'are'} / ${verb2 === 'are' ? 'is' : 'are'}`
+    ];
+
+    const options = this._shuffle([correctAnswer, ...wrongOptions.slice(0, 3)]);
 
     return {
-      question: `<div style="margin-bottom: 1rem; font-weight: 600;">Complete the dialogue:</div><div class="dialogue">${dialogue}</div>`,
+      question: `<div style="margin-bottom: 1rem; font-weight: 600;">Заполни диалог:</div>${context}`,
       options,
       correctIndex: options.indexOf(correctAnswer),
       metadata: {
         type: 'context',
-        difficulty,
-        explanation: `Correct verbs: ${correctAnswer}`
+        pronouns: [pronoun1, pronoun2],
+        correctVerbs: [verb1, verb2],
+        explanation: `Первый пропуск: '${pronoun1}' → '${verb1}'. Второй пропуск: '${pronoun2}' → '${verb2}'.`,
+        generatedFrom: 'ContextGenerator'
       }
     };
   }
 
-  _generateWrongCombinations(correctVerbs) {
-    const allVerbs = ['am', 'is', 'are', 'Am', 'Is', 'Are'];
-    const wrong = [];
-
-    // Generate 3 plausible wrong combinations
-    while (wrong.length < 3) {
-      const combination = correctVerbs.map((v, i) => {
-        // 50% chance to swap with wrong verb
-        if (Math.random() < 0.5) {
-          const wrongVerb = this._randomItem(allVerbs.filter(av => av.toLowerCase() !== v.toLowerCase()));
-          return v === v.toUpperCase() ? this._capitalize(wrongVerb) : wrongVerb.toLowerCase();
-        }
-        return v;
-      }).join(' / ');
-
-      if (!wrong.includes(combination) && combination !== correctVerbs.join(' / ')) {
-        wrong.push(combination);
-      }
-    }
-
-    return wrong;
-  }
-
-  _randomItem(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  _shuffle(arr) {
-    const array = [...arr];
-    for (let i = array.length - 1; i > 0; i--) {
+  _shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return array;
-  }
-
-  _capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    return arr;
   }
 }
 
