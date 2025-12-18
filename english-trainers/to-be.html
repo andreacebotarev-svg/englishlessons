@@ -383,6 +383,21 @@
       streakBonus: 10
     });
 
+    // Load audio assets after first user interaction (AudioContext unlock)
+    let audioLoaded = false;
+    document.addEventListener('click', () => {
+      if (!audioLoaded && trainer._effects) {
+        audioLoaded = true;
+        trainer._effects.loadAudioAssets({
+          correct: 'assets/audio/correct.mp3',
+          milestone: 'assets/audio/milestone.mp3',
+          error: 'assets/audio/error.mp3'
+        }).then(() => {
+          console.log('🔊 Audio loaded');
+        });
+      }
+    }, { once: false });
+
     // Override start to apply settings
     const originalStart = trainer.start.bind(trainer);
     trainer.start = function() {
