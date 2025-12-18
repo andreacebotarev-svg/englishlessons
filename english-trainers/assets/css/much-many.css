@@ -77,15 +77,31 @@
   justify-content: center;
   background: rgba(0, 0, 0, 0.9);
   z-index: 50;
-  overflow-y: auto; /* Enable scroll */
 }
 
 .start-content,
 .game-over-content {
   text-align: center;
-  padding: 2rem;
-  max-width: 700px;
-  margin: auto; /* Center vertically when scrolling */
+  padding: 1.5rem;
+  max-width: 550px;
+}
+
+/* Compact Rules Grid */
+.rules-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  text-align: left;
+  margin: 1rem auto;
+  max-width: 450px;
+}
+
+.rule-item {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .final-stats {
@@ -458,6 +474,11 @@
   .start-content,
   .game-over-content {
     padding: 1rem;
+  }
+  
+  .rules-compact {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 }
 
