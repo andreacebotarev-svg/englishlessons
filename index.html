@@ -152,7 +152,7 @@
 
         .trainers-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
         }
 
@@ -206,6 +206,25 @@
             --card-gradient-end: #FF375F;
         }
 
+        .trainer-card[data-trainer="much-many"] {
+            --card-gradient-start: #FFD60A;
+            --card-gradient-end: #FF9500;
+        }
+
+        .trainer-card.new::after {
+            content: 'NEW';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+        }
+
         .trainer-icon {
             font-size: 2.5rem;
             margin-bottom: 12px;
@@ -233,6 +252,7 @@
             padding-top: 12px;
             border-top: 1px solid rgba(255,255,255,0.08);
             font-size: 11px;
+            flex-wrap: wrap;
         }
 
         .stat-item {
@@ -316,6 +336,18 @@
             <div class="trainer-stats">
                 <span class="stat-item">🇬🇧 British</span>
                 <span class="stat-item">⏱️ 6 min</span>
+            </div>
+        </a>
+
+        <a href="./english-trainers/much-many.html" 
+           class="trainer-card new" 
+           data-trainer="much-many">
+            <span class="trainer-icon">🎯</span>
+            <h3>Much/Many</h3>
+            <p>Arcade-style falling questions! Control character across 3 lanes</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🎮 Arcade</span>
+                <span class="stat-item">🎁 Power-ups</span>
             </div>
         </a>
     </div>
