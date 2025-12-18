@@ -11,9 +11,9 @@ class MuchManyTrainer {
     this.config = {
       maxLives: config.maxLives ?? 5,
       lanes: config.lanes ?? 3,
-      baseSpawnInterval: this.isMobile ? 5000 : 4000, // +25% slower on mobile
-      baseFallDuration: this.isMobile ? 12000 : 10000, // +20% slower on mobile
-      maxActiveQuestions: this.isMobile ? 3 : 5, // Less questions on mobile
+      baseSpawnInterval: this.isMobile ? 5000 : 4000,
+      baseFallDuration: this.isMobile ? 12000 : 10000,
+      maxActiveQuestions: this.isMobile ? 3 : 5,
       powerUpInterval: 120000,
       ...config
     };
@@ -43,7 +43,6 @@ class MuchManyTrainer {
       spawnTimer: null
     };
 
-    // Touch controls
     this.touchStartX = 0;
     this.touchStartY = 0;
 
@@ -165,6 +164,7 @@ class MuchManyTrainer {
     this._dom.answerPanel.style.display = 'flex';
 
     this._updateUI();
+    this._updateActiveLane(); // Highlight initial lane
     this._startSpawning();
     this._startChecking();
     this._startPowerUpSpawning();
@@ -181,7 +181,6 @@ class MuchManyTrainer {
     const spawn = () => {
       if (!this.state.isPlaying) return;
 
-      // Limit active questions on mobile
       if (this.questions.length < this.config.maxActiveQuestions) {
         this._spawnQuestion();
       }
@@ -296,11 +295,19 @@ class MuchManyTrainer {
     }
 
     this.player.element.setAttribute('data-current-lane', this.player.currentLane);
+    this._updateActiveLane();
     
     // Reduced haptic on mobile (every 2nd move)
     if (!this.isMobile || this.player.currentLane % 2 === 0) {
       this._effects._haptic.vibrate('tick');
     }
+  }
+
+  _updateActiveLane() {
+    // Highlight current lane
+    this._dom.lanes.forEach((lane, i) => {
+      lane.classList.toggle('active', i === this.player.currentLane);
+    });
   }
 
   throwStone(answer) {
