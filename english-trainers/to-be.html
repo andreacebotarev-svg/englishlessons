@@ -6,7 +6,7 @@
   <meta name="description" content="Master am/is/are with 5 interactive question types: recognition, fill-in, error correction, transformation, context. Adaptive difficulty with streak tracking.">
   <title>To Be Trainer | English Trainers</title>
 
-  <!-- Preconnect for performance -->
+  <!-- Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -21,12 +21,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* Progress bar */
     .progress-container {
       margin: 1rem 0;
       text-align: center;
     }
-
     .progress-bar {
       width: 100%;
       max-width: 300px;
@@ -36,25 +34,18 @@
       overflow: hidden;
       margin: 0.5rem auto;
     }
-
-    .progress-bar::before {
-      display: none;
-    }
-
+    .progress-bar::before { display: none; }
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--accent), var(--accent-success));
       transition: width 0.3s ease;
       width: 0;
     }
-
     .progress-text {
       font-size: 0.85rem;
       color: var(--text-muted);
       margin-top: 0.25rem;
     }
-
-    /* Settings */
     .settings-panel {
       display: flex;
       gap: 1rem;
@@ -62,20 +53,17 @@
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
     }
-
     .setting-group {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
     }
-
     .setting-label {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
     }
-
     .setting-buttons {
       display: flex;
       gap: 0.5rem;
@@ -84,7 +72,6 @@
       border-radius: 8px;
       flex-wrap: wrap;
     }
-
     .setting-btn {
       padding: 6px 12px;
       font-size: 0.85rem;
@@ -96,17 +83,13 @@
       transition: all 0.2s;
       white-space: nowrap;
     }
-
     .setting-btn.active {
       background: var(--accent);
       color: white;
     }
-
     .setting-btn:hover:not(.active) {
       background: rgba(255,255,255,0.1);
     }
-
-    /* Grammar reference */
     .grammar-reference {
       max-width: 600px;
       margin: 2rem auto 0;
@@ -115,7 +98,6 @@
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.1);
     }
-
     .grammar-toggle {
       width: 100%;
       padding: 1rem;
@@ -129,29 +111,22 @@
       font-size: 0.9rem;
       transition: all 0.2s;
     }
-
-    .grammar-toggle:hover {
-      background: rgba(255,255,255,0.05);
-    }
-
+    .grammar-toggle:hover { background: rgba(255,255,255,0.05); }
     .grammar-content {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease;
       padding: 0 1rem;
     }
-
     .grammar-content.open {
       max-height: 500px;
       padding: 0 1rem 1rem;
     }
-
     .grammar-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 0.5rem;
     }
-
     .grammar-table th {
       background: rgba(255,255,255,0.05);
       padding: 0.75rem;
@@ -160,26 +135,20 @@
       font-weight: 600;
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-
     .grammar-table td {
       padding: 0.75rem;
       border-bottom: 1px solid rgba(255,255,255,0.05);
       font-size: 0.9rem;
     }
-
     .grammar-table td:first-child {
       color: var(--accent);
       font-weight: 500;
     }
-
-    .grammar-table tr:last-child td {
-      border-bottom: none;
-    }
+    .grammar-table tr:last-child td { border-bottom: none; }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
   <header class="trainer-header">
     <div class="container">
       <a href="../index.html" class="back-btn" aria-label="Back to main portal">← Portal</a>
@@ -188,7 +157,6 @@
     </div>
   </header>
 
-  <!-- Game Stats Bar -->
   <div class="stats-bar" role="region" aria-label="Game statistics">
     <div class="container">
       <div class="stat">
@@ -205,7 +173,6 @@
     </div>
   </div>
 
-  <!-- Progress Bar -->
   <div id="progress-container" class="progress-container" style="display: none;">
     <div class="progress-bar">
       <div id="progress-fill" class="progress-fill"></div>
@@ -213,11 +180,9 @@
     <div id="progress-text" class="progress-text">0 / 0 questions</div>
   </div>
 
-  <!-- Main Game Area -->
   <main class="trainer-content">
     <div class="container">
       <div id="question-container" class="question-wrapper">
-        <!-- Start Screen -->
         <div class="start-screen" style="text-align: center;">
           <div class="emoji" style="font-size: 5rem; margin-bottom: 1.5rem;">🎯</div>
           <h2 style="margin-bottom: 1rem;">Ready to Practice?</h2>
@@ -226,7 +191,6 @@
             👁️ Recognition • ✏️ Fill-in • ❌ Error Correction • 🔄 Transformation • 💬 Context
           </p>
 
-          <!-- Settings -->
           <div class="settings-panel">
             <div class="setting-group">
               <div class="setting-label">🎯 Difficulty</div>
@@ -238,7 +202,6 @@
                 <button class="setting-btn" data-difficulty="hard" onclick="setDifficulty('hard')">Hard</button>
               </div>
             </div>
-
             <div class="setting-group">
               <div class="setting-label">⏱️ Timer</div>
               <div class="setting-buttons">
@@ -253,7 +216,6 @@
           <button class="btn btn-primary btn-lg" onclick="window.trainer.start()">🚀 Start Training</button>
         </div>
 
-        <!-- Grammar Reference Table -->
         <div class="grammar-reference">
           <button class="grammar-toggle" onclick="toggleGrammar()">
             <span>📚 "To Be" Reference</span>
@@ -262,56 +224,16 @@
           <div id="grammar-content" class="grammar-content">
             <table class="grammar-table">
               <thead>
-                <tr>
-                  <th></th>
-                  <th></th>
-                  <th>To Be</th>
-                  <th></th>
-                </tr>
+                <tr><th></th><th></th><th>To Be</th><th></th></tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>I</td>
-                  <td></td>
-                  <td><strong>am</strong></td>
-                  <td>I am happy</td>
-                </tr>
-                <tr>
-                  <td>you</td>
-                  <td></td>
-                  <td><strong>are</strong></td>
-                  <td>You are ready</td>
-                </tr>
-                <tr>
-                  <td>he</td>
-                  <td></td>
-                  <td><strong>is</strong></td>
-                  <td>He is tired</td>
-                </tr>
-                <tr>
-                  <td>she</td>
-                  <td></td>
-                  <td><strong>is</strong></td>
-                  <td>She is at home</td>
-                </tr>
-                <tr>
-                  <td>it</td>
-                  <td></td>
-                  <td><strong>is</strong></td>
-                  <td>It is cold</td>
-                </tr>
-                <tr>
-                  <td>we</td>
-                  <td></td>
-                  <td><strong>are</strong></td>
-                  <td>We are students</td>
-                </tr>
-                <tr>
-                  <td>they</td>
-                  <td></td>
-                  <td><strong>are</strong></td>
-                  <td>They are here</td>
-                </tr>
+                <tr><td>I</td><td></td><td><strong>am</strong></td><td>I am happy</td></tr>
+                <tr><td>you</td><td></td><td><strong>are</strong></td><td>You are ready</td></tr>
+                <tr><td>he</td><td></td><td><strong>is</strong></td><td>He is tired</td></tr>
+                <tr><td>she</td><td></td><td><strong>is</strong></td><td>She is at home</td></tr>
+                <tr><td>it</td><td></td><td><strong>is</strong></td><td>It is cold</td></tr>
+                <tr><td>we</td><td></td><td><strong>are</strong></td><td>We are students</td></tr>
+                <tr><td>they</td><td></td><td><strong>are</strong></td><td>They are here</td></tr>
               </tbody>
             </table>
           </div>
@@ -320,7 +242,7 @@
     </div>
   </main>
 
-  <!-- Scripts -->
+  <!-- Scripts: Load order critical -->
   <script src="assets/js/effects/AudioEffectsManager.js"></script>
   <script src="assets/js/effects/HapticFeedback.js"></script>
   <script src="assets/js/effects/EffectsManager.js"></script>
@@ -328,14 +250,18 @@
   <script src="assets/js/trainer-ui.js"></script>
   <script src="assets/js/trainer-timer-tts.js"></script>
   <script src="assets/js/trainer-dom-events-utils.js"></script>
+  
+  <!-- Question Generators (load before to-be.js) -->
+  <script src="assets/js/generators/RecognitionGenerator.js"></script>
+  <script src="assets/js/generators/FillInGenerator.js"></script>
+  <script src="assets/js/generators/ErrorCorrectionGenerator.js"></script>
+  <script src="assets/js/generators/TransformationGenerator.js"></script>
+  <script src="assets/js/generators/ContextGenerator.js"></script>
+  
   <script src="assets/js/modules/to-be.js"></script>
 
   <script>
-    let settings = {
-      difficulty: 'auto',
-      timerMode: false,
-      timeLimit: 30
-    };
+    let settings = { difficulty: 'auto', timerMode: false, timeLimit: 30 };
 
     function setDifficulty(level) {
       settings.difficulty = level;
@@ -364,16 +290,10 @@
       arrow.textContent = content.classList.contains('open') ? '▲' : '▼';
     }
 
-    window.debugEffects = (event, data) => {
-      console.log(`[Effects] ${event}`, data);
-    };
+    window.debugEffects = (event, data) => console.log(`[Effects] ${event}`, data);
 
-    window.trainer = new ToBeTrainer({
-      maxLives: 3,
-      streakBonus: 10
-    });
+    window.trainer = new ToBeTrainer({ maxLives: 3, streakBonus: 10 });
 
-    // Load audio
     let audioLoaded = false;
     document.addEventListener('click', () => {
       if (!audioLoaded && trainer._effects) {
@@ -393,13 +313,11 @@
         timerMode: settings.timerMode,
         timeLimit: settings.timeLimit
       });
-
       if (settings.difficulty !== 'auto') {
         this.manualDifficulty = settings.difficulty;
       } else {
         this.manualDifficulty = null;
       }
-
       originalStart();
       document.getElementById('progress-container').style.display = 'block';
     };
@@ -419,9 +337,9 @@
       window.trainer.init();
     }
 
-    trainer.on('start', () => console.log('Game started', settings));
+    trainer.on('start', () => console.log('🎮 Game started', settings));
     trainer.on('end', (stats) => {
-      console.log('Game ended', stats);
+      console.log('🏁 Game ended', stats);
       document.getElementById('progress-container').style.display = 'none';
     });
   </script>
