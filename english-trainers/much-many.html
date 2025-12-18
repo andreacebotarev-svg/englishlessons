@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Much/Many/A lot of тренажёр. Отвечай на вопросы под давлением таймера!">
+  <meta name="description" content="Much/Many/A lot of тренажёр с падающими вопросами. Уничтожай вопросы правильными ответами!">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Much/Many Trainer | English Trainers</title>
   
@@ -18,17 +18,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="game-body">
-  <!-- Header -->
   <header class="trainer-header">
     <div class="container">
-      <a href="index.html" class="back-btn" aria-label="Назад к главной">
-        ← Портал
-      </a>
+      <a href="index.html" class="back-btn">← Портал</a>
       <h1>🎯 Much/Many Trainer</h1>
     </div>
   </header>
 
-  <!-- Game Stats -->
   <div class="game-stats">
     <div class="stat-item">
       <span class="stat-label">Очки:</span>
@@ -46,56 +42,46 @@
     </div>
   </div>
 
-  <!-- Game Container -->
   <div class="game-container">
-    <!-- Start Screen -->
     <div id="start-screen" class="start-screen">
       <div class="start-content">
-        <div class="emoji" style="font-size: 3rem; margin-bottom: 1rem;">🎮</div>
-        <h2 style="margin-bottom: 0.75rem; font-size: 1.5rem;">Готов к игре?</h2>
-        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
-          <strong>📱 Мобила:</strong> свайп ← → или тап кнопку<br>
-          <strong>💻 Desktop:</strong> A/D или ← → + Enter<br>
-          Вопрос в центре, таймер сверху. Успей ответить!
+        <div class="emoji" style="font-size: 3rem;">🎮</div>
+        <h2>Готов к игре?</h2>
+        <p style="color: var(--text-muted);">
+          <strong>📱 Мобила:</strong> свайп ← → | кнопки 1/2/3<br>
+          <strong>💻 Desktop:</strong> A/D или ← → | цифры 1/2/3
         </p>
         
         <div class="rules-compact">
           <div class="rule-item">✅ <strong>Much</strong> — неисчисляемые</div>
           <div class="rule-item">🔢 <strong>Many</strong> — исчисляемые</div>
           <div class="rule-item">⭐ <strong>A lot of</strong> — универсальное</div>
-          <div class="rule-item">❌ Неправильно → retry 30% faster</div>
+          <div class="rule-item">❌ Неправильно → ускорение +20%</div>
         </div>
 
-        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.start()" style="margin-top: 1.5rem;">
+        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.start()">
           🚀 Начать игру
         </button>
       </div>
     </div>
 
-    <!-- Game Arena -->
     <div id="game-arena" class="game-arena" style="display: none;">
-      <!-- Question Card (CENTER) -->
-      <div id="question-card" class="question-card">
-        <div id="question-text" class="question-text">How ___ apples do you need?</div>
-        <div id="timer-bar" class="timer-bar"></div>
+      <div class="lanes">
+        <div class="lane" data-lane="0"></div>
+        <div class="lane" data-lane="1"></div>
+        <div class="lane" data-lane="2"></div>
       </div>
       
-      <!-- Lane Indicators -->
-      <div class="lane-indicators">
-        <div class="lane-indicator">Much</div>
-        <div class="lane-indicator active">Many</div>
-        <div class="lane-indicator">A lot of</div>
+      <div class="player" id="player" data-current-lane="1">
+        <div class="player-character">🧑</div>
+        <div class="stone-throw" id="stone-throw"></div>
       </div>
-      
-      <!-- Player (visual only) -->
-      <div id="player" class="player">🧑</div>
     </div>
 
-    <!-- Game Over Screen -->
     <div id="game-over-screen" class="game-over-screen" style="display: none;">
       <div class="game-over-content">
-        <div class="emoji" style="font-size: 4rem; margin-bottom: 1rem;">🏆</div>
-        <h2 style="margin-bottom: 1rem;">Игра окончена!</h2>
+        <div class="emoji" style="font-size: 4rem;">🏆</div>
+        <h2>Игра окончена!</h2>
         
         <div class="final-stats">
           <div class="stat-card">
@@ -112,30 +98,28 @@
           </div>
         </div>
 
-        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.restart()" style="margin-top: 1.5rem;">
+        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.restart()">
           🔄 Играть снова
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Answer Buttons (Fixed at Bottom) -->
   <div class="answer-panel" id="answer-panel" style="display: none;">
-    <button class="answer-btn" data-answer="much" onclick="window.gameTrainer.throwStone('much')">
+    <button class="answer-btn" onclick="window.gameTrainer.throwStone('much')">
       <span class="answer-key">1</span>
       Much
     </button>
-    <button class="answer-btn active" data-answer="many" onclick="window.gameTrainer.throwStone('many')">
+    <button class="answer-btn" onclick="window.gameTrainer.throwStone('many')">
       <span class="answer-key">2</span>
       Many
     </button>
-    <button class="answer-btn" data-answer="a lot of" onclick="window.gameTrainer.throwStone('a lot of')">
+    <button class="answer-btn" onclick="window.gameTrainer.throwStone('a lot of')">
       <span class="answer-key">3</span>
       A lot of
     </button>
   </div>
 
-  <!-- Scripts -->
   <script src="assets/js/effects/AuroraEffect.js"></script>
   <script src="assets/js/effects/AudioEffectsManager.js"></script>
   <script src="assets/js/effects/HapticFeedback.js"></script>
@@ -143,12 +127,8 @@
   <script src="assets/js/modules/much-many.js"></script>
 
   <script>
-    // Init game
-    window.gameTrainer = new MuchManyTrainer({
-      maxLives: 5
-    });
+    window.gameTrainer = new MuchManyTrainer({ maxLives: 5, lanes: 3 });
 
-    // Keyboard shortcuts (1/2/3 for direct answers)
     document.addEventListener('keydown', (e) => {
       if (window.gameTrainer.state.isPlaying) {
         if (e.key === '1') window.gameTrainer.throwStone('much');
@@ -157,7 +137,6 @@
       }
     });
 
-    // Load audio
     let audioLoaded = false;
     document.addEventListener('click', () => {
       if (!audioLoaded && window.gameTrainer._effects) {
@@ -170,7 +149,7 @@
       }
     }, { once: false });
 
-    console.log('🎮 Much/Many Trainer (Static Mode) loaded');
+    console.log('🎮 Much/Many Trainer loaded');
   </script>
 </body>
 </html>
