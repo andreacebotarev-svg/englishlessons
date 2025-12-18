@@ -178,6 +178,7 @@ class Trainer {
     } else {
       newState.streak = 0;
       newState.lives = this.state.lives - 1;
+      this._triggerErrorEffects(); // Trigger error sound + haptic
     }
 
     this._setState(newState);
@@ -263,6 +264,10 @@ class Trainer {
 
   _triggerSuccessEffects(streak) {
     this._effects.triggerSuccessEffects(streak, this._dom.questionContainer);
+  }
+
+  _triggerErrorEffects() {
+    this._effects.triggerErrorEffects();
   }
 
   _getMotivationalPraise() {
