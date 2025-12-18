@@ -5,12 +5,16 @@
 
 class MuchManyTrainer {
   constructor(config = {}) {
+    // Mobile detection
+    this.isMobile = window.matchMedia('(max-width: 768px)').matches;
+    
     this.config = {
       maxLives: config.maxLives ?? 5,
       lanes: config.lanes ?? 3,
-      baseSpawnInterval: 4000, // Увеличено с 2500 до 4000ms
-      baseFallDuration: 10000,
-      powerUpInterval: 120000, // 2 minutes
+      baseSpawnInterval: this.isMobile ? 5000 : 4000, // +25% slower on mobile
+      baseFallDuration: this.isMobile ? 12000 : 10000, // +20% slower on mobile
+      maxActiveQuestions: this.isMobile ? 3 : 5, // Less questions on mobile
+      powerUpInterval: 120000,
       ...config
     };
 
@@ -24,34 +28,32 @@ class MuchManyTrainer {
       currentSpeed: 1.0
     };
 
-    // Player
     this.player = {
       currentLane: 1,
       element: null
     };
 
-    // Questions
     this.questions = [];
     this.spawnTimer = null;
     this.checkTimer = null;
 
-    // Power-ups
     this.powerUps = {
       slowMotionActive: false,
       shieldActive: false,
       spawnTimer: null
     };
 
-    // DOM
+    // Touch controls
+    this.touchStartX = 0;
+    this.touchStartY = 0;
+
     this._dom = {};
 
-    // Effects
     this._effects = new EffectsManager({
       enableHaptic: true,
       hapticIntensity: 1.0
     });
 
-    // Vocabulary
     this.vocabulary = {
       countable: [
         { en: 'apples', ru: 'яблок' },
@@ -106,6 +108,7 @@ class MuchManyTrainer {
   }
 
   _bindControls() {
+    // Keyboard controls
     document.addEventListener('keydown', (e) => {
       if (!this.state.isPlaying) return;
 
@@ -115,6 +118,31 @@ class MuchManyTrainer {
         this.movePlayer('right');
       }
     });
+
+    // Touch controls (swipe)
+    document.addEventListener('touchstart', (e) => {
+      if (!this.state.isPlaying) return;
+      this.touchStartX = e.touches[0].clientX;
+      this.touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+      if (!this.state.isPlaying) return;
+      
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+      const diffX = touchEndX - this.touchStartX;
+      const diffY = touchEndY - this.touchStartY;
+
+      // Only horizontal swipes (ignore vertical scrolls)
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+          this.movePlayer('right');
+        } else {
+          this.movePlayer('left');
+        }
+      }
+    }, { passive: true });
   }
 
   start() {
@@ -131,7 +159,6 @@ class MuchManyTrainer {
     this.player.currentLane = 1;
     this.questions = [];
 
-    // Show game
     this._dom.startScreen.style.display = 'none';
     this._dom.gameOverScreen.style.display = 'none';
     this._dom.gameArena.style.display = 'block';
@@ -154,7 +181,10 @@ class MuchManyTrainer {
     const spawn = () => {
       if (!this.state.isPlaying) return;
 
-      this._spawnQuestion();
+      // Limit active questions on mobile
+      if (this.questions.length < this.config.maxActiveQuestions) {
+        this._spawnQuestion();
+      }
 
       const interval = this.config.baseSpawnInterval / this.state.currentSpeed;
       this.spawnTimer = setTimeout(spawn, interval);
@@ -200,7 +230,6 @@ class MuchManyTrainer {
     this.questions.push(question);
     this._dom.lanes[lane].appendChild(element);
 
-    // Animate fall
     requestAnimationFrame(() => {
       element.style.transition = `transform ${fallDuration}ms linear`;
       element.style.transform = 'translateX(-50%) translateY(calc(100vh - 150px))';
@@ -211,7 +240,6 @@ class MuchManyTrainer {
     const type = Math.random();
 
     if (type < 0.4) {
-      // Many (countable)
       const word = this.vocabulary.countable[Math.floor(Math.random() * this.vocabulary.countable.length)];
       return {
         text: `How ___ ${word.en} do you need?`,
@@ -220,7 +248,6 @@ class MuchManyTrainer {
         type: 'countable'
       };
     } else if (type < 0.8) {
-      // Much (uncountable)
       const word = this.vocabulary.uncountable[Math.floor(Math.random() * this.vocabulary.uncountable.length)];
       return {
         text: `How ___ ${word.en} is there?`,
@@ -229,7 +256,6 @@ class MuchManyTrainer {
         type: 'uncountable'
       };
     } else {
-      // A lot of (universal)
       const allWords = [...this.vocabulary.countable, ...this.vocabulary.uncountable];
       const word = allWords[Math.floor(Math.random() * allWords.length)];
       return {
@@ -253,10 +279,9 @@ class MuchManyTrainer {
 
   _calculateFallDuration() {
     const elapsed = (Date.now() - this.state.gameStartTime) / 1000;
-    const k = Math.log(0.01) / 600; // 10s → 0.1s over 600s
+    const k = Math.log(0.01) / 600;
     const duration = Math.max(100, this.config.baseFallDuration * Math.exp(k * elapsed));
 
-    // Update speed indicator
     this.state.currentSpeed = this.config.baseFallDuration / duration;
     this._dom.speed.textContent = `${this.state.currentSpeed.toFixed(1)}x`;
 
@@ -271,7 +296,11 @@ class MuchManyTrainer {
     }
 
     this.player.element.setAttribute('data-current-lane', this.player.currentLane);
-    this._effects._haptic.vibrate('tick');
+    
+    // Reduced haptic on mobile (every 2nd move)
+    if (!this.isMobile || this.player.currentLane % 2 === 0) {
+      this._effects._haptic.vibrate('tick');
+    }
   }
 
   throwStone(answer) {
@@ -283,10 +312,8 @@ class MuchManyTrainer {
       return;
     }
 
-    // Stone throw animation
     this._animateStoneThrow();
 
-    // Check answer
     const isCorrect = answer === targetQuestion.data.correctAnswer;
     this._handleAnswer(targetQuestion, isCorrect);
   }
@@ -295,7 +322,6 @@ class MuchManyTrainer {
     const questionsInLane = this.questions.filter(q => q.lane === this.player.currentLane);
     if (questionsInLane.length === 0) return null;
 
-    // Get closest question to player
     return questionsInLane.reduce((closest, q) => {
       const qRect = q.element.getBoundingClientRect();
       const closestRect = closest.element.getBoundingClientRect();
@@ -306,7 +332,6 @@ class MuchManyTrainer {
   _animateStoneThrow() {
     this._dom.stoneThrow.textContent = '🪨';
     this._dom.stoneThrow.classList.add('active');
-
     this.player.element.classList.add('throwing');
 
     setTimeout(() => {
@@ -322,7 +347,6 @@ class MuchManyTrainer {
       this.state.correctAnswers++;
       this.state.score += 10;
 
-      // Visual feedback
       question.element.classList.add('correct');
       this._effects.triggerSuccessEffects(0, question.element);
 
@@ -330,13 +354,11 @@ class MuchManyTrainer {
         this._removeQuestion(question);
       }, 500);
     } else {
-      // Wrong answer: show hint + speed up
       question.element.classList.add('wrong');
       question.element.innerHTML += `<div class="hint">💡 ${question.data.hint}</div>`;
 
       this._effects.triggerErrorEffects();
 
-      // Speed up this question by 20%
       const remainingTime = question.duration - (Date.now() - question.startTime);
       const newDuration = remainingTime * 0.8;
 
@@ -363,7 +385,6 @@ class MuchManyTrainer {
 
   _handleMissed(question) {
     if (this.powerUps.shieldActive) {
-      // Shield absorbs the hit
       this.powerUps.shieldActive = false;
       this.player.element.classList.remove('shielded');
       this._effects._haptic.vibrate('impact');
@@ -410,13 +431,11 @@ class MuchManyTrainer {
 
     this._dom.lanes[lane].appendChild(element);
 
-    // Fall slowly (5s)
     requestAnimationFrame(() => {
       element.style.transition = 'transform 5000ms linear';
       element.style.transform = 'translateX(-50%) translateY(calc(100vh - 150px))';
     });
 
-    // Check for collection
     const checkCollection = setInterval(() => {
       const rect = element.getBoundingClientRect();
       const playerRect = this.player.element.getBoundingClientRect();
@@ -427,7 +446,6 @@ class MuchManyTrainer {
         clearInterval(checkCollection);
       }
 
-      // Remove if missed
       if (rect.bottom >= window.innerHeight) {
         element.remove();
         clearInterval(checkCollection);
@@ -459,7 +477,6 @@ class MuchManyTrainer {
     this._dom.gameArena.classList.add('slow-motion');
     this._showPowerUpIndicator('⏱️ Slow Motion');
 
-    // Pause all questions for 3s
     this.questions.forEach(q => {
       q.element.style.animationPlayState = 'paused';
     });
