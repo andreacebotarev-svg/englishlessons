@@ -36,6 +36,9 @@ class EffectsManager {
       enabled: this.config.enableHaptic
     });
 
+    // Aurora effect manager
+    this._aurora = new AuroraEffect();
+
     // Note: CSS now loaded from assets/css/effects.css (not injected)
   }
 
@@ -151,10 +154,9 @@ class EffectsManager {
   triggerSuccessEffects(streak, container) {
     if (this._isDestroyed) return;
 
-    // Flash effect
+    // Aurora particles (replaces green flash)
     if (container) {
-      container.classList.add('correct-flash');
-      this._setTimeout(() => container.classList.remove('correct-flash'), 500);
+      this._aurora.trigger(container);
     }
 
     // Audio feedback
@@ -176,7 +178,7 @@ class EffectsManager {
       this.launchConfetti();
     }
 
-    // Particles on combos
+    // Particles on combos (keep old burst for variety)
     if (streak >= 3) {
       this.createParticleBurst(container);
     }
