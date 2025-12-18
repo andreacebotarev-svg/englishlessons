@@ -164,7 +164,7 @@ class MuchManyTrainer {
     this._dom.answerPanel.style.display = 'flex';
 
     this._updateUI();
-    this._updateActiveLane(); // Highlight initial lane
+    this._updateActiveLane();
     this._startSpawning();
     this._startChecking();
     this._startPowerUpSpawning();
@@ -236,33 +236,72 @@ class MuchManyTrainer {
   }
 
   _generateQuestion() {
-    const type = Math.random();
-
-    if (type < 0.4) {
-      const word = this.vocabulary.countable[Math.floor(Math.random() * this.vocabulary.countable.length)];
-      return {
-        text: `How ___ ${word.en} do you need?`,
-        correctAnswer: 'many',
-        hint: 'Исчисляемое → many',
-        type: 'countable'
-      };
-    } else if (type < 0.8) {
-      const word = this.vocabulary.uncountable[Math.floor(Math.random() * this.vocabulary.uncountable.length)];
-      return {
-        text: `How ___ ${word.en} is there?`,
-        correctAnswer: 'much',
-        hint: 'Неисчисляемое → much',
-        type: 'uncountable'
-      };
+    // Random sentence type: question, statement, negative
+    const sentenceType = Math.random();
+    const wordType = Math.random();
+    
+    // Pick word (countable/uncountable)
+    let word, isCountable;
+    if (wordType < 0.5) {
+      word = this.vocabulary.countable[Math.floor(Math.random() * this.vocabulary.countable.length)];
+      isCountable = true;
     } else {
-      const allWords = [...this.vocabulary.countable, ...this.vocabulary.uncountable];
-      const word = allWords[Math.floor(Math.random() * allWords.length)];
-      return {
-        text: `There are ___ ${word.en}`,
-        correctAnswer: 'a lot of',
-        hint: 'Универсальное → a lot of',
-        type: 'universal'
-      };
+      word = this.vocabulary.uncountable[Math.floor(Math.random() * this.vocabulary.uncountable.length)];
+      isCountable = false;
+    }
+
+    // Generate sentence based on type
+    if (sentenceType < 0.33) {
+      // QUESTION
+      if (isCountable) {
+        return {
+          text: `How ___ ${word.en} do you need?`,
+          correctAnswer: 'many',
+          hint: 'Исчисляемое → many',
+          type: 'countable-question'
+        };
+      } else {
+        return {
+          text: `How ___ ${word.en} is there?`,
+          correctAnswer: 'much',
+          hint: 'Неисчисляемое → much',
+          type: 'uncountable-question'
+        };
+      }
+    } else if (sentenceType < 0.66) {
+      // STATEMENT (positive)
+      if (isCountable) {
+        return {
+          text: `I have ___ ${word.en}`,
+          correctAnswer: 'many',
+          hint: 'Исчисляемое → many',
+          type: 'countable-statement'
+        };
+      } else {
+        return {
+          text: `There is ___ ${word.en} here`,
+          correctAnswer: 'much',
+          hint: 'Неисчисляемое → much',
+          type: 'uncountable-statement'
+        };
+      }
+    } else {
+      // NEGATIVE
+      if (isCountable) {
+        return {
+          text: `I don't have ___ ${word.en}`,
+          correctAnswer: 'many',
+          hint: 'Исчисляемое → many',
+          type: 'countable-negative'
+        };
+      } else {
+        return {
+          text: `There isn't ___ ${word.en}`,
+          correctAnswer: 'much',
+          hint: 'Неисчисляемое → much',
+          type: 'uncountable-negative'
+        };
+      }
     }
   }
 
