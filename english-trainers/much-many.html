@@ -3,21 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Much/Many/A lot of тренажёр с падающими вопросами. Уничтожай вопросы правильными ответами!">
+  <meta name="description" content="Much/Many/A lot of тренажёр. Отвечай на вопросы под давлением таймера!">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Much/Many Trainer | English Trainers</title>
   
-  <!-- Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
-  <!-- CSS -->
   <link rel="stylesheet" href="assets/css/core.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/effects.css">
   <link rel="stylesheet" href="assets/css/much-many.css">
   
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="game-body">
@@ -57,16 +54,16 @@
         <div class="emoji" style="font-size: 3rem; margin-bottom: 1rem;">🎮</div>
         <h2 style="margin-bottom: 0.75rem; font-size: 1.5rem;">Готов к игре?</h2>
         <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
-          <strong>📱 Мобила:</strong> свайп ← → | кнопки 1/2/3<br>
-          <strong>💻 Desktop:</strong> A/D или ← → | цифры 1/2/3<br>
-          Скорость растёт от 12с до 0.1с за 10 мин.
+          <strong>📱 Мобила:</strong> свайп ← → или тап кнопку<br>
+          <strong>💻 Desktop:</strong> A/D или ← → + Enter<br>
+          Вопрос в центре, таймер сверху. Успей ответить!
         </p>
         
         <div class="rules-compact">
           <div class="rule-item">✅ <strong>Much</strong> — неисчисляемые</div>
           <div class="rule-item">🔢 <strong>Many</strong> — исчисляемые</div>
           <div class="rule-item">⭐ <strong>A lot of</strong> — универсальное</div>
-          <div class="rule-item">❌ Неправильно → ускорение +20%</div>
+          <div class="rule-item">❌ Неправильно → retry 30% faster</div>
         </div>
 
         <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.start()" style="margin-top: 1.5rem;">
@@ -77,18 +74,21 @@
 
     <!-- Game Arena -->
     <div id="game-arena" class="game-arena" style="display: none;">
-      <!-- 3 Lanes -->
-      <div class="lanes">
-        <div class="lane" data-lane="0"></div>
-        <div class="lane" data-lane="1"></div>
-        <div class="lane" data-lane="2"></div>
+      <!-- Question Card (CENTER) -->
+      <div id="question-card" class="question-card">
+        <div id="question-text" class="question-text">How ___ apples do you need?</div>
+        <div id="timer-bar" class="timer-bar"></div>
       </div>
       
-      <!-- Player -->
-      <div class="player" id="player" data-current-lane="1">
-        <div class="player-character">🧑</div>
-        <div class="stone-throw" id="stone-throw"></div>
+      <!-- Lane Indicators -->
+      <div class="lane-indicators">
+        <div class="lane-indicator">Much</div>
+        <div class="lane-indicator active">Many</div>
+        <div class="lane-indicator">A lot of</div>
       </div>
+      
+      <!-- Player (visual only) -->
+      <div id="player" class="player">🧑</div>
     </div>
 
     <!-- Game Over Screen -->
@@ -125,7 +125,7 @@
       <span class="answer-key">1</span>
       Much
     </button>
-    <button class="answer-btn" data-answer="many" onclick="window.gameTrainer.throwStone('many')">
+    <button class="answer-btn active" data-answer="many" onclick="window.gameTrainer.throwStone('many')">
       <span class="answer-key">2</span>
       Many
     </button>
@@ -143,22 +143,18 @@
   <script src="assets/js/modules/much-many.js"></script>
 
   <script>
-    // Debug hook
-    window.debugEffects = (event, data) => {
-      console.log(`[Effects] ${event}`, data);
-    };
-
     // Init game
     window.gameTrainer = new MuchManyTrainer({
-      maxLives: 5,
-      lanes: 3
+      maxLives: 5
     });
 
-    // Keyboard shortcuts (1/2/3 for answers)
+    // Keyboard shortcuts (1/2/3 for direct answers)
     document.addEventListener('keydown', (e) => {
-      if (e.key === '1') window.gameTrainer.throwStone('much');
-      if (e.key === '2') window.gameTrainer.throwStone('many');
-      if (e.key === '3') window.gameTrainer.throwStone('a lot of');
+      if (window.gameTrainer.state.isPlaying) {
+        if (e.key === '1') window.gameTrainer.throwStone('much');
+        if (e.key === '2') window.gameTrainer.throwStone('many');
+        if (e.key === '3') window.gameTrainer.throwStone('a lot of');
+      }
     });
 
     // Load audio
@@ -174,7 +170,7 @@
       }
     }, { once: false });
 
-    console.log('🎮 Much/Many Trainer loaded');
+    console.log('🎮 Much/Many Trainer (Static Mode) loaded');
   </script>
 </body>
 </html>
