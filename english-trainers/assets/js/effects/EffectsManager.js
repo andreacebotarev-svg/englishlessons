@@ -1,7 +1,7 @@
 /**
  * EFFECTS MANAGER
  * Production-grade visual + audio + haptic effects.
- * Phase 2: Extracted CSS, integrated audio/haptic.
+ * Phase 3: Enhanced haptic patterns with streak-aware feedback.
  */
 
 class EffectsManager {
@@ -13,6 +13,7 @@ class EffectsManager {
       enableHaptic: config.enableHaptic ?? true,
       confettiCount: config.confettiCount ?? (this._isMobile() ? 25 : 50),
       particleCount: config.particleCount ?? 8,
+      hapticIntensity: config.hapticIntensity ?? 1.0, // 0.5-1.5
       ...config
     };
 
@@ -31,9 +32,10 @@ class EffectsManager {
       volume: config.audioVolume ?? 0.5
     });
 
-    // Haptic manager
+    // Haptic manager with intensity scaling
     this._haptic = new HapticFeedback({
-      enabled: this.config.enableHaptic
+      enabled: this.config.enableHaptic,
+      intensityScale: this.config.hapticIntensity
     });
 
     // Aurora effect manager
@@ -150,6 +152,7 @@ class EffectsManager {
 
   /**
    * Orchestrator for success effects (visual + audio + haptic)
+   * Enhanced with streak-aware haptic patterns
    */
   triggerSuccessEffects(streak, container) {
     if (this._isDestroyed) return;
@@ -166,16 +169,14 @@ class EffectsManager {
       this._audio.play('correct');
     }
 
-    // Haptic feedback
-    if (streak >= 5) {
-      this._haptic.vibrate('milestone');
-    } else {
-      this._haptic.vibrate('success');
-    }
+    // Enhanced haptic feedback with streak awareness
+    this._triggerSuccessHaptic(streak);
 
     // Confetti on milestones
     if ([5, 10, 15, 20].includes(streak)) {
       this.launchConfetti();
+      // Extra haptic for milestone
+      this._setTimeout(() => this._haptic.vibrate('notification'), 100);
     }
 
     // Particles on combos (keep old burst for variety)
@@ -185,13 +186,67 @@ class EffectsManager {
   }
 
   /**
-   * Trigger error effects
+   * Streak-aware haptic pattern selection
+   */
+  _triggerSuccessHaptic(streak) {
+    if (streak >= 10) {
+      // Epic streak: celebration pattern
+      this._haptic.vibrate('milestone');
+    } else if (streak >= 5) {
+      // Good streak: double-tap
+      this._haptic.vibrate('streak');
+    } else if (streak >= 3) {
+      // Building momentum: impact
+      this._haptic.vibrate('impact');
+    } else {
+      // Standard: light success
+      this._haptic.vibrate('success');
+    }
+  }
+
+  /**
+   * Trigger error effects with professional haptic
    */
   triggerErrorEffects() {
     if (this._isDestroyed) return;
 
+    // Audio
     this._audio.play('error');
+    
+    // Haptic: heavy error pattern (100ms single buzz)
     this._haptic.vibrate('error');
+  }
+
+  /**
+   * Trigger warning effects (e.g., time running out)
+   */
+  triggerWarningEffects() {
+    if (this._isDestroyed) return;
+    
+    this._haptic.vibrate('timeWarning');
+    window.debugEffects && window.debugEffects('warning_triggered');
+  }
+
+  /**
+   * Trigger UI interaction feedback
+   */
+  triggerButtonPress() {
+    if (this._isDestroyed) return;
+    this._haptic.vibrate('tick');
+  }
+
+  /**
+   * Test all haptic patterns (debug utility)
+   */
+  testHaptics() {
+    return this._haptic.test();
+  }
+
+  /**
+   * Get haptic info
+   */
+  getHapticInfo() {
+    return this._haptic.getInfo();
   }
 
   /**
