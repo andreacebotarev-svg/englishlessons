@@ -1,6 +1,6 @@
 /**
- * PRESENT SIMPLE TRAINER
- * Subject-verb agreement + irregular verbs + do/does mastery
+ * PRESENT SIMPLE TRAINER V2
+ * Dynamic question generation via 5 generator classes
  */
 
 class PresentSimpleTrainer extends Trainer {
@@ -20,199 +20,86 @@ class PresentSimpleTrainer extends Trainer {
     // Third-person singular subjects (needs -s/-es)
     this.thirdPersonSingular = ['he', 'she', 'it', 'the cat', 'John', 'my friend'];
 
-    // Verb database with base/third-person forms
+    // Verb database
     this.verbs = [
       { base: 'work', thirdPerson: 'works' },
       { base: 'play', thirdPerson: 'plays' },
-      { base: 'study', thirdPerson: 'studies' }, // y → ies
-      { base: 'go', thirdPerson: 'goes' },       // irregular
-      { base: 'watch', thirdPerson: 'watches' }, // ch → ches
-      { base: 'have', thirdPerson: 'has' },      // irregular
-      { base: 'do', thirdPerson: 'does' },       // irregular
+      { base: 'study', thirdPerson: 'studies' },
+      { base: 'go', thirdPerson: 'goes' },
+      { base: 'watch', thirdPerson: 'watches' },
+      { base: 'have', thirdPerson: 'has' },
+      { base: 'do', thirdPerson: 'does' },
       { base: 'teach', thirdPerson: 'teaches' },
-      { base: 'fix', thirdPerson: 'fixes' },     // x → xes
-      { base: 'wash', thirdPerson: 'washes' },   // sh → shes
-      { base: 'try', thirdPerson: 'tries' },     // y → ies
+      { base: 'fix', thirdPerson: 'fixes' },
+      { base: 'wash', thirdPerson: 'washes' },
+      { base: 'try', thirdPerson: 'tries' },
       { base: 'fly', thirdPerson: 'flies' },
       { base: 'catch', thirdPerson: 'catches' },
-      { base: 'miss', thirdPerson: 'misses' },   // ss → sses
+      { base: 'miss', thirdPerson: 'misses' },
       { base: 'read', thirdPerson: 'reads' },
       { base: 'write', thirdPerson: 'writes' },
       { base: 'live', thirdPerson: 'lives' },
       { base: 'like', thirdPerson: 'likes' }
     ];
 
-    // Sentence templates by form type
-    this.templates = {
-      positive: [
-        '{{subject}} {{verb}} every day.',
-        '{{subject}} always {{verb}} in the morning.',
-        '{{subject}} {{verb}} very well.',
-        '{{subject}} often {{verb}} at home.',
-        '{{subject}} {{verb}} on weekends.'
-      ],
-      negative: [
-        '{{subject}} {{do}} not {{verb}} often.',
-        '{{subject}} {{do}}n\'t {{verb}} much.',
-        '{{subject}} {{do}} not {{verb}} anymore.',
-        '{{subject}} never {{verb}}.' // Tricky: never = negative
-      ],
-      question: [
-        '{{do}} {{subject}} {{verb}} regularly?',
-        'Where {{do}} {{subject}} {{verb}}?',
-        'Why {{do}} {{subject}} {{verb}}?',
-        'How often {{do}} {{subject}} {{verb}}?'
-      ]
+    // Initialize generators
+    const genConfig = {
+      verbs: this.verbs,
+      subjects3sg: this.thirdPersonSingular
     };
 
-    // Recent verbs cache
-    this._recentVerbs = [];
-    this._maxRecentCache = 4;
+    this.generators = {
+      recognition: new PSRecognitionGenerator(genConfig),
+      'fill-in': new PSFillInGenerator(genConfig),
+      'error-correction': new PSErrorCorrectionGenerator(genConfig),
+      transformation: new PSTransformationGenerator(genConfig),
+      context: new PSContextGenerator(genConfig)
+    };
 
-    // Difficulty progression
-    this._currentDifficulty = 'positive'; // positive → negative → question
+    // Question type weights by difficulty
+    this.typeWeights = {
+      easy: { recognition: 0.6, 'fill-in': 0.4 },
+      medium: { 'fill-in': 0.5, 'error-correction': 0.3, recognition: 0.2 },
+      hard: { transformation: 0.4, context: 0.2, 'error-correction': 0.25, 'fill-in': 0.15 }
+    };
+
+    this._currentDifficulty = 'easy';
   }
 
   /**
-   * Generate question with subject-verb agreement logic
+   * Generate question using selected generator
    */
   generateQuestion() {
     this._updateDifficulty();
 
-    // Select subject and verb
-    const subject = this._selectSubject();
-    const verb = this._selectVerb();
-    const isThirdPerson = this.thirdPersonSingular.includes(subject);
+    const questionType = this._selectQuestionType();
+    const generator = this.generators[questionType];
 
-    // Pick template based on difficulty
-    const formType = this._currentDifficulty;
-    const templates = this.templates[formType];
-    const template = templates[Math.floor(Math.random() * templates.length)];
-
-    // Generate sentence and options
-    const { sentence, correctAnswer, options } = this._buildSentence(
-      template,
-      subject,
-      verb,
-      isThirdPerson,
-      formType
-    );
-
-    return {
-      question: sentence,
-      options,
-      correctIndex: options.indexOf(correctAnswer),
-      metadata: {
-        subject,
-        verb,
-        isThirdPerson,
-        formType,
-        correctAnswer
-      }
-    };
-  }
-
-  /**
-   * Build sentence with correct verb form
-   * @private
-   */
-  _buildSentence(template, subject, verb, isThirdPerson, formType) {
-    let sentence, correctAnswer, options;
-
-    // Capitalize subject if starts sentence
-    const capitalizedSubject = template.startsWith('{{subject}}')
-      ? subject.charAt(0).toUpperCase() + subject.slice(1)
-      : subject;
-
-    if (formType === 'positive') {
-      // Positive: choose correct verb form (base vs third-person)
-      correctAnswer = isThirdPerson ? verb.thirdPerson : verb.base;
-      sentence = template
-        .replace('{{subject}}', capitalizedSubject)
-        .replace('{{verb}}', '____');
-
-      options = [verb.base, verb.thirdPerson];
-      
-      // Add common mistake (always add -s)
-      if (!isThirdPerson && !options.includes(verb.thirdPerson)) {
-        options.push(verb.thirdPerson);
-      }
-
-    } else if (formType === 'negative') {
-      // Negative: do/does + base form
-      const doForm = isThirdPerson ? 'does' : 'do';
-      correctAnswer = template.includes('never') ? verb.base : `${doForm} not ${verb.base}`;
-      
-      if (template.includes('never')) {
-        sentence = template
-          .replace('{{subject}}', capitalizedSubject)
-          .replace('{{verb}}', '____');
-        options = [verb.base, verb.thirdPerson];
-      } else {
-        sentence = template
-          .replace('{{subject}}', capitalizedSubject)
-          .replace('{{do}}', '____')
-          .replace('{{verb}}', verb.base);
-        options = ['do', 'does'];
-        correctAnswer = doForm;
-      }
-
-    } else { // question
-      // Question: Do/Does at start + base form
-      const doForm = isThirdPerson ? 'Does' : 'Do';
-      correctAnswer = doForm;
-      
-      sentence = template
-        .replace('{{do}}', '____')
-        .replace('{{subject}}', subject) // Don't capitalize in questions
-        .replace('{{verb}}', verb.base);
-      
-      options = ['Do', 'Does'];
+    // Pass difficulty hint for fill-in generator (verb vs aux)
+    if (questionType === 'fill-in') {
+      const fillMode = this._currentDifficulty === 'easy' ? 'verb' : 'aux';
+      return generator.generate(fillMode);
     }
 
-    // Shuffle options and ensure uniqueness
-    options = [...new Set(options)];
-    if (options.length < 3) {
-      // Add distractor
-      options.push(isThirdPerson ? 'do' : 'does');
-    }
-
-    return {
-      sentence,
-      correctAnswer,
-      options: this._shuffle(options)
-    };
+    return generator.generate();
   }
 
   /**
-   * Select subject with balanced distribution
+   * Select question type by weighted randomness
    * @private
    */
-  _selectSubject() {
-    const allSubjects = [...this.subjects.singular, ...this.subjects.plural];
-    return allSubjects[Math.floor(Math.random() * allSubjects.length)];
-  }
-
-  /**
-   * Select verb avoiding recent repeats
-   * @private
-   */
-  _selectVerb() {
-    const available = this.verbs.filter(v => !this._recentVerbs.includes(v.base));
+  _selectQuestionType() {
+    const weights = this.typeWeights[this._currentDifficulty] || this.typeWeights.easy;
+    const types = Object.keys(weights);
+    const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
     
-    if (available.length === 0) {
-      this._recentVerbs = [];
-      return this._selectVerb();
+    let random = Math.random() * totalWeight;
+    for (const type of types) {
+      random -= weights[type];
+      if (random <= 0) return type;
     }
-
-    const verb = available[Math.floor(Math.random() * available.length)];
     
-    this._recentVerbs.push(verb.base);
-    if (this._recentVerbs.length > this._maxRecentCache) {
-      this._recentVerbs.shift();
-    }
-
-    return verb;
+    return types[0];
   }
 
   /**
@@ -223,20 +110,20 @@ class PresentSimpleTrainer extends Trainer {
     const { questionsAnswered, correctAnswers } = this.state;
     
     if (questionsAnswered < 5) {
-      this._currentDifficulty = 'positive';
+      this._currentDifficulty = 'easy';
     } else if (questionsAnswered < 12) {
       const accuracy = correctAnswers / questionsAnswered;
-      this._currentDifficulty = accuracy >= 0.75 ? 'negative' : 'positive';
+      this._currentDifficulty = accuracy >= 0.75 ? 'medium' : 'easy';
     } else {
       const accuracy = correctAnswers / questionsAnswered;
-      if (accuracy >= 0.85) this._currentDifficulty = 'question';
-      else if (accuracy >= 0.7) this._currentDifficulty = 'negative';
-      else this._currentDifficulty = 'positive';
+      if (accuracy >= 0.85) this._currentDifficulty = 'hard';
+      else if (accuracy >= 0.7) this._currentDifficulty = 'medium';
+      else this._currentDifficulty = 'easy';
     }
   }
 
   /**
-   * Enhanced feedback with grammar rule
+   * Enhanced feedback with grammar tips
    * @override
    */
   getFeedback(isCorrect) {
@@ -244,42 +131,32 @@ class PresentSimpleTrainer extends Trainer {
       return ['Perfect! 🎯', 'Excellent! ⭐', 'Correct! 💯', 'Great! 🔥'][Math.floor(Math.random() * 4)];
     }
 
-    const { subject, verb, isThirdPerson, formType, correctAnswer } = this.state.currentQuestion.metadata;
+    const meta = this.state.currentQuestion.metadata;
     
+    // Get explanation from generator metadata
+    if (meta.explanation) {
+      return `
+        <div>Wrong. Correct: <strong>${meta.correctVerb || meta.correctAux}</strong></div>
+        <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+          💡 ${meta.explanation}
+        </div>
+      `;
+    }
+
+    // Fallback tips
     let tip = '';
-    if (formType === 'positive') {
-      tip = isThirdPerson
-        ? `he/she/it needs <strong>${verb.thirdPerson}</strong> (add -s/-es)`
-        : `Use base form <strong>${verb.base}</strong> with I/you/we/they`;
-    } else if (formType === 'negative') {
-      tip = isThirdPerson
-        ? 'Use <strong>does not</strong> (doesn\'t) with he/she/it'
-        : 'Use <strong>do not</strong> (don\'t) with I/you/we/they';
+    if (meta.is3sg) {
+      tip = 'He/she/it needs <strong>-s/-es</strong> ending or <strong>does</strong>';
     } else {
-      tip = isThirdPerson
-        ? '<strong>Does</strong> for questions with he/she/it'
-        : '<strong>Do</strong> for questions with I/you/we/they';
+      tip = 'I/you/we/they use <strong>base form</strong> and <strong>do</strong>';
     }
 
     return `
-      <div>Wrong. Correct: <strong>${correctAnswer}</strong></div>
+      <div>Wrong. Try again!</div>
       <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
         💡 Tip: ${tip}
       </div>
     `;
-  }
-
-  /**
-   * Fisher-Yates shuffle
-   * @private
-   */
-  _shuffle(array) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
   }
 }
 
