@@ -30,8 +30,7 @@ Trainer.prototype._speakQuestion = function (questionText) {
   const cleanText = questionText
     .replace(/<[^>]*>/g, '')
     .replace(/____/g, '')
-    .replace(/
-+/g, ' ')
+    .replace(/\n+/g, ' ')
     .trim();
 
   if (!cleanText) return;

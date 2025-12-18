@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="assets/css/core.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/trainers.css">
+  <link rel="stylesheet" href="assets/css/effects.css">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -325,7 +326,9 @@
     </div>
   </main>
 
-  <!-- Scripts: load EffectsManager + Trainer in correct order -->
+  <!-- Scripts: Phase 2 order with audio/haptic -->
+  <script src="assets/js/effects/AudioEffectsManager.js"></script>
+  <script src="assets/js/effects/HapticFeedback.js"></script>
   <script src="assets/js/effects/EffectsManager.js"></script>
   <script src="assets/js/trainer-core.js"></script>
   <script src="assets/js/trainer-ui.js"></script>
