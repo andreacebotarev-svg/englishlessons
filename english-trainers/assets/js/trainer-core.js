@@ -1,6 +1,7 @@
 /**
  * ABSTRACT TRAINER ENGINE - CORE
  * State machine, lifecycle, game logic, state & stats.
+ * Integrates EffectsManager for visual feedback.
  */
 
 class Trainer {
@@ -13,6 +14,7 @@ class Trainer {
       timerMode: config.timerMode ?? false,
       timeLimit: config.timeLimit ?? 30,
       enableTTS: config.enableTTS ?? true,
+      enableConfetti: config.enableConfetti ?? true,
       ...config
     });
 
@@ -53,33 +55,16 @@ class Trainer {
       this._tts = window.speechSynthesis;
     }
 
+    // Inject EffectsManager (memory-safe, optimized)
+    this._effects = new EffectsManager({
+      enableConfetti: this.config.enableConfetti,
+      confettiCount: config.confettiCount,
+      phrases: config.motivationalPhrases
+    });
+
     // Bind methods for event listeners
     this._handleResize = this._handleResize.bind(this);
     this._handleVisibilityChange = this._handleVisibilityChange.bind(this);
-
-    // Motivational phrases
-    this._motivationalPhrases = {
-      streak: [
-        'Огонь! 🔥 Не останавливайся!',
-        'Отлично! Продолжай в том же духе!',
-        'Ты в ударе! Вперёд к победе!',
-        'Превосходно! Ещё немного!',
-        'Невероятная серия! 🏆'
-      ],
-      accuracy: [
-        'Молодчина! Ещё чуть-чуть и ты станешь профи!',
-        'Отличная работа! Так держать!',
-        'Прекрасно! Ты быстро учишься!',
-        'Великолепно! Ты на верном пути!'
-      ],
-      random: [
-        'Правильно! ✅',
-        'Точно! 🎯',
-        'Супер! ⭐',
-        'Класс! 👏',
-        'Браво! 🎉'
-      ]
-    };
   }
 
   /* ========================================
@@ -90,7 +75,6 @@ class Trainer {
     this._cacheDOMElements();
     this._attachEventListeners();
     this._setState({ phase: 'IDLE' });
-    this._injectEffectsCSS();
     this.emit('init');
   }
 
@@ -146,6 +130,7 @@ class Trainer {
     document.removeEventListener('visibilitychange', this._handleVisibilityChange);
     this._listeners = {};
     this._dom = {};
+    this._effects.destroy(); // Critical: cleanup EffectsManager
     this.emit('destroy');
   }
 
@@ -272,6 +257,21 @@ class Trainer {
     this.state = Object.freeze({ ...this.state, ...updates });
     this.emit('stateChange', { prev: prevState, current: this.state });
     this._scheduleUpdate('state');
+  }
+
+  /* EFFECTS INTEGRATION */
+
+  _triggerSuccessEffects(streak) {
+    this._effects.triggerSuccessEffects(streak, this._dom.questionContainer);
+  }
+
+  _getMotivationalPraise() {
+    const { streak, questionsAnswered, correctAnswers } = this.state;
+    return this._effects.getMotivationalPraise({
+      streak,
+      accuracy: correctAnswers / questionsAnswered,
+      questionsAnswered
+    });
   }
 
   getState() {
