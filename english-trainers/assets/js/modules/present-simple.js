@@ -11,13 +11,7 @@ class PresentSimpleTrainer extends Trainer {
       ...config
     });
 
-    // Subject categories
-    this.subjects = {
-      singular: ['I', 'you', 'he', 'she', 'it', 'the cat', 'John', 'my friend'],
-      plural: ['we', 'they', 'the cats', 'my friends', 'people']
-    };
-
-    // Third-person singular subjects (needs -s/-es)
+    // Third-person singular subjects
     this.thirdPersonSingular = ['he', 'she', 'it', 'the cat', 'John', 'my friend'];
 
     // Verb database
@@ -56,7 +50,7 @@ class PresentSimpleTrainer extends Trainer {
       context: new PSContextGenerator(genConfig)
     };
 
-    // Question type weights by difficulty
+    // Question type weights
     this.typeWeights = {
       easy: { recognition: 0.6, 'fill-in': 0.4 },
       medium: { 'fill-in': 0.5, 'error-correction': 0.3, recognition: 0.2 },
@@ -66,16 +60,12 @@ class PresentSimpleTrainer extends Trainer {
     this._currentDifficulty = 'easy';
   }
 
-  /**
-   * Generate question using selected generator
-   */
   generateQuestion() {
     this._updateDifficulty();
 
     const questionType = this._selectQuestionType();
     const generator = this.generators[questionType];
 
-    // Pass difficulty hint for fill-in generator (verb vs aux)
     if (questionType === 'fill-in') {
       const fillMode = this._currentDifficulty === 'easy' ? 'verb' : 'aux';
       return generator.generate(fillMode);
@@ -84,10 +74,6 @@ class PresentSimpleTrainer extends Trainer {
     return generator.generate();
   }
 
-  /**
-   * Select question type by weighted randomness
-   * @private
-   */
   _selectQuestionType() {
     const weights = this.typeWeights[this._currentDifficulty] || this.typeWeights.easy;
     const types = Object.keys(weights);
@@ -102,10 +88,6 @@ class PresentSimpleTrainer extends Trainer {
     return types[0];
   }
 
-  /**
-   * Update difficulty based on performance
-   * @private
-   */
   _updateDifficulty() {
     const { questionsAnswered, correctAnswers } = this.state;
     
@@ -122,45 +104,40 @@ class PresentSimpleTrainer extends Trainer {
     }
   }
 
-  /**
-   * Enhanced feedback with grammar tips
-   * @override
-   */
   getFeedback(isCorrect) {
     if (isCorrect) {
-      return ['Perfect! 🎯', 'Excellent! ⭐', 'Correct! 💯', 'Great! 🔥'][Math.floor(Math.random() * 4)];
+      return ['Правильно! 🎯', 'Отлично! ⭐', 'Верно! 💯', 'Супер! 🔥'][Math.floor(Math.random() * 4)];
     }
 
     const meta = this.state.currentQuestion.metadata;
     
-    // Get explanation from generator metadata
+    // Use explanation from generator
     if (meta.explanation) {
       return `
-        <div>Wrong. Correct: <strong>${meta.correctVerb || meta.correctAux}</strong></div>
+        <div>Неправильно. Правильный ответ: <strong>${meta.correctVerb || meta.correctAux}</strong></div>
         <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
           💡 ${meta.explanation}
         </div>
       `;
     }
 
-    // Fallback tips
+    // Fallback
     let tip = '';
     if (meta.is3sg) {
-      tip = 'He/she/it needs <strong>-s/-es</strong> ending or <strong>does</strong>';
+      tip = 'С he/she/it нужно окончание <strong>-s/-es</strong> или <strong>does</strong>';
     } else {
-      tip = 'I/you/we/they use <strong>base form</strong> and <strong>do</strong>';
+      tip = 'С I/you/we/they используй <strong>базовую форму</strong> и <strong>do</strong>';
     }
 
     return `
-      <div>Wrong. Try again!</div>
+      <div>Неправильно. Попробуй ещё раз!</div>
       <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
-        💡 Tip: ${tip}
+        💡 Подсказка: ${tip}
       </div>
     `;
   }
 }
 
-// Auto-export
 if (typeof window !== 'undefined') {
   window.PresentSimpleTrainer = PresentSimpleTrainer;
 }

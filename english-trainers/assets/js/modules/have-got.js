@@ -25,7 +25,7 @@ class HaveGotTrainer extends Trainer {
       { pronoun: 'the cat', verb: 'has', isPlural: false }
     ];
 
-    // Possessions vocabulary
+    // Possessions
     this.possessions = [
       'a brother', 'a sister', 'two brothers', 'three sisters',
       'a dog', 'a cat', 'two cats', 'a parrot',
@@ -49,7 +49,7 @@ class HaveGotTrainer extends Trainer {
       context: new HGContextGenerator(genConfig)
     };
 
-    // Question type weights by difficulty
+    // Question type weights
     this.typeWeights = {
       easy: { recognition: 0.6, 'fill-in': 0.4 },
       medium: { 'fill-in': 0.5, 'error-correction': 0.3, recognition: 0.2 },
@@ -59,9 +59,6 @@ class HaveGotTrainer extends Trainer {
     this._currentDifficulty = 'easy';
   }
 
-  /**
-   * Generate question using selected generator
-   */
   generateQuestion() {
     this._updateDifficulty();
 
@@ -71,10 +68,6 @@ class HaveGotTrainer extends Trainer {
     return generator.generate();
   }
 
-  /**
-   * Select question type by weighted randomness
-   * @private
-   */
   _selectQuestionType() {
     const weights = this.typeWeights[this._currentDifficulty] || this.typeWeights.easy;
     const types = Object.keys(weights);
@@ -89,10 +82,6 @@ class HaveGotTrainer extends Trainer {
     return types[0];
   }
 
-  /**
-   * Update difficulty based on performance
-   * @private
-   */
   _updateDifficulty() {
     const { questionsAnswered, correctAnswers } = this.state;
     
@@ -109,18 +98,14 @@ class HaveGotTrainer extends Trainer {
     }
   }
 
-  /**
-   * Enhanced feedback with grammar tips
-   * @override
-   */
   getFeedback(isCorrect) {
     if (isCorrect) {
       const messages = [
-        'Perfect! 🎯',
-        'Correct! ✅',
-        'Excellent! ⭐',
-        'Great job! 🔥',
-        'Well done! 👏'
+        'Правильно! 🎯',
+        'Верно! ✅',
+        'Отлично! ⭐',
+        'Супер! 🔥',
+        'Молодец! 👏'
       ];
       return messages[Math.floor(Math.random() * messages.length)];
     }
@@ -130,7 +115,7 @@ class HaveGotTrainer extends Trainer {
     // Use explanation from generator
     if (meta.explanation) {
       return `
-        <div>Wrong. Correct: <strong>${meta.correctVerb}</strong></div>
+        <div>Неправильно. Правильный ответ: <strong>${meta.correctVerb}</strong></div>
         <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem;">
           💡 ${meta.explanation}
         </div>
@@ -139,11 +124,11 @@ class HaveGotTrainer extends Trainer {
 
     // Fallback
     const tip = meta.isPlural
-      ? 'I/you/we/they use <strong>have</strong> got'
-      : 'He/she/it uses <strong>has</strong> got';
+      ? 'С I/you/we/they используется <strong>have</strong> got'
+      : 'С he/she/it используется <strong>has</strong> got';
 
     return `
-      <div>Wrong. Try again!</div>
+      <div>Неправильно. Попробуй ещё раз!</div>
       <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.75rem;">
         💡 ${tip}
       </div>
@@ -151,7 +136,6 @@ class HaveGotTrainer extends Trainer {
   }
 }
 
-// Auto-init
 if (typeof window !== 'undefined') {
   window.HaveGotTrainer = HaveGotTrainer;
 }
