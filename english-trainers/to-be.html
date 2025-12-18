@@ -325,9 +325,9 @@
     </div>
   </main>
 
-  <!-- Scripts: load Trainer core + extensions in correct order -->
+  <!-- Scripts: load EffectsManager + Trainer in correct order -->
+  <script src="assets/js/effects/EffectsManager.js"></script>
   <script src="assets/js/trainer-core.js"></script>
-  <script src="assets/js/trainer-effects.js"></script>
   <script src="assets/js/trainer-ui.js"></script>
   <script src="assets/js/trainer-timer-tts.js"></script>
   <script src="assets/js/trainer-dom-events-utils.js"></script>
@@ -368,6 +368,11 @@
       content.classList.toggle('open');
       arrow.textContent = content.classList.contains('open') ? '▲' : '▼';
     }
+
+    // Debug hook for effects
+    window.debugEffects = (event, data) => {
+      console.log(`[Effects] ${event}`, data);
+    };
 
     // Init trainer instance
     window.trainer = new ToBeTrainer({
