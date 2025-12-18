@@ -27,7 +27,6 @@
         ← Портал
       </a>
       <h1>🎯 Much/Many Trainer</h1>
-      <p class="subtitle">Уничтожай падающие вопросы!</p>
     </div>
   </header>
 
@@ -54,31 +53,21 @@
     <!-- Start Screen -->
     <div id="start-screen" class="start-screen">
       <div class="start-content">
-        <div class="emoji" style="font-size: 5rem; margin-bottom: 1.5rem;">🎮</div>
-        <h2 style="margin-bottom: 1rem;">Готов к игре?</h2>
-        <p style="color: var(--text-muted); margin-bottom: 2rem; max-width: 500px;">
-          Вопросы падают сверху по 3 дорожкам. Двигай персонажа <strong>A/D</strong> или <strong>← →</strong> и бросай камни правильным ответом!<br>
-          Скорость растёт от 10с до 0.1с за 10 минут игры.
+        <div class="emoji" style="font-size: 3rem; margin-bottom: 1rem;">🎮</div>
+        <h2 style="margin-bottom: 0.75rem; font-size: 1.5rem;">Готов к игре?</h2>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+          Управляй <strong>A/D</strong> или <strong>← →</strong>, бросай камни правильными ответами!<br>
+          Скорость растёт от 10с до 0.1с за 10 минут.
         </p>
         
-        <div class="rules card" style="text-align: left; max-width: 550px; margin: 0 auto 2rem; padding: 1.5rem;">
-          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">📜 Правила</h3>
-          <ul style="list-style: none; padding: 0; margin: 0; line-height: 2.2;">
-            <li>✅ <strong>Much</strong> — неисчисляемые (water, money, time)</li>
-            <li>🔢 <strong>Many</strong> — исчисляемые (apples, books, cars)</li>
-            <li>⭐ <strong>A lot of</strong> — универсальный вариант</li>
-            <li>❌ <strong>Неправильно</strong> → вопрос ускоряется +20%</li>
-            <li>💔 <strong>Пропустил</strong> → -1 жизнь (всего 5)</li>
-          </ul>
-          
-          <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0;">
-              🎁 Power-ups каждые 2 минуты: ⏱️ Slow Motion | 💣 Clear All | 🛡️ Shield
-            </p>
-          </div>
+        <div class="rules-compact">
+          <div class="rule-item">✅ <strong>Much</strong> — неисчисляемые</div>
+          <div class="rule-item">🔢 <strong>Many</strong> — исчисляемые</div>
+          <div class="rule-item">⭐ <strong>A lot of</strong> — универсальное</div>
+          <div class="rule-item">❌ Неправильно → ускорение +20%</div>
         </div>
 
-        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.start()">
+        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.start()" style="margin-top: 1.5rem;">
           🚀 Начать игру
         </button>
       </div>
@@ -103,7 +92,7 @@
     <!-- Game Over Screen -->
     <div id="game-over-screen" class="game-over-screen" style="display: none;">
       <div class="game-over-content">
-        <div class="emoji" style="font-size: 5rem; margin-bottom: 1.5rem;">🏆</div>
+        <div class="emoji" style="font-size: 4rem; margin-bottom: 1rem;">🏆</div>
         <h2 style="margin-bottom: 1rem;">Игра окончена!</h2>
         
         <div class="final-stats">
@@ -121,7 +110,7 @@
           </div>
         </div>
 
-        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.restart()" style="margin-top: 2rem;">
+        <button class="btn btn-primary btn-lg" onclick="window.gameTrainer.restart()" style="margin-top: 1.5rem;">
           🔄 Играть снова
         </button>
       </div>
