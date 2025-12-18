@@ -1,20 +1,18 @@
 /**
- * MUCH/MANY/A LOT OF TRAINER
- * Falling questions game with 3-lane system and player controller
+ * MUCH/MANY/A LOT OF TRAINER - STATIC CENTERED VERSION
+ * Single question card with timer pressure system
  */
 
 class MuchManyTrainer {
   constructor(config = {}) {
-    // Mobile detection
     this.isMobile = window.matchMedia('(max-width: 768px)').matches;
     
     this.config = {
       maxLives: config.maxLives ?? 5,
-      lanes: config.lanes ?? 3,
-      baseSpawnInterval: this.isMobile ? 5000 : 4000,
-      baseFallDuration: this.isMobile ? 12000 : 10000,
-      maxActiveQuestions: this.isMobile ? 3 : 5,
-      powerUpInterval: 120000,
+      baseDuration: this.isMobile ? 6000 : 5000, // 6s → 0.5s over 10 minutes
+      minDuration: 500,
+      speedUpFactor: 0.7, // Wrong answer makes timer 30% faster
+      powerUpInterval: 60000,
       ...config
     };
 
@@ -25,17 +23,12 @@ class MuchManyTrainer {
       totalAnswers: 0,
       gameStartTime: null,
       isPlaying: false,
-      currentSpeed: 1.0
+      currentSpeed: 1.0,
+      currentLane: 1 // 0=much, 1=many, 2=a lot of
     };
 
-    this.player = {
-      currentLane: 1,
-      element: null
-    };
-
-    this.questions = [];
-    this.spawnTimer = null;
-    this.checkTimer = null;
+    this.currentQuestion = null;
+    this.questionTimer = null;
 
     this.powerUps = {
       slowMotionActive: false,
@@ -80,6 +73,9 @@ class MuchManyTrainer {
       ]
     };
 
+    // Answer mapping: lane → answer
+    this.laneAnswers = ['much', 'many', 'a lot of'];
+
     this._initDOM();
     this._bindControls();
   }
@@ -90,35 +86,39 @@ class MuchManyTrainer {
       gameArena: document.getElementById('game-arena'),
       gameOverScreen: document.getElementById('game-over-screen'),
       answerPanel: document.getElementById('answer-panel'),
+      questionCard: document.getElementById('question-card'),
+      questionText: document.getElementById('question-text'),
+      timerBar: document.getElementById('timer-bar'),
+      laneIndicators: document.querySelectorAll('.lane-indicator'),
       player: document.getElementById('player'),
-      lanes: document.querySelectorAll('.lane'),
       score: document.getElementById('score'),
       speed: document.getElementById('speed'),
       lives: document.getElementById('lives'),
       powerUpIndicator: document.getElementById('power-up-indicator'),
       powerUpText: document.getElementById('power-up-text'),
-      stoneThrow: document.getElementById('stone-throw'),
       finalScore: document.getElementById('final-score'),
       finalAccuracy: document.getElementById('final-accuracy'),
-      finalDuration: document.getElementById('final-duration')
+      finalDuration: document.getElementById('final-duration'),
+      answerButtons: document.querySelectorAll('.answer-btn')
     };
-
-    this.player.element = this._dom.player;
   }
 
   _bindControls() {
-    // Keyboard controls
+    // Keyboard: A/D or arrows
     document.addEventListener('keydown', (e) => {
       if (!this.state.isPlaying) return;
 
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-        this.movePlayer('left');
+        this._moveLane(-1);
       } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-        this.movePlayer('right');
+        this._moveLane(1);
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        this._submitAnswer();
       }
     });
 
-    // Touch controls (swipe)
+    // Touch: swipe
     document.addEventListener('touchstart', (e) => {
       if (!this.state.isPlaying) return;
       this.touchStartX = e.touches[0].clientX;
@@ -133,12 +133,11 @@ class MuchManyTrainer {
       const diffX = touchEndX - this.touchStartX;
       const diffY = touchEndY - this.touchStartY;
 
-      // Only horizontal swipes (ignore vertical scrolls)
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
         if (diffX > 0) {
-          this.movePlayer('right');
+          this._moveLane(1);
         } else {
-          this.movePlayer('left');
+          this._moveLane(-1);
         }
       }
     }, { passive: true });
@@ -152,21 +151,18 @@ class MuchManyTrainer {
       totalAnswers: 0,
       gameStartTime: Date.now(),
       isPlaying: true,
-      currentSpeed: 1.0
+      currentSpeed: 1.0,
+      currentLane: 1
     };
-
-    this.player.currentLane = 1;
-    this.questions = [];
 
     this._dom.startScreen.style.display = 'none';
     this._dom.gameOverScreen.style.display = 'none';
-    this._dom.gameArena.style.display = 'block';
+    this._dom.gameArena.style.display = 'flex';
     this._dom.answerPanel.style.display = 'flex';
 
     this._updateUI();
-    this._updateActiveLane();
-    this._startSpawning();
-    this._startChecking();
+    this._updateLaneIndicators();
+    this._showQuestion();
     this._startPowerUpSpawning();
 
     this._effects._haptic.vibrate('impact');
@@ -177,70 +173,29 @@ class MuchManyTrainer {
     this.start();
   }
 
-  _startSpawning() {
-    const spawn = () => {
-      if (!this.state.isPlaying) return;
+  _showQuestion() {
+    if (!this.state.isPlaying) return;
 
-      if (this.questions.length < this.config.maxActiveQuestions) {
-        this._spawnQuestion();
-      }
-
-      const interval = this.config.baseSpawnInterval / this.state.currentSpeed;
-      this.spawnTimer = setTimeout(spawn, interval);
-    };
-
-    spawn();
-  }
-
-  _startChecking() {
-    this.checkTimer = setInterval(() => {
-      if (!this.state.isPlaying) return;
-      this._checkMissedQuestions();
-    }, 100);
-  }
-
-  _startPowerUpSpawning() {
-    const spawnPowerUp = () => {
-      if (!this.state.isPlaying) return;
-
-      this._spawnPowerUp();
-      this.powerUps.spawnTimer = setTimeout(spawnPowerUp, this.config.powerUpInterval);
-    };
-
-    this.powerUps.spawnTimer = setTimeout(spawnPowerUp, this.config.powerUpInterval);
-  }
-
-  _spawnQuestion() {
-    const lane = Math.floor(Math.random() * this.config.lanes);
-    const questionData = this._generateQuestion();
-    const element = this._createQuestionElement(questionData, lane);
-
-    const fallDuration = this._calculateFallDuration();
-
-    const question = {
-      id: Date.now() + Math.random(),
-      lane: lane,
-      data: questionData,
-      element: element,
-      startTime: Date.now(),
-      duration: fallDuration
-    };
-
-    this.questions.push(question);
-    this._dom.lanes[lane].appendChild(element);
-
-    requestAnimationFrame(() => {
-      element.style.transition = `transform ${fallDuration}ms linear`;
-      element.style.transform = 'translateX(-50%) translateY(calc(100vh - 150px))';
-    });
+    // Generate question
+    this.currentQuestion = this._generateQuestion();
+    
+    // Display
+    this._dom.questionText.textContent = this.currentQuestion.text;
+    this._dom.questionCard.classList.add('active');
+    
+    // Remove old hint
+    const oldHint = this._dom.questionCard.querySelector('.hint');
+    if (oldHint) oldHint.remove();
+    
+    // Start timer
+    const duration = this._calculateDuration();
+    this._startQuestionTimer(duration);
   }
 
   _generateQuestion() {
-    // Random sentence type: question, statement, negative
     const sentenceType = Math.random();
     const wordType = Math.random();
     
-    // Pick word (countable/uncountable)
     let word, isCountable;
     if (wordType < 0.5) {
       word = this.vocabulary.countable[Math.floor(Math.random() * this.vocabulary.countable.length)];
@@ -250,7 +205,6 @@ class MuchManyTrainer {
       isCountable = false;
     }
 
-    // Generate sentence based on type
     if (sentenceType < 0.33) {
       // QUESTION
       if (isCountable) {
@@ -269,7 +223,7 @@ class MuchManyTrainer {
         };
       }
     } else if (sentenceType < 0.66) {
-      // STATEMENT (positive)
+      // STATEMENT
       if (isCountable) {
         return {
           text: `I have ___ ${word.en}`,
@@ -305,253 +259,196 @@ class MuchManyTrainer {
     }
   }
 
-  _createQuestionElement(data, lane) {
-    const div = document.createElement('div');
-    div.className = 'falling-question';
-    div.dataset.lane = lane;
-    div.innerHTML = `
-      <div class="question-text">${data.text}</div>
-    `;
-    return div;
-  }
-
-  _calculateFallDuration() {
+  _calculateDuration() {
     const elapsed = (Date.now() - this.state.gameStartTime) / 1000;
-    const k = Math.log(0.01) / 600;
-    const duration = Math.max(100, this.config.baseFallDuration * Math.exp(k * elapsed));
+    const k = Math.log(this.config.minDuration / this.config.baseDuration) / 600;
+    const duration = Math.max(
+      this.config.minDuration,
+      this.config.baseDuration * Math.exp(k * elapsed)
+    );
 
-    this.state.currentSpeed = this.config.baseFallDuration / duration;
+    this.state.currentSpeed = this.config.baseDuration / duration;
     this._dom.speed.textContent = `${this.state.currentSpeed.toFixed(1)}x`;
 
     return duration;
   }
 
-  movePlayer(direction) {
-    if (direction === 'left' && this.player.currentLane > 0) {
-      this.player.currentLane--;
-    } else if (direction === 'right' && this.player.currentLane < this.config.lanes - 1) {
-      this.player.currentLane++;
+  _startQuestionTimer(duration) {
+    // Clear existing timer
+    if (this.questionTimer) {
+      clearTimeout(this.questionTimer);
     }
 
-    this.player.element.setAttribute('data-current-lane', this.player.currentLane);
-    this._updateActiveLane();
+    // Start visual timer bar
+    this._dom.timerBar.style.setProperty('--duration', `${duration}ms`);
+    this._dom.timerBar.classList.remove('running');
     
-    // Reduced haptic on mobile (every 2nd move)
-    if (!this.isMobile || this.player.currentLane % 2 === 0) {
-      this._effects._haptic.vibrate('tick');
+    requestAnimationFrame(() => {
+      this._dom.timerBar.classList.add('running');
+    });
+
+    // Set timeout
+    this.questionTimer = setTimeout(() => {
+      this._handleTimeout();
+    }, duration);
+  }
+
+  _moveLane(direction) {
+    const newLane = this.state.currentLane + direction;
+    
+    if (newLane >= 0 && newLane <= 2) {
+      this.state.currentLane = newLane;
+      this._updateLaneIndicators();
+      
+      if (!this.isMobile || this.state.currentLane % 2 === 0) {
+        this._effects._haptic.vibrate('tick');
+      }
     }
   }
 
-  _updateActiveLane() {
-    // Highlight current lane
-    this._dom.lanes.forEach((lane, i) => {
-      lane.classList.toggle('active', i === this.player.currentLane);
+  _updateLaneIndicators() {
+    // Update lane indicator visuals
+    this._dom.laneIndicators.forEach((indicator, i) => {
+      indicator.classList.toggle('active', i === this.state.currentLane);
+    });
+    
+    // Update button highlights
+    this._dom.answerButtons.forEach((btn, i) => {
+      btn.classList.toggle('active', i === this.state.currentLane);
     });
   }
 
   throwStone(answer) {
-    if (!this.state.isPlaying) return;
+    if (!this.state.isPlaying || !this.currentQuestion) return;
+    this._submitAnswer(answer);
+  }
 
-    const targetQuestion = this._getQuestionInPlayerLane();
-    if (!targetQuestion) {
-      this._effects._haptic.vibrate('light');
-      return;
+  _submitAnswer(answer) {
+    if (!answer) {
+      answer = this.laneAnswers[this.state.currentLane];
     }
 
-    this._animateStoneThrow();
+    // Clear timer
+    clearTimeout(this.questionTimer);
+    this._dom.timerBar.classList.remove('running');
 
-    const isCorrect = answer === targetQuestion.data.correctAnswer;
-    this._handleAnswer(targetQuestion, isCorrect);
-  }
-
-  _getQuestionInPlayerLane() {
-    const questionsInLane = this.questions.filter(q => q.lane === this.player.currentLane);
-    if (questionsInLane.length === 0) return null;
-
-    return questionsInLane.reduce((closest, q) => {
-      const qRect = q.element.getBoundingClientRect();
-      const closestRect = closest.element.getBoundingClientRect();
-      return qRect.bottom > closestRect.bottom ? q : closest;
-    });
-  }
-
-  _animateStoneThrow() {
-    this._dom.stoneThrow.textContent = '🪨';
-    this._dom.stoneThrow.classList.add('active');
-    this.player.element.classList.add('throwing');
-
-    setTimeout(() => {
-      this._dom.stoneThrow.classList.remove('active');
-      this.player.element.classList.remove('throwing');
-    }, 400);
-  }
-
-  _handleAnswer(question, isCorrect) {
     this.state.totalAnswers++;
 
+    const isCorrect = answer === this.currentQuestion.correctAnswer;
+
     if (isCorrect) {
-      this.state.correctAnswers++;
-      this.state.score += 10;
-
-      question.element.classList.add('correct');
-      this._effects.triggerSuccessEffects(0, question.element);
-
-      setTimeout(() => {
-        this._removeQuestion(question);
-      }, 500);
+      this._handleCorrect();
     } else {
-      question.element.classList.add('wrong');
-      question.element.innerHTML += `<div class="hint">💡 ${question.data.hint}</div>`;
-
-      this._effects.triggerErrorEffects();
-
-      const remainingTime = question.duration - (Date.now() - question.startTime);
-      const newDuration = remainingTime * 0.8;
-
-      question.element.style.transition = `transform ${newDuration}ms linear`;
-      question.duration = Date.now() - question.startTime + newDuration;
-
-      setTimeout(() => {
-        question.element.classList.remove('wrong');
-      }, 500);
+      this._handleWrong();
     }
+  }
 
+  _handleCorrect() {
+    this.state.correctAnswers++;
+    this.state.score += 10;
+
+    // Visual feedback
+    this._dom.questionCard.classList.add('correct');
+    this._dom.player.classList.add('throwing');
+    
+    this._effects.triggerSuccessEffects(0, this._dom.questionCard);
     this._updateUI();
+
+    // Next question
+    setTimeout(() => {
+      this._dom.questionCard.classList.remove('active', 'correct');
+      this._dom.player.classList.remove('throwing');
+      
+      setTimeout(() => {
+        this._showQuestion();
+      }, 300);
+    }, 500);
   }
 
-  _checkMissedQuestions() {
-    this.questions.forEach(question => {
-      const elapsed = Date.now() - question.startTime;
+  _handleWrong() {
+    // Visual feedback
+    this._dom.questionCard.classList.add('wrong');
+    this._effects.triggerErrorEffects();
 
-      if (elapsed >= question.duration) {
-        this._handleMissed(question);
-      }
-    });
+    // Show hint
+    const hint = document.createElement('div');
+    hint.className = 'hint';
+    hint.innerHTML = `💡 ${this.currentQuestion.hint}`;
+    this._dom.questionCard.appendChild(hint);
+
+    // Retry with faster timer
+    setTimeout(() => {
+      this._dom.questionCard.classList.remove('wrong');
+      
+      const newDuration = this._calculateDuration() * this.config.speedUpFactor;
+      this._startQuestionTimer(newDuration);
+    }, 1000);
   }
 
-  _handleMissed(question) {
+  _handleTimeout() {
+    // Missed question
     if (this.powerUps.shieldActive) {
       this.powerUps.shieldActive = false;
-      this.player.element.classList.remove('shielded');
+      this._dom.player.textContent = '🧑';
       this._effects._haptic.vibrate('impact');
     } else {
       this.state.lives--;
       this._effects._haptic.vibrate('error');
     }
 
-    this._removeQuestion(question);
     this._updateUI();
 
     if (this.state.lives <= 0) {
       this._gameOver();
+    } else {
+      // Show timeout feedback
+      this._dom.questionCard.classList.add('wrong');
+      
+      setTimeout(() => {
+        this._dom.questionCard.classList.remove('active', 'wrong');
+        
+        setTimeout(() => {
+          this._showQuestion();
+        }, 300);
+      }, 500);
     }
   }
 
-  _removeQuestion(question) {
-    const index = this.questions.indexOf(question);
-    if (index > -1) {
-      this.questions.splice(index, 1);
-    }
+  _startPowerUpSpawning() {
+    const spawnPowerUp = () => {
+      if (!this.state.isPlaying) return;
 
-    if (question.element && question.element.parentNode) {
-      question.element.remove();
-    }
-  }
+      const type = Math.random() < 0.5 ? 'shield' : 'slow-motion';
+      this._activatePowerUp(type);
 
-  _spawnPowerUp() {
-    const types = ['slow-motion', 'clear-all', 'shield'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    const lane = Math.floor(Math.random() * this.config.lanes);
-
-    const element = document.createElement('div');
-    element.className = 'power-up-item';
-    element.dataset.type = type;
-    element.dataset.lane = lane;
-
-    const icons = {
-      'slow-motion': '⏱️',
-      'clear-all': '💣',
-      'shield': '🛡️'
+      this.powerUps.spawnTimer = setTimeout(spawnPowerUp, this.config.powerUpInterval);
     };
-    element.textContent = icons[type];
 
-    this._dom.lanes[lane].appendChild(element);
-
-    requestAnimationFrame(() => {
-      element.style.transition = 'transform 5000ms linear';
-      element.style.transform = 'translateX(-50%) translateY(calc(100vh - 150px))';
-    });
-
-    const checkCollection = setInterval(() => {
-      const rect = element.getBoundingClientRect();
-      const playerRect = this.player.element.getBoundingClientRect();
-
-      if (parseInt(element.dataset.lane) === this.player.currentLane && 
-          rect.bottom >= playerRect.top && rect.top <= playerRect.bottom) {
-        this._collectPowerUp(type, element);
-        clearInterval(checkCollection);
-      }
-
-      if (rect.bottom >= window.innerHeight) {
-        element.remove();
-        clearInterval(checkCollection);
-      }
-    }, 50);
+    this.powerUps.spawnTimer = setTimeout(spawnPowerUp, this.config.powerUpInterval);
   }
 
-  _collectPowerUp(type, element) {
-    element.classList.add('collected');
-    setTimeout(() => element.remove(), 500);
-
+  _activatePowerUp(type) {
     this._effects._haptic.vibrate('milestone');
 
-    switch (type) {
-      case 'slow-motion':
-        this._activateSlowMotion();
-        break;
-      case 'clear-all':
-        this._activateClearAll();
-        break;
-      case 'shield':
-        this._activateShield();
-        break;
+    if (type === 'shield') {
+      this.powerUps.shieldActive = true;
+      this._dom.player.textContent = '🛡️🧑';
+      this._showPowerUpIndicator('🛡️ Shield Active');
+    } else if (type === 'slow-motion') {
+      this._showPowerUpIndicator('⏱️ Slow Motion');
+      
+      // Pause timer
+      clearTimeout(this.questionTimer);
+      this._dom.timerBar.style.animationPlayState = 'paused';
+      
+      setTimeout(() => {
+        // Resume timer
+        this._dom.timerBar.style.animationPlayState = 'running';
+        const remainingDuration = 3000; // Continue with extra time
+        this._startQuestionTimer(remainingDuration);
+        this._hidePowerUpIndicator();
+      }, 3000);
     }
-  }
-
-  _activateSlowMotion() {
-    this.powerUps.slowMotionActive = true;
-    this._dom.gameArena.classList.add('slow-motion');
-    this._showPowerUpIndicator('⏱️ Slow Motion');
-
-    this.questions.forEach(q => {
-      q.element.style.animationPlayState = 'paused';
-    });
-
-    setTimeout(() => {
-      this.questions.forEach(q => {
-        if (q.element) q.element.style.animationPlayState = 'running';
-      });
-      this._dom.gameArena.classList.remove('slow-motion');
-      this.powerUps.slowMotionActive = false;
-      this._hidePowerUpIndicator();
-    }, 3000);
-  }
-
-  _activateClearAll() {
-    this._showPowerUpIndicator('💣 Clear All');
-
-    this.questions.forEach(q => {
-      q.element.classList.add('correct');
-      setTimeout(() => this._removeQuestion(q), 300);
-    });
-
-    setTimeout(() => this._hidePowerUpIndicator(), 1000);
-  }
-
-  _activateShield() {
-    this.powerUps.shieldActive = true;
-    this.player.element.classList.add('shielded');
-    this._showPowerUpIndicator('🛡️ Shield Active');
   }
 
   _showPowerUpIndicator(text) {
@@ -589,14 +486,11 @@ class MuchManyTrainer {
   }
 
   _cleanup() {
-    if (this.spawnTimer) clearTimeout(this.spawnTimer);
-    if (this.checkTimer) clearInterval(this.checkTimer);
+    if (this.questionTimer) clearTimeout(this.questionTimer);
     if (this.powerUps.spawnTimer) clearTimeout(this.powerUps.spawnTimer);
-
-    this.questions.forEach(q => this._removeQuestion(q));
-    this.questions = [];
-
-    document.querySelectorAll('.power-up-item').forEach(el => el.remove());
+    
+    this._dom.timerBar.classList.remove('running');
+    this._dom.questionCard.classList.remove('active', 'correct', 'wrong');
   }
 }
 
