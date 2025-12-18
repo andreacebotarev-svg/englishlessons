@@ -320,7 +320,13 @@
     </div>
   </main>
 
-  <!-- Scripts -->
+  <!-- Scripts: Load generators first -->
+  <script src="assets/js/generators/RecognitionGenerator.js"></script>
+  <script src="assets/js/generators/FillInGenerator.js"></script>
+  <script src="assets/js/generators/ErrorCorrectionGenerator.js"></script>
+  <script src="assets/js/generators/TransformationGenerator.js"></script>
+  <script src="assets/js/generators/ContextGenerator.js"></script>
+  
   <script src="assets/js/effects/AudioEffectsManager.js"></script>
   <script src="assets/js/effects/HapticFeedback.js"></script>
   <script src="assets/js/effects/EffectsManager.js"></script>
@@ -395,9 +401,9 @@
       });
 
       if (settings.difficulty !== 'auto') {
-        this.manualDifficulty = settings.difficulty;
+        this._manualDifficulty = settings.difficulty;
       } else {
-        this.manualDifficulty = null;
+        this._manualDifficulty = null;
       }
 
       originalStart();
