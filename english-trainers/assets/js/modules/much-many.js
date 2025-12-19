@@ -271,10 +271,10 @@ class MuchManyTrainer {
       isCountable = false;
     }
 
-    // DISTRIBUTION (natural speech patterns):
-    // 30% - How much/many questions (formal grammar)
-    // 40% - Positive statements with "a lot of" (natural speech)
-    // 20% - Negatives with much/many (standard)
+    // SIMPLIFIED DISTRIBUTION (child-friendly):
+    // 30% - How much/many questions (clear grammar rule)
+    // 45% - Positive statements with "a lot of" (natural speech)
+    // 15% - Negatives with much/many ONLY (avoid confusion)
     // 10% - General questions with "a lot of" (conversational)
 
     if (rand < 0.30) {
@@ -295,13 +295,13 @@ class MuchManyTrainer {
           type: 'how-question-uncountable'
         };
       }
-    } else if (rand < 0.70) {
-      // POSITIVE STATEMENTS (40%)
+    } else if (rand < 0.75) {
+      // POSITIVE STATEMENTS (45%)
       // "A lot of" is the natural choice - this is how natives speak!
       const statementRand = Math.random();
       
-      if (statementRand < 0.75) {
-        // 75% use "a lot of" (NATURAL SPEECH)
+      if (statementRand < 0.80) {
+        // 80% use "a lot of" (NATURAL SPEECH)
         return {
           text: isCountable ? `I have ___ ${word.en}` : `There is ___ ${word.en} here`,
           correctAnswer: 'a lot of',
@@ -309,7 +309,7 @@ class MuchManyTrainer {
           type: 'statement-alotof'
         };
       } else {
-        // 25% use much/many (grammatically correct but less common)
+        // 20% use much/many (for variety)
         if (isCountable) {
           return {
             text: `I have ___ ${word.en}`,
@@ -327,39 +327,26 @@ class MuchManyTrainer {
         }
       }
     } else if (rand < 0.90) {
-      // NEGATIVES (20%)
-      // Much/many are standard (65%), a lot of is conversational (35%)
-      const negRand = Math.random();
-      
-      if (negRand < 0.65) {
-        // Standard much/many
-        if (isCountable) {
-          return {
-            text: `I don't have ___ ${word.en}`,
-            correctAnswer: 'many',
-            hint: 'В отрицаниях: исчисляемое → many',
-            type: 'negative-countable'
-          };
-        } else {
-          return {
-            text: `There isn't ___ ${word.en}`,
-            correctAnswer: 'much',
-            hint: 'В отрицаниях: неисчисляемое → much',
-            type: 'negative-uncountable'
-          };
-        }
-      } else {
-        // Conversational "a lot of"
+      // NEGATIVES (15%)
+      // ONLY much/many to avoid confusion for children
+      if (isCountable) {
         return {
-          text: isCountable ? `I don't have ___ ${word.en}` : `There isn't ___ ${word.en}`,
-          correctAnswer: 'a lot of',
-          hint: '"A lot of" тоже подходит в отрицаниях',
-          type: 'negative-alotof'
+          text: `I don't have ___ ${word.en}`,
+          correctAnswer: 'many',
+          hint: 'В отрицаниях: исчисляемое → many',
+          type: 'negative-countable'
+        };
+      } else {
+        return {
+          text: `There isn't ___ ${word.en}`,
+          correctAnswer: 'much',
+          hint: 'В отрицаниях: неисчисляемое → much',
+          type: 'negative-uncountable'
         };
       }
     } else {
       // GENERAL QUESTIONS (10%)
-      // "A lot of" is common in conversational questions
+      // "A lot of" in conversational questions
       const qRand = Math.random();
       
       if (qRand < 0.70) {
