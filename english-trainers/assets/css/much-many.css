@@ -1,111 +1,119 @@
 /**
- * MUCH/MANY TRAINER STYLES
- * Full-screen game arena with neon button overlay
- * Fixed: Black line eliminated (box-shadow removed)
+ * MUCH/MANY TRAINER STYLES — GRID LAYOUT REWRITE
+ * Senior-level layout: no vh gaps, no black bars.
  */
 
 /* ============================================
-   CSS VARIABLES - LAYOUT + NEON COLORS
+   LAYOUT VARIABLES
    ============================================ */
 
 :root {
-  --header-height: 70px;
-  --stats-height: max(60px, env(safe-area-inset-top) + 10px);
-  --gamepad-height: max(100px, env(safe-area-inset-bottom) + 80px);
-  
-  /* Neon colors - WCAG AAA compliant on dark bg */
-  --neon-cyan: #00f0ff;
-  --neon-magenta: #ff00ff;
-  --neon-yellow: #ffff00;
-  
-  /* Glow intensity (desktop vs mobile) */
-  --glow-base: 20px;
-  --glow-spread: 40px;
-  --glow-hover: 30px;
+  /* Structural heights (visual) */
+  --mm-header-height: 70px;
+  --mm-stats-height: 56px;
+  --mm-buttons-height: 96px;
+
+  /* Safe areas for notched devices */
+  --mm-safe-top: max(env(safe-area-inset-top), 0px);
+  --mm-safe-bottom: max(env(safe-area-inset-bottom), 0px);
+
+  /* Effective areas */
+  --mm-header-total: calc(var(--mm-header-height) + var(--mm-safe-top));
+  --mm-stats-total: var(--mm-stats-height);
+  --mm-buttons-total: calc(var(--mm-buttons-height) + var(--mm-safe-bottom));
+
+  /* Neon colors (keep original palette) */
+  --mm-neon-cyan: #00f0ff;
+  --mm-neon-magenta: #ff00ff;
+  --mm-neon-yellow: #ffff00;
+
+  /* Glow intensity */
+  --mm-glow-base: 20px;
+  --mm-glow-spread: 40px;
+  --mm-glow-hover: 30px;
 }
 
 @media (max-width: 768px) {
   :root {
-    --header-height: 60px;
-    --stats-height: max(50px, env(safe-area-inset-top) + 5px);
-    --gamepad-height: max(85px, env(safe-area-inset-bottom) + 75px);
-    
-    /* Reduced glow for battery/performance */
-    --glow-base: 12px;
-    --glow-spread: 24px;
-    --glow-hover: 18px;
+    --mm-header-height: 60px;
+    --mm-stats-height: 52px;
+    --mm-buttons-height: 88px;
+
+    --mm-glow-base: 12px;
+    --mm-glow-spread: 24px;
+    --mm-glow-hover: 18px;
   }
 }
 
 @media (max-width: 480px) {
   :root {
-    --header-height: 55px;
-    --stats-height: max(45px, env(safe-area-inset-top) + 2px);
-    --gamepad-height: max(82px, env(safe-area-inset-bottom) + 72px);
-    
-    --glow-base: 10px;
-    --glow-spread: 20px;
-    --glow-hover: 15px;
+    --mm-header-height: 56px;
+    --mm-stats-height: 48px;
+    --mm-buttons-height: 82px;
+
+    --mm-glow-base: 10px;
+    --mm-glow-spread: 20px;
+    --mm-glow-hover: 15px;
   }
 }
 
-/* Reduced motion: disable glow animations */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --glow-base: 0;
-    --glow-spread: 0;
-    --glow-hover: 0;
+    --mm-glow-base: 0;
+    --mm-glow-spread: 0;
+    --mm-glow-hover: 0;
   }
 }
 
 /* ============================================
-   GAME BODY
+   ROOT GAME LAYOUT (CSS GRID)
    ============================================ */
 
+/* Body already has gradient in core.css; here управляем layout-only */
 .game-body {
-  overflow: hidden;
-  overflow-x: hidden;
+  display: grid;
+  grid-template-rows:
+    var(--mm-header-total)   /* header */
+    var(--mm-stats-total)    /* stats  */
+    1fr                      /* arena  */
+    var(--mm-buttons-total); /* buttons */
+  grid-template-areas:
+    "mm-header"
+    "mm-stats"
+    "mm-game"
+    "mm-buttons";
+
+  min-height: 100vh;  /* desktop / fallback */
+  min-height: 100dvh; /* modern mobile */
+
   width: 100vw;
   max-width: 100%;
-  
-  /* CRITICAL FIX: Use dynamic viewport units to eliminate gap */
-  height: 100vh;   /* fallback for older browsers */
-  height: 100svh;  /* stable viewport (excludes browser UI bars) */
-  height: 100dvh;  /* dynamic viewport (matches visible area) */
-  
-  background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
-}
-
-/* iOS Safari fallback: -webkit-fill-available prevents gaps from browser UI */
-@supports (-webkit-touch-callout: none) {
-  .game-body {
-    height: -webkit-fill-available;
-  }
+  overflow: hidden;
 }
 
 /* ============================================
-   TRAINER HEADER
+   HEADER & STATS (GRID CHILDREN)
    ============================================ */
 
 .trainer-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--header-height);
+  grid-area: mm-header;
+  position: relative;           /* no fixed: участвует в потоке */
+  display: flex;
+  align-items: center;
+  height: var(--mm-header-total);
+  padding-inline: 1rem;
+
   background: rgba(10, 14, 39, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  padding: 0 1rem;
+  z-index: 10;
 }
 
 .trainer-header .container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,31 +143,32 @@
   .trainer-header h1 {
     font-size: 1rem;
   }
-  
+
   .back-btn {
     font-size: 0.9rem;
     padding: 0.4rem 0.8rem;
   }
 }
 
-/* ============================================
-   GAME STATS OVERLAY
-   ============================================ */
-
 .game-stats {
-  position: fixed;
-  top: calc(var(--header-height) + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  
-  display: flex;
+  grid-area: mm-stats;
+  position: relative;           /* no fixed */
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 1.5rem;
+
+  height: var(--mm-stats-total);
+  margin: 0 auto;
   padding: 0.5rem 1.5rem;
+
   background: rgba(0, 0, 0, 0.85);
-  border-radius: 50px;
+  border-radius: 999px;
   border: 2px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+
+  z-index: 20;
 }
 
 .stat-item {
@@ -187,29 +196,28 @@
   padding: 0.4rem 0.8rem;
   border-radius: 20px;
   border: 2px solid rgba(255, 200, 0, 0.5);
-  animation: pulse 1s infinite;
+  animation: mm-pulse 1s infinite;
 }
 
-@keyframes pulse {
+@keyframes mm-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
 
 @media (max-width: 768px) {
   .game-stats {
-    top: calc(var(--header-height) + 8px);
     gap: 1rem;
     padding: 0.4rem 1rem;
     font-size: 0.75rem;
   }
-  
+
   .stat-item:nth-child(1) .stat-label::before { content: '🏆 '; }
   .stat-item:nth-child(2) .stat-label::before { content: '⚡ '; }
-  
+
   .stat-label {
     font-size: 0;
   }
-  
+
   .stat-value {
     font-size: 0.85rem;
   }
@@ -217,40 +225,35 @@
 
 @media (max-width: 480px) {
   .game-stats {
-    top: calc(var(--header-height) + 5px);
     gap: 0.6rem;
     padding: 0.3rem 0.8rem;
   }
-  
+
   .stat-value {
     font-size: 0.75rem;
   }
 }
 
 /* ============================================
-   GAME CONTAINER - EXTENDED TO BUTTONS
+   GAME CONTAINER (ARENA ROW)
    ============================================ */
 
 .game-container {
+  grid-area: mm-game;
   position: relative;
+
   width: 100%;
-  
-  /* CRITICAL FIX: Use dvh to match visible viewport height */
-  height: calc(100vh - var(--header-height) - var(--stats-height));   /* fallback */
-  height: calc(100dvh - var(--header-height) - var(--stats-height));  /* eliminates gap */
-  
-  margin-top: calc(var(--header-height) + var(--stats-height));
+  height: 100%;      /* grid даёт 1fr — это и есть "игровое окно" */
+
   overflow: hidden;
-  z-index: 10;
+  z-index: 5;
 }
 
-/* Gradient overlay at bottom (smooth transition to buttons) */
 .game-container::after {
   content: '';
   position: absolute;
+  inset-inline: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
   height: 80px;
   background: linear-gradient(
     180deg,
@@ -259,20 +262,22 @@
     rgba(0, 0, 0, 0.7) 100%
   );
   pointer-events: none;
-  z-index: 5;
+  z-index: 6;
 }
 
 /* ============================================
-   START/GAME OVER SCREENS
+   START / GAME-OVER SCREENS
    ============================================ */
 
 .start-screen,
 .game-over-screen {
   position: absolute;
   inset: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   background: rgba(0, 0, 0, 0.9);
   z-index: 50;
 }
@@ -332,34 +337,34 @@
   .game-over-content {
     padding: 1rem;
   }
-  
+
   .rules-compact {
     grid-template-columns: 1fr;
     gap: 0.5rem;
     max-width: 100%;
   }
-  
+
   .rule-item {
     font-size: 0.75rem;
     padding: 0.35rem 0.5rem;
   }
-  
+
   .final-stats {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .stat-card {
     padding: 1rem;
   }
-  
+
   .stat-card-value {
     font-size: 2rem;
   }
 }
 
 /* ============================================
-   GAME ARENA
+   GAME ARENA & LANES
    ============================================ */
 
 .game-arena {
@@ -368,18 +373,16 @@
   height: 100%;
 }
 
-/* ============================================
-   3 LANES
-   ============================================ */
-
 .lanes {
   position: absolute;
   inset: 0;
+
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(0.3rem, 1.5vw, 1rem);
-  padding: 0 clamp(0.5rem, 2vw, 1.5rem);
+  padding-inline: clamp(0.5rem, 2vw, 1.5rem);
   max-width: 100vw;
+
   box-sizing: border-box;
 }
 
@@ -400,7 +403,7 @@
 
 @media (max-width: 768px) {
   .lanes {
-    padding: 0 0.4rem;
+    padding-inline: 0.4rem;
     gap: 0.25rem;
   }
 }
@@ -415,20 +418,20 @@
   left: 50%;
   transform: translateX(-50%) translateY(0) translateZ(0);
   width: 90%;
-  
+
   background: rgba(10, 14, 39, 0.95);
   border: 2px solid var(--accent);
   border-radius: 16px;
   padding: 1.5rem;
-  
+
   font-size: 1.3rem;
   font-weight: 600;
   text-align: center;
-  color: white;
-  
+  color: #ffffff;
+
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5),
               0 0 20px rgba(10, 132, 255, 0.3);
-  
+
   transition: none;
   will-change: transform, opacity;
   z-index: 10;
@@ -444,33 +447,33 @@
 }
 
 .falling-question.correct {
-  animation: correct-hit 0.5s ease-out forwards;
+  animation: mm-correct-hit 0.5s ease-out forwards;
   border-color: #00ff64;
   background: rgba(0, 255, 100, 0.2);
 }
 
-@keyframes correct-hit {
-  0% { 
+@keyframes mm-correct-hit {
+  0% {
     transform: translateX(-50%) scale(1);
     filter: brightness(1);
   }
-  50% { 
+  50% {
     transform: translateX(-50%) scale(1.2);
     filter: brightness(2);
   }
-  100% { 
+  100% {
     transform: translateX(-50%) scale(0);
     opacity: 0;
   }
 }
 
 .falling-question.wrong {
-  animation: shake 0.3s ease-out;
+  animation: mm-shake 0.3s ease-out;
   border-color: #ff0000;
   background: rgba(255, 0, 0, 0.2);
 }
 
-@keyframes shake {
+@keyframes mm-shake {
   0%, 100% { transform: translateX(-50%); }
   25% { transform: translateX(-60%); }
   75% { transform: translateX(-40%); }
@@ -492,7 +495,7 @@
     padding: 0.75rem;
     top: -140px;
   }
-  
+
   .falling-question .hint {
     font-size: 0.7rem;
     padding: 0.3rem 0.5rem;
@@ -520,33 +523,33 @@
   transform: translateX(-50%) translateY(0) translateZ(0);
   width: 80px;
   height: 80px;
-  
+
   background: rgba(255, 200, 0, 0.3);
   border: 3px solid rgba(255, 200, 0, 0.8);
   border-radius: 50%;
-  
+
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
-  
+
   box-shadow: 0 0 30px rgba(255, 200, 0, 0.6);
-  animation: rotate-powerup 2s linear infinite;
+  animation: mm-rotate-powerup 2s linear infinite;
   transition: none;
   will-change: transform, opacity;
   z-index: 15;
 }
 
-@keyframes rotate-powerup {
+@keyframes mm-rotate-powerup {
   from { transform: translateX(-50%) translateY(0) rotate(0deg) translateZ(0); }
-  to { transform: translateX(-50%) translateY(0) rotate(360deg) translateZ(0); }
+  to   { transform: translateX(-50%) translateY(0) rotate(360deg) translateZ(0); }
 }
 
 .power-up-item.collected {
-  animation: collect 0.5s ease-out forwards;
+  animation: mm-collect 0.5s ease-out forwards;
 }
 
-@keyframes collect {
+@keyframes mm-collect {
   0% { transform: translateX(-50%) scale(1); opacity: 1; }
   100% { transform: translateX(-50%) scale(2); opacity: 0; }
 }
@@ -560,18 +563,19 @@
 }
 
 /* ============================================
-   PLAYER - POSITION PRESERVED ABOVE BUTTONS
+   PLAYER (TIED TO GRID, NOT VH)
    ============================================ */
 
 .player {
   position: absolute;
-  bottom: calc(var(--gamepad-height) + 20px);
+  /* Игрок опирается на высоту кнопок, но не через vh */
+  bottom: calc(var(--mm-buttons-total) + 20px);
   left: 50%;
   transform: translateX(-50%);
   width: 80px;
   height: 80px;
   z-index: 25;
-  
+
   transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -591,21 +595,21 @@
   font-size: 4rem;
   text-align: center;
   filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.8));
-  animation: idle 2s ease-in-out infinite;
+  animation: mm-idle 2s ease-in-out infinite;
 }
 
-@keyframes idle {
+@keyframes mm-idle {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  50%      { transform: translateY(-5px); }
 }
 
 .player.throwing .player-character {
-  animation: throw 0.3s ease-out;
+  animation: mm-throw 0.3s ease-out;
 }
 
-@keyframes throw {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2) translateY(-10px); }
+@keyframes mm-throw {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2) translateY(-10px); }
   100% { transform: scale(1); }
 }
 
@@ -620,34 +624,34 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 2rem;
-  animation: shield-pulse 1s ease-in-out infinite;
+  animation: mm-shield-pulse 1s ease-in-out infinite;
 }
 
-@keyframes shield-pulse {
+@keyframes mm-shield-pulse {
   0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.7; }
-  50% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+  50%      { transform: translateX(-50%) scale(1.2); opacity: 1; }
 }
 
 @media (max-width: 768px) {
   .player {
     width: 50px;
     height: 50px;
-    bottom: calc(var(--gamepad-height) + 15px);
+    bottom: calc(var(--mm-buttons-total) + 15px);
   }
-  
+
   .player[data-current-lane="0"] {
     left: calc(100% / 6 * 1 + 0.4rem);
   }
-  
+
   .player[data-current-lane="2"] {
     left: calc(100% / 6 * 5 - 0.4rem);
   }
-  
+
   .player-character {
     font-size: 2.5rem;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
   }
-  
+
   .player.shielded::before {
     font-size: 1.5rem;
     top: -12px;
@@ -658,9 +662,9 @@
   .player {
     width: 45px;
     height: 45px;
-    bottom: calc(var(--gamepad-height) + 12px);
+    bottom: calc(var(--mm-buttons-total) + 12px);
   }
-  
+
   .player-character {
     font-size: 2rem;
   }
@@ -672,7 +676,7 @@
 
 .stone-throw {
   position: absolute;
-  bottom: calc(var(--gamepad-height) + 100px);
+  bottom: calc(var(--mm-buttons-total) + 100px);
   left: 50%;
   transform: translateX(-50%);
   font-size: 2rem;
@@ -681,42 +685,40 @@
 }
 
 .stone-throw.active {
-  animation: stone-fly 0.4s ease-out;
+  animation: mm-stone-fly 0.4s ease-out;
 }
 
-@keyframes stone-fly {
-  0% { 
+@keyframes mm-stone-fly {
+  0% {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
   }
-  100% { 
+  100% {
     opacity: 0;
     transform: translateX(-50%) translateY(-300px) scale(0.5);
   }
 }
 
 /* ============================================
-   NEON ARCADE BUTTONS - FIXED OVERLAY
-   Clean, no artifacts
+   ANSWER PANEL — GRID ROW (NO FIXED)
    ============================================ */
 
 .answer-panel {
-  position: fixed;
-  inset: auto 0 0 0;
-  z-index: 20;
-  
+  grid-area: mm-buttons;
+  position: relative;
+
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2px;
-  
+
   padding: 0;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--mm-safe-bottom);
   background: rgba(0, 0, 0, 0.98);
-  border-top: none;
-  /* FIXED: Removed box-shadow that created black line */
-  box-shadow: none;
-  
-  min-height: var(--gamepad-height);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.6);
+
+  min-height: var(--mm-buttons-total);
+  z-index: 15;
 }
 
 /* Base Neon Button - GPU optimized */
@@ -724,38 +726,35 @@
   position: relative;
   padding: 1.2rem 0.5rem;
   min-height: 52px;
-  
-  /* Arcade typography */
+
   font-family: 'Courier New', monospace;
   font-size: clamp(0.85rem, 2.3vw, 1.15rem);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   line-height: 1.2;
-  
+
   background: transparent;
   border: 3px solid;
   border-radius: 0;
-  color: white;
-  
+  color: #ffffff;
+
   cursor: pointer;
   touch-action: manipulation;
-  
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  
-  /* GPU acceleration */
+
   transform: translateZ(0);
   will-change: box-shadow, text-shadow, border-color;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  
+
   overflow: hidden;
 }
 
-/* Scanline overlay (CRT effect) */
 .answer-btn::before {
   content: '';
   position: absolute;
@@ -772,7 +771,6 @@
   transition: opacity 0.2s;
 }
 
-/* Background glow layer */
 .answer-btn::after {
   content: '';
   position: absolute;
@@ -783,141 +781,122 @@
   z-index: -1;
 }
 
-/* ============================================
-   NEON COLORS - CYAN / MAGENTA / YELLOW
-   ============================================ */
-
-/* Button 1 - CYAN (Much) */
+/* Neon colors */
 .answer-btn:nth-child(1) {
-  border-color: var(--neon-cyan);
-  box-shadow: 
+  border-color: var(--mm-neon-cyan);
+  box-shadow:
     inset 0 0 10px rgba(0, 240, 255, 0.4),
-    0 0 var(--glow-base) var(--neon-cyan),
-    0 0 var(--glow-spread) rgba(0, 240, 255, 0.5);
-  text-shadow: 
-    0 0 5px var(--neon-cyan),
+    0 0 var(--mm-glow-base) var(--mm-neon-cyan),
+    0 0 var(--mm-glow-spread) rgba(0, 240, 255, 0.5);
+  text-shadow:
+    0 0 5px var(--mm-neon-cyan),
     0 0 10px rgba(0, 240, 255, 0.8);
 }
 
 .answer-btn:nth-child(1)::after {
-  background: radial-gradient(circle, var(--neon-cyan), transparent);
+  background: radial-gradient(circle, var(--mm-neon-cyan), transparent);
 }
 
-/* Button 2 - MAGENTA (Many) */
 .answer-btn:nth-child(2) {
-  border-color: var(--neon-magenta);
-  box-shadow: 
+  border-color: var(--mm-neon-magenta);
+  box-shadow:
     inset 0 0 10px rgba(255, 0, 255, 0.4),
-    0 0 var(--glow-base) var(--neon-magenta),
-    0 0 var(--glow-spread) rgba(255, 0, 255, 0.5);
-  text-shadow: 
-    0 0 5px var(--neon-magenta),
+    0 0 var(--mm-glow-base) var(--mm-neon-magenta),
+    0 0 var(--mm-glow-spread) rgba(255, 0, 255, 0.5);
+  text-shadow:
+    0 0 5px var(--mm-neon-magenta),
     0 0 10px rgba(255, 0, 255, 0.8);
 }
 
 .answer-btn:nth-child(2)::after {
-  background: radial-gradient(circle, var(--neon-magenta), transparent);
+  background: radial-gradient(circle, var(--mm-neon-magenta), transparent);
 }
 
-/* Button 3 - YELLOW (A lot of) */
 .answer-btn:nth-child(3) {
-  border-color: var(--neon-yellow);
-  box-shadow: 
+  border-color: var(--mm-neon-yellow);
+  box-shadow:
     inset 0 0 10px rgba(255, 255, 0, 0.4),
-    0 0 var(--glow-base) var(--neon-yellow),
-    0 0 var(--glow-spread) rgba(255, 255, 0, 0.5);
-  text-shadow: 
-    0 0 5px var(--neon-yellow),
+    0 0 var(--mm-glow-base) var(--mm-neon-yellow),
+    0 0 var(--mm-glow-spread) rgba(255, 255, 0, 0.5);
+  text-shadow:
+    0 0 5px var(--mm-neon-yellow),
     0 0 10px rgba(255, 255, 0, 0.8);
 }
 
 .answer-btn:nth-child(3)::after {
-  background: radial-gradient(circle, var(--neon-yellow), transparent);
+  background: radial-gradient(circle, var(--mm-neon-yellow), transparent);
 }
 
-/* ============================================
-   INTERACTION STATES
-   ============================================ */
-
-/* Hover - intensify glow (desktop only) */
+/* Hover (desktop) */
 @media (hover: hover) and (pointer: fine) {
   .answer-btn:hover:not(:active) {
     border-width: 4px;
   }
-  
+
   .answer-btn:nth-child(1):hover:not(:active) {
-    box-shadow: 
+    box-shadow:
       inset 0 0 15px rgba(0, 240, 255, 0.6),
-      0 0 var(--glow-hover) var(--neon-cyan),
+      0 0 var(--mm-glow-hover) var(--mm-neon-cyan),
       0 0 60px rgba(0, 240, 255, 0.7);
-    text-shadow: 
-      0 0 8px var(--neon-cyan),
-      0 0 15px var(--neon-cyan),
+    text-shadow:
+      0 0 8px var(--mm-neon-cyan),
+      0 0 15px var(--mm-neon-cyan),
       0 0 25px rgba(0, 240, 255, 0.9);
   }
-  
+
   .answer-btn:nth-child(2):hover:not(:active) {
-    box-shadow: 
+    box-shadow:
       inset 0 0 15px rgba(255, 0, 255, 0.6),
-      0 0 var(--glow-hover) var(--neon-magenta),
+      0 0 var(--mm-glow-hover) var(--mm-neon-magenta),
       0 0 60px rgba(255, 0, 255, 0.7);
-    text-shadow: 
-      0 0 8px var(--neon-magenta),
-      0 0 15px var(--neon-magenta),
+    text-shadow:
+      0 0 8px var(--mm-neon-magenta),
+      0 0 15px var(--mm-neon-magenta),
       0 0 25px rgba(255, 0, 255, 0.9);
   }
-  
+
   .answer-btn:nth-child(3):hover:not(:active) {
-    box-shadow: 
+    box-shadow:
       inset 0 0 15px rgba(255, 255, 0, 0.6),
-      0 0 var(--glow-hover) var(--neon-yellow),
+      0 0 var(--mm-glow-hover) var(--mm-neon-yellow),
       0 0 60px rgba(255, 255, 0, 0.7);
-    text-shadow: 
-      0 0 8px var(--neon-yellow),
-      0 0 15px var(--neon-yellow),
+    text-shadow:
+      0 0 8px var(--mm-neon-yellow),
+      0 0 15px var(--mm-neon-yellow),
       0 0 25px rgba(255, 255, 0, 0.9);
   }
 }
 
-/* Active - pulse + scanline CRT effect */
 .answer-btn:active {
   transform: scale(0.97) translateZ(0);
 }
 
 .answer-btn:active::before {
   opacity: 1;
-  animation: scanline-scroll 0.3s linear infinite;
+  animation: mm-scanline-scroll 0.3s linear infinite;
 }
 
 .answer-btn:active::after {
   opacity: 0.3;
-  animation: glow-pulse 0.6s ease-in-out;
+  animation: mm-glow-pulse 0.6s ease-in-out;
 }
 
-@keyframes scanline-scroll {
-  0% { transform: translateY(0); }
+@keyframes mm-scanline-scroll {
+  0%   { transform: translateY(0); }
   100% { transform: translateY(4px); }
 }
 
-@keyframes glow-pulse {
+@keyframes mm-glow-pulse {
   0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  50%      { opacity: 0.6; }
 }
 
-/* Disabled scanline animation for reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .answer-btn:active::before {
-    animation: none;
-  }
-  
+  .answer-btn:active::before,
   .answer-btn:active::after {
     animation: none;
   }
 }
-
-/* ============================================
-   UNICODE CIRCLED NUMBERS
-   ============================================ */
 
 .answer-key {
   display: inline-block;
@@ -933,10 +912,6 @@
 .answer-btn:nth-child(2) .answer-key::before { content: '②'; }
 .answer-btn:nth-child(3) .answer-key::before { content: '③'; }
 
-/* ============================================
-   MOBILE OPTIMIZATIONS
-   ============================================ */
-
 @media (max-width: 768px) {
   .answer-btn {
     padding: 1rem 0.4rem;
@@ -944,7 +919,7 @@
     min-height: 48px;
     letter-spacing: 0.08em;
   }
-  
+
   .answer-key {
     font-size: 1.3rem;
   }
@@ -957,18 +932,14 @@
     min-height: 44px;
     border-width: 2px;
   }
-  
+
   .answer-key {
     font-size: 1.1rem;
   }
 }
 
-/* ============================================
-   ACCESSIBILITY
-   ============================================ */
-
 .answer-btn:focus-visible {
-  outline: 3px solid white;
+  outline: 3px solid #ffffff;
   outline-offset: 2px;
 }
 
@@ -986,12 +957,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  
+
   font-size: 3rem;
   font-weight: 700;
   color: rgba(255, 200, 0, 0.8);
   text-shadow: 0 0 20px rgba(255, 200, 0, 0.6);
-  
+
   pointer-events: none;
   z-index: 100;
 }
