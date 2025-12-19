@@ -4,6 +4,18 @@
  */
 
 class LessonEngine {
+  /**
+   * Get data path based on environment
+   */
+  static getDataPath() {
+    const isGitHub = window.location.hostname.includes('github.io');
+    const isLocal = window.location.protocol === 'file:';
+    
+    if (isGitHub) return '../data';
+    if (isLocal) return 'data';
+    return '/dist/data';
+  }
+
   constructor(lessonId) {
     this.lessonId = lessonId;
     this.storage = new LessonStorage(lessonId);
@@ -368,13 +380,14 @@ class LessonEngine {
   }
 
   /**
-   * Load lesson JSON data
+   * Load lesson JSON data with environment-aware paths
    */
   async loadLessonData() {
-    const response = await fetch(`../data/${this.lessonId}.json`);
+    const path = `${LessonEngine.getDataPath()}/${this.lessonId}.json`;
+    const response = await fetch(path);
     
     if (!response.ok) {
-      throw new Error(`Failed to load lesson data: ${response.status}`);
+      throw new Error(`Failed to load lesson data: HTTP ${response.status} at ${path}`);
     }
     
     this.lessonData = await response.json();
@@ -620,7 +633,7 @@ class LessonEngine {
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\\'").replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\\'")}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -639,7 +652,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\\'")}')">
             🔊 Listen
           </button>
         </div>
@@ -818,7 +831,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'");
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'" );
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
