@@ -1,7 +1,7 @@
 /**
  * MUCH/MANY TRAINER STYLES
  * 3-lane falling questions game with full-width gamepad
- * Fixed: Player alignment, visual polish, code maintainability
+ * Fixed: Pixel-perfect player alignment, clear emoji icons, stable positioning
  */
 
 /* ============================================
@@ -94,7 +94,7 @@
   50% { transform: scale(1.05); }
 }
 
-/* Mobile: Emoji-only labels */
+/* Mobile: Clear emoji icons */
 @media (max-width: 768px) {
   .game-stats {
     top: max(8px, env(safe-area-inset-top) + 2px);
@@ -103,8 +103,9 @@
     font-size: 0.75rem;
   }
   
-  .stat-item:nth-child(1) .stat-label::before { content: '🎯 '; }
-  .stat-item:nth-child(2) .stat-label::before { content: '💨 '; }
+  /* Trophy for score, lightning for speed */
+  .stat-item:nth-child(1) .stat-label::before { content: '🏆 '; }
+  .stat-item:nth-child(2) .stat-label::before { content: '⚡ '; }
   
   .stat-label {
     font-size: 0;
@@ -439,12 +440,12 @@
 }
 
 /* ============================================
-   PLAYER - ABSOLUTE POSITIONING (FIXED)
+   PLAYER - PIXEL-PERFECT LANE ALIGNMENT
    ============================================ */
 
 .player {
   position: absolute;
-  bottom: max(20px, calc(var(--gamepad-height) - 80px));
+  bottom: 20px; /* static - answer-panel is fixed, doesn't affect arena */
   left: 50%; /* lane 1 center - default */
   transform: translateX(-50%);
   width: 80px;
@@ -454,17 +455,20 @@
   transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Lane position math: center of each lane = (100% / 6) * (lane*2 + 1) */
+/* Pixel-perfect lane centers with padding compensation */
 .player[data-current-lane="0"] {
-  left: calc(100% / 6 * 1); /* 16.67% - lane 0 center */
+  /* Lane 0 center = 16.67% + left padding */
+  left: calc(100% / 6 * 1 + clamp(0.5rem, 2vw, 1.5rem));
 }
 
 .player[data-current-lane="1"] {
-  left: 50%; /* 50% - lane 1 center */
+  /* Lane 1 center = 50% (no padding offset needed) */
+  left: 50%;
 }
 
 .player[data-current-lane="2"] {
-  left: calc(100% / 6 * 5); /* 83.33% - lane 2 center */
+  /* Lane 2 center = 83.33% - right padding */
+  left: calc(100% / 6 * 5 - clamp(0.5rem, 2vw, 1.5rem));
 }
 
 .player-character {
@@ -512,7 +516,16 @@
   .player {
     width: 50px;
     height: 50px;
-    bottom: max(15px, calc(var(--gamepad-height) - 70px));
+    bottom: 20px;
+  }
+  
+  /* Mobile padding compensation: 0.4rem */
+  .player[data-current-lane="0"] {
+    left: calc(100% / 6 * 1 + 0.4rem);
+  }
+  
+  .player[data-current-lane="2"] {
+    left: calc(100% / 6 * 5 - 0.4rem);
   }
   
   .player-character {
