@@ -1,7 +1,7 @@
 /**
  * MUCH/MANY TRAINER STYLES
- * Neon Arcade Button UI - Retro aesthetic with modern performance
- * Optimized for 60fps mobile, WCAG AAA, reduced motion support
+ * Full-screen game arena with neon button overlay
+ * Fixed: Black bar eliminated, player position preserved
  */
 
 /* ============================================
@@ -216,16 +216,35 @@
 }
 
 /* ============================================
-   GAME CONTAINER
+   GAME CONTAINER - EXTENDED TO BUTTONS
    ============================================ */
 
 .game-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - var(--header-height) - var(--stats-height) - var(--gamepad-height));
+  /* CRITICAL: Extend to bottom edge (buttons overlay this) */
+  height: calc(100vh - var(--header-height) - var(--stats-height));
   margin-top: calc(var(--header-height) + var(--stats-height));
   overflow: hidden;
   z-index: 10;
+}
+
+/* Gradient overlay at bottom (smooth transition to buttons) */
+.game-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* ============================================
@@ -526,21 +545,23 @@
 }
 
 /* ============================================
-   PLAYER
+   PLAYER - POSITION PRESERVED ABOVE BUTTONS
    ============================================ */
 
 .player {
   position: absolute;
-  bottom: 20px;
+  /* CRITICAL: Position from viewport bottom (not arena bottom) */
+  bottom: calc(var(--gamepad-height) + 20px);
   left: 50%;
   transform: translateX(-50%);
   width: 80px;
   height: 80px;
-  z-index: 25;
+  z-index: 25; /* above buttons (20) and gradient (5) */
   
   transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Pixel-perfect lane centers with padding compensation */
 .player[data-current-lane="0"] {
   left: calc(100% / 6 * 1 + clamp(0.5rem, 2vw, 1.5rem));
 }
@@ -598,7 +619,7 @@
   .player {
     width: 50px;
     height: 50px;
-    bottom: 20px;
+    bottom: calc(var(--gamepad-height) + 15px);
   }
   
   .player[data-current-lane="0"] {
@@ -624,6 +645,7 @@
   .player {
     width: 45px;
     height: 45px;
+    bottom: calc(var(--gamepad-height) + 12px);
   }
   
   .player-character {
@@ -637,7 +659,8 @@
 
 .stone-throw {
   position: absolute;
-  bottom: 80px;
+  /* Position relative to player (not bottom) */
+  bottom: calc(var(--gamepad-height) + 100px);
   left: 50%;
   transform: translateX(-50%);
   font-size: 2rem;
@@ -661,43 +684,41 @@
 }
 
 /* ============================================
-   NEON ARCADE BUTTONS - RETRO AESTHETIC
-   GPU-accelerated, 60fps, battery-optimized
+   NEON ARCADE BUTTONS - FIXED OVERLAY
    ============================================ */
 
 .answer-panel {
   position: fixed;
   inset: auto 0 0 0;
-  z-index: 20;
+  z-index: 20; /* below player (25), above gradient (5) */
   
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2px; /* minimal visual separation */
+  gap: 2px;
   
   padding: 0;
+  padding-bottom: env(safe-area-inset-bottom);
   background: rgba(0, 0, 0, 0.98);
-  border-top: none; /* neon buttons provide own borders */
+  border-top: none;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.9);
   
   min-height: var(--gamepad-height);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Base Neon Button - GPU optimized */
 .answer-btn {
   position: relative;
   padding: 1.2rem 0.5rem;
-  min-height: 52px; /* accessibility + neon effect needs space */
+  min-height: 52px;
   
   /* Arcade typography */
   font-family: 'Courier New', monospace;
   font-size: clamp(0.85rem, 2.3vw, 1.15rem);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em; /* arcade spacing */
+  letter-spacing: 0.1em;
   line-height: 1.2;
   
-  /* Transparent base for neon effect */
   background: transparent;
   border: 3px solid;
   border-radius: 0;
@@ -715,15 +736,12 @@
   /* GPU acceleration */
   transform: translateZ(0);
   will-change: box-shadow, text-shadow, border-color;
-  
-  /* Transition for smooth glow changes */
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   
-  /* Overlay for rgba background */
   overflow: hidden;
 }
 
-/* Scanline overlay (CRT effect) - hidden by default, shows on active */
+/* Scanline overlay (CRT effect) */
 .answer-btn::before {
   content: '';
   position: absolute;
@@ -740,7 +758,7 @@
   transition: opacity 0.2s;
 }
 
-/* Background glow layer (pulse animation) */
+/* Background glow layer */
 .answer-btn::after {
   content: '';
   position: absolute;
@@ -853,12 +871,12 @@
 }
 
 .answer-btn:active::before {
-  opacity: 1; /* show scanlines */
+  opacity: 1;
   animation: scanline-scroll 0.3s linear infinite;
 }
 
 .answer-btn:active::after {
-  opacity: 0.3; /* brighten background */
+  opacity: 0.3;
   animation: glow-pulse 0.6s ease-in-out;
 }
 
@@ -884,22 +902,19 @@
 }
 
 /* ============================================
-   UNICODE CIRCLED NUMBERS - NO EXTRA HTML
+   UNICODE CIRCLED NUMBERS
    ============================================ */
 
 .answer-key {
   display: inline-block;
-  font-family: Arial, sans-serif; /* better unicode support */
-  font-size: 1.5rem; /* larger for neon aesthetic */
+  font-family: Arial, sans-serif;
+  font-size: 1.5rem;
   font-weight: 400;
   line-height: 1;
   opacity: 0.9;
-  
-  /* Inherit glow from parent */
   filter: inherit;
 }
 
-/* Unicode circled numbers */
 .answer-btn:nth-child(1) .answer-key::before { content: '①'; }
 .answer-btn:nth-child(2) .answer-key::before { content: '②'; }
 .answer-btn:nth-child(3) .answer-key::before { content: '③'; }
@@ -935,7 +950,7 @@
 }
 
 /* ============================================
-   ACCESSIBILITY - KEYBOARD NAVIGATION
+   ACCESSIBILITY
    ============================================ */
 
 .answer-btn:focus-visible {
@@ -944,7 +959,7 @@
 }
 
 /* ============================================
-   SLOW MOTION POWER-UP OVERLAY
+   SLOW MOTION POWER-UP
    ============================================ */
 
 .game-arena.slow-motion .falling-question {
