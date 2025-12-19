@@ -4,6 +4,19 @@
  */
 
 class LessonEngine {
+  /**
+   * Get environment-aware data path
+   * @returns {string} Base path for JSON data files
+   */
+  static getDataPath() {
+    const isGitHub = window.location.hostname.includes('github.io');
+    const isLocalFile = window.location.protocol === 'file:';
+    
+    if (isGitHub) return '../data';
+    if (isLocalFile) return 'data';
+    return '/dist/data'; // custom servers
+  }
+
   constructor(lessonId) {
     this.lessonId = lessonId;
     this.storage = new LessonStorage(lessonId);
@@ -368,13 +381,14 @@ class LessonEngine {
   }
 
   /**
-   * Load lesson JSON data
+   * Load lesson JSON data with environment-aware path
    */
   async loadLessonData() {
-    const response = await fetch(`../data/${this.lessonId}.json`);
+    const basePath = LessonEngine.getDataPath();
+    const response = await fetch(`${basePath}/${this.lessonId}.json`);
     
     if (!response.ok) {
-      throw new Error(`Failed to load lesson data: ${response.status}`);
+      throw new Error(`Failed to load lesson data: ${response.status} from ${basePath}/${this.lessonId}.json`);
     }
     
     this.lessonData = await response.json();
@@ -620,7 +634,7 @@ class LessonEngine {
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\\'").replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\\'")}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -639,7 +653,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\\'")}')">
             🔊 Listen
           </button>
         </div>
