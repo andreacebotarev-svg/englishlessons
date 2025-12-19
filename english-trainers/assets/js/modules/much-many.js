@@ -1,5 +1,6 @@
 /**
  * MUCH/MANY/A LOT OF TRAINER
+ * Natural speech focus: teaching how native speakers actually talk
  * Falling questions game with 3-lane system and player controller
  */
 
@@ -64,7 +65,11 @@ class MuchManyTrainer {
         { en: 'people', ru: 'людей' },
         { en: 'houses', ru: 'домов' },
         { en: 'trees', ru: 'деревьев' },
-        { en: 'animals', ru: 'животных' }
+        { en: 'animals', ru: 'животных' },
+        { en: 'ideas', ru: 'идей' },
+        { en: 'mistakes', ru: 'ошибок' },
+        { en: 'photos', ru: 'фотографий' },
+        { en: 'emails', ru: 'писем' }
       ],
       uncountable: [
         { en: 'water', ru: 'воды' },
@@ -76,7 +81,11 @@ class MuchManyTrainer {
         { en: 'milk', ru: 'молока' },
         { en: 'bread', ru: 'хлеба' },
         { en: 'music', ru: 'музыки' },
-        { en: 'love', ru: 'любви' }
+        { en: 'love', ru: 'любви' },
+        { en: 'homework', ru: 'домашки' },
+        { en: 'furniture', ru: 'мебели' },
+        { en: 'advice', ru: 'советов' },
+        { en: 'work', ru: 'работы' }
       ]
     };
 
@@ -133,11 +142,10 @@ class MuchManyTrainer {
       const diffX = touchEndX - this.touchStartX;
       const diffY = touchEndY - this.touchStartY;
 
-      const swipeThreshold = Math.max(30, window.innerWidth * 0.08); // adaptive threshold
+      const swipeThreshold = Math.max(30, window.innerWidth * 0.08);
 
-      // Only horizontal swipes (ignore vertical scrolls)
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
-        e.preventDefault(); // block duplicate click on buttons
+        e.preventDefault();
         if (diffX > 0) {
           this.movePlayer('right');
         } else {
@@ -250,11 +258,10 @@ class MuchManyTrainer {
   }
 
   _generateQuestion() {
-    // Random sentence type: question, statement, negative
-    const sentenceType = Math.random();
-    const wordType = Math.random();
+    const rand = Math.random();
     
     // Pick word (countable/uncountable)
+    const wordType = Math.random();
     let word, isCountable;
     if (wordType < 0.5) {
       word = this.vocabulary.countable[Math.floor(Math.random() * this.vocabulary.countable.length)];
@@ -264,57 +271,122 @@ class MuchManyTrainer {
       isCountable = false;
     }
 
-    // Generate sentence based on type
-    if (sentenceType < 0.33) {
-      // QUESTION
+    // DISTRIBUTION (natural speech patterns):
+    // 30% - How much/many questions (formal grammar)
+    // 40% - Positive statements with "a lot of" (natural speech)
+    // 20% - Negatives with much/many (standard)
+    // 10% - General questions with "a lot of" (conversational)
+
+    if (rand < 0.30) {
+      // HOW MUCH/MANY QUESTIONS (30%)
+      // Only much/many are grammatically correct here
       if (isCountable) {
         return {
           text: `How ___ ${word.en} do you need?`,
           correctAnswer: 'many',
           hint: 'Исчисляемое → many',
-          type: 'countable-question'
+          type: 'how-question-countable'
         };
       } else {
         return {
           text: `How ___ ${word.en} is there?`,
           correctAnswer: 'much',
           hint: 'Неисчисляемое → much',
-          type: 'uncountable-question'
+          type: 'how-question-uncountable'
         };
       }
-    } else if (sentenceType < 0.66) {
-      // STATEMENT (positive)
-      if (isCountable) {
+    } else if (rand < 0.70) {
+      // POSITIVE STATEMENTS (40%)
+      // "A lot of" is the natural choice - this is how natives speak!
+      const statementRand = Math.random();
+      
+      if (statementRand < 0.75) {
+        // 75% use "a lot of" (NATURAL SPEECH)
         return {
-          text: `I have ___ ${word.en}`,
-          correctAnswer: 'many',
-          hint: 'Исчисляемое → many',
-          type: 'countable-statement'
+          text: isCountable ? `I have ___ ${word.en}` : `There is ___ ${word.en} here`,
+          correctAnswer: 'a lot of',
+          hint: 'В утверждениях носители чаще используют "a lot of"',
+          type: 'statement-alotof'
         };
       } else {
+        // 25% use much/many (grammatically correct but less common)
+        if (isCountable) {
+          return {
+            text: `I have ___ ${word.en}`,
+            correctAnswer: 'many',
+            hint: 'Исчисляемое → many',
+            type: 'statement-countable'
+          };
+        } else {
+          return {
+            text: `There is ___ ${word.en} here`,
+            correctAnswer: 'much',
+            hint: 'Неисчисляемое → much',
+            type: 'statement-uncountable'
+          };
+        }
+      }
+    } else if (rand < 0.90) {
+      // NEGATIVES (20%)
+      // Much/many are standard (65%), a lot of is conversational (35%)
+      const negRand = Math.random();
+      
+      if (negRand < 0.65) {
+        // Standard much/many
+        if (isCountable) {
+          return {
+            text: `I don't have ___ ${word.en}`,
+            correctAnswer: 'many',
+            hint: 'В отрицаниях: исчисляемое → many',
+            type: 'negative-countable'
+          };
+        } else {
+          return {
+            text: `There isn't ___ ${word.en}`,
+            correctAnswer: 'much',
+            hint: 'В отрицаниях: неисчисляемое → much',
+            type: 'negative-uncountable'
+          };
+        }
+      } else {
+        // Conversational "a lot of"
         return {
-          text: `There is ___ ${word.en} here`,
-          correctAnswer: 'much',
-          hint: 'Неисчисляемое → much',
-          type: 'uncountable-statement'
+          text: isCountable ? `I don't have ___ ${word.en}` : `There isn't ___ ${word.en}`,
+          correctAnswer: 'a lot of',
+          hint: '"A lot of" тоже подходит в отрицаниях',
+          type: 'negative-alotof'
         };
       }
     } else {
-      // NEGATIVE
-      if (isCountable) {
+      // GENERAL QUESTIONS (10%)
+      // "A lot of" is common in conversational questions
+      const qRand = Math.random();
+      
+      if (qRand < 0.70) {
+        // "A lot of" in questions (conversational)
         return {
-          text: `I don't have ___ ${word.en}`,
-          correctAnswer: 'many',
-          hint: 'Исчисляемое → many',
-          type: 'countable-negative'
+          text: isCountable ? `Do you have ___ ${word.en}?` : `Is there ___ ${word.en}?`,
+          correctAnswer: 'a lot of',
+          hint: 'В вопросах "a lot of" — разговорный вариант',
+          type: 'general-question-alotof'
         };
       } else {
-        return {
-          text: `There isn't ___ ${word.en}`,
-          correctAnswer: 'much',
-          hint: 'Неисчисляемое → much',
-          type: 'uncountable-negative'
-        };
+        // Much/many in general questions
+        if (isCountable) {
+          return {
+            text: `Do you have ___ ${word.en}?`,
+            correctAnswer: 'many',
+            hint: 'Исчисляемое → many',
+            type: 'general-question-countable'
+          };
+        } else {
+          return {
+            text: `Is there ___ ${word.en}?`,
+            correctAnswer: 'much',
+            hint: 'Неисчисляемое → much',
+            type: 'general-question-uncountable'
+          };
+        }
       }
     }
   }
@@ -348,13 +420,12 @@ class MuchManyTrainer {
     } else if (direction === 'right' && this.player.currentLane < this.config.lanes - 1) {
       this.player.currentLane++;
     } else {
-      return; // no movement → no haptic
+      return;
     }
 
     this.player.element.setAttribute('data-current-lane', this.player.currentLane);
     this._updateActiveLane();
     
-    // Haptic на каждый успешный move
     if (this.isMobile && prevLane !== this.player.currentLane) {
       this._effects._haptic.vibrate('tick');
     } else if (!this.isMobile) {
@@ -363,7 +434,6 @@ class MuchManyTrainer {
   }
 
   _updateActiveLane() {
-    // Highlight current lane
     this._dom.lanes.forEach((lane, i) => {
       lane.classList.toggle('active', i === this.player.currentLane);
     });
