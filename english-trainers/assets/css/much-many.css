@@ -1,6 +1,7 @@
 /**
  * MUCH/MANY TRAINER STYLES — GRID LAYOUT REWRITE
  * Senior-level layout: no vh gaps, no black bars.
+ * CRITICAL: visibility-based hiding для Grid-compatibility
  */
 
 /* ============================================
@@ -700,7 +701,8 @@
 }
 
 /* ============================================
-   ANSWER PANEL — GRID ROW (NO FIXED)
+   ANSWER PANEL — GRID ROW (VISIBILITY-BASED)
+   CRITICAL: Grid должен всегда видеть эту строку!
    ============================================ */
 
 .answer-panel {
@@ -719,6 +721,20 @@
 
   min-height: var(--mm-buttons-total);
   z-index: 15;
+
+  /* CRITICAL FIX: visibility вместо display */
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0s 0.3s;
+}
+
+/* Когда JS удаляет style="display: none", показываем панель */
+.answer-panel:not([style*="display: none"]) {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
 }
 
 /* Base Neon Button - GPU optimized */
