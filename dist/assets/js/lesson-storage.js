@@ -24,15 +24,62 @@ class LessonStorage {
   }
 
   /**
-   * Save words to LocalStorage
+   * Save words to LocalStorage with quota handling
    * @param {Array} words - Array of word objects to save
    */
   saveWords(words) {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(words));
-    } catch (e) {
-      console.error('Error saving words:', e);
+    if (!this.safeSave(this.storageKey, words)) {
+      // Quota exceeded → cleanup and retry
+      this.cleanupOldLessons();
+      if (!this.safeSave(this.storageKey, words)) {
+        throw new Error('Storage quota exceeded after cleanup');
+      }
     }
+  }
+
+  /**
+   * Safe save with quota error handling
+   * @param {string} key - Storage key
+   * @param {*} value - Value to save
+   * @returns {boolean} Success status
+   */
+  safeSave(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') {
+        console.warn('localStorage quota exceeded:', e);
+        return false;
+      }
+      throw e; // Other errors propagate
+    }
+  }
+
+  /**
+   * Cleanup old lesson data (30+ days)
+   */
+  cleanupOldLessons() {
+    const keys = Object.keys(localStorage);
+    const lessonKeys = keys.filter(k => k.startsWith('lesson-'));
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    
+    lessonKeys.forEach(key => {
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        if (!Array.isArray(data) || data.length === 0) return;
+        
+        const age = Date.now() - (data[0]?.timestamp || 0);
+        if (age > THIRTY_DAYS) {
+          localStorage.removeItem(key);
+          console.log('Cleaned up old lesson:', key);
+        }
+      } catch (e) {
+        // Corrupted data → remove it
+        localStorage.removeItem(key);
+        console.warn('Removed corrupted data:', key);
+      }
+    });
   }
 
   /**
@@ -96,6 +143,13 @@ class LessonStorage {
    */
   clearAll() {
     localStorage.removeItem(this.storageKey);
+  }
+
+  /**
+   * Clear all saved words (alias for backward compatibility)
+   */
+  clearAllWords() {
+    this.clearAll();
   }
 
   /**
