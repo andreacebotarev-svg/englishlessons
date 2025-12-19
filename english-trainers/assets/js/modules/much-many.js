@@ -133,15 +133,18 @@ class MuchManyTrainer {
       const diffX = touchEndX - this.touchStartX;
       const diffY = touchEndY - this.touchStartY;
 
+      const swipeThreshold = Math.max(30, window.innerWidth * 0.08); // adaptive threshold
+
       // Only horizontal swipes (ignore vertical scrolls)
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
+        e.preventDefault(); // block duplicate click on buttons
         if (diffX > 0) {
           this.movePlayer('right');
         } else {
           this.movePlayer('left');
         }
       }
-    }, { passive: true });
+    }, { passive: false });
   }
 
   start() {
@@ -223,16 +226,27 @@ class MuchManyTrainer {
       data: questionData,
       element: element,
       startTime: Date.now(),
-      duration: fallDuration
+      duration: fallDuration,
+      animation: null
     };
 
     this.questions.push(question);
     this._dom.lanes[lane].appendChild(element);
 
-    requestAnimationFrame(() => {
-      element.style.transition = `transform ${fallDuration}ms linear`;
-      element.style.transform = 'translateX(-50%) translateY(calc(100vh - 150px))';
+    const fallDistance = window.innerHeight - 150;
+
+    const keyframes = [
+      { transform: 'translateX(-50%) translateY(0) translateZ(0)' },
+      { transform: `translateX(-50%) translateY(${fallDistance}px) translateZ(0)` }
+    ];
+
+    const animation = element.animate(keyframes, {
+      duration: fallDuration,
+      easing: 'linear',
+      fill: 'forwards'
     });
+
+    question.animation = animation;
   }
 
   _generateQuestion() {
@@ -327,17 +341,23 @@ class MuchManyTrainer {
   }
 
   movePlayer(direction) {
+    const prevLane = this.player.currentLane;
+
     if (direction === 'left' && this.player.currentLane > 0) {
       this.player.currentLane--;
     } else if (direction === 'right' && this.player.currentLane < this.config.lanes - 1) {
       this.player.currentLane++;
+    } else {
+      return; // no movement → no haptic
     }
 
     this.player.element.setAttribute('data-current-lane', this.player.currentLane);
     this._updateActiveLane();
     
-    // Reduced haptic on mobile (every 2nd move)
-    if (!this.isMobile || this.player.currentLane % 2 === 0) {
+    // Haptic на каждый успешный move
+    if (this.isMobile && prevLane !== this.player.currentLane) {
+      this._effects._haptic.vibrate('tick');
+    } else if (!this.isMobile) {
       this._effects._haptic.vibrate('tick');
     }
   }
@@ -408,7 +428,6 @@ class MuchManyTrainer {
       const remainingTime = question.duration - (Date.now() - question.startTime);
       const newDuration = remainingTime * 0.8;
 
-      question.element.style.transition = `transform ${newDuration}ms linear`;
       question.duration = Date.now() - question.startTime + newDuration;
 
       setTimeout(() => {
@@ -477,16 +496,24 @@ class MuchManyTrainer {
 
     this._dom.lanes[lane].appendChild(element);
 
-    requestAnimationFrame(() => {
-      element.style.transition = 'transform 5000ms linear';
-      element.style.transform = 'translateX(-50%) translateY(calc(100vh - 150px))';
+    const fallDistance = window.innerHeight - 150;
+
+    const keyframes = [
+      { transform: 'translateX(-50%) translateY(0) translateZ(0)' },
+      { transform: `translateX(-50%) translateY(${fallDistance}px) translateZ(0)` }
+    ];
+
+    element.animate(keyframes, {
+      duration: 5000,
+      easing: 'linear',
+      fill: 'forwards'
     });
 
     const checkCollection = setInterval(() => {
       const rect = element.getBoundingClientRect();
       const playerRect = this.player.element.getBoundingClientRect();
 
-      if (parseInt(element.dataset.lane) === this.player.currentLane && 
+      if (parseInt(element.dataset.lane, 10) === this.player.currentLane && 
           rect.bottom >= playerRect.top && rect.top <= playerRect.bottom) {
         this._collectPowerUp(type, element);
         clearInterval(checkCollection);
@@ -524,12 +551,12 @@ class MuchManyTrainer {
     this._showPowerUpIndicator('⏱️ Slow Motion');
 
     this.questions.forEach(q => {
-      q.element.style.animationPlayState = 'paused';
+      if (q.animation) q.animation.pause();
     });
 
     setTimeout(() => {
       this.questions.forEach(q => {
-        if (q.element) q.element.style.animationPlayState = 'running';
+        if (q.animation) q.animation.play();
       });
       this._dom.gameArena.classList.remove('slow-motion');
       this.powerUps.slowMotionActive = false;
