@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { fetchLesson } from '@/shared/api/lesson-loader';
 import { useSessionStore } from '@/entities/session/model/store';
 import { PhonemeBuilder } from '@/widgets/PhonemeBuilder/ui/PhonemeBuilder';
+import { PhonemeHint } from '@/widgets/PhonemeHint/ui/PhonemeHint';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { speak } from '@/features/audio-manager/lib/speak';
 import type { ILesson } from '@/entities/dictionary/model/schema';
@@ -12,6 +13,7 @@ export const LessonTrainerPage = () => {
   const { lessonId } = useParams();
   const [lesson, setLesson] = useState<ILesson | null>(null);
   const [error, setError] = useState<string>('');
+  const [showHints, setShowHints] = useState(true);
   
   const { 
     wordIndex, 
@@ -20,7 +22,6 @@ export const LessonTrainerPage = () => {
     reset 
   } = useSessionStore();
 
-  // Загрузка урока
   useEffect(() => {
     if (!lessonId) return;
     
@@ -31,13 +32,11 @@ export const LessonTrainerPage = () => {
       .catch(err => setError(err.message));
   }, [lessonId, reset]);
 
-  // Устанавливаем текущее слово
   useEffect(() => {
     if (!lesson || !lesson.words[wordIndex]) return;
     setCurrentWord(lesson.words[wordIndex]);
   }, [lesson, wordIndex, setCurrentWord]);
 
-  // Озвучивание завершения
   useEffect(() => {
     if (lesson && wordIndex >= lesson.words.length) {
       setTimeout(() => speak('Great job! Lesson complete!', 1.0), 500);
@@ -47,14 +46,12 @@ export const LessonTrainerPage = () => {
   if (error) return <div className="p-10 text-red-500">Ошибка: {error}</div>;
   if (!lesson) return <div className="p-10">Загрузка урока...</div>;
 
-  // Завершение урока
   if (wordIndex >= lesson.words.length) {
     const stars = score >= lesson.words.length * 8 ? 3 : score >= lesson.words.length * 5 ? 2 : 1;
     const starEmojis = '⭐'.repeat(stars);
 
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 relative overflow-hidden">
-        {/* Конфетти */}
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
@@ -111,7 +108,6 @@ export const LessonTrainerPage = () => {
     );
   }
 
-  // Подготовка фонем
   const currentWord = lesson.words[wordIndex];
   const shuffledPhonemes = [...currentWord.phonemes]
     .sort(() => Math.random() - 0.5)
@@ -120,7 +116,6 @@ export const LessonTrainerPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 py-8">
-      {/* Шапка */}
       <div className="max-w-4xl mx-auto px-4 mb-6">
         <div className="flex justify-between items-center mb-4">
           <Link to="/" className="text-slate-600 hover:text-indigo-600 font-semibold transition">
@@ -144,7 +139,24 @@ export const LessonTrainerPage = () => {
         </div>
         
         <ProgressBar current={wordIndex} total={lesson.words.length} />
+
+        {/* Кнопка переключения подсказок */}
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setShowHints(!showHints)}
+            className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg font-semibold transition-colors text-sm"
+          >
+            {showHints ? '👁️ Скрыть подсказки' : '📖 Показать подсказки'}
+          </button>
+        </div>
       </div>
+
+      {/* Подсказки */}
+      {showHints && (
+        <div className="max-w-4xl mx-auto px-4 mb-6">
+          <PhonemeHint phonemes={currentWord.phonemes} />
+        </div>
+      )}
 
       {/* Игровая зона */}
       <PhonemeBuilder availablePhonemes={shuffledPhonemes} />
