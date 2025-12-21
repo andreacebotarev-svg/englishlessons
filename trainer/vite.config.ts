@@ -14,12 +14,7 @@ export default defineConfig({
     },
   },
 
-  server: {
-    fs: {
-      // Allow access to parent directory (for /data folder)
-      allow: ['..'],
-    },
-  },
+  // NO NEED for fs.allow - data is inside trainer/
   
   build: {
     outDir: 'dist',

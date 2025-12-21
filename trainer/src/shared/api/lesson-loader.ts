@@ -1,12 +1,13 @@
 import { LessonSchema, type Lesson } from '@/entities/dictionary';
 
 /**
- * Load and validate lesson JSON files
+ * Load and validate lesson JSON files from /public/data
+ * Data is self-contained within trainer app
  */
 export async function loadLesson(lessonId: string): Promise<Lesson> {
   try {
-    // Fetch from /data folder (relative path)
-    const response = await fetch(`../../data/${lessonId}.json`);
+    // Fetch from trainer's own public/data folder
+    const response = await fetch(`/data/${lessonId}.json`);
     
     if (!response.ok) {
       throw new Error(`Failed to load lesson: ${response.statusText}`);
