@@ -1,0 +1,116 @@
+{
+  "id": "lesson_01",
+  "title": "Уровень 1: Простые гласные (E, U, A)",
+  "description": "Учимся читать закрытые слоги с буквами E, U, A. Базовые слова.",
+  "order": 1,
+  "words": [
+    {
+      "id": "ten",
+      "text": "ten",
+      "transcription": "[ten]",
+      "translation": "десять",
+      "phonemes": ["t", "e", "n"],
+      "image": "🔟",
+      "difficulty": 1
+    },
+    {
+      "id": "net",
+      "text": "net",
+      "transcription": "[net]",
+      "translation": "сачок",
+      "phonemes": ["n", "e", "t"],
+      "image": "🕸️",
+      "difficulty": 1
+    },
+    {
+      "id": "pen",
+      "text": "pen",
+      "transcription": "[pen]",
+      "translation": "ручка",
+      "phonemes": ["p", "e", "n"],
+      "image": "🖊️",
+      "difficulty": 1
+    },
+    {
+      "id": "pet",
+      "text": "pet",
+      "transcription": "[pet]",
+      "translation": "питомец",
+      "phonemes": ["p", "e", "t"],
+      "image": "🐕",
+      "difficulty": 1
+    },
+    {
+      "id": "up",
+      "text": "up",
+      "transcription": "[ʌp]",
+      "translation": "вверх",
+      "phonemes": ["u", "p"],
+      "image": "⬆️",
+      "difficulty": 1
+    },
+    {
+      "id": "cup",
+      "text": "cup",
+      "transcription": "[kʌp]",
+      "translation": "чашка",
+      "phonemes": ["c", "u", "p"],
+      "image": "☕",
+      "difficulty": 1
+    },
+    {
+      "id": "nut",
+      "text": "nut",
+      "transcription": "[nʌt]",
+      "translation": "орех",
+      "phonemes": ["n", "u", "t"],
+      "image": "🥜",
+      "difficulty": 1
+    },
+    {
+      "id": "sun",
+      "text": "sun",
+      "transcription": "[sʌn]",
+      "translation": "солнце",
+      "phonemes": ["s", "u", "n"],
+      "image": "☀️",
+      "difficulty": 1
+    },
+    {
+      "id": "cat",
+      "text": "cat",
+      "transcription": "[kæt]",
+      "translation": "кошка",
+      "phonemes": ["c", "a", "t"],
+      "image": "🐱",
+      "difficulty": 1
+    },
+    {
+      "id": "hat",
+      "text": "hat",
+      "transcription": "[hæt]",
+      "translation": "шляпа",
+      "phonemes": ["h", "a", "t"],
+      "image": "🎩",
+      "difficulty": 1
+    },
+    {
+      "id": "ant",
+      "text": "ant",
+      "transcription": "[ænt]",
+      "translation": "муравей",
+      "phonemes": ["a", "n", "t"],
+      "image": "🐜",
+      "difficulty": 1
+    },
+    {
+      "id": "map",
+      "text": "map",
+      "transcription": "[mæp]",
+      "translation": "карта",
+      "phonemes": ["m", "a", "p"],
+      "image": "🗺️",
+      "difficulty": 1
+    }
+  ]
+}
