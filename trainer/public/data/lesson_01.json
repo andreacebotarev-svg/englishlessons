@@ -1,0 +1,58 @@
+{
+  "id": "lesson_01",
+  "title": "Урок 1: Короткий звук E [e]",
+  "description": "Закрытый слог с гласной E. CVC-структура: согласная-гласная-согласная.",
+  "order": 1,
+  "words": [
+    {
+      "id": "ten",
+      "text": "ten",
+      "transcription": "[ten]",
+      "translation": "десять",
+      "phonemes": ["t", "e", "n"],
+      "image": "🔟",
+      "difficulty": 1,
+      "tags": ["cvc", "number"]
+    },
+    {
+      "id": "net",
+      "text": "net",
+      "transcription": "[net]",
+      "translation": "сеть",
+      "phonemes": ["n", "e", "t"],
+      "image": "🕸️",
+      "difficulty": 1,
+      "tags": ["cvc", "object"]
+    },
+    {
+      "id": "pen",
+      "text": "pen",
+      "transcription": "[pen]",
+      "translation": "ручка",
+      "phonemes": ["p", "e", "n"],
+      "image": "🖊️",
+      "difficulty": 1,
+      "tags": ["cvc", "school"]
+    },
+    {
+      "id": "pet",
+      "text": "pet",
+      "transcription": "[pet]",
+      "translation": "питомец",
+      "phonemes": ["p", "e", "t"],
+      "image": "🐕",
+      "difficulty": 1,
+      "tags": ["cvc", "animal"]
+    },
+    {
+      "id": "bed",
+      "text": "bed",
+      "transcription": "[bed]",
+      "translation": "кровать",
+      "phonemes": ["b", "e", "d"],
+      "image": "🛏️",
+      "difficulty": 1,
+      "tags": ["cvc", "furniture"]
+    }
+  ]
+}
