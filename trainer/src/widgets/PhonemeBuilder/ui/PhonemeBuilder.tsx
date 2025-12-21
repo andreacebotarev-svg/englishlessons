@@ -41,8 +41,8 @@ export const PhonemeBuilder = ({ availablePhonemes }: PhonemeBuilderProps) => {
   const nextEmptySlotIndex = userAnswer.findIndex(slot => slot === '');
 
   const handlePhonemeClick = (phoneme: string) => {
-    if (isCorrect !== null) return;
-    if (nextEmptySlotIndex === -1) return;
+    if (isCorrect !== null) return; // Блокируем после проверки
+    if (nextEmptySlotIndex === -1) return; // Все слоты заполнены
 
     speak(phoneme, 0.9);
     setPhonemeInSlot(nextEmptySlotIndex, phoneme);
@@ -65,6 +65,7 @@ export const PhonemeBuilder = ({ availablePhonemes }: PhonemeBuilderProps) => {
     <div className="flex flex-col items-center gap-8 p-8">
       {/* Карточка слова */}
       <motion.div 
+        key={currentWord.id}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4 }}
@@ -90,7 +91,7 @@ export const PhonemeBuilder = ({ availablePhonemes }: PhonemeBuilderProps) => {
       <div className="flex gap-3">
         {userAnswer.map((phoneme, index) => (
           <motion.button
-            key={index}
+            key={`slot-${index}`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleSlotClick(index)}
@@ -117,11 +118,11 @@ export const PhonemeBuilder = ({ availablePhonemes }: PhonemeBuilderProps) => {
         </motion.p>
       )}
 
-      {/* Фонемы */}
+      {/* Фонемы - ИСПРАВЛЕНО: используем уникальный key */}
       <div className="flex flex-wrap gap-3 max-w-md justify-center">
         {availablePhonemes.map((phoneme, index) => (
           <motion.button
-            key={index}
+            key={`phoneme-${index}-${phoneme}`}
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handlePhonemeClick(phoneme)}
