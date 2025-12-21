@@ -1,0 +1,143 @@
+{
+  "id": "lesson_02",
+  "title": "Уровень 2: Гласные O, I и буква R",
+  "description": "Закрытые слоги с O и I. Слова с буквами R, F, L.",
+  "order": 2,
+  "words": [
+    {
+      "id": "dog",
+      "text": "dog",
+      "transcription": "[dɔg]",
+      "translation": "собака",
+      "phonemes": ["d", "o", "g"],
+      "image": "🐕",
+      "difficulty": 1
+    },
+    {
+      "id": "mop",
+      "text": "mop",
+      "transcription": "[mɔp]",
+      "translation": "швабра",
+      "phonemes": ["m", "o", "p"],
+      "image": "🧹",
+      "difficulty": 1
+    },
+    {
+      "id": "top",
+      "text": "top",
+      "transcription": "[tɔp]",
+      "translation": "юла",
+      "phonemes": ["t", "o", "p"],
+      "image": "🌪️",
+      "difficulty": 1
+    },
+    {
+      "id": "pond",
+      "text": "pond",
+      "transcription": "[pɔnd]",
+      "translation": "пруд",
+      "phonemes": ["p", "o", "n", "d"],
+      "image": "💧",
+      "difficulty": 2
+    },
+    {
+      "id": "big",
+      "text": "big",
+      "transcription": "[bɪg]",
+      "translation": "большой",
+      "phonemes": ["b", "i", "g"],
+      "image": "🐘",
+      "difficulty": 1
+    },
+    {
+      "id": "six",
+      "text": "six",
+      "transcription": "[sɪks]",
+      "translation": "шесть",
+      "phonemes": ["s", "i", "x"],
+      "image": "6️⃣",
+      "difficulty": 1
+    },
+    {
+      "id": "kid",
+      "text": "kid",
+      "transcription": "[kɪd]",
+      "translation": "малыш",
+      "phonemes": ["k", "i", "d"],
+      "image": "👶",
+      "difficulty": 1
+    },
+    {
+      "id": "kiss",
+      "text": "kiss",
+      "transcription": "[kɪs]",
+      "translation": "поцелуй",
+      "phonemes": ["k", "i", "ss"],
+      "image": "💋",
+      "difficulty": 1
+    },
+    {
+      "id": "rug",
+      "text": "rug",
+      "transcription": "[rʌg]",
+      "translation": "ковёр",
+      "phonemes": ["r", "u", "g"],
+      "image": "🧶",
+      "difficulty": 1
+    },
+    {
+      "id": "red",
+      "text": "red",
+      "transcription": "[red]",
+      "translation": "красный",
+      "phonemes": ["r", "e", "d"],
+      "image": "🟥",
+      "difficulty": 1
+    },
+    {
+      "id": "drum",
+      "text": "drum",
+      "transcription": "[drʌm]",
+      "translation": "барабан",
+      "phonemes": ["d", "r", "u", "m"],
+      "image": "🥁",
+      "difficulty": 2
+    },
+    {
+      "id": "fox",
+      "text": "fox",
+      "transcription": "[fɔks]",
+      "translation": "лиса",
+      "phonemes": ["f", "o", "x"],
+      "image": "🦊",
+      "difficulty": 1
+    },
+    {
+      "id": "lamp",
+      "text": "lamp",
+      "transcription": "[læmp]",
+      "translation": "лампа",
+      "phonemes": ["l", "a", "m", "p"],
+      "image": "💡",
+      "difficulty": 2
+    },
+    {
+      "id": "flag",
+      "text": "flag",
+      "transcription": "[flæg]",
+      "translation": "флаг",
+      "phonemes": ["f", "l", "a", "g"],
+      "image": "🚩",
+      "difficulty": 2
+    },
+    {
+      "id": "frog",
+      "text": "frog",
+      "transcription": "[frɔg]",
+      "translation": "лягушка",
+      "phonemes": ["f", "r", "o", "g"],
+      "image": "🐸",
+      "difficulty": 2
+    }
+  ]
+}
