@@ -1,27 +1,29 @@
 import { z } from 'zod';
 
-/**
- * Zod validation schemas for lesson data
- */
+// Валидация одной фонемы
+export const PhonemeSchema = z.string().min(1);
 
-export const PhonemeSchema = z.string().min(1).max(3);
-
+// Валидация карточки слова
 export const WordCardSchema = z.object({
   id: z.string(),
-  text: z.string().regex(/^[a-z]+$/i, 'Only letters allowed'),
-  transcription: z.string().optional(),
+  text: z.string(),
+  transcription: z.string(),
   translation: z.string(),
-  phonemes: z.array(PhonemeSchema).min(2).max(6),
-  image: z.string(),
-  audioUrl: z.string().optional(),
-  difficulty: z.number().min(1).max(3).default(1),
-  tags: z.array(z.string()).default([]),
+  phonemes: z.array(PhonemeSchema),
+  // Разрешаем и эмодзи, и URL. Если пусто — подставим заглушку в UI
+  image: z.string().optional().default('❓'), 
+  difficulty: z.number().optional().default(1),
 });
 
+// Валидация урока целиком
 export const LessonSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string().optional(),
-  order: z.number().positive(),
-  words: z.array(WordCardSchema).min(1),
+  order: z.number(),
+  words: z.array(WordCardSchema),
 });
+
+// Выводим TypeScript типы из схем автоматически
+export type IWordCard = z.infer<typeof WordCardSchema>;
+export type ILesson = z.infer<typeof LessonSchema>;
