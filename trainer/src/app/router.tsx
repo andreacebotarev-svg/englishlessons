@@ -12,6 +12,6 @@ export const router = createBrowserRouter([
     element: <LessonTrainerPage />,
   },
 ], {
-  // Важно для GitHub Pages: указываем базовый путь
-  basename: '/englishlessons/trainer' 
+  // Для вашего домена eng-tutor.ru/trainer/
+  basename: '/trainer' 
 });
