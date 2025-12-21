@@ -1,192 +1,227 @@
 # English Lessons Trainer 🎯
 
-> **Deployment**: Branch-based (dist/ committed to repo)
+> **Pure Vanilla JavaScript** - No build tools, no Node.js required!
 
-## Автономное приложение
+## ✨ Features
 
-**Trainer** — это полностью автономный модуль внутри проекта `englishlessons`. Он имеет собственные зависимости, конфигурацию и данные.
+- ✅ **Zero dependencies** - Just HTML, CSS, and JavaScript
+- ✅ **ES Modules** - Modern modular architecture
+- ✅ **Instant deployment** - Just `git push`
+- ✅ **Mobile friendly** - Touch-optimized UI
+- ✅ **Audio support** - Web Speech API for pronunciation
+- ✅ **Progressive enhancement** - Works everywhere
+
+## 📁 Project Structure
 
 ```
-englishlessons/              # Главный репозиторий
-├── legacy/                  # Старый статический сайт (не трогаем)
-├── data/                    # Данные основного проекта
-└── trainer/                 # 🎯 АВТОНОМНОЕ ПРИЛОЖЕНИЕ
-    ├── public/data/         # Собственные JSON уроков
-    ├── src/                 # Исходники React-приложения
-    ├── dist/                # ✨ Готовая сборка (деплоится)
-    ├── package.json         # Независимые зависимости
-    └── vite.config.ts       # Собственная конфигурация
+trainer/
+├── index.html              # Entry point
+├── app.js                  # Main app initialization
+├── styles.css              # Global styles
+├── components/             # UI Components (ES Modules)
+│   ├── App.js
+│   ├── GameBoard.js
+│   ├── WordCard.js
+│   ├── Slots.js
+│   ├── Keyboard.js
+│   └── ProgressBar.js
+├── store/                  # State management
+│   └── gameState.js
+├── utils/                  # Utilities
+│   ├── lessonLoader.js
+│   ├── audioManager.js
+│   └── helpers.js
+└── public/data/            # Lesson JSON files
+    └── lesson_01.json
 ```
 
-## 🚀 Quick Start
+## 🚀 How It Works
 
-### Локальная разработка
+### ES Modules = Browser Handles Imports
+
+No build step needed! Browser automatically:
+
+1. Loads `index.html`
+2. Sees `<script type="module" src="app.js">`
+3. Loads `app.js` and all its imports
+4. Loads nested imports automatically
+
+### Example Module Flow
+
+```
+index.html
+   ↓
+app.js (imports App.js, gameState.js, lessonLoader.js)
+   ↓
+App.js (imports GameBoard.js, ProgressBar.js)
+   ↓
+GameBoard.js (imports WordCard.js, Slots.js, Keyboard.js)
+```
+
+Browser loads everything automatically!
+
+## 💻 Local Development
+
+### Option 1: VS Code Live Server (Recommended)
+
+1. Install "Live Server" extension
+2. Right-click `index.html` → "Open with Live Server"
+3. Done! Opens at http://localhost:5500
+
+### Option 2: Python HTTP Server
 
 ```bash
 cd trainer
-npm install
-npm run dev
+python -m http.server 8000
+# Open http://localhost:8000
 ```
 
-Открой http://localhost:5173
-
-### Деплой на GitHub Pages
+### Option 3: Node.js HTTP Server (if installed)
 
 ```bash
 cd trainer
-npm run deploy  # Собирает приложение
+npx serve
+```
 
-# Потом вручную:
-cd ..
-git add trainer/dist
-git commit -m "build: update trainer"
+### Option 4: Just open the file
+
+Some browsers block ES Modules from `file://` - use one of above methods.
+
+## 🌐 Deployment to GitHub Pages
+
+### Setup (once)
+
+1. Go to: https://github.com/andreacebotarev-svg/englishlessons/settings/pages
+2. Configure:
+   - **Source**: Deploy from a branch
+   - **Branch**: `refactor/vanilla-js` (or `main` after merge)
+   - **Folder**: `/trainer`
+3. Save
+
+### Every Update
+
+```bash
+# Make changes to any file
+git add trainer/
+git commit -m "update: description"
 git push
+
+# Wait 30 seconds, refresh page!
 ```
 
-**Или используй скрипты:**
-```bash
-cd trainer
+**That's it!** No build, no npm, just push.
 
-# Linux/Mac:
-./deploy.sh "my commit message"
+## 📦 Adding New Lessons
 
-# Windows:
-deploy.bat "my commit message"
-```
-
-## 📖 Полная инструкция
-
-См. [BRANCH_DEPLOY.md](./BRANCH_DEPLOY.md)
-
-## Архитектура проекта
-
-Это SPA-приложение для обучения детей (5-10 лет) чтению английских CVC-слов через фонетический подход.
-
-### Технологический стек
-
-- **React 18** - UI библиотека
-- **TypeScript** - типизация
-- **Vite** - сборщик и dev-сервер
-- **Zustand** - управление состоянием
-- **Zod** - валидация данных
-- **Framer Motion** - анимации
-- **Tailwind CSS** - стилизация
-- **React Router v6** - роутинг
-
-### Структура папок (Feature-Sliced Design)
-
-```
-src/
-├── app/                    # Инициализация приложения
-├── pages/                  # Страницы приложения
-├── widgets/                # Составные UI-блоки
-├── features/               # Бизнес-логика (headless)
-├── entities/               # Данные и состояние
-└── shared/                 # Переиспользуемый код
-```
-
-Подробнее см. архитектуру в комментариях к коду.
-
-## Интеграция с данными
-
-### Структура JSON файлов
-
-Все данные хранятся в `trainer/public/data/`:
-
-```
-trainer/public/data/
-├── lesson_01.json
-├── lesson_02.json
-└── ...
-```
-
-### Формат JSON файла урока
+1. Create `public/data/lesson_XX.json`:
 
 ```json
 {
-  "id": "lesson_01",
-  "title": "Урок 1: Короткий звук E [e]",
-  "description": "Закрытый слог с гласной E",
-  "order": 1,
+  "id": "lesson_02",
+  "title": "Lesson 2: Short I [i]",
+  "description": "Closed syllable with vowel I",
+  "order": 2,
   "words": [
     {
-      "id": "ten",
-      "text": "ten",
-      "transcription": "[ten]",
-      "translation": "десять",
-      "phonemes": ["t", "e", "n"],
-      "image": "🔟",
+      "id": "sit",
+      "text": "sit",
+      "transcription": "[sɪt]",
+      "translation": "сидеть",
+      "phonemes": ["s", "i", "t"],
+      "image": "🧘",
       "difficulty": 1,
-      "tags": ["cvc", "number"]
+      "tags": ["cvc", "action"]
     }
   ]
 }
 ```
 
-### Валидация данных
+2. Update `app.js` to load new lesson
+3. Push to GitHub
 
-Все JSON файлы проходят валидацию через Zod схему при загрузке.
+## 🎯 Architecture Highlights
 
-## Добавление нового урока
+### Modular Components
 
-1. Создайте файл `trainer/public/data/lesson_XX.json` по образцу выше
-2. Добавьте урок в список на главной странице (`pages/Home/ui/HomePage.tsx`)
-3. Всё! Код не требует изменений.
+Each component is a **pure function** that returns HTML string:
 
-## UX-особенности для детей
+```javascript
+// components/WordCard.js
+export function WordCard(word) {
+    return `<div class="visual-cue">${word.image}</div>`;
+}
+```
 
-- ✅ Клик-интерфейс (не только drag-and-drop)
-- ✅ Визуальная обратная связь (анимации)
-- ✅ Аудио для каждого звука и слова
-- ✅ Эмодзи как визуальные подсказки
-- ✅ Крупные кнопки и элементы
-- ✅ Простой, яркий дизайн
+### Simple State Management
 
-## Следующие шаги
+```javascript
+// store/gameState.js
+export const gameState = {
+    currentLesson: null,
+    score: 0,
+    
+    setLesson(lesson) {
+        this.currentLesson = lesson;
+        this.render(); // Re-render app
+    },
+    
+    render() {
+        renderApp(); // Full re-render
+    }
+};
+```
 
-### Фаза 1: Основная логика (TODO)
+### No Virtual DOM
 
-- [ ] Реализовать логику сборки слова в `features/phonics-engine`
-- [ ] Добавить проверку правильности в `usePhonicsGame`
-- [ ] Реализовать начисление очков
-- [ ] Добавить переход к следующему слову
+Full re-render on state change. Fast enough for this app!
 
-### Фаза 2: Аудио (TODO)
+## ✅ Browser Support
 
-- [ ] Интегрировать Web Speech API в `features/audio-manager`
-- [ ] Добавить предзагрузку аудио файлов
-- [ ] Реализовать звуки успеха/ошибки
+- ✅ Chrome/Edge 61+ (2017)
+- ✅ Firefox 60+ (2018)
+- ✅ Safari 11+ (2017)
+- ✅ Mobile browsers (iOS Safari 11+, Chrome Mobile)
 
-### Фаза 3: Анимации (TODO)
+**ES Modules** supported everywhere modern!
 
-- [ ] Добавить Framer Motion анимации
-- [ ] Анимация появления карточек
-- [ ] Анимация успешной сборки слова
-- [ ] Салют при победе
+## 🔧 Troubleshooting
 
-### Фаза 4: Дополнительные функции
+### "CORS error" when opening file://
 
-- [ ] Система подсказок после 3 попыток
-- [ ] Интервальное повторение (spaced repetition)
-- [ ] Статистика прогресса
-- [ ] Локальное сохранение результатов
+**Solution**: Use local server (see Local Development above)
 
-## Автономность
+### "Failed to load lesson"
 
-**Trainer полностью независим:**
+**Check**:
+1. File exists at `public/data/lesson_01.json`
+2. JSON is valid (use jsonlint.com)
+3. Path is correct in `lessonLoader.js`
 
-✅ Собственный `package.json`  
-✅ Собственный `vite.config.ts`  
-✅ Собственная папка `public/data/`  
-✅ Собственная сборка (`npm run build`)  
-✅ Может работать как standalone проект  
+### "Module not found"
 
-**Не зависит от:**
+**Check**:
+1. File extensions: `.js` required in imports
+2. Paths are relative: `./utils/helpers.js`
+3. Export/import names match
 
-❌ Корневого `/data` репозитория  
-❌ Других модулей проекта  
-❌ Legacy кода  
+## 🎉 Benefits Over React Version
 
-## Лицензия
+| Feature | React | Vanilla JS |
+|---------|-------|------------|
+| **Build required** | ✅ Yes | ❌ No |
+| **Node.js required** | ✅ Yes | ❌ No |
+| **Deploy speed** | 2-3 min | 10 sec |
+| **File size** | ~200KB | ~20KB |
+| **Learning curve** | High | Low |
+| **Debuggable** | Medium | Easy |
+| **Modular** | ✅ Yes | ✅ Yes |
+
+## 📚 Resources
+
+- [ES Modules Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
+- [Feature-Sliced Design](https://feature-sliced.design/)
+
+## 🆘 License
 
 MIT
