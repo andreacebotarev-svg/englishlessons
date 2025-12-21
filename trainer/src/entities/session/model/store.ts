@@ -1,95 +1,108 @@
 import { create } from 'zustand';
-import type { IWordCard } from '@/entities/dictionary/model/schema';
+import type { WordCard, Lesson } from '@/entities/dictionary';
 
-interface SessionState {
-  // Текущее слово
-  currentWord: IWordCard | null;
+/**
+ * Global session state management
+ */
+
+export interface SessionState {
+  // Current lesson data
+  currentLesson: Lesson | null;
+  currentWordIndex: number;
   
-  // Ответ пользователя (массив фонем в слотах)
-  userAnswer: string[];
-  
-  // Очки и прогресс
+  // Game state
   score: number;
-  wordIndex: number; // Индекс текущего слова в уроке
+  attempts: number;
+  status: 'idle' | 'playing' | 'success' | 'error' | 'completed';
   
-  // Флаги состояния
-  isChecking: boolean;
-  isCorrect: boolean | null; // null = не проверялось, true/false = результат
+  // Word construction state
+  selectedPhonemes: (string | null)[];
   
   // Actions
-  setCurrentWord: (word: IWordCard) => void;
-  setPhonemeInSlot: (index: number, phoneme: string) => void;
-  clearSlot: (index: number) => void;
-  checkAnswer: () => void;
+  setLesson: (lesson: Lesson) => void;
   nextWord: () => void;
-  reset: () => void;
+  submitPhoneme: (phoneme: string, slotIndex: number) => void;
+  checkWord: () => boolean;
+  resetGame: () => void;
 }
 
 export const useSessionStore = create<SessionState>((set, get) => ({
-  currentWord: null,
-  userAnswer: [],
+  // Initial state
+  currentLesson: null,
+  currentWordIndex: 0,
   score: 0,
-  wordIndex: 0,
-  isChecking: false,
-  isCorrect: null,
-
-  setCurrentWord: (word) => {
-    set({ 
-      currentWord: word, 
-      userAnswer: new Array(word.phonemes.length).fill(''),
-      isCorrect: null,
+  attempts: 0,
+  status: 'idle',
+  selectedPhonemes: [],
+  
+  // Actions
+  setLesson: (lesson) => {
+    set({
+      currentLesson: lesson,
+      currentWordIndex: 0,
+      selectedPhonemes: new Array(lesson.words[0]?.phonemes.length || 0).fill(null),
+      status: 'playing',
+      score: 0,
+      attempts: 0,
     });
   },
-
-  setPhonemeInSlot: (index, phoneme) => {
-    const { userAnswer } = get();
-    const newAnswer = [...userAnswer];
-    newAnswer[index] = phoneme;
-    set({ userAnswer: newAnswer });
-  },
-
-  clearSlot: (index) => {
-    const { userAnswer } = get();
-    const newAnswer = [...userAnswer];
-    newAnswer[index] = '';
-    set({ userAnswer: newAnswer });
-  },
-
-  checkAnswer: () => {
-    const { currentWord, userAnswer } = get();
-    if (!currentWord) return;
-
-    set({ isChecking: true });
-
-    // Проверка: сравниваем массивы
-    const correct = userAnswer.every(
-      (phoneme, idx) => phoneme === currentWord.phonemes[idx]
-    );
-
-    setTimeout(() => {
-      set({ 
-        isCorrect: correct, 
-        isChecking: false,
-        score: correct ? get().score + 10 : get().score,
-      });
-    }, 500); // Анимация проверки
-  },
-
+  
   nextWord: () => {
-    set((state) => ({ 
-      wordIndex: state.wordIndex + 1,
-      isCorrect: null,
-    }));
+    const state = get();
+    const nextIndex = state.currentWordIndex + 1;
+    
+    if (state.currentLesson && nextIndex < state.currentLesson.words.length) {
+      const nextWord = state.currentLesson.words[nextIndex];
+      set({
+        currentWordIndex: nextIndex,
+        selectedPhonemes: new Array(nextWord.phonemes.length).fill(null),
+        status: 'playing',
+      });
+    } else {
+      set({ status: 'completed' });
+    }
   },
-
-  reset: () => {
-    set({ 
-      currentWord: null,
-      userAnswer: [],
+  
+  submitPhoneme: (phoneme, slotIndex) => {
+    const state = get();
+    const newPhonemes = [...state.selectedPhonemes];
+    newPhonemes[slotIndex] = phoneme;
+    
+    set({
+      selectedPhonemes: newPhonemes,
+      attempts: state.attempts + 1,
+    });
+  },
+  
+  checkWord: () => {
+    const state = get();
+    if (!state.currentLesson) return false;
+    
+    const currentWord = state.currentLesson.words[state.currentWordIndex];
+    const isCorrect = state.selectedPhonemes.every(
+      (phoneme, index) => phoneme === currentWord.phonemes[index]
+    );
+    
+    if (isCorrect) {
+      set({
+        status: 'success',
+        score: state.score + 10,
+      });
+    } else {
+      set({ status: 'error' });
+    }
+    
+    return isCorrect;
+  },
+  
+  resetGame: () => {
+    set({
+      currentLesson: null,
+      currentWordIndex: 0,
       score: 0,
-      wordIndex: 0,
-      isChecking: false,
-      isCorrect: null,
+      attempts: 0,
+      status: 'idle',
+      selectedPhonemes: [],
     });
   },
 }));
