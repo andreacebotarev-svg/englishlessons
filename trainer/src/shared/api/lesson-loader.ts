@@ -1,21 +1,16 @@
 import { LessonSchema, ILesson } from '@/entities/dictionary/model/schema';
 
 /**
- * Загружает урок по ID из папки data (на 2 уровня выше)
+ * Загружает урок по ID из папки data
  * @param lessonId - например 'lesson_01'
  */
 export const fetchLesson = async (lessonId: string): Promise<ILesson> => {
   try {
-    // Vite alias позволяет делать запросы к файловой системе в dev режиме
-    // В продакшене это будет обычный fetch к ./data/...
-    // Важно: путь должен быть относительным от корня сайта на GitHub Pages
-    
-    // Определяем базовый путь. 
-    // В режиме DEV (localhost) файлы лежат в корневой папке ../../data
-    // В режиме PROD (GitHub) они будут лежать параллельно с index.html тренажера
-    
+    // Определяем путь к данным
+    // DEV: ../../data (относительно trainer/src/shared/api/)
+    // PROD: ../data (относительно trainer/dist/)
     const isDev = import.meta.env.DEV;
-    const basePath = isDev ? '../../data' : '../../data'; 
+    const basePath = isDev ? '../../data' : '../data'; 
     
     const response = await fetch(`${basePath}/${lessonId}.json`);
 
@@ -25,7 +20,7 @@ export const fetchLesson = async (lessonId: string): Promise<ILesson> => {
 
     const rawData = await response.json();
 
-    // Zod валидация: если в JSON ошибка, код упадет здесь и скажет ГДЕ именно
+    // Zod валидация
     const parsedData = LessonSchema.parse(rawData);
     
     return parsedData;
