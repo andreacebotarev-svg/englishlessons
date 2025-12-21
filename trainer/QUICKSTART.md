@@ -1,65 +1,67 @@
-# 🚀 Быстрый старт English Phonics Trainer
+# Quick Start - First Deployment
 
-## Установка зависимостей
+## You need Node.js installed!
+
+Check: `node --version` (need 18+)
+
+If not installed: https://nodejs.org/
+
+## Step 1: Build the app
 
 ```bash
-cd trainer
+# Clone if not done yet
+git clone https://github.com/andreacebotarev-svg/englishlessons.git
+cd englishlessons/trainer
+
+# Install dependencies
 npm install
-```
 
-## Запуск в режиме разработки
-
-```bash
-npm run dev
-```
-
-Откройте браузер по адресу: `http://localhost:5173`
-
-## Сборка для продакшена
-
-```bash
+# Build the app
 npm run build
 ```
 
-Файлы будут в папке `trainer/dist/`
+This creates `trainer/dist/` folder with ready files.
 
-## Структура проекта
+## Step 2: Commit dist/
 
-```
-trainer/
-├── src/
-│   ├── app/                  # Точка входа, роутинг
-│   ├── entities/
-│   │   ├── dictionary/      # Zod-схемы данных
-│   │   └── session/         # Zustand store (состояние игры)
-│   ├── features/
-│   │   └── phonics-engine/  # Логика проверки слов
-│   ├── pages/
-│   │   ├── Home/            # Меню уроков
-│   │   └── LessonTrainer/   # Страница игры
-│   ├── shared/
-│   │   └── api/             # API загрузки JSON
-│   └── widgets/
-│       └── PhonemeBuilder/  # Игровой виджет
-└── data/                   # JSON с уроками (на 2 уровня выше)
+```bash
+cd ..
+git add trainer/dist
+git commit -m "build: initial trainer dist"
+git push origin main
 ```
 
-## Как работает игра?
+## Step 3: Configure GitHub Pages
 
-1. **Загрузка данных**: `lesson-loader.ts` читает JSON из `../../data/lesson_XX.json`
-2. **Валидация**: Zod-схемы проверяют корректность структуры
-3. **Состояние**: Zustand хранит текущее слово, ответ, очки
-4. **UI**: `PhonemeBuilder` отображает слоты и кнопки фонем
-5. **Проверка**: Сравнение `userAnswer` с `currentWord.phonemes`
+1. Go to: https://github.com/andreacebotarev-svg/englishlessons/settings/pages
+2. Under "Build and deployment":
+   - **Source**: Deploy from a branch
+   - **Branch**: main
+   - **Folder**: /trainer/dist
+3. Click Save
 
-## Добавление нового урока
+## Step 4: Wait and check
 
-Создайте `data/lesson_04.json` по аналогии с `lesson_01.json`. Схема Zod автоматически провалидирует структуру.
+Wait 1-2 minutes, then open:
+```
+https://andreacebotarev-svg.github.io/englishlessons/trainer/
+```
 
-## Технологии
+## Done!
 
-- **React 18** + **TypeScript** + **Vite**
-- **React Router** — навигация
-- **Zustand** — управление состоянием
-- **Zod** — валидация данных
-- **TailwindCSS** — стили
+Now for future updates:
+```bash
+cd trainer
+npm run deploy  # builds
+cd ..
+git add trainer/dist
+git commit -m "build: update"
+git push
+```
+
+Or use scripts:
+```bash
+cd trainer
+./deploy.sh        # Linux/Mac
+deploy.bat         # Windows
+```
