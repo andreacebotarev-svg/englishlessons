@@ -5,7 +5,6 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   
-  // GitHub Pages base URL
   base: '/englishlessons/trainer/',
 
   resolve: {
@@ -14,8 +13,13 @@ export default defineConfig({
     },
   },
 
-  // NO NEED for fs.allow - data is inside trainer/
-  
+  server: {
+    fs: {
+      // Разрешаем доступ к папке data на 2 уровня выше
+      allow: ['..'],
+    },
+  },
+
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
