@@ -1,62 +1,115 @@
-export class LessonLoader {
+// Lesson data loader with caching
+class LessonManager {
   constructor() {
     this.cache = new Map();
-    this.baseUrl = window.location.origin.includes('localhost') 
-      ? '/data/trainer/'
-      : 'https://raw.githubusercontent.com/andreacebotarev-svg/englishlessons/main/data/trainer/';
+    this.baseUrl = '../../data/trainer';
   }
-
-  async loadLesson(lessonId) {
-    // Check cache
+  
+  // Load lesson from JSON file
+  async load(lessonId) {
+    // Check cache first
     if (this.cache.has(lessonId)) {
       return this.cache.get(lessonId);
     }
-
+    
     try {
-      // Try relative path first (for local and GitHub Pages)
-      let url = `../../data/trainer/lesson_${String(lessonId).padStart(2, '0')}.json`;
-      let response = await fetch(url);
+      const response = await fetch(`${this.baseUrl}/lesson_${String(lessonId).padStart(2, '0')}.json`);
       
-      // If failed, try absolute GitHub raw URL
       if (!response.ok) {
-        url = `${this.baseUrl}lesson_${String(lessonId).padStart(2, '0')}.json`;
-        response = await fetch(url);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      if (!response.ok) {
-        throw new Error(`Lesson ${lessonId} not found`);
+      
+      const lesson = await response.json();
+      
+      // Validate lesson structure
+      if (!this.validate(lesson)) {
+        throw new Error('Invalid lesson structure');
       }
-
-      const data = await response.json();
-      this.cache.set(lessonId, data);
-      return data;
+      
+      // Cache the lesson
+      this.cache.set(lessonId, lesson);
+      
+      return lesson;
     } catch (error) {
-      console.error('Failed to load lesson:', error);
+      console.error(`Failed to load lesson ${lessonId}:`, error);
       throw error;
     }
   }
-
-  async loadAllLessons() {
-    const lessons = [];
-    let lessonId = 1;
-    let consecutiveFailures = 0;
-
-    while (consecutiveFailures < 3) {
-      try {
-        const lesson = await this.loadLesson(lessonId);
-        lessons.push(lesson);
-        consecutiveFailures = 0;
-        lessonId++;
-      } catch (error) {
-        consecutiveFailures++;
-        lessonId++;
+  
+  // Validate lesson structure
+  validate(lesson) {
+    const required = ['id', 'title', 'emoji', 'rule', 'description', 'phonemesSet', 'wordCount', 'estimatedTime', 'words'];
+    
+    for (const field of required) {
+      if (!(field in lesson)) {
+        console.error(`Missing required field: ${field}`);
+        return false;
       }
     }
-
+    
+    // Validate words array
+    if (!Array.isArray(lesson.words) || lesson.words.length === 0) {
+      console.error('Words must be a non-empty array');
+      return false;
+    }
+    
+    // Validate each word
+    for (const word of lesson.words) {
+      if (!word.word || !word.phonemes || !word.translation) {
+        console.error('Invalid word structure:', word);
+        return false;
+      }
+    }
+    
+    return true;
+  }
+  
+  // Load lesson metadata (without full word data)
+  async loadMetadata(lessonId) {
+    const lesson = await this.load(lessonId);
+    return {
+      id: lesson.id,
+      title: lesson.title,
+      emoji: lesson.emoji,
+      rule: lesson.rule,
+      description: lesson.description,
+      wordCount: lesson.wordCount,
+      estimatedTime: lesson.estimatedTime,
+      phonemesSet: lesson.phonemesSet
+    };
+  }
+  
+  // Get list of available lessons
+  async getAvailableLessons() {
+    // For now, return a fixed list
+    // In production, this could be fetched from an index file
+    const lessonIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    
+    const lessons = [];
+    for (const id of lessonIds) {
+      try {
+        const metadata = await this.loadMetadata(id);
+        lessons.push(metadata);
+      } catch (error) {
+        // Lesson doesn't exist, skip it
+        continue;
+      }
+    }
+    
     return lessons;
   }
-
+  
+  // Clear cache
   clearCache() {
     this.cache.clear();
   }
+  
+  // Preload lessons
+  async preload(lessonIds) {
+    const promises = lessonIds.map(id => this.load(id).catch(() => null));
+    await Promise.all(promises);
+  }
 }
+
+// Export singleton instance
+export const lessons = new LessonManager();
