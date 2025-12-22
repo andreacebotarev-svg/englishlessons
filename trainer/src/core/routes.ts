@@ -3,7 +3,7 @@
  * Centralized route definitions with lazy loading
  */
 
-import type { RouteDefinition, EmptyParams, LessonParams } from './types';
+import type { RouteDefinition } from './types';
 
 /**
  * All application routes
@@ -30,6 +30,13 @@ export const routes: RouteDefinition[] = [
       return ResultsPage;
     },
   },
+  {
+    path: '/demo',
+    loader: async () => {
+      const { ComponentsDemoPage } = await import('@/pages/ComponentsDemoPage');
+      return ComponentsDemoPage;
+    },
+  },
 ];
 
 /**
@@ -39,4 +46,5 @@ export const RoutePaths = {
   home: '/',
   lesson: (id: string | number) => `/lesson/${id}`,
   results: '/results',
+  demo: '/demo',
 } as const;
