@@ -2,7 +2,8 @@
 class LessonManager {
   constructor() {
     this.cache = new Map();
-    this.baseUrl = '../../data/trainer';
+    // Fixed path for GitHub Pages
+    this.baseUrl = '/data/trainer';
   }
   
   // Load lesson from JSON file
@@ -81,9 +82,8 @@ class LessonManager {
   
   // Get list of available lessons
   async getAvailableLessons() {
-    // For now, return a fixed list
-    // In production, this could be fetched from an index file
-    const lessonIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    // Return a fixed list of lesson IDs to try
+    const lessonIds = [1, 2, 3, 4];
     
     const lessons = [];
     for (const id of lessonIds) {
@@ -91,7 +91,8 @@ class LessonManager {
         const metadata = await this.loadMetadata(id);
         lessons.push(metadata);
       } catch (error) {
-        // Lesson doesn't exist, skip it
+        // Lesson doesn't exist or failed to load, skip it
+        console.warn(`Lesson ${id} not available:`, error.message);
         continue;
       }
     }
