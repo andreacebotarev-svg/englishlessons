@@ -1,60 +1,68 @@
 {
   "id": 4,
-  "title": "Урок 4: Сочетания согласных",
-  "emoji": "🎵",
-  "rule": "Сочетания CH, SH, TH читаются как один звук",
-  "description": "Изучаем диграфы",
-  "phonemesSet": ["ch", "i", "p", "sh", "o", "th", "a", "t", "n"],
-  "wordCount": 6,
-  "estimatedTime": 6,
+  "title": "Урок 4: Сочетание SH",
+  "emoji": "🤫",
+  "rule": "SH читается как [ʃ] - шипящий звук",
+  "description": "Изучаем сочетание SH",
+  "phonemesSet": ["sh", "i", "p", "f", "e", "l", "o", "t", "a", "k"],
+  "wordCount": 8,
+  "estimatedTime": 8,
   "words": [
     {
-      "word": "chip",
-      "phonemes": ["ch", "i", "p"],
-      "translation": "чип",
-      "transcription": "[tʃɪp]",
-      "emoji": "🧀",
-      "imageUrl": null
+      "word": "ship",
+      "phonemes": ["sh", "i", "p"],
+      "translation": "корабль",
+      "transcription": "[ʃɪp]",
+      "emoji": "🚢"
+    },
+    {
+      "word": "fish",
+      "phonemes": ["f", "i", "sh"],
+      "translation": "рыба",
+      "transcription": "[fɪʃ]",
+      "emoji": "🐟"
+    },
+    {
+      "word": "shell",
+      "phonemes": ["sh", "e", "l"],
+      "translation": "раковина",
+      "transcription": "[ʃel]",
+      "emoji": "🐚"
     },
     {
       "word": "shop",
       "phonemes": ["sh", "o", "p"],
       "translation": "магазин",
       "transcription": "[ʃɒp]",
-      "emoji": "🏪",
-      "imageUrl": null
+      "emoji": "🏪"
     },
     {
-      "word": "thin",
-      "phonemes": ["th", "i", "n"],
-      "translation": "тонкий",
-      "transcription": "[θɪn]",
-      "emoji": "📐",
-      "imageUrl": null
+      "word": "shot",
+      "phonemes": ["sh", "o", "t"],
+      "translation": "выстрел",
+      "transcription": "[ʃɒt]",
+      "emoji": "🎯"
     },
     {
-      "word": "chat",
-      "phonemes": ["ch", "a", "t"],
-      "translation": "чат",
-      "transcription": "[tʃæt]",
-      "emoji": "💬",
-      "imageUrl": null
+      "word": "ash",
+      "phonemes": ["a", "sh"],
+      "translation": "пепел",
+      "transcription": "[æʃ]",
+      "emoji": "🌫️"
     },
     {
-      "word": "ship",
-      "phonemes": ["sh", "i", "p"],
-      "translation": "корабль",
-      "transcription": "[ʃɪp]",
-      "emoji": "🚢",
-      "imageUrl": null
+      "word": "cash",
+      "phonemes": ["k", "a", "sh"],
+      "translation": "наличные",
+      "transcription": "[kæʃ]",
+      "emoji": "💵"
     },
     {
-      "word": "that",
-      "phonemes": ["th", "a", "t"],
-      "translation": "тот",
-      "transcription": "[ðæt]",
-      "emoji": "👆",
-      "imageUrl": null
+      "word": "she",
+      "phonemes": ["sh", "e"],
+      "translation": "она",
+      "transcription": "[ʃiː]",
+      "emoji": "👧"
     }
   ]
 }
