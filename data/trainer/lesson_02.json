@@ -1,82 +1,44 @@
 {
   "id": 2,
-  "title": "Урок 2: Гласная I",
-  "emoji": "🎯",
-  "rule": "Буква I в закрытом слоге читается как [ɪ]",
-  "description": "Изучаем короткий звук I",
-  "phonemesSet": ["p", "i", "g", "b", "t", "k", "s", "n", "f", "h"],
-  "wordCount": 10,
-  "estimatedTime": 10,
+  "title": "Урок 2: Буква U в закрытом слоге",
+  "emoji": "☕",
+  "rule": "Буква U в закрытом слоге читается как [ʌ]",
+  "description": "Изучаем короткий звук U",
+  "phonemesSet": ["u", "p", "c", "n", "t", "s"],
+  "wordCount": 4,
+  "estimatedTime": 5,
   "words": [
     {
-      "word": "pig",
-      "phonemes": ["p", "i", "g"],
-      "translation": "свинья",
-      "transcription": "[pɪg]",
-      "emoji": "🐷"
+      "word": "up",
+      "phonemes": ["u", "p"],
+      "translation": "вверх",
+      "transcription": "[ʌp]",
+      "emoji": "⬆️",
+      "imageUrl": null
     },
     {
-      "word": "big",
-      "phonemes": ["b", "i", "g"],
-      "translation": "большой",
-      "transcription": "[bɪg]",
-      "emoji": "📏"
+      "word": "cup",
+      "phonemes": ["c", "u", "p"],
+      "translation": "чашка",
+      "transcription": "[kʌp]",
+      "emoji": "☕",
+      "imageUrl": null
     },
     {
-      "word": "bit",
-      "phonemes": ["b", "i", "t"],
-      "translation": "кусочек",
-      "transcription": "[bɪt]",
-      "emoji": "🍪"
+      "word": "nut",
+      "phonemes": ["n", "u", "t"],
+      "translation": "орех",
+      "transcription": "[nʌt]",
+      "emoji": "🥜",
+      "imageUrl": null
     },
     {
-      "word": "kit",
-      "phonemes": ["k", "i", "t"],
-      "translation": "набор",
-      "transcription": "[kɪt]",
-      "emoji": "🧰"
-    },
-    {
-      "word": "sit",
-      "phonemes": ["s", "i", "t"],
-      "translation": "сидеть",
-      "transcription": "[sɪt]",
-      "emoji": "🪑"
-    },
-    {
-      "word": "pin",
-      "phonemes": ["p", "i", "n"],
-      "translation": "булавка",
-      "transcription": "[pɪn]",
-      "emoji": "📌"
-    },
-    {
-      "word": "bin",
-      "phonemes": ["b", "i", "n"],
-      "translation": "мусорка",
-      "transcription": "[bɪn]",
-      "emoji": "🗑️"
-    },
-    {
-      "word": "fin",
-      "phonemes": ["f", "i", "n"],
-      "translation": "плавник",
-      "transcription": "[fɪn]",
-      "emoji": "🦈"
-    },
-    {
-      "word": "hip",
-      "phonemes": ["h", "i", "p"],
-      "translation": "бедро",
-      "transcription": "[hɪp]",
-      "emoji": "🦵"
-    },
-    {
-      "word": "tip",
-      "phonemes": ["t", "i", "p"],
-      "translation": "кончик",
-      "transcription": "[tɪp]",
-      "emoji": "☝️"
+      "word": "sun",
+      "phonemes": ["s", "u", "n"],
+      "translation": "солнце",
+      "transcription": "[sʌn]",
+      "emoji": "☀️",
+      "imageUrl": null
     }
   ]
 }

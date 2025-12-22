@@ -1,68 +1,44 @@
 {
   "id": 4,
-  "title": "Урок 4: Сочетание SH",
-  "emoji": "🤫",
-  "rule": "SH читается как [ʃ] - шипящий звук",
-  "description": "Изучаем сочетание SH",
-  "phonemesSet": ["sh", "i", "p", "f", "e", "l", "o", "t", "a", "k"],
-  "wordCount": 8,
-  "estimatedTime": 8,
+  "title": "Урок 4: Буква O в закрытом слоге",
+  "emoji": "🐕",
+  "rule": "Буква O в закрытом слоге читается как [ɒ]",
+  "description": "Изучаем короткий звук O",
+  "phonemesSet": ["d", "o", "g", "m", "p", "t", "n"],
+  "wordCount": 4,
+  "estimatedTime": 5,
   "words": [
     {
-      "word": "ship",
-      "phonemes": ["sh", "i", "p"],
-      "translation": "корабль",
-      "transcription": "[ʃɪp]",
-      "emoji": "🚢"
+      "word": "dog",
+      "phonemes": ["d", "o", "g"],
+      "translation": "собака",
+      "transcription": "[dɒg]",
+      "emoji": "🐕",
+      "imageUrl": null
     },
     {
-      "word": "fish",
-      "phonemes": ["f", "i", "sh"],
-      "translation": "рыба",
-      "transcription": "[fɪʃ]",
-      "emoji": "🐟"
+      "word": "mop",
+      "phonemes": ["m", "o", "p"],
+      "translation": "швабра",
+      "transcription": "[mɒp]",
+      "emoji": "🧹",
+      "imageUrl": null
     },
     {
-      "word": "shell",
-      "phonemes": ["sh", "e", "l"],
-      "translation": "раковина",
-      "transcription": "[ʃel]",
-      "emoji": "🐚"
+      "word": "top",
+      "phonemes": ["t", "o", "p"],
+      "translation": "юла",
+      "transcription": "[tɒp]",
+      "emoji": "🎪",
+      "imageUrl": null
     },
     {
-      "word": "shop",
-      "phonemes": ["sh", "o", "p"],
-      "translation": "магазин",
-      "transcription": "[ʃɒp]",
-      "emoji": "🏪"
-    },
-    {
-      "word": "shot",
-      "phonemes": ["sh", "o", "t"],
-      "translation": "выстрел",
-      "transcription": "[ʃɒt]",
-      "emoji": "🎯"
-    },
-    {
-      "word": "ash",
-      "phonemes": ["a", "sh"],
-      "translation": "пепел",
-      "transcription": "[æʃ]",
-      "emoji": "🌫️"
-    },
-    {
-      "word": "cash",
-      "phonemes": ["k", "a", "sh"],
-      "translation": "наличные",
-      "transcription": "[kæʃ]",
-      "emoji": "💵"
-    },
-    {
-      "word": "she",
-      "phonemes": ["sh", "e"],
-      "translation": "она",
-      "transcription": "[ʃiː]",
-      "emoji": "👧"
+      "word": "pond",
+      "phonemes": ["p", "o", "n", "d"],
+      "translation": "пруд",
+      "transcription": "[pɒnd]",
+      "emoji": "🦆",
+      "imageUrl": null
     }
   ]
 }

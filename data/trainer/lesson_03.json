@@ -1,75 +1,44 @@
 {
   "id": 3,
-  "title": "Урок 3: Гласная O",
-  "emoji": "🎨",
-  "rule": "Буква O в закрытом слоге читается как [ɒ]",
-  "description": "Изучаем короткий звук O",
-  "phonemesSet": ["h", "o", "t", "p", "d", "g", "b", "x", "f", "n"],
-  "wordCount": 9,
-  "estimatedTime": 9,
+  "title": "Урок 3: Буква A в закрытом слоге",
+  "emoji": "🐈",
+  "rule": "Буква A в закрытом слоге читается как [æ]",
+  "description": "Изучаем короткий звук A",
+  "phonemesSet": ["c", "a", "t", "h", "n", "m", "p"],
+  "wordCount": 4,
+  "estimatedTime": 5,
   "words": [
     {
-      "word": "hot",
-      "phonemes": ["h", "o", "t"],
-      "translation": "горячий",
-      "transcription": "[hɒt]",
-      "emoji": "🔥"
+      "word": "cat",
+      "phonemes": ["c", "a", "t"],
+      "translation": "кошка",
+      "transcription": "[kæt]",
+      "emoji": "🐈",
+      "imageUrl": null
     },
     {
-      "word": "pot",
-      "phonemes": ["p", "o", "t"],
-      "translation": "горшок",
-      "transcription": "[pɒt]",
-      "emoji": "🍲"
+      "word": "hat",
+      "phonemes": ["h", "a", "t"],
+      "translation": "шляпа",
+      "transcription": "[hæt]",
+      "emoji": "🎩",
+      "imageUrl": null
     },
     {
-      "word": "dot",
-      "phonemes": ["d", "o", "t"],
-      "translation": "точка",
-      "transcription": "[dɒt]",
-      "emoji": "⚫"
+      "word": "ant",
+      "phonemes": ["a", "n", "t"],
+      "translation": "муравей",
+      "transcription": "[ænt]",
+      "emoji": "🐜",
+      "imageUrl": null
     },
     {
-      "word": "dog",
-      "phonemes": ["d", "o", "g"],
-      "translation": "собака",
-      "transcription": "[dɒg]",
-      "emoji": "🐕"
-    },
-    {
-      "word": "hop",
-      "phonemes": ["h", "o", "p"],
-      "translation": "прыгать",
-      "transcription": "[hɒp]",
-      "emoji": "🦘"
-    },
-    {
-      "word": "box",
-      "phonemes": ["b", "o", "x"],
-      "translation": "коробка",
-      "transcription": "[bɒks]",
-      "emoji": "📦"
-    },
-    {
-      "word": "fox",
-      "phonemes": ["f", "o", "x"],
-      "translation": "лиса",
-      "transcription": "[fɒks]",
-      "emoji": "🦊"
-    },
-    {
-      "word": "bob",
-      "phonemes": ["b", "o", "b"],
-      "translation": "качаться",
-      "transcription": "[bɒb]",
-      "emoji": "⛵"
-    },
-    {
-      "word": "nod",
-      "phonemes": ["n", "o", "d"],
-      "translation": "кивать",
-      "transcription": "[nɒd]",
-      "emoji": "👍"
+      "word": "map",
+      "phonemes": ["m", "a", "p"],
+      "translation": "карта",
+      "transcription": "[mæp]",
+      "emoji": "🗺️",
+      "imageUrl": null
     }
   ]
 }
