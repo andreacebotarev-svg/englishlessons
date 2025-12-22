@@ -53,6 +53,69 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Professional Header */
+        .lesson-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+        .lesson-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        .lesson-header h2 {
+            margin: 0 0 1rem 0;
+            font-size: 1.1rem;
+            font-weight: 400;
+            opacity: 0.95;
+        }
+        .lesson-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.15);
+            padding: 1rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .meta-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+        .meta-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .instructions-box {
+            background: rgba(255,255,255,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .instructions-box h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .instructions-box ol {
+            margin: 0;
+            padding-left: 1.5rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
         /* Layout */
         header {
             background: var(--bg);
@@ -77,7 +140,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 1.5rem;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             width: 100%;
         }
@@ -115,7 +178,7 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             line-height: 1.8;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
         .reading-intro {
             background: #eff6ff;
@@ -126,7 +189,156 @@
         }
         .text-word { cursor: pointer; border-bottom: 1px dotted transparent; transition: all 0.2s; }
         .text-word:hover { border-bottom-color: var(--primary); color: var(--primary); background: #eff6ff; }
-        .paragraph { margin-bottom: 1.5rem; text-align: justify; }
+        .paragraph { 
+            margin-bottom: 1.5rem; 
+            text-align: justify; 
+            line-height: 1.8;
+        }
+        .para-number {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        /* Comprehension Tasks */
+        .task-section {
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-top: 1.5rem;
+        }
+        .task-section h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        .task-instruction {
+            background: #fef3c7;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            border-left: 3px solid #f59e0b;
+        }
+
+        /* Matching Task */
+        .matching-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+        .matching-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 3fr;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .para-label {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        .matching-select {
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .matching-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .matching-select.correct {
+            border-color: var(--success);
+            background: #ecfdf5;
+        }
+        .matching-select.incorrect {
+            border-color: var(--error);
+            background: #fef2f2;
+        }
+        .heading-option {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* True/False Task */
+        .tf-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+        .tf-item {
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .tf-statement {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .tf-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .tf-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .tf-btn:hover {
+            background: #f3f4f6;
+        }
+        .tf-btn.selected {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+        .tf-btn.correct {
+            border-color: var(--success);
+            background: #ecfdf5;
+            color: var(--success);
+        }
+        .tf-btn.incorrect {
+            border-color: var(--error);
+            background: #fef2f2;
+            color: var(--error);
+        }
+        .tf-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            display: none;
+        }
+        .tf-feedback.show {
+            display: block;
+        }
+        .tf-feedback.correct-fb {
+            background: #ecfdf5;
+            color: var(--success);
+        }
+        .tf-feedback.incorrect-fb {
+            background: #fef2f2;
+            color: var(--error);
+        }
 
         /* Vocabulary Section */
         .vocab-grid {
@@ -148,7 +360,7 @@
         .vocab-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
         .word-head { display: flex; justify-content: space-between; align-items: center; }
         .word { font-size: 1.25rem; font-weight: 700; color: var(--text); }
-        .definition { color: var(--text-light); font-size: 0.95rem; }
+        .definition { color: var(--text-light); font-size: 0.95rem; line-height: 1.5; }
         .audio-btn {
             background: var(--secondary);
             border: none;
@@ -157,6 +369,10 @@
             cursor: pointer;
             display: flex;
             align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
+        .audio-btn:hover {
+            transform: scale(1.1);
         }
 
         /* Quiz Section */
@@ -174,7 +390,7 @@
             border-radius: 8px;
             font-size: 1rem;
             width: 100%;
-            max-width: 300px;
+            max-width: 400px;
             transition: border-color 0.2s;
         }
         .quiz-input:focus { outline: none; border-color: var(--primary); }
@@ -189,9 +405,10 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             cursor: pointer;
+            transition: background 0.2s;
         }
         .radio-label:hover { background: var(--secondary); }
-        .radio-label input { margin-right: 0.75rem; }
+        .radio-label input { margin-right: 0.75rem; cursor: pointer; }
 
         /* Sidebar */
         .sidebar {
@@ -239,6 +456,10 @@
             z-index: 90;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.5rem;
+            transition: transform 0.2s;
+        }
+        .toggle-sidebar:hover {
+            transform: scale(1.05);
         }
 
         /* Notification */
@@ -260,8 +481,15 @@
         @media (max-width: 768px) {
             .sidebar { width: 100%; }
             .tabs { width: 100%; justify-content: space-between; }
-            .tab-btn { padding: 0.5rem 1rem; flex: 1; text-align: center; }
+            .tab-btn { padding: 0.5rem 0.75rem; flex: 1; text-align: center; font-size: 0.9rem; }
             .reading-content { padding: 1.25rem; font-size: 1rem; }
+            .lesson-header { padding: 1.5rem 1rem; }
+            .lesson-header h1 { font-size: 1.4rem; }
+            .lesson-meta-grid { grid-template-columns: 1fr; }
+            .matching-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -270,18 +498,39 @@
         <div class="spinner"></div>
     </div>
 
-    <header>
-        <div class="lesson-info">
-            <h1 id="lesson-title">Loading...</h1>
-            <div class="lesson-meta">
-                <span id="lesson-level"></span> • 
-                <span id="lesson-time"></span>
+    <div class="lesson-header">
+        <h1>Unit: Food & Nutrition</h1>
+        <h2>Homework 00 – Reading & Vocabulary</h2>
+        
+        <div class="lesson-meta-grid">
+            <div class="meta-item">
+                <span class="meta-label">Level</span>
+                <span class="meta-value">A2–B1 (Pre-Intermediate)</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Skills</span>
+                <span class="meta-value">Reading, Vocabulary, Speaking</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Focus</span>
+                <span class="meta-value">Meals, healthy food, school canteen</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Estimated Time</span>
+                <span class="meta-value">40–55 minutes</span>
             </div>
         </div>
-        <div class="controls">
-            <!-- Space for extra controls if needed -->
+
+        <div class="instructions-box">
+            <h3>📋 How to work with this lesson</h3>
+            <ol>
+                <li>Start with the <strong>Reading</strong> section and complete all comprehension tasks</li>
+                <li>Study the <strong>Vocabulary</strong> to learn key food-related words</li>
+                <li>Complete the <strong>Quiz</strong> using words from the vocabulary section</li>
+                <li>Send your completed work (screenshot or text) to your teacher</li>
+            </ol>
         </div>
-    </header>
+    </div>
 
     <div class="main-container">
         <main id="app">
@@ -290,11 +539,10 @@
 
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h3>My Words</h3>
+                <h3>My Words 📚</h3>
                 <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;font-size:1.5rem">&times;</button>
             </div>
             <ul class="saved-list" id="saved-list">
-                <!-- Saved words go here -->
                 <li style="text-align:center; color:#9ca3af; margin-top:2rem;">No words saved yet</li>
             </ul>
         </aside>
@@ -311,37 +559,71 @@
         const state = {
             currentTab: 'reading',
             lessonData: null,
-            savedWords: JSON.parse(localStorage.getItem('myWords_263') || '[]'),
+            savedWords: JSON.parse(localStorage.getItem('myWords_153') || '[]'),
             audioEnabled: true
         };
 
-        // --- EMBEDDED DATA (Based on attached images) ---
+        // --- EMBEDDED DATA (Complete with all paragraphs from images) ---
         const RAW_DATA = {
-            id: "263",
+            id: "153",
             title: "Food and Nutrition",
             level: "A2 / Pre-Intermediate",
-            duration: "20 min",
+            duration: "45 min",
             reading: {
                 intro: "Read about Vera. She has a very important job, she is a dinner lady at St Alban's school in Swindon.",
                 preQuestion: {
-                    question: "Before you read, look at the photo of Vera. Where do you think Vera works?",
-                    options: ["Restaurant", "School", "Café", "Supermarket"],
-                    answer: 1 // Index 1 = School
+                    question: "Before you read, where do you think Vera works?",
+                    options: ["Restaurant", "School canteen", "Café", "Supermarket"],
+                    answer: 1
                 },
                 text: [
                     "I love my job. I like working with young people and I love preparing food. I cook lunch every day in the school canteen and I also help to serve the food. Then I clean up – I suppose I am a waitress, chef and cleaner! I work with seven other dinner ladies because there are around 1,400 students at our school and that is a lot of meals!",
                     "My job is sometimes difficult. We try to cook healthy meals and to teach students to eat healthily but some students don't always listen. They sometimes say they don't like the food. I think it's important that students understand that healthy food is really important.",
-                    "There isn't any junk food in the school canteen and there aren't any ready meals. We use fresh ingredients."
-                ]
+                    "There isn't any junk food in the school canteen and there aren't any ready meals. We use fresh ingredients for all our meals. We sometimes cook traditional British food but we often have foreign food too, especially Italian or Chinese. I think the perfect healthy meal is meat or fish with vegetables and rice or potatoes and fresh fruit for dessert.",
+                    "In the break students often eat crisps or chocolate and fizzy drinks, so now we give the students free fruit and milk so they can have a healthy snack. This is a very popular idea, parents love it and some students love it, too!",
+                    "I think that a lot of students' favourite meal is pizza, and ice-cream for dessert. I like that, too but you can't eat it every day. My favourite meal is lasagne and salad and my favourite dessert is chocolate cake but don't tell the students!"
+                ],
+                matchHeadings: {
+                    instruction: "Match the headings a–e with paragraphs 1–5 of the text.",
+                    headings: [
+                        { id: "a", text: "Favourite food" },
+                        { id: "b", text: "School dinners" },
+                        { id: "c", text: "Snacks" },
+                        { id: "d", text: "My job" },
+                        { id: "e", text: "Problems" }
+                    ],
+                    answers: {
+                        "1": "d",
+                        "2": "e",
+                        "3": "b",
+                        "4": "c",
+                        "5": "a"
+                    }
+                },
+                trueFalse: {
+                    instruction: "Read the text again and tick (✓) true or cross (✗) false.",
+                    statements: [
+                        { id: 1, text: "Vera does not like her job.", answer: false },
+                        { id: 2, text: "There are 1,400 students at St Alban's school.", answer: true },
+                        { id: 3, text: "Not all students love healthy food.", answer: true },
+                        { id: 4, text: "They sometimes cook junk food at the school.", answer: false },
+                        { id: 5, text: "In the break students often have fizzy drinks.", answer: true },
+                        { id: 6, text: "All the students love the idea of free fruit.", answer: false },
+                        { id: 7, text: "Vera doesn't like pizza.", answer: false }
+                    ]
+                }
             },
             vocabulary: [
-                { word: "meal", def: "An occasion when food is eaten, or the food itself", type: "noun" },
-                { word: "breakfast", def: "The first meal of the day", type: "noun" },
+                { word: "meal", def: "An occasion when food is eaten, or the food that is eaten", type: "noun" },
+                { word: "breakfast", def: "The first meal of the day, eaten in the morning", type: "noun" },
                 { word: "foreign food", def: "Food that comes from other countries", type: "noun phrase" },
                 { word: "lunch", def: "A meal eaten in the middle of the day", type: "noun" },
-                { word: "traditional dish", def: "A food style that has existed for a long time", type: "noun phrase" },
-                { word: "ready meals", def: "Pre-cooked food bought from a shop", type: "noun plural" },
-                { word: "dessert", def: "Sweet food eaten at the end of a meal", type: "noun" }
+                { word: "traditional dish", def: "A food style that has existed for a long time in a culture", type: "noun phrase" },
+                { word: "ready meals", def: "Pre-cooked food bought from a shop that just needs heating", type: "noun plural" },
+                { word: "dessert", def: "Sweet food eaten at the end of a meal", type: "noun" },
+                { word: "junk food", def: "Food that is not healthy because it contains a lot of fat, salt or sugar", type: "noun" },
+                { word: "ingredients", def: "The things that are used to make food", type: "noun plural" },
+                { word: "snack", def: "A small amount of food eaten between meals", type: "noun" }
             ],
             quiz: [
                 {
@@ -392,18 +674,13 @@
         // --- INIT & UTILS ---
         function initLesson() {
             try {
-                // Simulate fetch
                 setTimeout(() => {
                     state.lessonData = RAW_DATA;
-                    document.getElementById('lesson-title').textContent = state.lessonData.title;
-                    document.getElementById('lesson-level').textContent = state.lessonData.level;
-                    document.getElementById('lesson-time').textContent = state.lessonData.duration;
-                    
                     renderInterface();
                     document.getElementById('loader').style.opacity = '0';
                     setTimeout(() => document.getElementById('loader').remove(), 500);
                     renderMyWordsSidebar();
-                }, 800);
+                }, 600);
             } catch (e) {
                 console.error("Init error", e);
                 alert("Error loading lesson.");
@@ -414,9 +691,9 @@
             const app = document.getElementById('app');
             app.innerHTML = `
                 <div class="tabs">
-                    <button class="tab-btn ${state.currentTab === 'reading' ? 'active' : ''}" onclick="switchTab('reading')">Reading</button>
-                    <button class="tab-btn ${state.currentTab === 'vocab' ? 'active' : ''}" onclick="switchTab('vocab')">Vocabulary</button>
-                    <button class="tab-btn ${state.currentTab === 'quiz' ? 'active' : ''}" onclick="switchTab('quiz')">Quiz</button>
+                    <button class="tab-btn ${state.currentTab === 'reading' ? 'active' : ''}" onclick="switchTab('reading')">📖 Reading</button>
+                    <button class="tab-btn ${state.currentTab === 'vocab' ? 'active' : ''}" onclick="switchTab('vocab')">📚 Vocabulary</button>
+                    <button class="tab-btn ${state.currentTab === 'quiz' ? 'active' : ''}" onclick="switchTab('quiz')">✍️ Quiz</button>
                 </div>
                 <div id="content-area"></div>
             `;
@@ -426,13 +703,14 @@
             else if (state.currentTab === 'vocab') renderVocabulary(content);
             else if (state.currentTab === 'quiz') renderQuiz(content);
         }
+
         function renderReading(container) {
             const data = state.lessonData.reading;
             
-            // Generate Pre-question HTML
+            // Pre-question
             const preHtml = `
                 <div class="reading-intro">
-                    <h3 style="margin-top:0">Pre-reading Task</h3>
+                    <h3 style="margin-top:0">🤔 Pre-reading Task</h3>
                     <p>${data.preQuestion.question}</p>
                     <div class="radio-group">
                         ${data.preQuestion.options.map((opt, i) => `
@@ -446,23 +724,71 @@
                 </div>
             `;
 
-            // Process text for clickable words
-            const processedText = data.text.map(para => {
-                return para.split(' ').map(word => {
-                    // Simple clean for clicking (remove punctuation for TTS)
-                    const clean = word.replace(/[^a-zA-Z]/g, '');
+            // Process text with numbered paragraphs
+            const processedText = data.text.map((para, idx) => {
+                const words = para.split(' ').map(word => {
+                    const clean = word.replace(/[^a-zA-Z'-]/g, '');
                     return `<span class="text-word" onclick="handleWordClick('${clean}')">${word}</span>`;
                 }).join(' ');
-            }).join('</p><p class="paragraph">');
+                return `<p class="paragraph"><span class="para-number">${idx + 1}</span>${words}</p>`;
+            }).join('');
+
+            // Matching headings task
+            const matchingHtml = `
+                <div class="task-section">
+                    <h3>📋 Task 4: Match headings with paragraphs</h3>
+                    <div class="task-instruction">${data.matchHeadings.instruction}</div>
+                    <div class="matching-grid">
+                        ${Object.keys(data.matchHeadings.answers).map(paraNum => `
+                            <div class="matching-item">
+                                <span class="para-label">Paragraph ${paraNum}</span>
+                                <select class="matching-select" data-para="${paraNum}" onchange="checkMatching(this, '${data.matchHeadings.answers[paraNum]}')">
+                                    <option value="">--</option>
+                                    ${data.matchHeadings.headings.map(h => `
+                                        <option value="${h.id}">${h.id}) ${h.text}</option>
+                                    `).join('')}
+                                </select>
+                                <span class="heading-option"></span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            // True/False task
+            const tfHtml = `
+                <div class="task-section">
+                    <h3>✅ Task 5: True or False</h3>
+                    <div class="task-instruction">${data.trueFalse.instruction}</div>
+                    <div class="tf-grid">
+                        ${data.trueFalse.statements.map(stmt => `
+                            <div class="tf-item">
+                                <div class="tf-statement">${stmt.id}. ${stmt.text}</div>
+                                <div class="tf-buttons">
+                                    <button class="tf-btn" onclick="checkTrueFalse(this, ${stmt.id}, true, ${stmt.answer})">
+                                        ✓ True
+                                    </button>
+                                    <button class="tf-btn" onclick="checkTrueFalse(this, ${stmt.id}, false, ${stmt.answer})">
+                                        ✗ False
+                                    </button>
+                                </div>
+                                <div class="tf-feedback" id="tf-feedback-${stmt.id}"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
 
             container.innerHTML = `
                 <div class="reading-content animate-fade">
                     ${preHtml}
-                    <div class="text-body">
+                    <div class="text-body" style="margin-top:2rem">
                         <h3>${data.intro}</h3>
-                        <p class="paragraph">${processedText}</p>
+                        ${processedText}
                     </div>
                 </div>
+                ${matchingHtml}
+                ${tfHtml}
             `;
         }
 
@@ -477,8 +803,8 @@
                     </div>
                     <span style="font-style:italic; color:var(--primary); font-size:0.8rem">${item.type}</span>
                     <p class="definition">${item.def}</p>
-                    <button onclick="saveWord('${item.word}')" 
-                        style="margin-top:auto; background:none; border:1px solid #e5e7eb; padding:0.5rem; border-radius:6px; cursor:pointer; color:var(--text-light)">
+                    <button onclick="saveWord('${escapeJS(item.word)}')" 
+                        style="margin-top:auto; background:none; border:1px solid #e5e7eb; padding:0.5rem; border-radius:6px; cursor:pointer; color:var(--text-light); transition: all 0.2s">
                         + Add to My Words
                     </button>
                 </div>
@@ -492,15 +818,14 @@
             
             const html = questions.map((q, index) => `
                 <div class="quiz-item">
-                    <span style="color:var(--text-light); font-size:0.9rem">Question ${index + 1}</span>
+                    <span style="color:var(--text-light); font-size:0.9rem; font-weight:600">Question ${index + 1}</span>
                     <label class="quiz-q">${q.question}</label>
                     <div style="position:relative">
                         <input type="text" 
                                class="quiz-input" 
-                               placeholder="Type answer..." 
+                               placeholder="Type your answer..." 
                                onchange="checkQuizAnswer(this, '${escapeJS(q.answer)}')"
                                autocomplete="off">
-                        <span class="feedback-icon" style="position:absolute; right:10px; top:10px;"></span>
                     </div>
                     <p class="feedback-text" style="font-size:0.9rem; margin-top:0.5rem; display:none"></p>
                 </div>
@@ -509,23 +834,67 @@
             container.innerHTML = `
                 <div class="quiz-container animate-fade">
                     <div style="background:#fff3cd; padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid #ffeeba; color:#856404;">
-                        ℹ️ Tip: Use the words from the Vocabulary section to fill in the blanks.
+                        💡 <strong>Tip:</strong> Use the words from the Vocabulary section to complete these sentences.
                     </div>
                     ${html}
                 </div>
             `;
         }
 
+        // --- TASK CHECKING FUNCTIONS ---
+        
         function checkPreReading(input, correctIndex) {
             const feedback = document.getElementById('pre-feedback');
             feedback.style.display = 'block';
             if (parseInt(input.value) === correctIndex) {
-                feedback.textContent = "✅ Correct! Vera works at a school.";
+                feedback.textContent = "✅ Correct! Vera works at a school canteen.";
                 feedback.style.color = "var(--success)";
                 speakText("Correct!");
             } else {
-                feedback.textContent = "❌ Not quite. Read the intro text again.";
+                feedback.textContent = "❌ Not quite. Read the introduction text again.";
                 feedback.style.color = "var(--error)";
+                vibrate();
+            }
+        }
+
+        function checkMatching(selectElement, correctAnswer) {
+            const userAnswer = selectElement.value;
+            
+            if (userAnswer === correctAnswer) {
+                selectElement.classList.remove('incorrect');
+                selectElement.classList.add('correct');
+                showNotification("✅ Correct match!");
+            } else if (userAnswer === "") {
+                selectElement.classList.remove('correct', 'incorrect');
+            } else {
+                selectElement.classList.remove('correct');
+                selectElement.classList.add('incorrect');
+                vibrate();
+                showNotification("❌ Try again");
+            }
+        }
+
+        function checkTrueFalse(btnElement, stmtId, userAnswer, correctAnswer) {
+            const container = btnElement.parentElement;
+            const allBtns = container.querySelectorAll('.tf-btn');
+            const feedback = document.getElementById(`tf-feedback-${stmtId}`);
+            
+            // Remove previous states
+            allBtns.forEach(btn => btn.classList.remove('selected', 'correct', 'incorrect'));
+            
+            // Mark selected
+            btnElement.classList.add('selected');
+            
+            if (userAnswer === correctAnswer) {
+                btnElement.classList.add('correct');
+                feedback.textContent = "✅ Correct!";
+                feedback.className = "tf-feedback show correct-fb";
+                speakText("Correct");
+            } else {
+                btnElement.classList.add('incorrect');
+                feedback.textContent = "❌ Incorrect. Read the text again carefully.";
+                feedback.className = "tf-feedback show incorrect-fb";
+                vibrate();
             }
         }
 
@@ -538,24 +907,25 @@
                 inputElement.classList.remove('incorrect');
                 inputElement.classList.add('correct');
                 feedbackText.style.display = 'block';
-                feedbackText.textContent = "✨ Excellent!";
+                feedbackText.textContent = "✨ Excellent! Correct answer.";
                 feedbackText.style.color = "var(--success)";
                 speakText("Correct");
             } else {
                 inputElement.classList.remove('correct');
                 inputElement.classList.add('incorrect');
                 feedbackText.style.display = 'block';
-                feedbackText.textContent = "Try again. Hint: Check spelling.";
+                feedbackText.textContent = "❌ Try again. Check your spelling and look at the vocabulary section.";
                 feedbackText.style.color = "var(--error)";
                 vibrate();
             }
         }
+
         // --- TEXT TO SPEECH ---
         function speakText(text) {
-            if (!state.audioEnabled) return;
-            window.speechSynthesis.cancel(); // Stop previous
+            if (!state.audioEnabled || !text) return;
+            window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-GB'; // British accent preferred for this content (UK spelling 'colour', etc)
+            utterance.lang = 'en-GB';
             utterance.rate = 0.9;
             window.speechSynthesis.speak(utterance);
         }
@@ -570,30 +940,33 @@
         function saveWord(word) {
             if (!state.savedWords.includes(word)) {
                 state.savedWords.push(word);
-                localStorage.setItem('myWords_263', JSON.stringify(state.savedWords));
+                localStorage.setItem('myWords_153', JSON.stringify(state.savedWords));
                 renderMyWordsSidebar();
-                showNotification(`Saved "${word}"`);
+                showNotification(`✅ Saved "${word}"`);
             } else {
-                showNotification(`"${word}" is already saved`);
+                showNotification(`ℹ️ "${word}" is already saved`);
             }
         }
 
         function removeWord(word) {
             state.savedWords = state.savedWords.filter(w => w !== word);
-            localStorage.setItem('myWords_263', JSON.stringify(state.savedWords));
+            localStorage.setItem('myWords_153', JSON.stringify(state.savedWords));
             renderMyWordsSidebar();
+            showNotification(`🗑️ Removed "${word}"`);
         }
 
         function renderMyWordsSidebar() {
             const list = document.getElementById('saved-list');
             if (state.savedWords.length === 0) {
-                list.innerHTML = '<li style="text-align:center; color:#9ca3af; margin-top:2rem;">No words saved yet</li>';
+                list.innerHTML = '<li style="text-align:center; color:#9ca3af; margin-top:2rem; list-style:none">No words saved yet<br>Click "+ Add to My Words" in Vocabulary section</li>';
                 return;
             }
             list.innerHTML = state.savedWords.map(w => `
                 <li class="saved-item">
-                    <span onclick="speakText('${w}')" style="cursor:pointer">🔊 ${w}</span>
-                    <button onclick="removeWord('${w}')" style="border:none; background:none; color:var(--error); cursor:pointer">×</button>
+                    <span onclick="speakText('${escapeJS(w)}')" style="cursor:pointer; flex:1">🔊 ${w}</span>
+                    <button onclick="removeWord('${escapeJS(w)}')" 
+                            style="border:none; background:none; color:var(--error); cursor:pointer; font-size:1.3rem; padding:0.25rem"
+                            title="Remove">×</button>
                 </li>
             `).join('');
         }
@@ -612,7 +985,7 @@
         // --- UTILS ---
         function escapeJS(str) {
             if(!str) return '';
-            return str.replace(/['"\\]/g, '\\$&');
+            return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
         }
 
         function vibrate() {
@@ -623,7 +996,7 @@
             const toast = document.getElementById('toast');
             toast.textContent = msg;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+            setTimeout(() => toast.classList.remove('show'), 2500);
         }
 
         // --- STARTUP ---
