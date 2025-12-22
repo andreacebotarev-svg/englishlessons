@@ -1,0 +1,92 @@
+{
+  "id": 3,
+  "title": "Урок 3: Буква O",
+  "emoji": "🔴",
+  "rule": "Буква O в закрытом слоге читается как [ɒ]",
+  "description": "Изучаем короткую букву O",
+  "phonemesSet": ["d", "o", "g", "t", "p", "x", "h", "b", "n"],
+  "wordCount": 10,
+  "estimatedTime": 7,
+  "words": [
+    {
+      "word": "dog",
+      "phonemes": ["d", "o", "g"],
+      "translation": "собака",
+      "transcription": "[dɒɡ]",
+      "emoji": "🐶",
+      "imageUrl": null
+    },
+    {
+      "word": "hot",
+      "phonemes": ["h", "o", "t"],
+      "translation": "горячий",
+      "transcription": "[hɒt]",
+      "emoji": "🔥",
+      "imageUrl": null
+    },
+    {
+      "word": "pot",
+      "phonemes": ["p", "o", "t"],
+      "translation": "горшок",
+      "transcription": "[pɒt]",
+      "emoji": "🍲",
+      "imageUrl": null
+    },
+    {
+      "word": "top",
+      "phonemes": ["t", "o", "p"],
+      "translation": "верх",
+      "transcription": "[tɒp]",
+      "emoji": "⬆️",
+      "imageUrl": null
+    },
+    {
+      "word": "box",
+      "phonemes": ["b", "o", "x"],
+      "translation": "коробка",
+      "transcription": "[bɒks]",
+      "emoji": "📦",
+      "imageUrl": null
+    },
+    {
+      "word": "dot",
+      "phonemes": ["d", "o", "t"],
+      "translation": "точка",
+      "transcription": "[dɒt]",
+      "emoji": "•",
+      "imageUrl": null
+    },
+    {
+      "word": "pop",
+      "phonemes": ["p", "o", "p"],
+      "translation": "хлопок",
+      "transcription": "[pɒp]",
+      "emoji": "🎈",
+      "imageUrl": null
+    },
+    {
+      "word": "hop",
+      "phonemes": ["h", "o", "p"],
+      "translation": "прыгать",
+      "transcription": "[hɒp]",
+      "emoji": "🐇",
+      "imageUrl": null
+    },
+    {
+      "word": "Bob",
+      "phonemes": ["B", "o", "b"],
+      "translation": "Боб (имя)",
+      "transcription": "[bɒb]",
+      "emoji": "👨‍🦰",
+      "imageUrl": null
+    },
+    {
+      "word": "not",
+      "phonemes": ["n", "o", "t"],
+      "translation": "не",
+      "transcription": "[nɒt]",
+      "emoji": "⛔",
+      "imageUrl": null
+    }
+  ]
+}

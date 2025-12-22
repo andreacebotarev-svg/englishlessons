@@ -1,0 +1,60 @@
+{
+  "id": 4,
+  "title": "Урок 4: Сочетания согласных",
+  "emoji": "🎵",
+  "rule": "Сочетания CH, SH, TH читаются как один звук",
+  "description": "Изучаем диграфы",
+  "phonemesSet": ["ch", "i", "p", "sh", "o", "th", "a", "t", "n"],
+  "wordCount": 6,
+  "estimatedTime": 6,
+  "words": [
+    {
+      "word": "chip",
+      "phonemes": ["ch", "i", "p"],
+      "translation": "чип",
+      "transcription": "[tʃɪp]",
+      "emoji": "🧀",
+      "imageUrl": null
+    },
+    {
+      "word": "shop",
+      "phonemes": ["sh", "o", "p"],
+      "translation": "магазин",
+      "transcription": "[ʃɒp]",
+      "emoji": "🏪",
+      "imageUrl": null
+    },
+    {
+      "word": "thin",
+      "phonemes": ["th", "i", "n"],
+      "translation": "тонкий",
+      "transcription": "[θɪn]",
+      "emoji": "📐",
+      "imageUrl": null
+    },
+    {
+      "word": "chat",
+      "phonemes": ["ch", "a", "t"],
+      "translation": "чат",
+      "transcription": "[tʃæt]",
+      "emoji": "💬",
+      "imageUrl": null
+    },
+    {
+      "word": "ship",
+      "phonemes": ["sh", "i", "p"],
+      "translation": "корабль",
+      "transcription": "[ʃɪp]",
+      "emoji": "🚢",
+      "imageUrl": null
+    },
+    {
+      "word": "that",
+      "phonemes": ["th", "a", "t"],
+      "translation": "тот",
+      "transcription": "[ðæt]",
+      "emoji": "👆",
+      "imageUrl": null
+    }
+  ]
+}

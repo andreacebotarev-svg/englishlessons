@@ -1,0 +1,76 @@
+{
+  "id": 2,
+  "title": "Урок 2: Буква I",
+  "emoji": "🔵",
+  "rule": "Буква I в закрытом слоге читается как [ɪ]",
+  "description": "Изучаем короткую букву I",
+  "phonemesSet": ["b", "i", "g", "p", "t", "s", "x", "k", "n"],
+  "wordCount": 8,
+  "estimatedTime": 5,
+  "words": [
+    {
+      "word": "big",
+      "phonemes": ["b", "i", "g"],
+      "translation": "большой",
+      "transcription": "[bɪg]",
+      "emoji": "🐘",
+      "imageUrl": null
+    },
+    {
+      "word": "pig",
+      "phonemes": ["p", "i", "g"],
+      "translation": "свинья",
+      "transcription": "[pɪg]",
+      "emoji": "🐷",
+      "imageUrl": null
+    },
+    {
+      "word": "sit",
+      "phonemes": ["s", "i", "t"],
+      "translation": "сидеть",
+      "transcription": "[sɪt]",
+      "emoji": "🧘",
+      "imageUrl": null
+    },
+    {
+      "word": "pit",
+      "phonemes": ["p", "i", "t"],
+      "translation": "яма",
+      "transcription": "[pɪt]",
+      "emoji": "🕳️",
+      "imageUrl": null
+    },
+    {
+      "word": "six",
+      "phonemes": ["s", "i", "x"],
+      "translation": "шесть",
+      "transcription": "[sɪks]",
+      "emoji": "6️⃣",
+      "imageUrl": null
+    },
+    {
+      "word": "kit",
+      "phonemes": ["k", "i", "t"],
+      "translation": "набор",
+      "transcription": "[kɪt]",
+      "emoji": "🧰",
+      "imageUrl": null
+    },
+    {
+      "word": "bin",
+      "phonemes": ["b", "i", "n"],
+      "translation": "корзина",
+      "transcription": "[bɪn]",
+      "emoji": "🗑️",
+      "imageUrl": null
+    },
+    {
+      "word": "tip",
+      "phonemes": ["t", "i", "p"],
+      "translation": "кончик",
+      "transcription": "[tɪp]",
+      "emoji": "☝️",
+      "imageUrl": null
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "id": 1,
+  "title": "Урок 1: Простые гласные",
+  "emoji": "🌟",
+  "rule": "Буквы E, U, A в закрытом слоге читаются кратко",
+  "description": "Изучаем буквы E, U, A",
+  "phonemesSet": ["t", "e", "n", "p", "b", "d", "c", "a", "u"],
+  "wordCount": 8,
+  "estimatedTime": 5,
+  "words": [
+    {
+      "word": "ten",
+      "phonemes": ["t", "e", "n"],
+      "translation": "десять",
+      "transcription": "[ten]",
+      "emoji": "🔟",
+      "imageUrl": null
+    },
+    {
+      "word": "pen",
+      "phonemes": ["p", "e", "n"],
+      "translation": "ручка",
+      "transcription": "[pen]",
+      "emoji": "✏️",
+      "imageUrl": null
+    },
+    {
+      "word": "bed",
+      "phonemes": ["b", "e", "d"],
+      "translation": "кровать",
+      "transcription": "[bed]",
+      "emoji": "🛏️",
+      "imageUrl": null
+    },
+    {
+      "word": "cat",
+      "phonemes": ["c", "a", "t"],
+      "translation": "кот",
+      "transcription": "[kæt]",
+      "emoji": "🐱",
+      "imageUrl": null
+    },
+    {
+      "word": "cup",
+      "phonemes": ["c", "u", "p"],
+      "translation": "чашка",
+      "transcription": "[kʌp]",
+      "emoji": "☕",
+      "imageUrl": null
+    },
+    {
+      "word": "bat",
+      "phonemes": ["b", "a", "t"],
+      "translation": "летучая мышь",
+      "transcription": "[bæt]",
+      "emoji": "🦇",
+      "imageUrl": null
+    },
+    {
+      "word": "dad",
+      "phonemes": ["d", "a", "d"],
+      "translation": "папа",
+      "transcription": "[dæd]",
+      "emoji": "👨",
+      "imageUrl": null
+    },
+    {
+      "word": "bad",
+      "phonemes": ["b", "a", "d"],
+      "translation": "плохой",
+      "transcription": "[bæd]",
+      "emoji": "❌",
+      "imageUrl": null
+    }
+  ]
+}
