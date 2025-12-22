@@ -2,14 +2,136 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=./">
-  <meta name="robots" content="noindex">
-  <title>Redirecting...</title>
-  <script>
-    window.location.replace('./');
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📚 Выбор урока - English Phonics Trainer</title>
+  <meta name="description" content="Интерактивный тренажёр для обучения детей чтению">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
 </head>
 <body>
-  <p>Перенаправление на <a href="./">главную страницу</a>...</p>
+  <div id="app">
+    <div class="loading">
+      <h1>📚</h1>
+      <p>Загрузка уроков...</p>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { lessonsManager } from './js/lessons.js';
+    import { Storage } from './js/storage.js';
+    import { createElement } from './js/utils.js';
+
+    async function renderLessonSelect() {
+      const app = document.getElementById('app');
+      const data = Storage.get();
+      
+      app.innerHTML = `
+        <div class="container">
+          <div class="page-header">
+            <h1>📚 English Phonics Trainer</h1>
+            <p>Выберите урок для изучения</p>
+          </div>
+          
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-content">
+                <div class="stat-value">${data.totalScore}</div>
+                <div class="stat-label">Очков</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-content">
+                <div class="stat-value">${data.totalWords}</div>
+                <div class="stat-label">Слов изучено</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">📚</div>
+              <div class="stat-content">
+                <div class="stat-value">${data.totalLessons}</div>
+                <div class="stat-label">Уроков пройдено</div>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon">⏱️</div>
+              <div class="stat-content">
+                <div class="stat-value">${Math.floor(data.totalPlaytime / 60)}</div>
+                <div class="stat-label">Минут игры</div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="lessons-grid" class="cards-grid">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Загрузка уроков...</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Load and render lessons
+      try {
+        const lessons = await lessonsManager.getAllLessons();
+        renderLessons(lessons);
+      } catch (error) {
+        console.error('Failed to load lessons:', error);
+        document.getElementById('lessons-grid').innerHTML = `
+          <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.1); border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.3);">
+            <h3>🚨 Ошибка загрузки уроков</h3>
+            <p>Проверьте, что файлы JSON находятся в папке ../data/</p>
+            <p style="font-size: 0.875rem; opacity: 0.8; margin-top: 1rem;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderLessons(lessons) {
+      const grid = document.getElementById('lessons-grid');
+      grid.innerHTML = '';
+      
+      lessons.forEach(lesson => {
+        const lessonData = Storage.getLessonData(lesson.id);
+        const stars = lessonData?.stars || 0;
+        const completedWords = lessonData?.completedWords || 0;
+        const totalWords = lesson.words.length;
+        
+        let badgeText = 'Новый';
+        let badgeClass = 'badge';
+        
+        if (completedWords === totalWords && stars > 0) {
+          badgeText = '⭐'.repeat(stars);
+          badgeClass = 'badge badge-success';
+        } else if (completedWords > 0) {
+          badgeText = `${completedWords}/${totalWords}`;
+          badgeClass = 'badge badge-warning';
+        }
+        
+        const card = createElement('div', { className: 'card' }, [
+          createElement('div', { className: 'card-icon', textContent: lesson.emoji || '📝' }),
+          createElement('h3', { className: 'card-title', textContent: lesson.title }),
+          createElement('p', { className: 'card-description', textContent: lesson.description }),
+          createElement('span', { className: badgeClass, textContent: badgeText }),
+          createElement('div', { className: 'card-footer', textContent: `💬 ${totalWords} слов • ⏱️ 10 мин` })
+        ]);
+        
+        card.addEventListener('click', () => {
+          window.location.href = `index.html#/lesson/${lesson.id}`;
+        });
+        
+        grid.appendChild(card);
+      });
+    }
+
+    // Start app
+    renderLessonSelect();
+  </script>
 </body>
 </html>
