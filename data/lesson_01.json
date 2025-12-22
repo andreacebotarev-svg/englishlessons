@@ -1,116 +1,108 @@
 {
-  "id": "lesson_01",
-  "title": "Уровень 1: Простые гласные (E, U, A)",
-  "description": "Учимся читать закрытые слоги с буквами E, U, A. Базовые слова.",
-  "order": 1,
+  "id": 1,
+  "title": "Уровень 1: Простые гласные",
+  "rule": "Буквы E, U, A в закрытом слоге читаются кратко: [e], [ʌ], [æ]",
+  "description": "Изучаем закрытые слоги с буквами E, U, A. Базовые CVC-слова типа ten, cup, cat.",
+  "emoji": "🌟",
+  "color": "from-blue-400 to-cyan-400",
+  "estimatedTime": 10,
+  "phonemesSet": ["t", "e", "n", "c", "ʌ", "p", "k", "æ", "b", "d", "m"],
   "words": [
     {
-      "id": "ten",
-      "text": "ten",
-      "transcription": "[ten]",
-      "translation": "десять",
+      "word": "ten",
       "phonemes": ["t", "e", "n"],
-      "image": "🔟",
+      "translation": "десять",
+      "transcription": "[ten]",
+      "emoji": "🔢",
       "difficulty": 1
     },
     {
-      "id": "net",
-      "text": "net",
-      "transcription": "[net]",
-      "translation": "сачок",
-      "phonemes": ["n", "e", "t"],
-      "image": "🕸️",
-      "difficulty": 1
-    },
-    {
-      "id": "pen",
-      "text": "pen",
-      "transcription": "[pen]",
-      "translation": "ручка",
+      "word": "pen",
       "phonemes": ["p", "e", "n"],
-      "image": "🖊️",
+      "translation": "ручка",
+      "transcription": "[pen]",
+      "emoji": "✍️",
       "difficulty": 1
     },
     {
-      "id": "pet",
-      "text": "pet",
-      "transcription": "[pet]",
-      "translation": "питомец",
-      "phonemes": ["p", "e", "t"],
-      "image": "🐕",
+      "word": "bed",
+      "phonemes": ["b", "e", "d"],
+      "translation": "кровать",
+      "transcription": "[bed]",
+      "emoji": "🛌",
       "difficulty": 1
     },
     {
-      "id": "up",
-      "text": "up",
-      "transcription": "[ʌp]",
-      "translation": "вверх",
-      "phonemes": ["u", "p"],
-      "image": "⬆️",
-      "difficulty": 1
-    },
-    {
-      "id": "cup",
-      "text": "cup",
-      "transcription": "[kʌp]",
+      "word": "cup",
+      "phonemes": ["k", "ʌ", "p"],
       "translation": "чашка",
-      "phonemes": ["c", "u", "p"],
-      "image": "☕",
+      "transcription": "[kʌp]",
+      "emoji": "☕",
       "difficulty": 1
     },
     {
-      "id": "nut",
-      "text": "nut",
-      "transcription": "[nʌt]",
-      "translation": "орех",
-      "phonemes": ["n", "u", "t"],
-      "image": "🥜",
+      "word": "bug",
+      "phonemes": ["b", "ʌ", "g"],
+      "translation": "жук",
+      "transcription": "[bʌg]",
+      "emoji": "🐛",
+      "difficulty": 2
+    },
+    {
+      "word": "cut",
+      "phonemes": ["k", "ʌ", "t"],
+      "translation": "резать",
+      "transcription": "[kʌt]",
+      "emoji": "✂️",
       "difficulty": 1
     },
     {
-      "id": "sun",
-      "text": "sun",
-      "transcription": "[sʌn]",
-      "translation": "солнце",
-      "phonemes": ["s", "u", "n"],
-      "image": "☀️",
-      "difficulty": 1
-    },
-    {
-      "id": "cat",
-      "text": "cat",
+      "word": "cat",
+      "phonemes": ["k", "æ", "t"],
+      "translation": "кот",
       "transcription": "[kæt]",
-      "translation": "кошка",
-      "phonemes": ["c", "a", "t"],
-      "image": "🐱",
+      "emoji": "🐱",
       "difficulty": 1
     },
     {
-      "id": "hat",
-      "text": "hat",
-      "transcription": "[hæt]",
-      "translation": "шляпа",
-      "phonemes": ["h", "a", "t"],
-      "image": "🎩",
+      "word": "bat",
+      "phonemes": ["b", "æ", "t"],
+      "translation": "летучая мышь",
+      "transcription": "[bæt]",
+      "emoji": "🦇",
       "difficulty": 1
     },
     {
-      "id": "ant",
-      "text": "ant",
-      "transcription": "[ænt]",
-      "translation": "муравей",
-      "phonemes": ["a", "n", "t"],
-      "image": "🐜",
-      "difficulty": 1
-    },
-    {
-      "id": "map",
-      "text": "map",
-      "transcription": "[mæp]",
+      "word": "map",
+      "phonemes": ["m", "æ", "p"],
       "translation": "карта",
-      "phonemes": ["m", "a", "p"],
-      "image": "🗺️",
+      "transcription": "[mæp]",
+      "emoji": "🗺️",
       "difficulty": 1
+    },
+    {
+      "word": "man",
+      "phonemes": ["m", "æ", "n"],
+      "translation": "человек",
+      "transcription": "[mæn]",
+      "emoji": "👨",
+      "difficulty": 1
+    },
+    {
+      "word": "dad",
+      "phonemes": ["d", "æ", "d"],
+      "translation": "папа",
+      "transcription": "[dæd]",
+      "emoji": "👨‍👦",
+      "difficulty": 1
+    },
+    {
+      "word": "mad",
+      "phonemes": ["m", "æ", "d"],
+      "translation": "злой",
+      "transcription": "[mæd]",
+      "emoji": "😠",
+      "difficulty": 2
     }
   ]
 }
