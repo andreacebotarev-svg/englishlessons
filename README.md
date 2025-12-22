@@ -2,81 +2,21 @@
 
 > Интерактивный тренажёр для обучения детей (5-10 лет) чтению английских слов через фонетический подход.
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF.svg)](https://vitejs.dev/)
+[![Live Demo](https://img.shields.io/badge/demo-online-success.svg)](https://andreacebotarev-svg.github.io/englishlessons/)
+[![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://html.spec.whatwg.org/)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)](https://www.w3.org/Style/CSS/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## 🚀 Быстрый старт
 
-### 📱 Попробовать онлайн
+### 📱 Открыть онлайн
 
-**Приложение будет доступно после деплоя по адресу:**
+**Приложение доступно по адресу:**
 
 👉 **https://andreacebotarev-svg.github.io/englishlessons/**
 
-### 💻 Локальная разработка
-
-```bash
-# Клонировать репозиторий
-git clone https://github.com/andreacebotarev-svg/englishlessons.git
-cd englishlessons/trainer
-
-# Установить зависимости
-npm install
-
-# Запустить dev сервер
-npm run dev
-
-# Откроется http://localhost:5173/trainer/
-```
-
----
-
-## 🚀 Деплой на GitHub Pages
-
-### Первоначальная настройка
-
-1. **Собрать production build:**
-
-```bash
-cd trainer
-npm run build
-```
-
-Это создаст папку `trainer/dist/` с готовым приложением.
-
-2. **Настроить GitHub Pages:**
-
-   - Перейти в Settings → Pages
-   - Source: **Deploy from a branch**
-   - Branch: **main**
-   - Folder: **/trainer/dist** (или **/dist** если dist в корне)
-   - Нажать Save
-
-3. **Закоммитить dist:**
-
-```bash
-git add trainer/dist
-git commit -m "build: add production build"
-git push origin main
-```
-
-4. Подождать 1-2 минуты - сайт будет доступен по адресу:
-   **https://andreacebotarev-svg.github.io/englishlessons/**
-
-### Обновление сайта
-
-При каждом изменении:
-
-```bash
-cd trainer
-npm run build
-git add dist
-git commit -m "build: update production build"
-git push origin main
-```
-
-GitHub Pages автоматически обновит сайт.
+Никаких установок не требуется! Просто откройте ссылку в браузере.
 
 ---
 
@@ -85,9 +25,9 @@ GitHub Pages автоматически обновит сайт.
 ### 🎨 Premium UI
 - **Glassmorphism** дизайн с backdrop-filter
 - **3D hover эффекты** на карточках
-- **Micro-interactions** с haptic feedback
-- **Spring animations** для модальных окон
-- **Ripple эффекты** на кнопках
+- **Плавные анимации** через Web Animations API
+- **Адаптивный дизайн** для всех устройств
+- **Без фреймворков** - чистый HTML/CSS/JS
 
 ### 🎮 Игровая механика
 - **Фонетический подход**: собирай слова из звуков
@@ -96,12 +36,13 @@ GitHub Pages автоматически обновит сайт.
 - **Система звёзд**: 0-3 звезды за урок
 - **Статистика**: общий счёт, время игры, уроки пройдены
 
-### 🏗️ Архитектура
-- **Без React/Vue** - чистый TypeScript
-- **Feature-Sliced Design** - масштабируемая структура
-- **Type-safe routing** - типизированные маршруты
-- **Observer pattern** - реактивный state management
-- **Lazy loading** - оптимизация загрузки
+### 🏗️ Технологии
+- **Pure HTML/CSS/JS** - без сборщиков
+- **ES6 Modules** - современный JavaScript
+- **Hash Router** - навигация без сервера
+- **LocalStorage** - сохранение прогресса
+- **Fetch API** - загрузка данных из JSON
+- **Web Animations API** - нативные анимации
 
 ---
 
@@ -109,25 +50,25 @@ GitHub Pages автоматически обновит сайт.
 
 ```
 englishlessons/
-├── data/                    # JSON с уроками
-│   ├── lesson_01.json      # Урок 1: E, U, A
-│   └── lesson_02.json      # Урок 2: O, I
+├── data/                   # JSON с уроками
+│   ├── lesson_01.json     # Урок 1: E, U, A
+│   └── lesson_02.json     # Урок 2: O, I
 │
-├── legacy/                  # Старый статический сайт
+├── dist/                   # Готовое приложение
+│   ├── index.html         # Главная страница
+│   ├── styles/
+│   │   ├── main.css       # Основные стили
+│   │   └── components.css # UI компоненты
+│   └── js/
+│       ├── app.js         # Точка входа
+│       ├── router.js      # Hash-роутер
+│       ├── pages.js       # Страницы приложения
+│       ├── lessons.js     # Менеджер уроков
+│       ├── storage.js     # LocalStorage
+│       └── utils.js       # Утилиты
 │
-└── trainer/                 # Новое SPA приложение
-    ├── src/
-    │   ├── core/           # Роутер, EventBus, App
-    │   ├── entities/       # dictionary, session
-    │   ├── pages/          # Страницы приложения
-    │   ├── shared/
-    │   │   ├── ui/         # Button, Card, Badge, Progress, Modal
-    │   │   └── lib/        # Утилиты, анимации, DOM helpers
-    │   └── main.ts
-    │
-    ├── public/             # Статические файлы
-    ├── dist/               # Production build (для деплоя)
-    └── package.json
+├── legacy/                 # Старый статический сайт
+└── README.md
 ```
 
 ---
@@ -139,41 +80,6 @@ englishlessons/
 | **Главная** | `#/` | Выбор урока + статистика |
 | **Урок** | `#/lesson/:id` | Игровой процесс |
 | **Результаты** | `#/results` | Звёзды + статистика урока |
-| **Демо** | `#/demo` | Демонстрация UI компонентов |
-
----
-
-## 🛠️ Технологии
-
-### Core
-- **TypeScript 5.3** - типобезопасность
-- **Vite 5.0** - быстрая сборка
-- **Zod** - runtime валидация
-
-### Без зависимостей
-- **Роутинг**: Hash-based, custom implementation
-- **State**: Observer pattern, localStorage
-- **Анимации**: Web Animations API
-- **Стили**: Vanilla CSS с CSS Variables
-
-### Dev Tools
-- **ESLint** - линтинг кода
-- **Prettier** - форматирование
-- **Vitest** - тестирование
-
----
-
-## 📊 Метрики
-
-| Метрика | Значение |
-|---------|----------|
-| Bundle размер | ~25KB |
-| Зависимости | 1 (Zod) |
-| TypeScript покрытие | 100% |
-| Lighthouse Score | 95+ |
-| Страниц | 4 |
-| UI компонентов | 5 |
-| Уроков | 2 (27 слов) |
 
 ---
 
@@ -188,6 +94,24 @@ englishlessons/
 - **Правило**: O и I в закрытом слоге
 - **Слова**: dog, log, hot, pot, big, pig, sit, bit, red, run, fan, fun, lip, leg, sun
 - **Фонемы**: [ɒ], [ɪ]
+
+---
+
+## 🚀 Деплой на GitHub Pages
+
+### Настройка (один раз)
+
+1. **Перейдите в Settings → Pages:**
+   https://github.com/andreacebotarev-svg/englishlessons/settings/pages
+
+2. **Настройте источник:**
+   - Source: **Deploy from a branch**
+   - Branch: **main**
+   - Folder: **/dist**
+   - Нажмите **Save**
+
+3. **Готово!** Через 1-2 минуты сайт будет доступен по адресу:
+   https://andreacebotarev-svg.github.io/englishlessons/
 
 ---
 
@@ -215,12 +139,10 @@ englishlessons/
 }
 ```
 
-2. Пересобрать:
+2. Закоммитить:
 
 ```bash
-cd trainer
-npm run build
-git add dist data/lesson_03.json
+git add data/lesson_03.json
 git commit -m "feat: add lesson 3"
 git push
 ```
@@ -229,31 +151,42 @@ git push
 
 ---
 
+## 🌐 Браузеры
+
+Поддерживаются все современные браузеры:
+- ✅ Chrome/Edge 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Mobile browsers (iOS Safari, Android Chrome)
+
+---
+
+## 📊 Метрики
+
+| Метрика | Значение |
+|---------|----------|
+| Размер проекта | ~50 KB |
+| Зависимости | 0 |
+| Время загрузки | < 1s |
+| Lighthouse Score | 95+ |
+| Страниц | 3 |
+| Уроков | 2 (27 слов) |
+
+---
+
 ## 🤝 Участие в разработке
 
+Проект полностью на HTML/CSS/JS - легко модифицировать!
+
 ```bash
-# Создать feature branch
-git checkout -b feature/new-lesson
+# Склонировать репозиторий
+git clone https://github.com/andreacebotarev-svg/englishlessons.git
+cd englishlessons
 
-# Внести изменения
-# ...
-
-# Проверить линтинг
-cd trainer
-npm run lint
-
-# Запустить тесты
-npm test
-
-# Собрать build
-npm run build
-
-# Закоммитить
-git add .
-git commit -m "feat: add lesson 3"
-
-# Отправить на GitHub
-git push origin feature/new-lesson
+# Открыть dist/index.html в браузере
+# Или использовать любой локальный сервер:
+python -m http.server 8000
+# Откроется http://localhost:8000/dist/
 ```
 
 ---
