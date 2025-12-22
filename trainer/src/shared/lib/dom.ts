@@ -24,6 +24,70 @@ export const $$ = <T extends HTMLElement = HTMLElement>(
 };
 
 /**
+ * Escape HTML to prevent XSS attacks
+ */
+export const escapeHTML = (str: string): string => {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+};
+
+/**
+ * Safe template literal tag for HTML
+ * Automatically escapes all interpolated values
+ * 
+ * @example
+ * const name = '<script>alert("XSS")</script>';
+ * const html = html`<div>Hello ${name}</div>`;
+ * // Result: <div>Hello &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;</div>
+ */
+export const html = (
+  strings: TemplateStringsArray,
+  ...values: any[]
+): string => {
+  return strings.reduce((result, str, i) => {
+    const value = values[i];
+    
+    if (value === undefined || value === null) {
+      return result + str;
+    }
+    
+    // Arrays - join without escaping (for nested HTML)
+    if (Array.isArray(value)) {
+      return result + str + value.join('');
+    }
+    
+    // Escape strings, but allow numbers and booleans as-is
+    const escaped = typeof value === 'string' 
+      ? escapeHTML(value)
+      : String(value);
+    
+    return result + str + escaped;
+  }, '');
+};
+
+/**
+ * Raw HTML (unsafe - use only with trusted content)
+ */
+export const raw = (htmlString: string): { __html: string } => {
+  return { __html: htmlString };
+};
+
+/**
+ * Set innerHTML safely
+ */
+export const setHTML = (
+  element: HTMLElement,
+  content: string | { __html: string }
+): void => {
+  if (typeof content === 'string') {
+    element.textContent = content; // Safe by default
+  } else {
+    element.innerHTML = content.__html; // Explicit unsafe
+  }
+};
+
+/**
  * Create element with properties
  */
 export const createElement = <K extends keyof HTMLElementTagNameMap>(

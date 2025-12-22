@@ -126,3 +126,70 @@ export const isInViewport = (element: HTMLElement): boolean => {
     rect.right <= (window.innerWidth || document.documentElement.clientWidth)
   );
 };
+
+/**
+ * Type-safe localStorage utilities
+ */
+export const storage = {
+  /**
+   * Get item from localStorage with type safety
+   */
+  get<T>(key: string, defaultValue: T): T {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : defaultValue;
+    } catch (error) {
+      console.error(`Failed to get "${key}" from localStorage:`, error);
+      return defaultValue;
+    }
+  },
+
+  /**
+   * Set item in localStorage
+   */
+  set<T>(key: string, value: T): boolean {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error) {
+      console.error(`Failed to set "${key}" in localStorage:`, error);
+      return false;
+    }
+  },
+
+  /**
+   * Remove item from localStorage
+   */
+  remove(key: string): void {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error(`Failed to remove "${key}" from localStorage:`, error);
+    }
+  },
+
+  /**
+   * Clear all localStorage
+   */
+  clear(): void {
+    try {
+      localStorage.clear();
+    } catch (error) {
+      console.error('Failed to clear localStorage:', error);
+    }
+  },
+
+  /**
+   * Check if key exists
+   */
+  has(key: string): boolean {
+    return localStorage.getItem(key) !== null;
+  },
+
+  /**
+   * Get all keys
+   */
+  keys(): string[] {
+    return Object.keys(localStorage);
+  },
+};

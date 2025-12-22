@@ -5,6 +5,25 @@
 import type { EventBus } from './EventBus';
 
 /**
+ * Route parameters base interface
+ */
+export interface RouteParams {
+  [key: string]: string;
+}
+
+/**
+ * Empty route params (for pages without parameters)
+ */
+export type EmptyParams = Record<string, never>;
+
+/**
+ * Lesson route parameters
+ */
+export interface LessonParams extends RouteParams {
+  id: string;
+}
+
+/**
  * Base page interface
  */
 export interface Page {
@@ -13,25 +32,33 @@ export interface Page {
 }
 
 /**
- * Page constructor interface
+ * Page constructor interface with typed parameters
  */
-export interface PageClass {
+export interface PageClass<P extends RouteParams = RouteParams> {
   new (
     container: HTMLElement,
-    params: Record<string, string>,
+    params: P,
     eventBus: EventBus
   ): Page;
 }
 
 /**
+ * Route definition
+ */
+export interface RouteDefinition<P extends RouteParams = RouteParams> {
+  path: string;
+  loader: () => Promise<PageClass<P>>;
+}
+
+/**
  * Base page abstract class
  */
-export abstract class BasePage implements Page {
+export abstract class BasePage<P extends RouteParams = RouteParams> implements Page {
   protected cleanup: Array<() => void> = [];
   
   constructor(
     protected container: HTMLElement,
-    protected params: Record<string, string>,
+    protected params: P,
     protected eventBus: EventBus
   ) {}
   
