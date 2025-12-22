@@ -53,82 +53,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Professional Header */
-        .lesson-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            flex-shrink: 0;
-        }
-        .lesson-header h1 {
-            margin: 0 0 0.5rem 0;
-            font-size: 1.75rem;
-            font-weight: 700;
-        }
-        .lesson-header h2 {
-            margin: 0 0 1rem 0;
-            font-size: 1.1rem;
-            font-weight: 400;
-            opacity: 0.95;
-        }
-        .lesson-meta-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.75rem;
-            background: rgba(255,255,255,0.15);
-            padding: 1rem;
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-        }
-        .meta-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-        .meta-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
-            font-weight: 600;
-        }
-        .meta-value {
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-        .instructions-box {
-            background: rgba(255,255,255,0.2);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            backdrop-filter: blur(10px);
-        }
-        .instructions-box h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        .instructions-box ol {
-            margin: 0;
-            padding-left: 1.5rem;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
         /* Layout */
-        header {
-            background: var(--bg);
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .lesson-info h1 { margin: 0; font-size: 1.25rem; }
-        .lesson-meta { font-size: 0.875rem; color: var(--text-light); margin-top: 0.25rem; }
-        
         .main-container {
             display: flex;
             flex: 1;
@@ -169,6 +94,42 @@
             background: var(--bg);
             color: var(--primary);
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Vocabulary hint box (for quiz tab) */
+        .vocab-hint-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+        .vocab-hint-box h3 {
+            margin: 0 0 0.75rem 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .vocab-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .vocab-chip {
+            background: rgba(255,255,255,0.2);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .vocab-chip:hover {
+            background: rgba(255,255,255,0.35);
+            transform: translateY(-1px);
         }
 
         /* Reading Section */
@@ -483,12 +444,16 @@
             .tabs { width: 100%; justify-content: space-between; }
             .tab-btn { padding: 0.5rem 0.75rem; flex: 1; text-align: center; font-size: 0.9rem; }
             .reading-content { padding: 1.25rem; font-size: 1rem; }
-            .lesson-header { padding: 1.5rem 1rem; }
-            .lesson-header h1 { font-size: 1.4rem; }
-            .lesson-meta-grid { grid-template-columns: 1fr; }
             .matching-item {
                 grid-template-columns: 1fr;
                 gap: 0.5rem;
+            }
+            .vocab-words {
+                font-size: 0.85rem;
+            }
+            .vocab-chip {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
             }
         }
     </style>
@@ -496,40 +461,6 @@
 <body>
     <div class="loader-container" id="loader">
         <div class="spinner"></div>
-    </div>
-
-    <div class="lesson-header">
-        <h1>Unit: Food & Nutrition</h1>
-        <h2>Homework 00 – Reading & Vocabulary</h2>
-        
-        <div class="lesson-meta-grid">
-            <div class="meta-item">
-                <span class="meta-label">Level</span>
-                <span class="meta-value">A2–B1 (Pre-Intermediate)</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Skills</span>
-                <span class="meta-value">Reading, Vocabulary, Speaking</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Focus</span>
-                <span class="meta-value">Meals, healthy food, school canteen</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Estimated Time</span>
-                <span class="meta-value">40–55 minutes</span>
-            </div>
-        </div>
-
-        <div class="instructions-box">
-            <h3>📋 How to work with this lesson</h3>
-            <ol>
-                <li>Start with the <strong>Reading</strong> section and complete all comprehension tasks</li>
-                <li>Study the <strong>Vocabulary</strong> to learn key food-related words</li>
-                <li>Complete the <strong>Quiz</strong> using words from the vocabulary section</li>
-                <li>Send your completed work (screenshot or text) to your teacher</li>
-            </ol>
-        </div>
     </div>
 
     <div class="main-container">
@@ -815,6 +746,19 @@
 
         function renderQuiz(container) {
             const questions = state.lessonData.quiz;
+            const words = state.lessonData.vocabulary;
+            
+            // Vocabulary hint box
+            const vocabHintHtml = `
+                <div class="vocab-hint-box">
+                    <h3>📚 Available words:</h3>
+                    <div class="vocab-words">
+                        ${words.map(w => `
+                            <span class="vocab-chip" onclick="speakText('${escapeJS(w.word)}')">${w.word}</span>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
             
             const html = questions.map((q, index) => `
                 <div class="quiz-item">
@@ -833,9 +777,7 @@
 
             container.innerHTML = `
                 <div class="quiz-container animate-fade">
-                    <div style="background:#fff3cd; padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid #ffeeba; color:#856404;">
-                        💡 <strong>Tip:</strong> Use the words from the Vocabulary section to complete these sentences.
-                    </div>
+                    ${vocabHintHtml}
                     ${html}
                 </div>
             `;
@@ -914,7 +856,7 @@
                 inputElement.classList.remove('correct');
                 inputElement.classList.add('incorrect');
                 feedbackText.style.display = 'block';
-                feedbackText.textContent = "❌ Try again. Check your spelling and look at the vocabulary section.";
+                feedbackText.textContent = "❌ Try again. Check your spelling and look at the vocabulary above.";
                 feedbackText.style.color = "var(--error)";
                 vibrate();
             }
