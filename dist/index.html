@@ -6,150 +6,18 @@
   <title>📚 English Phonics Trainer</title>
   <meta name="description" content="Интерактивный тренажёр для обучения детей чтению">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      padding: 2rem;
-    }
-    
-    .loading {
-      text-align: center;
-      animation: fadeIn 0.5s ease;
-    }
-    
-    .loading h1 {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-      animation: bounce 1s infinite;
-    }
-    
-    .loading p {
-      font-size: 1.5rem;
-      opacity: 0.9;
-    }
-    
-    .spinner {
-      margin: 2rem auto;
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-20px); }
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    .error {
-      background: rgba(239, 68, 68, 0.2);
-      border: 2px solid rgba(239, 68, 68, 0.5);
-      border-radius: 12px;
-      padding: 2rem;
-      max-width: 600px;
-    }
-    
-    .error h2 {
-      margin-bottom: 1rem;
-    }
-  </style>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
 </head>
 <body>
-  <div class="loading">
-    <h1>📚</h1>
-    <p>English Phonics Trainer</p>
-    <div class="spinner"></div>
-    <p style="font-size: 1rem; opacity: 0.7; margin-top: 1rem;">Загрузка...</p>
+  <div id="app">
+    <div class="loading">
+      <h1>📚</h1>
+      <p>Загрузка...</p>
+      <div class="spinner"></div>
+    </div>
   </div>
 
-  <script type="module">
-    // Простое приложение без сборки
-    // Загружаем TypeScript напрямую из src/
-    
-    async function loadApp() {
-      try {
-        // Пока просто показываем сообщение
-        document.body.innerHTML = `
-          <div style="text-align: center; max-width: 800px;">
-            <h1 style="font-size: 4rem; margin-bottom: 1rem;">📚</h1>
-            <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">English Phonics Trainer</h2>
-            <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
-              Интерактивный тренажёр для обучения детей 5-10 лет чтению английских слов
-            </p>
-            
-            <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
-              <h3 style="margin-bottom: 1rem;">✨ Особенности:</h3>
-              <ul style="list-style: none; text-align: left; max-width: 400px; margin: 0 auto;">
-                <li style="padding: 0.5rem 0;">🎨 Premium glassmorphism дизайн</li>
-                <li style="padding: 0.5rem 0;">🎮 Фонетический подход</li>
-                <li style="padding: 0.5rem 0;">⭐ Система звёзд и очков</li>
-                <li style="padding: 0.5rem 0;">📊 Отслеживание прогресса</li>
-                <li style="padding: 0.5rem 0;">📱 Адаптивный дизайн</li>
-              </ul>
-            </div>
-            
-            <div style="background: rgba(99, 102, 241, 0.2); border: 2px solid rgba(99, 102, 241, 0.5); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
-              <p style="font-size: 1.1rem;">
-                🚧 <strong>Приложение в разработке</strong>
-              </p>
-              <p style="margin-top: 0.5rem; opacity: 0.9;">
-                Для полной версии необходимо собрать production build<br>
-                <code style="background: rgba(0,0,0,0.2); padding: 0.25rem 0.5rem; border-radius: 4px;">npm run build</code>
-              </p>
-            </div>
-            
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-              <a href="https://github.com/andreacebotarev-svg/englishlessons" 
-                 style="display: inline-block; padding: 1rem 2rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; transition: all 0.3s;">
-                👨‍💻 GitHub Repository
-              </a>
-              <a href="./trainer/" 
-                 style="display: inline-block; padding: 1rem 2rem; background: rgba(99, 102, 241, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(99, 102, 241, 0.5); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; transition: all 0.3s;">
-                🚀 Dev Version
-              </a>
-            </div>
-            
-            <p style="margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">
-              Made with ❤️ for children 5-10 years old
-            </p>
-          </div>
-        `;
-      } catch (error) {
-        console.error('Load error:', error);
-        document.body.innerHTML = `
-          <div class="error">
-            <h2>🚨 Ошибка загрузки</h2>
-            <p>${error.message}</p>
-          </div>
-        `;
-      }
-    }
-    
-    // Загрузка приложения
-    setTimeout(loadApp, 1000);
-  </script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
