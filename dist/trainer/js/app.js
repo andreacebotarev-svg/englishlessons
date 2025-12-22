@@ -1,48 +1,51 @@
-import { Router } from './router.js';
-import { Storage } from './storage.js';
-import { LessonLoader } from './lessons.js';
-import { Pages } from './pages.js';
+// Main application entry point
+import { router } from './router.js';
+import { renderLessonSelect, renderLessonTrainer, renderResults } from './pages.js';
+import { storage } from './storage.js';
 
-class App {
-  constructor() {
-    this.storage = new Storage();
-    this.lessonLoader = new LessonLoader();
-    this.router = new Router();
-    this.pages = new Pages(this.storage, this.lessonLoader, this.router);
-    
-    this.init();
+// Initialize application
+function init() {
+  console.log('🚀 English Reading Trainer initialized');
+  console.log('📊 User stats:', storage.getStats());
+  
+  // Setup routes
+  router
+    .on('/', renderLessonSelect)
+    .on('/lesson/:id', renderLessonTrainer)
+    .on('/results', renderResults);
+  
+  // Add keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // ESC to go back
+    if (e.key === 'Escape') {
+      const currentPath = router.getCurrent();
+      if (currentPath !== '/') {
+        router.back();
+      }
+    }
+  });
+  
+  // Prevent default drag behavior
+  document.addEventListener('dragstart', (e) => e.preventDefault());
+  
+  // Add touch feedback for mobile
+  if ('ontouchstart' in window) {
+    document.body.classList.add('touch-device');
   }
-
-  init() {
-    // Register routes
-    this.router.register('/', () => this.pages.renderLessonSelect());
-    this.router.register('/lesson/:id', (params) => this.pages.renderLessonTrainer(params));
-    this.router.register('/results', () => this.pages.renderResults());
-
-    // Hide loader after initialization
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const loader = document.getElementById('loader');
-        if (loader) {
-          loader.classList.add('hidden');
-          setTimeout(() => loader.remove(), 300);
-        }
-      }, 500);
-    });
-
-    // Handle errors
-    window.addEventListener('error', (e) => {
-      console.error('Application error:', e.error);
-    });
-
-    // Handle unhandled promise rejections
-    window.addEventListener('unhandledrejection', (e) => {
-      console.error('Unhandled promise rejection:', e.reason);
-    });
-
-    console.log('English Reading Trainer initialized');
-  }
+  
+  // Handle visibility change (pause/resume)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      console.log('⏸ App paused');
+    } else {
+      console.log('▶️ App resumed');
+    }
+  });
 }
 
-// Initialize app
-new App();
+// Start the app when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
