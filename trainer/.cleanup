@@ -1,3 +1,0 @@
-This file marks the cleanup of React structure.
-All React/TypeScript/Node.js files will be removed.
-Only public/data/ will remain.
