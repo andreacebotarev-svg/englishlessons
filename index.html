@@ -211,6 +211,11 @@
             --card-gradient-end: #FF9500;
         }
 
+        .trainer-card[data-trainer="reading"] {
+            --card-gradient-start: #FF375F;
+            --card-gradient-end: #FF6B9D;
+        }
+
         .trainer-card.new::after {
             content: 'NEW';
             position: absolute;
@@ -303,6 +308,18 @@
     </div>
 
     <div class="trainers-grid">
+        <a href="./trainer/" 
+           class="trainer-card new" 
+           data-trainer="reading">
+            <span class="trainer-icon">📚</span>
+            <h3>Reading Trainer</h3>
+            <p>Build words from phonemes! Learn English reading rules</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🎯 4 lessons</span>
+                <span class="stat-item">⏱️ 5 min</span>
+            </div>
+        </a>
+
         <a href="./english-trainers/to-be.html" 
            class="trainer-card" 
            data-trainer="to-be">
@@ -322,7 +339,7 @@
             <h3>Present Simple</h3>
             <p>Practice do/does with 18 irregular verbs</p>
             <div class="trainer-stats">
-                <span class="stat-item">📖 18 verbs</span>
+                <span class="stat-item">📚 18 verbs</span>
                 <span class="stat-item">⏱️ 8 min</span>
             </div>
         </a>
@@ -340,7 +357,7 @@
         </a>
 
         <a href="./english-trainers/much-many.html" 
-           class="trainer-card new" 
+           class="trainer-card" 
            data-trainer="much-many">
             <span class="trainer-icon">🎯</span>
             <h3>Much/Many</h3>
