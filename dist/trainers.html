@@ -3,135 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📚 Выбор урока - English Phonics Trainer</title>
-  <meta name="description" content="Интерактивный тренажёр для обучения детей чтению">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/components.css">
-</head>
-<body>
-  <div id="app">
-    <div class="loading">
-      <h1>📚</h1>
-      <p>Загрузка уроков...</p>
-      <div class="spinner"></div>
-    </div>
-  </div>
+  <title>📚 Тренажёр чтения - English Lessons</title>
+  <meta name="description" content="Интерактивный тренажёр для обучения чтению на английском для детей">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  <script type="module">
-    import { lessonsManager } from './js/lessons.js';
-    import { Storage } from './js/storage.js';
-    import { createElement } from './js/utils.js';
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
 
-    async function renderLessonSelect() {
-      const app = document.getElementById('app');
-      const data = Storage.get();
-      
-      app.innerHTML = `
-        <div class="container">
-          <div class="page-header">
-            <h1>📚 English Phonics Trainer</h1>
-            <p>Выберите урок для изучения</p>
-          </div>
-          
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">🎯</div>
-              <div class="stat-content">
-                <div class="stat-value">${data.totalScore}</div>
-                <div class="stat-label">Очков</div>
-              </div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">✅</div>
-              <div class="stat-content">
-                <div class="stat-value">${data.totalWords}</div>
-                <div class="stat-label">Слов изучено</div>
-              </div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">📚</div>
-              <div class="stat-content">
-                <div class="stat-value">${data.totalLessons}</div>
-                <div class="stat-label">Уроков пройдено</div>
-              </div>
-            </div>
-            
-            <div class="stat-card">
-              <div class="stat-icon">⏱️</div>
-              <div class="stat-content">
-                <div class="stat-value">${Math.floor(data.totalPlaytime / 60)}</div>
-                <div class="stat-label">Минут игры</div>
-              </div>
-            </div>
-          </div>
-          
-          <div id="lessons-grid" class="cards-grid">
-            <div class="loading">
-              <div class="spinner"></div>
-              <p>Загрузка уроков...</p>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      // Load and render lessons
-      try {
-        const lessons = await lessonsManager.getAllLessons();
-        renderLessons(lessons);
-      } catch (error) {
-        console.error('Failed to load lessons:', error);
-        document.getElementById('lessons-grid').innerHTML = `
-          <div style="text-align: center; padding: 2rem; background: rgba(239, 68, 68, 0.1); border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.3);">
-            <h3>🚨 Ошибка загрузки уроков</h3>
-            <p>Проверьте, что файлы JSON находятся в папке ../data/</p>
-            <p style="font-size: 0.875rem; opacity: 0.8; margin-top: 1rem;">${error.message}</p>
-          </div>
-        `;
+    .redirect-container {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      max-width: 500px;
+      animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 
-    function renderLessons(lessons) {
-      const grid = document.getElementById('lessons-grid');
-      grid.innerHTML = '';
-      
-      lessons.forEach(lesson => {
-        const lessonData = Storage.getLessonData(lesson.id);
-        const stars = lessonData?.stars || 0;
-        const completedWords = lessonData?.completedWords || 0;
-        const totalWords = lesson.words.length;
-        
-        let badgeText = 'Новый';
-        let badgeClass = 'badge';
-        
-        if (completedWords === totalWords && stars > 0) {
-          badgeText = '⭐'.repeat(stars);
-          badgeClass = 'badge badge-success';
-        } else if (completedWords > 0) {
-          badgeText = `${completedWords}/${totalWords}`;
-          badgeClass = 'badge badge-warning';
-        }
-        
-        const card = createElement('div', { className: 'card' }, [
-          createElement('div', { className: 'card-icon', textContent: lesson.emoji || '📝' }),
-          createElement('h3', { className: 'card-title', textContent: lesson.title }),
-          createElement('p', { className: 'card-description', textContent: lesson.description }),
-          createElement('span', { className: badgeClass, textContent: badgeText }),
-          createElement('div', { className: 'card-footer', textContent: `💬 ${totalWords} слов • ⏱️ 10 мин` })
-        ]);
-        
-        card.addEventListener('click', () => {
-          window.location.href = `index.html#/lesson/${lesson.id}`;
-        });
-        
-        grid.appendChild(card);
-      });
+    .emoji {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: bounce 2s infinite;
     }
 
-    // Start app
-    renderLessonSelect();
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 1.125rem;
+      opacity: 0.9;
+      margin-bottom: 2rem;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .manual-link {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .manual-link a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .manual-link a:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="redirect-container">
+    <div class="emoji">🚀</div>
+    <h1>Перенаправление...</h1>
+    <p>Загрузка тренажёра чтения</p>
+    <div class="spinner"></div>
+    <div class="manual-link">
+      <p style="font-size: 0.875rem; margin-bottom: 0.5rem;">Если перенаправление не работает:</p>
+      <a href="./trainer/" id="manual-link">Перейти вручную →</a>
+    </div>
+  </div>
+
+  <script>
+    // Redirect to new trainer location after 1 second
+    setTimeout(() => {
+      window.location.href = './trainer/';
+    }, 1000);
   </script>
 </body>
 </html>
