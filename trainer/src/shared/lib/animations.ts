@@ -168,3 +168,74 @@ export const animateSpin = (
     }
   );
 };
+
+/**
+ * Animation chain builder
+ * Allows sequencing multiple animations
+ */
+export class AnimationChain {
+  private steps: Array<() => Promise<void>> = [];
+  
+  constructor(private element: HTMLElement) {}
+  
+  /**
+   * Add animation to chain
+   */
+  add(
+    preset: keyof typeof AnimationPresets,
+    timing: keyof typeof TimingPresets = 'normal'
+  ): this {
+    this.steps.push(async () => {
+      await animate(this.element, preset, timing).finished;
+    });
+    return this;
+  }
+  
+  /**
+   * Add custom animation to chain
+   */
+  custom(
+    keyframes: Keyframe[],
+    options: KeyframeAnimationOptions
+  ): this {
+    this.steps.push(async () => {
+      await this.element.animate(keyframes, options).finished;
+    });
+    return this;
+  }
+  
+  /**
+   * Add delay to chain
+   */
+  delay(ms: number): this {
+    this.steps.push(() => new Promise(resolve => setTimeout(resolve, ms)));
+    return this;
+  }
+  
+  /**
+   * Add callback to chain
+   */
+  then(callback: () => void | Promise<void>): this {
+    this.steps.push(async () => {
+      await callback();
+    });
+    return this;
+  }
+  
+  /**
+   * Play all animations in sequence
+   */
+  async play(): Promise<void> {
+    for (const step of this.steps) {
+      await step();
+    }
+  }
+  
+  /**
+   * Clear all steps
+   */
+  clear(): this {
+    this.steps = [];
+    return this;
+  }
+}
