@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Lesson: Food & Nutrition</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #f3f4f6;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --success: #10b981;
+            --error: #ef4444;
+            --bg: #ffffff;
+            --sidebar-w: 300px;
+            --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0;
+            font-family: var(--font-main);
+            color: var(--text);
+            background: #f9fafb;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Loader */
+        .loader-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid var(--secondary);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Layout */
+        header {
+            background: var(--bg);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .lesson-info h1 { margin: 0; font-size: 1.25rem; }
+        .lesson-meta { font-size: 0.875rem; color: var(--text-light); margin-top: 0.25rem; }
+        
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #app {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: #e5e7eb;
+            padding: 0.25rem;
+            border-radius: var(--radius);
+            width: fit-content;
+        }
+        .tab-btn {
+            border: none;
+            background: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--bg);
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Reading Section */
+        .reading-content {
+            background: var(--bg);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        .reading-intro {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+        .text-word { cursor: pointer; border-bottom: 1px dotted transparent; transition: all 0.2s; }
+        .text-word:hover { border-bottom-color: var(--primary); color: var(--primary); background: #eff6ff; }
+        .paragraph { margin-bottom: 1.5rem; text-align: justify; }
+
+        /* Vocabulary Section */
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        .vocab-card {
+            background: var(--bg);
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .vocab-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        .word-head { display: flex; justify-content: space-between; align-items: center; }
+        .word { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+        .definition { color: var(--text-light); font-size: 0.95rem; }
+        .audio-btn {
+            background: var(--secondary);
+            border: none;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center; justify-content: center;
+        }
+
+        /* Quiz Section */
+        .quiz-item {
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1rem;
+        }
+        .quiz-q { font-weight: 600; margin-bottom: 1rem; display: block; }
+        .quiz-input {
+            border: 2px solid #e5e7eb;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+            transition: border-color 0.2s;
+        }
+        .quiz-input:focus { outline: none; border-color: var(--primary); }
+        .quiz-input.correct { border-color: var(--success); background: #ecfdf5; }
+        .quiz-input.incorrect { border-color: var(--error); background: #fef2f2; }
+        
+        .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .radio-label:hover { background: var(--secondary); }
+        .radio-label input { margin-right: 0.75rem; }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--bg);
+            border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            position: absolute;
+            right: 0; top: 0; bottom: 0;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        .sidebar.open { transform: translateX(0); }
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fafb;
+        }
+        .saved-list { flex: 1; overflow-y: auto; padding: 1rem; list-style: none; margin: 0; }
+        .saved-item {
+            background: #f3f4f6;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .toggle-sidebar {
+            position: fixed;
+            bottom: 2rem; right: 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            cursor: pointer;
+            z-index: 90;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1f2937;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000;
+            font-weight: 500;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; }
+            .tabs { width: 100%; justify-content: space-between; }
+            .tab-btn { padding: 0.5rem 1rem; flex: 1; text-align: center; }
+            .reading-content { padding: 1.25rem; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container" id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <header>
+        <div class="lesson-info">
+            <h1 id="lesson-title">Loading...</h1>
+            <div class="lesson-meta">
+                <span id="lesson-level"></span> • 
+                <span id="lesson-time"></span>
+            </div>
+        </div>
+        <div class="controls">
+            <!-- Space for extra controls if needed -->
+        </div>
+    </header>
+
+    <div class="main-container">
+        <main id="app">
+            <!-- Content rendered here -->
+        </main>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>My Words</h3>
+                <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;font-size:1.5rem">&times;</button>
+            </div>
+            <ul class="saved-list" id="saved-list">
+                <!-- Saved words go here -->
+                <li style="text-align:center; color:#9ca3af; margin-top:2rem;">No words saved yet</li>
+            </ul>
+        </aside>
+    </div>
+
+    <button class="toggle-sidebar" onclick="toggleSidebar()" aria-label="Open Saved Words">
+        📚
+    </button>
+    
+    <div id="toast" class="toast">Notification</div>
+
+    <script>
+        // --- GLOBAL STATE ---
+        const state = {
+            currentTab: 'reading',
+            lessonData: null,
+            savedWords: JSON.parse(localStorage.getItem('myWords_263') || '[]'),
+            audioEnabled: true
+        };
+
+        // --- EMBEDDED DATA (Based on attached images) ---
+        const RAW_DATA = {
+            id: "263",
+            title: "Food and Nutrition",
+            level: "A2 / Pre-Intermediate",
+            duration: "20 min",
+            reading: {
+                intro: "Read about Vera. She has a very important job, she is a dinner lady at St Alban's school in Swindon.",
+                preQuestion: {
+                    question: "Before you read, look at the photo of Vera. Where do you think Vera works?",
+                    options: ["Restaurant", "School", "Café", "Supermarket"],
+                    answer: 1 // Index 1 = School
+                },
+                text: [
+                    "I love my job. I like working with young people and I love preparing food. I cook lunch every day in the school canteen and I also help to serve the food. Then I clean up – I suppose I am a waitress, chef and cleaner! I work with seven other dinner ladies because there are around 1,400 students at our school and that is a lot of meals!",
+                    "My job is sometimes difficult. We try to cook healthy meals and to teach students to eat healthily but some students don't always listen. They sometimes say they don't like the food. I think it's important that students understand that healthy food is really important.",
+                    "There isn't any junk food in the school canteen and there aren't any ready meals. We use fresh ingredients."
+                ]
+            },
+            vocabulary: [
+                { word: "meal", def: "An occasion when food is eaten, or the food itself", type: "noun" },
+                { word: "breakfast", def: "The first meal of the day", type: "noun" },
+                { word: "foreign food", def: "Food that comes from other countries", type: "noun phrase" },
+                { word: "lunch", def: "A meal eaten in the middle of the day", type: "noun" },
+                { word: "traditional dish", def: "A food style that has existed for a long time", type: "noun phrase" },
+                { word: "ready meals", def: "Pre-cooked food bought from a shop", type: "noun plural" },
+                { word: "dessert", def: "Sweet food eaten at the end of a meal", type: "noun" }
+            ],
+            quiz: [
+                {
+                    id: 1,
+                    type: "fill_blank",
+                    question: "My mum loves ________, especially Indian and Chinese.",
+                    answer: "foreign food"
+                },
+                {
+                    id: 2,
+                    type: "fill_blank",
+                    question: "Judy always has ________ before she goes to school.",
+                    answer: "breakfast"
+                },
+                {
+                    id: 3,
+                    type: "fill_blank",
+                    question: "Fish and chips is a ________ in Britain.",
+                    answer: "traditional dish"
+                },
+                {
+                    id: 4,
+                    type: "fill_blank",
+                    question: "Supermarkets sell a lot of ________ for people who haven't got much time.",
+                    answer: "ready meals"
+                },
+                {
+                    id: 5,
+                    type: "fill_blank",
+                    question: "At school the ________ break is from 12.30 to 1.30.",
+                    answer: "lunch"
+                },
+                {
+                    id: 6,
+                    type: "fill_blank",
+                    question: "On my birthday I go to a special restaurant for my favourite ________: lasagne and chips!",
+                    answer: "meal"
+                },
+                {
+                    id: 7,
+                    type: "fill_blank",
+                    question: "The children's favourite ________ is ice-cream.",
+                    answer: "dessert"
+                }
+            ]
+        };
+
+        // --- INIT & UTILS ---
+        function initLesson() {
+            try {
+                // Simulate fetch
+                setTimeout(() => {
+                    state.lessonData = RAW_DATA;
+                    document.getElementById('lesson-title').textContent = state.lessonData.title;
+                    document.getElementById('lesson-level').textContent = state.lessonData.level;
+                    document.getElementById('lesson-time').textContent = state.lessonData.duration;
+                    
+                    renderInterface();
+                    document.getElementById('loader').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loader').remove(), 500);
+                    renderMyWordsSidebar();
+                }, 800);
+            } catch (e) {
+                console.error("Init error", e);
+                alert("Error loading lesson.");
+            }
+        }
+
+        function renderInterface() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="tabs">
+                    <button class="tab-btn ${state.currentTab === 'reading' ? 'active' : ''}" onclick="switchTab('reading')">Reading</button>
+                    <button class="tab-btn ${state.currentTab === 'vocab' ? 'active' : ''}" onclick="switchTab('vocab')">Vocabulary</button>
+                    <button class="tab-btn ${state.currentTab === 'quiz' ? 'active' : ''}" onclick="switchTab('quiz')">Quiz</button>
+                </div>
+                <div id="content-area"></div>
+            `;
+            
+            const content = document.getElementById('content-area');
+            if (state.currentTab === 'reading') renderReading(content);
+            else if (state.currentTab === 'vocab') renderVocabulary(content);
+            else if (state.currentTab === 'quiz') renderQuiz(content);
+        }
+        function renderReading(container) {
+            const data = state.lessonData.reading;
+            
+            // Generate Pre-question HTML
+            const preHtml = `
+                <div class="reading-intro">
+                    <h3 style="margin-top:0">Pre-reading Task</h3>
+                    <p>${data.preQuestion.question}</p>
+                    <div class="radio-group">
+                        ${data.preQuestion.options.map((opt, i) => `
+                            <label class="radio-label">
+                                <input type="radio" name="pre-q" value="${i}" onchange="checkPreReading(this, ${data.preQuestion.answer})">
+                                ${opt}
+                            </label>
+                        `).join('')}
+                    </div>
+                    <p id="pre-feedback" style="font-weight:bold; margin-top:0.5rem; display:none"></p>
+                </div>
+            `;
+
+            // Process text for clickable words
+            const processedText = data.text.map(para => {
+                return para.split(' ').map(word => {
+                    // Simple clean for clicking (remove punctuation for TTS)
+                    const clean = word.replace(/[^a-zA-Z]/g, '');
+                    return `<span class="text-word" onclick="handleWordClick('${clean}')">${word}</span>`;
+                }).join(' ');
+            }).join('</p><p class="paragraph">');
+
+            container.innerHTML = `
+                <div class="reading-content animate-fade">
+                    ${preHtml}
+                    <div class="text-body">
+                        <h3>${data.intro}</h3>
+                        <p class="paragraph">${processedText}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderVocabulary(container) {
+            const words = state.lessonData.vocabulary;
+            
+            const html = words.map(item => `
+                <div class="vocab-card">
+                    <div class="word-head">
+                        <span class="word">${item.word}</span>
+                        <button class="audio-btn" onclick="speakText('${item.word}')" title="Listen">🔊</button>
+                    </div>
+                    <span style="font-style:italic; color:var(--primary); font-size:0.8rem">${item.type}</span>
+                    <p class="definition">${item.def}</p>
+                    <button onclick="saveWord('${item.word}')" 
+                        style="margin-top:auto; background:none; border:1px solid #e5e7eb; padding:0.5rem; border-radius:6px; cursor:pointer; color:var(--text-light)">
+                        + Add to My Words
+                    </button>
+                </div>
+            `).join('');
+
+            container.innerHTML = `<div class="vocab-grid animate-fade">${html}</div>`;
+        }
+
+        function renderQuiz(container) {
+            const questions = state.lessonData.quiz;
+            
+            const html = questions.map((q, index) => `
+                <div class="quiz-item">
+                    <span style="color:var(--text-light); font-size:0.9rem">Question ${index + 1}</span>
+                    <label class="quiz-q">${q.question}</label>
+                    <div style="position:relative">
+                        <input type="text" 
+                               class="quiz-input" 
+                               placeholder="Type answer..." 
+                               onchange="checkQuizAnswer(this, '${escapeJS(q.answer)}')"
+                               autocomplete="off">
+                        <span class="feedback-icon" style="position:absolute; right:10px; top:10px;"></span>
+                    </div>
+                    <p class="feedback-text" style="font-size:0.9rem; margin-top:0.5rem; display:none"></p>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="quiz-container animate-fade">
+                    <div style="background:#fff3cd; padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid #ffeeba; color:#856404;">
+                        ℹ️ Tip: Use the words from the Vocabulary section to fill in the blanks.
+                    </div>
+                    ${html}
+                </div>
+            `;
+        }
+
+        function checkPreReading(input, correctIndex) {
+            const feedback = document.getElementById('pre-feedback');
+            feedback.style.display = 'block';
+            if (parseInt(input.value) === correctIndex) {
+                feedback.textContent = "✅ Correct! Vera works at a school.";
+                feedback.style.color = "var(--success)";
+                speakText("Correct!");
+            } else {
+                feedback.textContent = "❌ Not quite. Read the intro text again.";
+                feedback.style.color = "var(--error)";
+            }
+        }
+
+        function checkQuizAnswer(inputElement, correctAnswer) {
+            const userVal = inputElement.value.trim().toLowerCase();
+            const correctVal = correctAnswer.toLowerCase();
+            const feedbackText = inputElement.parentElement.nextElementSibling;
+            
+            if (userVal === correctVal) {
+                inputElement.classList.remove('incorrect');
+                inputElement.classList.add('correct');
+                feedbackText.style.display = 'block';
+                feedbackText.textContent = "✨ Excellent!";
+                feedbackText.style.color = "var(--success)";
+                speakText("Correct");
+            } else {
+                inputElement.classList.remove('correct');
+                inputElement.classList.add('incorrect');
+                feedbackText.style.display = 'block';
+                feedbackText.textContent = "Try again. Hint: Check spelling.";
+                feedbackText.style.color = "var(--error)";
+                vibrate();
+            }
+        }
+        // --- TEXT TO SPEECH ---
+        function speakText(text) {
+            if (!state.audioEnabled) return;
+            window.speechSynthesis.cancel(); // Stop previous
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-GB'; // British accent preferred for this content (UK spelling 'colour', etc)
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function handleWordClick(word) {
+            if(!word) return;
+            speakText(word);
+            showNotification(`🔊 ${word}`);
+        }
+
+        // --- LOCAL STORAGE / SIDEBAR ---
+        function saveWord(word) {
+            if (!state.savedWords.includes(word)) {
+                state.savedWords.push(word);
+                localStorage.setItem('myWords_263', JSON.stringify(state.savedWords));
+                renderMyWordsSidebar();
+                showNotification(`Saved "${word}"`);
+            } else {
+                showNotification(`"${word}" is already saved`);
+            }
+        }
+
+        function removeWord(word) {
+            state.savedWords = state.savedWords.filter(w => w !== word);
+            localStorage.setItem('myWords_263', JSON.stringify(state.savedWords));
+            renderMyWordsSidebar();
+        }
+
+        function renderMyWordsSidebar() {
+            const list = document.getElementById('saved-list');
+            if (state.savedWords.length === 0) {
+                list.innerHTML = '<li style="text-align:center; color:#9ca3af; margin-top:2rem;">No words saved yet</li>';
+                return;
+            }
+            list.innerHTML = state.savedWords.map(w => `
+                <li class="saved-item">
+                    <span onclick="speakText('${w}')" style="cursor:pointer">🔊 ${w}</span>
+                    <button onclick="removeWord('${w}')" style="border:none; background:none; color:var(--error); cursor:pointer">×</button>
+                </li>
+            `).join('');
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('open');
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabName) {
+            state.currentTab = tabName;
+            renderInterface();
+        }
+
+        // --- UTILS ---
+        function escapeJS(str) {
+            if(!str) return '';
+            return str.replace(/['"\\]/g, '\\$&');
+        }
+
+        function vibrate() {
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function showNotification(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // --- STARTUP ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initLesson();
+        });
+    </script>
+</body>
+</html>
