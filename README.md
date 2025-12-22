@@ -2,7 +2,6 @@
 
 > Интерактивный тренажёр для обучения детей (5-10 лет) чтению английских слов через фонетический подход.
 
-[![Deploy](https://github.com/andreacebotarev-svg/englishlessons/actions/workflows/deploy.yml/badge.svg)](https://github.com/andreacebotarev-svg/englishlessons/actions/workflows/deploy.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.0-646CFF.svg)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -11,7 +10,7 @@
 
 ### 📱 Попробовать онлайн
 
-**Приложение доступно по адресу:**
+**Приложение будет доступно после деплоя по адресу:**
 
 👉 **https://andreacebotarev-svg.github.io/englishlessons/**
 
@@ -30,6 +29,54 @@ npm run dev
 
 # Откроется http://localhost:5173/trainer/
 ```
+
+---
+
+## 🚀 Деплой на GitHub Pages
+
+### Первоначальная настройка
+
+1. **Собрать production build:**
+
+```bash
+cd trainer
+npm run build
+```
+
+Это создаст папку `trainer/dist/` с готовым приложением.
+
+2. **Настроить GitHub Pages:**
+
+   - Перейти в Settings → Pages
+   - Source: **Deploy from a branch**
+   - Branch: **main**
+   - Folder: **/trainer/dist** (или **/dist** если dist в корне)
+   - Нажать Save
+
+3. **Закоммитить dist:**
+
+```bash
+git add trainer/dist
+git commit -m "build: add production build"
+git push origin main
+```
+
+4. Подождать 1-2 минуты - сайт будет доступен по адресу:
+   **https://andreacebotarev-svg.github.io/englishlessons/**
+
+### Обновление сайта
+
+При каждом изменении:
+
+```bash
+cd trainer
+npm run build
+git add dist
+git commit -m "build: update production build"
+git push origin main
+```
+
+GitHub Pages автоматически обновит сайт.
 
 ---
 
@@ -79,7 +126,7 @@ englishlessons/
     │   └── main.ts
     │
     ├── public/             # Статические файлы
-    ├── dist/               # Production build
+    ├── dist/               # Production build (для деплоя)
     └── package.json
 ```
 
@@ -144,31 +191,6 @@ englishlessons/
 
 ---
 
-## 🚀 Деплой
-
-### Автоматический (GitHub Actions)
-
-При каждом push в `main` автоматически:
-1. ✅ Собирается production build
-2. ✅ Деплоится на GitHub Pages
-3. ✅ Доступен по https://andreacebotarev-svg.github.io/englishlessons/
-
-### Ручной
-
-```bash
-cd trainer
-
-# Собрать production build
-npm run build
-
-# Просмотреть локально
-npm run preview
-
-# dist/ готов к деплою
-```
-
----
-
 ## 📝 Добавление нового урока
 
 1. Создать файл `data/lesson_03.json`:
@@ -193,7 +215,17 @@ npm run preview
 }
 ```
 
-2. Готово! Урок автоматически появится в списке.
+2. Пересобрать:
+
+```bash
+cd trainer
+npm run build
+git add dist data/lesson_03.json
+git commit -m "feat: add lesson 3"
+git push
+```
+
+3. Готово! Урок автоматически появится в списке.
 
 ---
 
@@ -207,13 +239,18 @@ git checkout -b feature/new-lesson
 # ...
 
 # Проверить линтинг
+cd trainer
 npm run lint
 
 # Запустить тесты
 npm test
 
+# Собрать build
+npm run build
+
 # Закоммитить
-git commit -am "feat: add lesson 3"
+git add .
+git commit -m "feat: add lesson 3"
 
 # Отправить на GitHub
 git push origin feature/new-lesson
