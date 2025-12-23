@@ -467,9 +467,6 @@ class LessonEngine {
               Grammar
             </button>
             ` : ''}
-            <button class="tab ${this.currentTab === 'quiz' ? 'active' : ''}" data-tab="quiz" onclick="window.lessonEngine.switchTab('quiz')">
-              Quiz
-            </button>
             <button class="tab ${this.currentTab === 'mywords' ? 'active' : ''}" data-tab="mywords" onclick="window.lessonEngine.switchTab('mywords')">
               My Words (<span id="words-count-badge">0</span>)
             </button>
@@ -620,7 +617,7 @@ class LessonEngine {
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}, '${translation.replace(/'/g, "\\\\''").replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")} '${translation.replace(/'/g, "\\\''").replace(/"/g, '&quot;')}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -787,9 +784,6 @@ class LessonEngine {
         break;
       case 'grammar':
         html = this.renderer.renderGrammar();
-        break;
-      case 'quiz':
-        html = this.renderer.renderQuiz(this.quizState);
         break;
       case 'mywords':
         html = this.renderMyWords();
@@ -1039,65 +1033,8 @@ class LessonEngine {
   }
 
   /**
-   * Quiz methods (for standalone Quiz tab)
+   * Reset quiz
    */
-  selectQuizAnswer(answerIndex) {
-    const quiz = this.lessonData.quiz;
-    const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
-    
-    if (questions.length === 0) return;
-    
-    const question = questions[this.quizState.currentQuestionIndex];
-    const isCorrect = answerIndex === question.correct;
-
-    this.quizState.answers.push({
-      questionIndex: this.quizState.currentQuestionIndex,
-      answerIndex,
-      correct: isCorrect
-    });
-
-    // Show feedback
-    const feedbackEl = document.getElementById('quiz-feedback');
-    const options = document.querySelectorAll('.quiz-option');
-
-    options.forEach((opt, i) => {
-      opt.disabled = true;
-      if (i === question.correct) {
-        opt.classList.add('correct');
-      } else if (i === answerIndex && !isCorrect) {
-        opt.classList.add('wrong');
-      }
-    });
-
-    const feedback = question.fb || question.feedback || (isCorrect ? 'Correct!' : 'Incorrect');
-
-    if (feedbackEl) {
-      feedbackEl.innerHTML = `
-        <p class="quiz-feedback ${isCorrect ? 'correct' : 'wrong'}">
-          ${isCorrect ? '✓' : '✗'} ${feedback}
-        </p>
-        <button class="primary-btn" style="margin-top: 12px;" onclick="window.lessonEngine.nextQuizQuestion()">
-          ${this.quizState.currentQuestionIndex < questions.length - 1 ? 'Next Question →' : 'Finish Quiz'}
-        </button>
-      `;
-    }
-    
-    this.tts.vibrate(isCorrect ? 30 : 50);
-  }
-
-  nextQuizQuestion() {
-    const quiz = this.lessonData.quiz;
-    const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
-    
-    if (this.quizState.currentQuestionIndex < questions.length - 1) {
-      this.quizState.currentQuestionIndex++;
-      this.renderCurrentTab();
-    } else {
-      this.quizState.completed = true;
-      this.renderCurrentTab();
-    }
-  }
-
   resetQuiz() {
     this.quizState = {
       currentQuestionIndex: 0,
