@@ -1,7 +1,7 @@
 /**
- * Flashcards Module - Stage 2
+ * Flashcards Module - Stage 3
  * Vocabulary learning with card-based interface
- * Added: Card rendering, navigation, touch swipe, progress bar
+ * Added: 3D flip animation, audio playback, favorites, mark as known
  */
 
 class FlashcardsManager {
@@ -17,12 +17,16 @@ class FlashcardsManager {
         this.touchEndX = 0;
         this.minSwipeDistance = 50;
         
+        // User progress tracking
+        this.favoriteWords = new Set(JSON.parse(localStorage.getItem('favoriteWords') || '[]'));
+        this.knownWords = new Set(JSON.parse(localStorage.getItem('knownWords') || '[]'));
+        
         console.log('🎴 FlashcardsManager initialized with', this.vocabulary.length, 'words');
+        console.log('⭐ Favorites:', this.favoriteWords.size, '| ✓ Known:', this.knownWords.size);
     }
 
     /**
      * Initialize the flashcards system
-     * Adds mode toggle buttons to vocabulary section
      */
     init(listContainerId = 'vocabulary-list-container') {
         this.listContainer = document.getElementById(listContainerId);
@@ -48,7 +52,6 @@ class FlashcardsManager {
      * Create HTML structure for flashcards container
      */
     createFlashcardsContainer() {
-        // Create container if it doesn't exist
         let container = document.getElementById('flashcards-container');
         
         if (!container) {
@@ -57,7 +60,6 @@ class FlashcardsManager {
             container.className = 'flashcards-container';
             container.style.display = 'none';
             
-            // Insert after list container
             if (this.listContainer.parentNode) {
                 this.listContainer.parentNode.insertBefore(container, this.listContainer.nextSibling);
             }
@@ -67,10 +69,9 @@ class FlashcardsManager {
     }
 
     /**
-     * Create mode toggle buttons (List / Flashcards)
+     * Create mode toggle buttons
      */
     createModeToggle() {
-        // Find or create vocabulary header
         let header = this.listContainer.previousElementSibling;
         
         if (!header || !header.classList.contains('vocabulary-header')) {
@@ -79,7 +80,6 @@ class FlashcardsManager {
             this.listContainer.parentNode.insertBefore(header, this.listContainer);
         }
 
-        // Add toggle buttons
         const toggleHTML = `
             <div class="vocab-mode-toggle">
                 <button class="vocab-mode-btn active" data-mode="list">
@@ -99,7 +99,6 @@ class FlashcardsManager {
 
         header.insertAdjacentHTML('beforeend', toggleHTML);
 
-        // Attach event listeners
         header.querySelectorAll('.vocab-mode-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const mode = e.currentTarget.dataset.mode;
@@ -110,7 +109,6 @@ class FlashcardsManager {
 
     /**
      * Toggle between List and Flashcards modes
-     * @param {string} mode - 'list' or 'flashcards'
      */
     toggleVocabularyMode(mode) {
         if (mode !== 'list' && mode !== 'flashcards') {
@@ -120,20 +118,18 @@ class FlashcardsManager {
 
         this.currentMode = mode;
         
-        // Update active state of buttons
         document.querySelectorAll('.vocab-mode-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         document.querySelector(`[data-mode="${mode}"]`)?.classList.add('active');
 
-        // Switch visibility
         if (mode === 'list') {
             this.listContainer.style.display = 'block';
             this.flashcardsContainer.style.display = 'none';
         } else {
             this.listContainer.style.display = 'none';
             this.flashcardsContainer.style.display = 'flex';
-            this.currentCardIndex = 0; // Reset to first card
+            this.currentCardIndex = 0;
             this.renderFlashcardsContainer();
         }
 
@@ -141,7 +137,7 @@ class FlashcardsManager {
     }
 
     /**
-     * Render flashcards container with cards (Stage 2)
+     * Render flashcards container
      */
     renderFlashcardsContainer() {
         if (this.vocabulary.length === 0) {
@@ -162,7 +158,10 @@ class FlashcardsManager {
                 <div class="flashcards-header">
                     <h3>📚 Vocabulary Flashcards</h3>
                     <div class="flashcards-controls">
-                        <!-- Фильтры и shuffle будут на Этапе 4 -->
+                        <div class="stats-badge">
+                            <span>⭐ ${this.favoriteWords.size}</span>
+                            <span>✓ ${this.knownWords.size}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -173,9 +172,7 @@ class FlashcardsManager {
                         </svg>
                     </button>
 
-                    <div class="flashcard-container" id="flashcard-current">
-                        <!-- Карточка будет здесь -->
-                    </div>
+                    <div class="flashcard-container" id="flashcard-current"></div>
 
                     <button class="flashcard-nav flashcard-nav-next" id="flashcard-next" aria-label="Next card">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -193,24 +190,15 @@ class FlashcardsManager {
             </div>
         `;
 
-        // Render first card
         this.renderCurrentCard();
-        
-        // Render progress dots
         this.renderProgressDots();
-        
-        // Update navigation buttons state
         this.updateNavigationButtons();
-        
-        // Attach navigation event listeners
         this.attachNavigationListeners();
-        
-        // Setup touch swipe
         this.setupTouchSwipe();
     }
 
     /**
-     * Render the current card based on currentCardIndex
+     * Render current card with flip functionality (Stage 3)
      */
     renderCurrentCard() {
         const cardContainer = document.getElementById('flashcard-current');
@@ -219,15 +207,47 @@ class FlashcardsManager {
         const word = this.vocabulary[this.currentCardIndex];
         if (!word) return;
 
+        const wordId = word.word || word.id || this.currentCardIndex;
+        const isFavorite = this.favoriteWords.has(wordId);
+        const isKnown = this.knownWords.has(wordId);
+
+        // Card with front and back
         const cardHTML = `
-            <div class="flashcard" data-index="${this.currentCardIndex}">
-                <div class="flashcard-content">
-                    <div class="flashcard-word">${word.word || ''}</div>
-                    <div class="flashcard-transcription">${word.transcription || ''}</div>
-                    <div class="flashcard-hint">Tap to reveal translation</div>
-                </div>
-                <div class="flashcard-translation">
-                    ${word.translation || ''}
+            <div class="flashcard-flip-container" data-index="${this.currentCardIndex}">
+                <div class="flashcard-inner">
+                    <!-- FRONT SIDE -->
+                    <div class="flashcard-front">
+                        <div class="flashcard-word">${word.word || ''}</div>
+                        <div class="flashcard-transcription">${word.transcription || ''}</div>
+                        <div class="flashcard-hint">👆 Click to flip</div>
+                    </div>
+                    
+                    <!-- BACK SIDE -->
+                    <div class="flashcard-back">
+                        <div class="flashcard-translation">${word.translation || ''}</div>
+                        ${word.example ? `<div class="flashcard-example">"${word.example}"</div>` : ''}
+                        
+                        <!-- Action Buttons -->
+                        <div class="flashcard-actions">
+                            <button class="action-btn audio-btn" data-word="${word.word}" title="Play audio">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 3l-6 5H1v4h3l6 5V3zm8.5 7c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM16 2.23v1.7c2.89.86 5 3.54 5 6.57s-2.11 5.71-5 6.57v1.7c3.73-.87 6.5-4.26 6.5-8.27s-2.77-7.4-6.5-8.27z"/>
+                                </svg>
+                            </button>
+                            
+                            <button class="action-btn favorite-btn ${isFavorite ? 'active' : ''}" data-word-id="${wordId}" title="Add to favorites">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                </svg>
+                            </button>
+                            
+                            <button class="action-btn known-btn ${isKnown ? 'active' : ''}" data-word-id="${wordId}" title="Mark as known">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 10l4 4 8-8"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -236,19 +256,162 @@ class FlashcardsManager {
         
         // Add entrance animation
         setTimeout(() => {
-            const card = cardContainer.querySelector('.flashcard');
-            if (card) card.classList.add('flashcard-enter');
+            const flipContainer = cardContainer.querySelector('.flashcard-flip-container');
+            if (flipContainer) flipContainer.classList.add('flashcard-enter');
         }, 10);
+
+        // Attach event listeners
+        this.attachCardListeners();
     }
 
     /**
-     * Render progress dots indicator
+     * Attach event listeners to card (Stage 3)
+     */
+    attachCardListeners() {
+        const flipContainer = document.querySelector('.flashcard-flip-container');
+        const inner = document.querySelector('.flashcard-inner');
+        const audioBtn = document.querySelector('.audio-btn');
+        const favoriteBtn = document.querySelector('.favorite-btn');
+        const knownBtn = document.querySelector('.known-btn');
+
+        // Flip on click (front side)
+        const frontSide = document.querySelector('.flashcard-front');
+        if (frontSide) {
+            frontSide.addEventListener('click', () => {
+                inner.classList.toggle('flipped');
+            });
+        }
+
+        // Audio button
+        if (audioBtn) {
+            audioBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const word = e.currentTarget.dataset.word;
+                this.playAudio(word);
+            });
+        }
+
+        // Favorite button
+        if (favoriteBtn) {
+            favoriteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wordId = e.currentTarget.dataset.wordId;
+                this.toggleFavorite(wordId, e.currentTarget);
+            });
+        }
+
+        // Known button
+        if (knownBtn) {
+            knownBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wordId = e.currentTarget.dataset.wordId;
+                this.toggleKnown(wordId, e.currentTarget);
+            });
+        }
+    }
+
+    /**
+     * Play audio using TTS (integrated with existing speak function)
+     */
+    playAudio(word) {
+        console.log('🔊 Playing audio:', word);
+        
+        // Use existing speak function if available
+        if (typeof window.speak === 'function') {
+            window.speak(word);
+        } else {
+            // Fallback TTS
+            this.fallbackSpeak(word);
+        }
+
+        // Visual feedback
+        const audioBtn = document.querySelector('.audio-btn');
+        if (audioBtn) {
+            audioBtn.classList.add('playing');
+            setTimeout(() => audioBtn.classList.remove('playing'), 1000);
+        }
+    }
+
+    /**
+     * Fallback TTS implementation
+     */
+    fallbackSpeak(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            speechSynthesis.speak(utterance);
+        } else {
+            // Google Translate TTS fallback
+            const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`);
+            audio.play().catch(e => console.log('Audio play error:', e));
+        }
+    }
+
+    /**
+     * Toggle favorite status
+     */
+    toggleFavorite(wordId, button) {
+        if (this.favoriteWords.has(wordId)) {
+            this.favoriteWords.delete(wordId);
+            button.classList.remove('active');
+            button.querySelector('svg').setAttribute('fill', 'none');
+            console.log('⭐ Removed from favorites:', wordId);
+        } else {
+            this.favoriteWords.add(wordId);
+            button.classList.add('active');
+            button.querySelector('svg').setAttribute('fill', 'currentColor');
+            console.log('⭐ Added to favorites:', wordId);
+        }
+
+        // Save to localStorage
+        localStorage.setItem('favoriteWords', JSON.stringify([...this.favoriteWords]));
+        
+        // Update stats badge
+        this.updateStatsBadge();
+    }
+
+    /**
+     * Toggle known status
+     */
+    toggleKnown(wordId, button) {
+        if (this.knownWords.has(wordId)) {
+            this.knownWords.delete(wordId);
+            button.classList.remove('active');
+            console.log('✓ Unmarked as known:', wordId);
+        } else {
+            this.knownWords.add(wordId);
+            button.classList.add('active');
+            console.log('✓ Marked as known:', wordId);
+        }
+
+        // Save to localStorage
+        localStorage.setItem('knownWords', JSON.stringify([...this.knownWords]));
+        
+        // Update stats badge
+        this.updateStatsBadge();
+    }
+
+    /**
+     * Update stats badge
+     */
+    updateStatsBadge() {
+        const badge = document.querySelector('.stats-badge');
+        if (badge) {
+            badge.innerHTML = `
+                <span>⭐ ${this.favoriteWords.size}</span>
+                <span>✓ ${this.knownWords.size}</span>
+            `;
+        }
+    }
+
+    /**
+     * Render progress dots
      */
     renderProgressDots() {
         const dotsContainer = document.getElementById('progress-dots');
         if (!dotsContainer) return;
 
-        // Limit dots for large vocabularies (show max 20 dots)
         const maxDots = 20;
         const showDots = this.vocabulary.length <= maxDots;
 
@@ -265,14 +428,13 @@ class FlashcardsManager {
             })
             .join('');
 
-        // Add click handlers to dots
         dotsContainer.querySelectorAll('.progress-dot').forEach((dot, index) => {
             dot.addEventListener('click', () => this.goToCard(index));
         });
     }
 
     /**
-     * Update progress text
+     * Update progress
      */
     updateProgress() {
         const progressText = document.getElementById('progress-text');
@@ -280,7 +442,6 @@ class FlashcardsManager {
             progressText.textContent = `${this.currentCardIndex + 1} / ${this.vocabulary.length}`;
         }
 
-        // Update dots
         document.querySelectorAll('.progress-dot').forEach((dot, index) => {
             if (index === this.currentCardIndex) {
                 dot.classList.add('active');
@@ -291,40 +452,29 @@ class FlashcardsManager {
     }
 
     /**
-     * Update navigation buttons (disable at boundaries)
+     * Update navigation buttons
      */
     updateNavigationButtons() {
         const prevBtn = document.getElementById('flashcard-prev');
         const nextBtn = document.getElementById('flashcard-next');
 
-        if (prevBtn) {
-            prevBtn.disabled = this.currentCardIndex === 0;
-        }
-
-        if (nextBtn) {
-            nextBtn.disabled = this.currentCardIndex === this.vocabulary.length - 1;
-        }
+        if (prevBtn) prevBtn.disabled = this.currentCardIndex === 0;
+        if (nextBtn) nextBtn.disabled = this.currentCardIndex === this.vocabulary.length - 1;
     }
 
     /**
-     * Attach navigation event listeners
+     * Attach navigation listeners
      */
     attachNavigationListeners() {
         const prevBtn = document.getElementById('flashcard-prev');
         const nextBtn = document.getElementById('flashcard-next');
 
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => this.navigateCard('prev'));
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => this.navigateCard('next'));
-        }
+        if (prevBtn) prevBtn.addEventListener('click', () => this.navigateCard('prev'));
+        if (nextBtn) nextBtn.addEventListener('click', () => this.navigateCard('next'));
     }
 
     /**
-     * Navigate to previous or next card
-     * @param {string} direction - 'prev' or 'next'
+     * Navigate cards
      */
     navigateCard(direction) {
         if (direction === 'prev' && this.currentCardIndex > 0) {
@@ -332,19 +482,16 @@ class FlashcardsManager {
         } else if (direction === 'next' && this.currentCardIndex < this.vocabulary.length - 1) {
             this.currentCardIndex++;
         } else {
-            return; // Already at boundary
+            return;
         }
 
         this.renderCurrentCard();
         this.updateProgress();
         this.updateNavigationButtons();
-
-        console.log(`📊 Card ${this.currentCardIndex + 1}/${this.vocabulary.length}`);
     }
 
     /**
-     * Go to specific card by index
-     * @param {number} index - Card index
+     * Go to specific card
      */
     goToCard(index) {
         if (index < 0 || index >= this.vocabulary.length) return;
@@ -356,11 +503,10 @@ class FlashcardsManager {
     }
 
     /**
-     * Setup keyboard navigation (arrow keys)
+     * Setup keyboard navigation
      */
     setupKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
-            // Only handle keys when in flashcards mode
             if (this.currentMode !== 'flashcards') return;
 
             switch(e.key) {
@@ -372,23 +518,27 @@ class FlashcardsManager {
                     this.navigateCard('next');
                     e.preventDefault();
                     break;
+                case ' ':
+                    // Flip card on spacebar
+                    const inner = document.querySelector('.flashcard-inner');
+                    if (inner) inner.classList.toggle('flipped');
+                    e.preventDefault();
+                    break;
             }
         });
     }
 
     /**
-     * Setup touch swipe navigation for mobile
+     * Setup touch swipe
      */
     setupTouchSwipe() {
         const cardContainer = document.getElementById('flashcard-current');
         if (!cardContainer) return;
 
-        // Touch start
         cardContainer.addEventListener('touchstart', (e) => {
             this.touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
 
-        // Touch end
         cardContainer.addEventListener('touchend', (e) => {
             this.touchEndX = e.changedTouches[0].screenX;
             this.handleSwipe();
@@ -396,26 +546,22 @@ class FlashcardsManager {
     }
 
     /**
-     * Handle swipe gesture
+     * Handle swipe
      */
     handleSwipe() {
         const swipeDistance = this.touchEndX - this.touchStartX;
 
-        if (Math.abs(swipeDistance) < this.minSwipeDistance) {
-            return; // Not a swipe, just a tap
-        }
+        if (Math.abs(swipeDistance) < this.minSwipeDistance) return;
 
         if (swipeDistance > 0) {
-            // Swipe right -> previous card
             this.navigateCard('prev');
         } else {
-            // Swipe left -> next card
             this.navigateCard('next');
         }
     }
 }
 
-// Export for use in other modules
+// Export
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FlashcardsManager;
 }
