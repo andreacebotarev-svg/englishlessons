@@ -55,8 +55,6 @@ class LessonRenderer {
     });
   }
 
-  // ... (keeping all existing rendering methods) ...
-
   // ========================================
   // KANBAN BOARD RENDERING (NEW)
   // ========================================
@@ -407,8 +405,8 @@ class LessonRenderer {
   }
 
   /**
-   * Render vocabulary list or flashcards
-   * @param {string} mode - 'list' or 'flashcard'
+   * ✨ UPDATED: Render vocabulary list, flashcards, or Kanban board
+   * @param {string} mode - 'list', 'flashcard', or 'kanban'
    * @param {Array} myWords - Currently saved words
    * @param {number} flashcardIndex - Index for flashcard mode
    * @returns {string} HTML string
@@ -443,8 +441,9 @@ class LessonRenderer {
     } else if (mode === 'flashcard') {
       return header + this.renderFlashcard(vocabulary, flashcardIndex);
     } else if (mode === 'kanban') {
-      // Kanban rendering handled separately by LessonEngine
-      return '';
+      // ✨ NEW: Render Kanban board
+      const groupedWords = this.storage.getWordsByStatus(vocabulary);
+      return header + this.renderKanbanBoard(groupedWords, this.storage);
     }
   }
 
