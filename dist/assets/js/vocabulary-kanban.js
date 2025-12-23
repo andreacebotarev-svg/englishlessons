@@ -1,383 +1,316 @@
 /**
- * KANBAN CONTROLLER MODULE
- * Slim controller for Kanban drag-and-drop functionality
- * 
- * Responsibilities:
- * - Handle drag and drop events ONLY
- * - Emit events to LessonEngine via event bus
- * - No rendering, no storage access, no business logic
- * 
- * Architecture: Event-driven, decoupled from other modules
+ * VOCABULARY KANBAN CONTROLLER
+ * Manages drag-and-drop interactions and event communication for Kanban board
  */
 
-class KanbanController {
-  /**
-   * Create Kanban controller
-   * @param {Object} eventBus - Event bus for communication { on, emit, off }
-   */
-  constructor(eventBus) {
-    if (!eventBus || typeof eventBus.emit !== 'function') {
-      throw new Error('KanbanController requires an event bus with emit() method');
-    }
-    
-    this.eventBus = eventBus;
-    this.container = null;
-    this.draggedCard = null;
-    this.sourceColumn = null;
-    this.dragStartTime = 0;
-    
-    // Bind methods to preserve context
-    this._handleDragStart = this._handleDragStart.bind(this);
-    this._handleDragEnd = this._handleDragEnd.bind(this);
-    this._handleDragOver = this._handleDragOver.bind(this);
-    this._handleDragLeave = this._handleDragLeave.bind(this);
-    this._handleDrop = this._handleDrop.bind(this);
-    this._handleClick = this._handleClick.bind(this);
-  }
+/* ========================================
+   EVENT BUS (Pub/Sub Pattern)
+======================================== */
 
-  /**
-   * Attach drag-and-drop listeners to container
-   * @param {HTMLElement} containerElement - Kanban board container
-   */
-  attach(containerElement) {
-    if (!containerElement) {
-      console.error('KanbanController: Invalid container element');
-      return;
-    }
-    
-    this.detach(); // Clean up previous listeners
-    this.container = containerElement;
-    
-    // Use event delegation for all drag events
-    this.container.addEventListener('dragstart', this._handleDragStart);
-    this.container.addEventListener('dragend', this._handleDragEnd);
-    this.container.addEventListener('dragover', this._handleDragOver);
-    this.container.addEventListener('dragleave', this._handleDragLeave);
-    this.container.addEventListener('drop', this._handleDrop);
-    
-    // Button clicks (audio, quick move)
-    this.container.addEventListener('click', this._handleClick);
-    
-    console.log('[KanbanController] Attached to container');
-  }
-
-  /**
-   * Detach all event listeners and cleanup
-   */
-  detach() {
-    if (!this.container) return;
-    
-    this.container.removeEventListener('dragstart', this._handleDragStart);
-    this.container.removeEventListener('dragend', this._handleDragEnd);
-    this.container.removeEventListener('dragover', this._handleDragOver);
-    this.container.removeEventListener('dragleave', this._handleDragLeave);
-    this.container.removeEventListener('drop', this._handleDrop);
-    this.container.removeEventListener('click', this._handleClick);
-    
-    this.container = null;
-    this.draggedCard = null;
-    this.sourceColumn = null;
-    
-    console.log('[KanbanController] Detached from container');
-  }
-
-  // ========================================
-  // DRAG AND DROP HANDLERS
-  // ========================================
-
-  /**
-   * Handle drag start on card
-   * @private
-   */
-  _handleDragStart(e) {
-    const card = e.target.closest('.kanban-card');
-    if (!card) return;
-    
-    this.draggedCard = card;
-    this.sourceColumn = card.closest('.kanban-column');
-    this.dragStartTime = Date.now();
-    
-    card.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', card.dataset.word);
-    
-    // Emit drag start event (optional, for analytics)
-    this.eventBus.emit('kanban:drag-start', {
-      word: card.dataset.word,
-      sourceStatus: this.sourceColumn?.dataset.status
-    });
-  }
-
-  /**
-   * Handle drag end on card
-   * @private
-   */
-  _handleDragEnd(e) {
-    const card = e.target.closest('.kanban-card');
-    if (!card) return;
-    
-    card.classList.remove('dragging');
-    
-    // Cleanup all drag-over states
-    this._cleanupDragStates();
-    
-    this.draggedCard = null;
-    this.sourceColumn = null;
-  }
-
-  /**
-   * Handle drag over column
-   * @private
-   */
-  _handleDragOver(e) {
-    const column = e.target.closest('.kanban-column');
-    if (!column) return;
-    
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    
-    // Add visual feedback
-    column.classList.add('drag-over');
-  }
-
-  /**
-   * Handle drag leave column
-   * @private
-   */
-  _handleDragLeave(e) {
-    const column = e.target.closest('.kanban-column');
-    if (!column) return;
-    
-    // Only remove if actually leaving (not hovering child)
-    if (!column.contains(e.relatedTarget)) {
-      column.classList.remove('drag-over');
-    }
-  }
-
-  /**
-   * Handle drop on column
-   * @private
-   */
-  _handleDrop(e) {
-    const column = e.target.closest('.kanban-column');
-    if (!column) return;
-    
-    e.preventDefault();
-    column.classList.remove('drag-over');
-    
-    if (!this.draggedCard || !this.sourceColumn) return;
-    
-    const word = this.draggedCard.dataset.word;
-    const newStatus = column.dataset.status;
-    const oldStatus = this.sourceColumn.dataset.status;
-    
-    // Don't emit event if dropped in same column
-    if (newStatus === oldStatus) {
-      console.log('[KanbanController] Dropped in same column, no action');
-      return;
-    }
-    
-    // Calculate drag duration for analytics
-    const dragDuration = Date.now() - this.dragStartTime;
-    
-    // Emit event to LessonEngine
-    this.eventBus.emit('kanban:word-moved', {
-      word,
-      oldStatus,
-      newStatus,
-      dragDuration
-    });
-    
-    console.log(`[KanbanController] Word "${word}" moved: ${oldStatus} → ${newStatus}`);
-    
-    // Haptic feedback on mobile
-    this._vibrate(10);
-  }
-
-  /**
-   * Handle button clicks (audio, quick move)
-   * @private
-   */
-  _handleClick(e) {
-    // Audio button
-    const audioBtn = e.target.closest('.card-audio');
-    if (audioBtn) {
-      e.stopPropagation();
-      const card = audioBtn.closest('.kanban-card');
-      const word = card?.dataset.word;
-      
-      if (word) {
-        this.eventBus.emit('kanban:audio-requested', { word });
-        console.log(`[KanbanController] Audio requested: ${word}`);
-      }
-      return;
-    }
-    
-    // Quick move button (→)
-    const moveBtn = e.target.closest('.card-move');
-    if (moveBtn) {
-      e.stopPropagation();
-      const card = moveBtn.closest('.kanban-card');
-      const word = card?.dataset.word;
-      const column = card?.closest('.kanban-column');
-      const currentStatus = column?.dataset.status;
-      
-      if (word && currentStatus) {
-        const nextStatus = this._getNextStatus(currentStatus);
-        
-        this.eventBus.emit('kanban:word-moved', {
-          word,
-          oldStatus: currentStatus,
-          newStatus: nextStatus,
-          isQuickMove: true
-        });
-        
-        console.log(`[KanbanController] Quick move: ${word} → ${nextStatus}`);
-        this._vibrate(10);
-      }
-      return;
-    }
-    
-    // Reset button
-    const resetBtn = e.target.closest('.kanban-reset-btn');
-    if (resetBtn) {
-      e.stopPropagation();
-      
-      if (confirm('Reset all word progress? This will move all words back to "To Learn".')) {
-        this.eventBus.emit('kanban:reset-requested');
-        console.log('[KanbanController] Reset requested');
-      }
-      return;
-    }
-  }
-
-  // ========================================
-  // HELPER METHODS
-  // ========================================
-
-  /**
-   * Get next status in progression
-   * @param {string} currentStatus
-   * @returns {string} Next status
-   * @private
-   */
-  _getNextStatus(currentStatus) {
-    const progression = {
-      'to-learn': 'learning',
-      'learning': 'known',
-      'known': 'favorites',
-      'favorites': 'known' // Loop back from favorites
-    };
-    return progression[currentStatus] || 'learning';
-  }
-
-  /**
-   * Cleanup all drag-over states
-   * @private
-   */
-  _cleanupDragStates() {
-    if (!this.container) return;
-    
-    this.container.querySelectorAll('.kanban-column.drag-over').forEach(col => {
-      col.classList.remove('drag-over');
-    });
-  }
-
-  /**
-   * Vibrate device (if supported)
-   * @param {number} duration - Duration in milliseconds
-   * @private
-   */
-  _vibrate(duration = 10) {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(duration);
-    }
-  }
-
-  /**
-   * Destroy controller and cleanup
-   */
-  destroy() {
-    this.detach();
-    this.eventBus = null;
-    console.log('[KanbanController] Destroyed');
-  }
-}
-
-// ========================================
-// SIMPLE EVENT BUS IMPLEMENTATION
-// ========================================
-
-/**
- * Lightweight event bus for component communication
- * Avoids tight coupling between modules
- */
 class SimpleEventBus {
   constructor() {
-    this.listeners = new Map();
+    this.listeners = {};
   }
 
   /**
    * Subscribe to an event
    * @param {string} event - Event name
    * @param {Function} callback - Callback function
-   * @returns {Function} Unsubscribe function
    */
   on(event, callback) {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
     }
-    
-    this.listeners.get(event).add(callback);
-    
-    // Return unsubscribe function
-    return () => this.off(event, callback);
+    this.listeners[event].push(callback);
   }
 
   /**
    * Unsubscribe from an event
    * @param {string} event - Event name
-   * @param {Function} callback - Callback function
+   * @param {Function} callback - Callback function to remove
    */
   off(event, callback) {
-    const callbacks = this.listeners.get(event);
-    if (callbacks) {
-      callbacks.delete(callback);
-    }
+    if (!this.listeners[event]) return;
+    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
   }
 
   /**
    * Emit an event
    * @param {string} event - Event name
-   * @param {*} data - Event data
+   * @param {*} data - Data to pass to listeners
    */
   emit(event, data) {
-    const callbacks = this.listeners.get(event);
-    if (callbacks) {
-      callbacks.forEach(callback => {
-        try {
-          callback(data);
-        } catch (error) {
-          console.error(`Error in event handler for "${event}":`, error);
-        }
-      });
-    }
+    if (!this.listeners[event]) return;
+    this.listeners[event].forEach(callback => {
+      try {
+        callback(data);
+      } catch (error) {
+        console.error(`Error in event listener for '${event}':`, error);
+      }
+    });
   }
 
   /**
-   * Remove all listeners for an event (or all events)
-   * @param {string} [event] - Event name (optional)
+   * Clear all listeners
    */
-  clear(event) {
-    if (event) {
-      this.listeners.delete(event);
-    } else {
-      this.listeners.clear();
+  clear() {
+    this.listeners = {};
+  }
+}
+
+/* ========================================
+   KANBAN CONTROLLER
+======================================== */
+
+class KanbanController {
+  constructor(eventBus) {
+    this.eventBus = eventBus;
+    this.draggedCard = null;
+    this.sourceColumn = null;
+    this.boundHandlers = {};
+    
+    console.log('[KanbanController] Initialized');
+  }
+
+  /**
+   * Attach drag-and-drop listeners to Kanban board
+   * @param {HTMLElement} container - Kanban container element
+   */
+  attach(container) {
+    if (!container) {
+      console.warn('[KanbanController] Container not found');
+      return;
+    }
+
+    console.log('[KanbanController] Attaching listeners...');
+
+    // Find all draggable cards
+    const cards = container.querySelectorAll('.kanban-card[draggable="true"]');
+    const columns = container.querySelectorAll('.kanban-column');
+    const resetBtn = container.querySelector('.kanban-reset-btn');
+
+    // Attach card drag listeners
+    cards.forEach(card => {
+      this._attachCardListeners(card);
+    });
+
+    // Attach column drop listeners
+    columns.forEach(column => {
+      this._attachColumnListeners(column);
+    });
+
+    // Attach audio button listeners
+    const audioButtons = container.querySelectorAll('.card-audio');
+    audioButtons.forEach(btn => {
+      const handler = (e) => this._handleAudioClick(e);
+      btn.addEventListener('click', handler);
+      this.boundHandlers[btn] = handler;
+    });
+
+    // Attach reset button listener
+    if (resetBtn) {
+      const handler = (e) => this._handleResetClick(e);
+      resetBtn.addEventListener('click', handler);
+      this.boundHandlers[resetBtn] = handler;
+    }
+
+    console.log('[KanbanController] Listeners attached:', {
+      cards: cards.length,
+      columns: columns.length,
+      audioButtons: audioButtons.length,
+      hasResetBtn: !!resetBtn
+    });
+  }
+
+  /**
+   * Detach all listeners (cleanup)
+   */
+  detach() {
+    console.log('[KanbanController] Detaching listeners...');
+    
+    // Remove all bound handlers
+    Object.keys(this.boundHandlers).forEach(element => {
+      if (element && this.boundHandlers[element]) {
+        element.removeEventListener('click', this.boundHandlers[element]);
+      }
+    });
+    
+    this.boundHandlers = {};
+    this.draggedCard = null;
+    this.sourceColumn = null;
+    
+    console.log('[KanbanController] Cleanup complete');
+  }
+
+  /* ========================================
+     PRIVATE METHODS - Card Listeners
+  ======================================== */
+
+  _attachCardListeners(card) {
+    // Drag start
+    const dragStartHandler = (e) => this._onDragStart(e, card);
+    card.addEventListener('dragstart', dragStartHandler);
+    this.boundHandlers[`${card}_dragstart`] = dragStartHandler;
+
+    // Drag end
+    const dragEndHandler = (e) => this._onDragEnd(e, card);
+    card.addEventListener('dragend', dragEndHandler);
+    this.boundHandlers[`${card}_dragend`] = dragEndHandler;
+  }
+
+  _onDragStart(e, card) {
+    this.draggedCard = card;
+    this.sourceColumn = card.closest('.kanban-column');
+    
+    card.classList.add('dragging');
+    
+    // Set data for compatibility
+    const word = card.dataset.word;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', word);
+    
+    console.log('[KanbanController] Drag started:', word);
+  }
+
+  _onDragEnd(e, card) {
+    card.classList.remove('dragging');
+    
+    // Remove drag-over class from all columns
+    document.querySelectorAll('.kanban-column.drag-over').forEach(col => {
+      col.classList.remove('drag-over');
+    });
+    
+    this.draggedCard = null;
+    this.sourceColumn = null;
+    
+    console.log('[KanbanController] Drag ended');
+  }
+
+  /* ========================================
+     PRIVATE METHODS - Column Listeners
+  ======================================== */
+
+  _attachColumnListeners(column) {
+    const columnContent = column.querySelector('.column-content');
+    if (!columnContent) return;
+
+    // Drag over
+    const dragOverHandler = (e) => this._onDragOver(e, column);
+    columnContent.addEventListener('dragover', dragOverHandler);
+    this.boundHandlers[`${columnContent}_dragover`] = dragOverHandler;
+
+    // Drag enter
+    const dragEnterHandler = (e) => this._onDragEnter(e, column);
+    columnContent.addEventListener('dragenter', dragEnterHandler);
+    this.boundHandlers[`${columnContent}_dragenter`] = dragEnterHandler;
+
+    // Drag leave
+    const dragLeaveHandler = (e) => this._onDragLeave(e, column);
+    columnContent.addEventListener('dragleave', dragLeaveHandler);
+    this.boundHandlers[`${columnContent}_dragleave`] = dragLeaveHandler;
+
+    // Drop
+    const dropHandler = (e) => this._onDrop(e, column);
+    columnContent.addEventListener('drop', dropHandler);
+    this.boundHandlers[`${columnContent}_drop`] = dropHandler;
+  }
+
+  _onDragOver(e, column) {
+    e.preventDefault(); // Allow drop
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  _onDragEnter(e, column) {
+    e.preventDefault();
+    
+    // Only highlight if dragging a card
+    if (this.draggedCard) {
+      column.classList.add('drag-over');
+    }
+  }
+
+  _onDragLeave(e, column) {
+    // Only remove highlight if leaving column completely
+    const rect = column.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      column.classList.remove('drag-over');
+    }
+  }
+
+  _onDrop(e, column) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    column.classList.remove('drag-over');
+    
+    if (!this.draggedCard) {
+      console.warn('[KanbanController] No dragged card found on drop');
+      return;
+    }
+
+    const word = this.draggedCard.dataset.word;
+    const oldStatus = this.sourceColumn?.dataset.status;
+    const newStatus = column.dataset.status;
+
+    // Check if status changed
+    if (oldStatus === newStatus) {
+      console.log('[KanbanController] Card dropped in same column, no action needed');
+      return;
+    }
+
+    console.log('[KanbanController] Card dropped:', {
+      word,
+      oldStatus,
+      newStatus
+    });
+
+    // Emit event to LessonEngine
+    this.eventBus.emit('kanban:word-moved', {
+      word,
+      oldStatus,
+      newStatus
+    });
+  }
+
+  /* ========================================
+     PRIVATE METHODS - Button Handlers
+  ======================================== */
+
+  _handleAudioClick(e) {
+    e.stopPropagation();
+    
+    const card = e.target.closest('.kanban-card');
+    if (!card) return;
+    
+    const word = card.dataset.word;
+    
+    console.log('[KanbanController] Audio requested:', word);
+    
+    // Emit event
+    this.eventBus.emit('kanban:audio-requested', { word });
+  }
+
+  _handleResetClick(e) {
+    e.preventDefault();
+    
+    const confirmed = confirm('Reset all vocabulary progress? This will move all words back to "To Learn".');
+    
+    if (confirmed) {
+      console.log('[KanbanController] Reset requested');
+      this.eventBus.emit('kanban:reset-requested');
     }
   }
 }
 
-// Export for module usage (if needed)
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { KanbanController, SimpleEventBus };
-}
+/* ========================================
+   EXPORT TO GLOBAL SCOPE
+======================================== */
+
+// Make classes available globally for LessonEngine
+window.SimpleEventBus = SimpleEventBus;
+window.KanbanController = KanbanController;
+
+console.log('[Kanban Module] Loaded successfully');
