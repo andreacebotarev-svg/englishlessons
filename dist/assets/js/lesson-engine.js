@@ -623,7 +623,7 @@ class LessonEngine {
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\''").replace(/"/g, '&quot;')}', this);">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', this);">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -786,12 +786,7 @@ class LessonEngine {
         html = this.renderer.renderReading(this.myWords);
         break;
       case 'vocabulary':
-        // ✨ NEW: Check if Kanban mode
-        if (this.vocabMode === 'kanban') {
-          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
-        } else {
-          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
-        }
+        html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
         break;
       case 'grammar':
         html = this.renderer.renderGrammar();
@@ -881,21 +876,23 @@ class LessonEngine {
       });
     });
     
-    // ✨ NEW: Setup Kanban if in kanban mode
+    // ✨ Setup Kanban if in kanban mode
     if (this.vocabMode === 'kanban') {
       this.setupKanbanListeners();
     }
   }
 
   /**
-   * ✨ NEW: Switch vocabulary mode (with Kanban cleanup)
+   * ✨ Switch vocabulary mode (with Kanban cleanup)
    */
   switchVocabMode(mode) {
     if (mode === this.vocabMode) return;
     
-    // ✨ NEW: Cleanup Kanban controller when leaving kanban mode
+    // ✨ FIX: Cleanup and nullify Kanban controller when leaving kanban mode
     if (this.vocabMode === 'kanban' && this.kanbanController) {
+      console.log('[LessonEngine] Detaching Kanban controller...');
       this.kanbanController.detach();
+      this.kanbanController = null; // ✅ FIXED: Reset to null for re-initialization
     }
     
     this.vocabMode = mode;
@@ -906,14 +903,14 @@ class LessonEngine {
     
     this.renderCurrentTab();
     
-    // ✨ NEW: Setup Kanban after rendering
+    // ✨ Setup Kanban after rendering
     if (mode === 'kanban') {
       this.setupKanbanListeners();
     }
   }
 
   /**
-   * ✨ NEW: Setup Kanban controller and event listeners
+   * ✨ Setup Kanban controller and event listeners
    */
   setupKanbanListeners() {
     const kanbanContainer = document.querySelector('.vocab-kanban-container');
@@ -925,6 +922,7 @@ class LessonEngine {
     
     // Initialize controller (lazy)
     if (!this.kanbanController) {
+      console.log('[LessonEngine] Creating new KanbanController...');
       this.kanbanController = new KanbanController(this.eventBus);
       
       // Subscribe to Kanban events
@@ -940,7 +938,7 @@ class LessonEngine {
   }
 
   /**
-   * ✨ NEW: Handle word moved between Kanban columns
+   * ✨ Handle word moved between Kanban columns
    */
   handleKanbanWordMoved(data) {
     const { word, oldStatus, newStatus } = data;
@@ -965,7 +963,7 @@ class LessonEngine {
   }
 
   /**
-   * ✨ NEW: Handle audio button click in Kanban card
+   * ✨ Handle audio button click in Kanban card
    */
   handleKanbanAudio(data) {
     const { word } = data;
@@ -974,7 +972,7 @@ class LessonEngine {
   }
 
   /**
-   * ✨ NEW: Handle reset button click in Kanban board
+   * ✨ Handle reset button click in Kanban board
    */
   handleKanbanReset() {
     console.log('[LessonEngine] Resetting Kanban board');
@@ -1032,7 +1030,7 @@ class LessonEngine {
    */
   clearAllWords() {
     if (confirm('Are you sure you want to clear all saved words?')) {
-      this.storage.clearAllWords();
+      this.storage.clearAll();
       this.myWords = [];
       this.showNotification('All words cleared');
       this.renderCurrentTab();
@@ -1097,7 +1095,7 @@ class LessonEngine {
   }
 
   /**
-   * ✨ NEW: Quiz methods for Reading tab
+   * ✨ Quiz methods for Reading tab
    */
   
   /**
