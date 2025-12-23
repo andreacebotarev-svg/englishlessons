@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flashcards Demo - Stage 1</title>
+    <title>Flashcards Demo - Stage 3 Complete</title>
     <link rel="stylesheet" href="styles/flashcards.css">
     <style>
         /* Basic page styling */
@@ -41,15 +41,32 @@
             font-size: 1.1rem;
         }
 
+        .badges {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
         .badge {
             display: inline-block;
             padding: 0.25rem 0.75rem;
-            background: #4A90E2;
+            background: #4CAF50;
             color: white;
             border-radius: 1rem;
             font-size: 0.85rem;
             font-weight: 500;
-            margin-top: 0.5rem;
+        }
+
+        .badge.stage-3 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(102, 126, 234, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); }
         }
 
         /* Vocabulary list styling */
@@ -91,14 +108,14 @@
         .status-info {
             margin-top: 2rem;
             padding: 1rem;
-            background: #E3F2FD;
-            border-left: 4px solid #2196F3;
+            background: #E8F5E9;
+            border-left: 4px solid #4CAF50;
             border-radius: 0.5rem;
         }
 
         .status-info h4 {
             margin-bottom: 0.5rem;
-            color: #1976D2;
+            color: #2E7D32;
         }
 
         .status-info ul {
@@ -129,8 +146,12 @@
     <div class="container">
         <div class="demo-header">
             <h1>🎴 Flashcards Mode Demo</h1>
-            <p>Interactive vocabulary learning system</p>
-            <span class="badge">✅ Stage 1 Complete</span>
+            <p>Interactive vocabulary learning system with 3D flip animation</p>
+            <div class="badges">
+                <span class="badge">✅ Stage 1</span>
+                <span class="badge">✅ Stage 2</span>
+                <span class="badge stage-3">🔥 Stage 3 Complete!</span>
+            </div>
         </div>
 
         <!-- This is where the toggle buttons will be inserted -->
@@ -260,49 +281,97 @@
         </div>
 
         <div class="status-info">
-            <h4>✅ Stage 1 Success Criteria:</h4>
+            <h4>🔥 Stage 3 Success Criteria (All Complete!):</h4>
             <ul>
-                <li>Toggle buttons appear in vocabulary header ✓</li>
-                <li>Clicking "Flashcards" hides list and shows flashcards container ✓</li>
-                <li>Clicking "List" returns to vocabulary list ✓</li>
-                <li>Placeholder with gradient displays in Flashcards mode ✓</li>
-                <li>Navigation arrows are visible and reactive ✓</li>
+                <li>✅ 3D flip animation when clicking card</li>
+                <li>✅ 🔊 Audio playback button (integrated TTS)</li>
+                <li>✅ ⭐ Add to favorites functionality</li>
+                <li>✅ ✓ Mark as known functionality</li>
+                <li>✅ Persistent storage (localStorage)</li>
+                <li>✅ Visual feedback on all interactions</li>
+                <li>✅ Keyboard shortcuts (← → Space)</li>
+                <li>✅ Touch swipe support</li>
             </ul>
         </div>
     </div>
 
     <script src="js/flashcards.js"></script>
     <script>
+        // TTS Services (matching 000.html implementation)
+        const TTS_SERVICES = [
+            (text) => `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`,
+            (text) => `https://translate.googleapis.com/translate_tts?ie=UTF-8&total=1&idx=0&client=gtx&tl=en&q=${encodeURIComponent(text)}`,
+            (text) => {
+                if (typeof responsiveVoice !== 'undefined') {
+                    responsiveVoice.speak(text, 'UK English Male');
+                    return null;
+                }
+                return null;
+            },
+            (text) => {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    speechSynthesis.speak(utterance);
+                    return null;
+                }
+                return null;
+            }
+        ];
+
+        let ttsIndex = 0;
+
+        // Global speak function for flashcards to use
+        window.speak = function(text) {
+            for (let i = 0; i < TTS_SERVICES.length; i++) {
+                try {
+                    const url = TTS_SERVICES[(ttsIndex + i) % TTS_SERVICES.length](text);
+                    if (url) {
+                        const audio = new Audio(url);
+                        audio.play().catch(e => console.log("Audio play error", e));
+                        ttsIndex = (ttsIndex + i) % TTS_SERVICES.length;
+                        break;
+                    }
+                } catch (e) {
+                    console.log("TTS API failed:", e);
+                    continue;
+                }
+            }
+        };
+
         // Sample vocabulary data
         const vocabularyData = [
-            { word: 'diet', translation: 'диета, рацион питания', transcription: '[ˈdaɪət]' },
-            { word: 'healthy', translation: 'здоровый', transcription: '[ˈhelθi]' },
-            { word: 'exercise', translation: 'упражнение', transcription: '[ˈeksəsaɪz]' },
-            { word: 'vitamin', translation: 'витамин', transcription: '[ˈvaɪtəmɪn]' },
-            { word: 'breakfast', translation: 'завтрак', transcription: '[ˈbrekfəst]' },
-            { word: 'water', translation: 'вода', transcription: '[ˈwɔːtə]' },
-            { word: 'sleep', translation: 'сон', transcription: '[sliːp]' },
-            { word: 'fruit', translation: 'фрукт', transcription: '[fruːt]' },
-            { word: 'vegetable', translation: 'овощ', transcription: '[ˈvedʒtəbl]' },
-            { word: 'protein', translation: 'белок', transcription: '[ˈprəʊtiːn]' },
-            { word: 'energy', translation: 'энергия', transcription: '[ˈenədʒi]' },
-            { word: 'muscle', translation: 'мышца', transcription: '[ˈmʌsl]' },
-            { word: 'balance', translation: 'баланс', transcription: '[ˈbæləns]' },
-            { word: 'nutrition', translation: 'питание', transcription: '[njuːˈtrɪʃn]' },
-            { word: 'calories', translation: 'калории', transcription: '[ˈkæləriz]' },
-            { word: 'lifestyle', translation: 'образ жизни', transcription: '[ˈlaɪfstaɪl]' },
-            { word: 'fitness', translation: 'фитнес', transcription: '[ˈfɪtnəs]' },
-            { word: 'weight', translation: 'вес', transcription: '[weɪt]' },
-            { word: 'stress', translation: 'стресс', transcription: '[stres]' },
-            { word: 'wellness', translation: 'благополучие', transcription: '[ˈwelnəs]' }
+            { word: 'diet', translation: 'диета, рацион питания', transcription: '[ˈdaɪət]', example: 'A balanced diet is important for health.' },
+            { word: 'healthy', translation: 'здоровый', transcription: '[ˈhelθi]', example: 'She leads a healthy lifestyle.' },
+            { word: 'exercise', translation: 'упражнение', transcription: '[ˈeksəsaɪz]', example: 'Regular exercise keeps you fit.' },
+            { word: 'vitamin', translation: 'витамин', transcription: '[ˈvaɪtəmɪn]', example: 'Oranges contain vitamin C.' },
+            { word: 'breakfast', translation: 'завтрак', transcription: '[ˈbrekfəst]', example: 'Breakfast is the most important meal.' },
+            { word: 'water', translation: 'вода', transcription: '[ˈwɔːtə]', example: 'Drink eight glasses of water daily.' },
+            { word: 'sleep', translation: 'сон', transcription: '[sliːp]', example: 'Good sleep improves memory.' },
+            { word: 'fruit', translation: 'фрукт', transcription: '[fruːt]', example: 'Eat fresh fruit every day.' },
+            { word: 'vegetable', translation: 'овощ', transcription: '[ˈvedʒtəbl]', example: 'Vegetables are rich in fiber.' },
+            { word: 'protein', translation: 'белок', transcription: '[ˈprəʊtiːn]', example: 'Eggs are a good source of protein.' },
+            { word: 'energy', translation: 'энергия', transcription: '[ˈenədʒi]', example: 'Carbs provide quick energy.' },
+            { word: 'muscle', translation: 'мышца', transcription: '[ˈmʌsl]', example: 'Exercise builds muscle strength.' },
+            { word: 'balance', translation: 'баланс', transcription: '[ˈbæləns]', example: 'Maintain work-life balance.' },
+            { word: 'nutrition', translation: 'питание', transcription: '[njuːˈtrɪʃn]', example: 'Good nutrition prevents disease.' },
+            { word: 'calories', translation: 'калории', transcription: '[ˈkæləriz]', example: 'Count your daily calories.' },
+            { word: 'lifestyle', translation: 'образ жизни', transcription: '[ˈlaɪfstaɪl]', example: 'A healthy lifestyle includes exercise.' },
+            { word: 'fitness', translation: 'фитнес', transcription: '[ˈfɪtnəs]', example: 'Join a fitness class.' },
+            { word: 'weight', translation: 'вес', transcription: '[weɪt]', example: 'Monitor your weight regularly.' },
+            { word: 'stress', translation: 'стресс', transcription: '[stres]', example: 'Reduce stress through meditation.' },
+            { word: 'wellness', translation: 'благополучие', transcription: '[ˈwelnəs]', example: 'Focus on overall wellness.' }
         ];
 
         // Initialize flashcards
         const flashcards = new FlashcardsManager(vocabularyData);
         flashcards.init('vocabulary-list-container');
 
-        console.log('🎴 Demo page loaded successfully!');
+        console.log('🔥 Stage 3 Demo page loaded successfully!');
         console.log('📊 Vocabulary loaded:', vocabularyData.length, 'words');
+        console.log('🎯 New features: 3D flip, audio, favorites, known words');
     </script>
 </body>
 </html>
