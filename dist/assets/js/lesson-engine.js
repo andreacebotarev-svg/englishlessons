@@ -623,7 +623,7 @@ class LessonEngine {
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', this);">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\''").replace(/"/g, '&quot;')}', this);">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -786,7 +786,12 @@ class LessonEngine {
         html = this.renderer.renderReading(this.myWords);
         break;
       case 'vocabulary':
-        html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
+        // ✨ NEW: Check if Kanban mode
+        if (this.vocabMode === 'kanban') {
+          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
+        } else {
+          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
+        }
         break;
       case 'grammar':
         html = this.renderer.renderGrammar();
@@ -876,41 +881,41 @@ class LessonEngine {
       });
     });
     
-    // ✨ Setup Kanban if in kanban mode
+    // ✨ NEW: Setup Kanban if in kanban mode
     if (this.vocabMode === 'kanban') {
       this.setupKanbanListeners();
     }
   }
 
   /**
-   * ✨ Switch vocabulary mode (with Kanban cleanup)
+   * ✨ FIXED: Switch vocabulary mode (allow re-initialization)
+   * REMOVED early return guard that prevented re-entering kanban mode
    */
   switchVocabMode(mode) {
-    if (mode === this.vocabMode) return;
-    
-    // ✨ FIX: Cleanup and nullify Kanban controller when leaving kanban mode
+    // Cleanup previous mode first
     if (this.vocabMode === 'kanban' && this.kanbanController) {
-      console.log('[LessonEngine] Detaching Kanban controller...');
       this.kanbanController.detach();
-      this.kanbanController = null; // ✅ FIXED: Reset to null for re-initialization
     }
     
-    this.vocabMode = mode;
-    
-    if (mode === 'flashcard') {
-      this.flashcardIndex = 0;
+    // Only update vocabMode if it actually changed
+    if (mode !== this.vocabMode) {
+      this.vocabMode = mode;
+      
+      if (mode === 'flashcard') {
+        this.flashcardIndex = 0;
+      }
     }
     
     this.renderCurrentTab();
     
-    // ✨ Setup Kanban after rendering
+    // ✨ NEW: Setup Kanban after rendering
     if (mode === 'kanban') {
       this.setupKanbanListeners();
     }
   }
 
   /**
-   * ✨ Setup Kanban controller and event listeners
+   * ✨ NEW: Setup Kanban controller and event listeners
    */
   setupKanbanListeners() {
     const kanbanContainer = document.querySelector('.vocab-kanban-container');
@@ -920,9 +925,8 @@ class LessonEngine {
       return;
     }
     
-    // Initialize controller (lazy)
+    // Initialize controller (lazy) - only once
     if (!this.kanbanController) {
-      console.log('[LessonEngine] Creating new KanbanController...');
       this.kanbanController = new KanbanController(this.eventBus);
       
       // Subscribe to Kanban events
@@ -931,14 +935,14 @@ class LessonEngine {
       this.eventBus.on('kanban:reset-requested', () => this.handleKanbanReset());
     }
     
-    // Attach drag-and-drop listeners
+    // Attach drag-and-drop listeners (this can be called multiple times)
     this.kanbanController.attach(kanbanContainer);
     
     console.log('[LessonEngine] Kanban listeners attached');
   }
 
   /**
-   * ✨ Handle word moved between Kanban columns
+   * ✨ NEW: Handle word moved between Kanban columns
    */
   handleKanbanWordMoved(data) {
     const { word, oldStatus, newStatus } = data;
@@ -963,7 +967,7 @@ class LessonEngine {
   }
 
   /**
-   * ✨ Handle audio button click in Kanban card
+   * ✨ NEW: Handle audio button click in Kanban card
    */
   handleKanbanAudio(data) {
     const { word } = data;
@@ -972,7 +976,7 @@ class LessonEngine {
   }
 
   /**
-   * ✨ Handle reset button click in Kanban board
+   * ✨ NEW: Handle reset button click in Kanban board
    */
   handleKanbanReset() {
     console.log('[LessonEngine] Resetting Kanban board');
@@ -1030,7 +1034,7 @@ class LessonEngine {
    */
   clearAllWords() {
     if (confirm('Are you sure you want to clear all saved words?')) {
-      this.storage.clearAll();
+      this.storage.clearAllWords();
       this.myWords = [];
       this.showNotification('All words cleared');
       this.renderCurrentTab();
@@ -1095,7 +1099,7 @@ class LessonEngine {
   }
 
   /**
-   * ✨ Quiz methods for Reading tab
+   * ✨ NEW: Quiz methods for Reading tab
    */
   
   /**
