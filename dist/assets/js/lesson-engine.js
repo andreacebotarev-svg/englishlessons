@@ -8,6 +8,7 @@ class LessonEngine {
     this.lessonId = lessonId;
     this.storage = new LessonStorage(lessonId);
     this.tts = new LessonTTS();
+    this.themeManager = new ThemeManager(); // ✨ NEW: Theme manager instance
     this.lessonData = null;
     this.currentTab = 'reading';
     this.vocabMode = 'list'; // 'list', 'flashcard', 'kanban' ✨ NEW
@@ -43,10 +44,64 @@ class LessonEngine {
       this.render();
       this.hideLoader();
       this.injectPopupStyles();
+      this.injectThemeSwitcher(); // ✨ NEW: Inject theme switcher UI
     } catch (error) {
       console.error('Initialization error:', error);
       this.showError(error.message);
     }
+  }
+
+  /**
+   * ✨ NEW: Inject theme switcher UI into lesson header
+   */
+  injectThemeSwitcher() {
+    const headerActions = document.querySelector('.lesson-actions');
+    if (!headerActions) {
+      console.warn('[LessonEngine] Could not find .lesson-actions for theme switcher');
+      return;
+    }
+
+    const currentTheme = this.themeManager.getCurrentTheme();
+    const switcherHTML = this.renderer.renderThemeSwitcher(currentTheme);
+    
+    // Insert before first child (Listen All button)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = switcherHTML;
+    const switcherElement = tempDiv.firstElementChild;
+    
+    headerActions.insertBefore(switcherElement, headerActions.firstChild);
+    
+    console.log('[LessonEngine] Theme switcher injected');
+  }
+
+  /**
+   * ✨ NEW: Handle theme switch from UI
+   * @param {string} themeId - Theme ID ('default', 'kids', 'dark')
+   */
+  handleThemeSwitch(themeId) {
+    console.log(`[LessonEngine] Switching theme to: ${themeId}`);
+    
+    // Apply theme via ThemeManager
+    this.themeManager.setTheme(themeId);
+    
+    // Update active button state
+    const buttons = document.querySelectorAll('.theme-btn');
+    buttons.forEach(btn => {
+      const isActive = btn.dataset.theme === themeId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive.toString());
+    });
+    
+    // Show notification
+    const themeNames = {
+      'default': 'Classic',
+      'kids': 'Kids',
+      'dark': 'Dark'
+    };
+    this.showNotification(`Theme changed to ${themeNames[themeId]}`);
+    
+    // Haptic feedback
+    this.tts.vibrate(20);
   }
 
   /**
@@ -449,6 +504,7 @@ class LessonEngine {
               </div>
             </div>
             <div class="lesson-actions">
+              <!-- Theme switcher will be injected here -->
               <button class="primary-btn" onclick="window.lessonEngine.speakAllReading()" aria-label="Listen to reading">
                 <span>🔊</span> Listen All
               </button>
@@ -619,11 +675,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">  
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')";>  
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\''").replace(/"/g, '&quot;')}', this);">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\''"').replace(/"/g, '&quot;')}', this);">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -642,7 +698,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}'');">
             🔊 Listen
           </button>
         </div>
@@ -818,7 +874,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'");
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'');
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
