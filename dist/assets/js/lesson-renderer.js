@@ -1,7 +1,7 @@
 /**
  * LESSON RENDERER MODULE
  * Handles UI rendering and DOM manipulation
- * Updated: Auto-insert images after paragraphs + highlight saved words + embedded quiz
+ * Updated: Auto-insert images after paragraphs + highlight saved words + embedded quiz + Kanban board
  */
 
 class LessonRenderer {
@@ -54,6 +54,127 @@ class LessonRenderer {
               </span>`;
     });
   }
+
+  // ... (keeping all existing rendering methods) ...
+
+  // ========================================
+  // KANBAN BOARD RENDERING (NEW)
+  // ========================================
+
+  /**
+   * Render Kanban board HTML
+   * @param {Object} groupedWords - Words grouped by status from storage.getWordsByStatus()
+   * @param {LessonStorage} storage - Storage instance for checking saved words
+   * @returns {string} HTML string
+   */
+  renderKanbanBoard(groupedWords, storage) {
+    const columns = [
+      { status: 'to-learn', icon: '📖', label: 'To Learn', color: '#667eea' },
+      { status: 'learning', icon: '📚', label: 'Learning', color: '#f093fb' },
+      { status: 'known', icon: '✓', label: 'Known', color: '#4facfe' },
+      { status: 'favorites', icon: '⭐', label: 'Favorites', color: '#fa709a' }
+    ];
+
+    const columnsHTML = columns.map(col => {
+      const words = groupedWords[col.status] || [];
+      const cardsHTML = words.length > 0
+        ? words.map(word => this._renderKanbanCard(word, col.status)).join('')
+        : this._renderKanbanEmptyState(col.label);
+      
+      return `
+        <div class="kanban-column" data-status="${col.status}">
+          <div class="column-header">
+            <div class="column-title">
+              <span class="column-icon">${col.icon}</span>
+              <span class="column-name">${col.label}</span>
+              <span class="column-count">(${words.length})</span>
+            </div>
+            <button class="column-menu" aria-label="Column menu for ${col.label}">⋮</button>
+          </div>
+          <div class="column-content">
+            ${cardsHTML}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="vocab-kanban-container">
+        <div class="kanban-header">
+          <h3>📚 Vocabulary Progress</h3>
+          <div class="kanban-actions">
+            <button class="kanban-reset-btn" title="Reset all progress">🔄 Reset</button>
+          </div>
+        </div>
+        <div class="kanban-board">
+          ${columnsHTML}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render individual Kanban card
+   * @param {Object} word - Word object { en, ru, transcription, ... }
+   * @param {string} status - Current status
+   * @returns {string} HTML string
+   * @private
+   */
+  _renderKanbanCard(word, status) {
+    const wordEn = this.escapeHTML(word.en || '');
+    const wordRu = this.escapeHTML(word.ru || '');
+    const transcription = word.transcription ? this.escapeHTML(word.transcription) : '';
+    const isFavorite = word.isFavorite || false;
+    
+    return `
+      <div class="kanban-card" 
+           draggable="true" 
+           data-word="${wordEn}"
+           data-favorite="${isFavorite}">
+        <div class="card-header-small">
+          <h4 class="card-word">${wordEn}${isFavorite ? ' ⭐' : ''}</h4>
+          <button class="card-drag-handle" 
+                  aria-label="Drag to move">⋮⋮</button>
+        </div>
+        <p class="card-translation">${wordRu}</p>
+        ${transcription ? `<p class="card-transcription">${transcription}</p>` : ''}
+        <div class="card-footer">
+          <button class="card-audio" 
+                  title="Play pronunciation">🔊</button>
+          <button class="card-move" 
+                  title="Move to next stage">→</button>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render empty state for Kanban column
+   * @param {string} columnLabel - Column label
+   * @returns {string} HTML string
+   * @private
+   */
+  _renderKanbanEmptyState(columnLabel) {
+    const messages = {
+      'To Learn': 'Great job! All words moved forward.',
+      'Learning': 'Drag words here when you start practicing.',
+      'Known': 'Move mastered words here.',
+      'Favorites': 'Star words to add them here.'
+    };
+    
+    const message = messages[columnLabel] || 'No words yet';
+    
+    return `
+      <div class="kanban-empty-state">
+        <div class="kanban-empty-state-icon">📭</div>
+        <p>${message}</p>
+      </div>
+    `;
+  }
+
+  // ========================================
+  // EXISTING METHODS (keeping all below)
+  // ========================================
 
   /**
    * Render reading content with clickable words, automatic images AND embedded quiz
@@ -310,20 +431,25 @@ class LessonRenderer {
           <button class="vocab-mode-btn ${mode === 'flashcard' ? 'active' : ''}" data-mode="flashcard">
             Flashcards
           </button>
+          <button class="vocab-mode-btn ${mode === 'kanban' ? 'active' : ''}" data-mode="kanban">
+            Board
+          </button>
         </div>
       </div>
     `;
 
     if (mode === 'list') {
       return header + this.renderVocabList(vocabulary, phrases, myWords);
-    } else {
+    } else if (mode === 'flashcard') {
       return header + this.renderFlashcard(vocabulary, flashcardIndex);
+    } else if (mode === 'kanban') {
+      // Kanban rendering handled separately by LessonEngine
+      return '';
     }
   }
 
-  /**
-   * Render vocabulary list
-   */
+  // ... (keep all other existing methods: renderVocabList, renderFlashcard, renderGrammar, renderQuiz, renderSidebar, etc.)
+  
   renderVocabList(vocabulary, phrases, myWords) {
     const vocabItems = vocabulary.map(item => {
       const { en: word, transcription: phonetic, ru: definition, example, part_of_speech, image } = item;
@@ -394,9 +520,6 @@ class LessonRenderer {
     `;
   }
 
-  /**
-   * Render single flashcard
-   */
   renderFlashcard(vocabulary, index) {
     if (!vocabulary || vocabulary.length === 0) {
       return '<p class="text-soft">No vocabulary for flashcards.</p>';
@@ -450,9 +573,6 @@ class LessonRenderer {
     `;
   }
 
-  /**
-   * Render grammar section with rules and examples
-   */
   renderGrammar() {
     const grammar = this.data.grammar;
 
@@ -524,9 +644,6 @@ class LessonRenderer {
     `;
   }
 
-  /**
-   * Render quiz - supports both array and object with questions
-   */
   renderQuiz(quizState) {
     let quiz = this.data.quiz;
 
@@ -575,9 +692,6 @@ class LessonRenderer {
     `;
   }
 
-  /**
-   * Render quiz results
-   */
   renderQuizResults(quizState, totalQuestions) {
     const total = totalQuestions || quizState.answers.length;
     const correct = quizState.answers.filter(a => a.correct).length;
@@ -609,9 +723,6 @@ class LessonRenderer {
     `;
   }
 
-  /**
-   * Render sidebar with saved words
-   */
   renderSidebar(myWords) {
     if (myWords.length === 0) {
       return `
