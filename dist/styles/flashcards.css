@@ -1,0 +1,354 @@
+/* ============================================
+   FLASHCARDS MODE - STAGE 1
+   Base structure and mode toggle styles
+   ============================================ */
+
+/* CSS Variables for theming */
+:root {
+    --flashcard-primary: #4A90E2;
+    --flashcard-secondary: #667eea;
+    --flashcard-bg: #f5f7fa;
+    --flashcard-text: #333;
+    --flashcard-text-light: #666;
+    --flashcard-border: #e0e0e0;
+    --flashcard-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    --flashcard-radius: 1rem;
+}
+
+/* ============================================
+   VOCABULARY HEADER
+   ============================================ */
+.vocabulary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--flashcard-border);
+}
+
+/* ============================================
+   MODE TOGGLE BUTTONS
+   ============================================ */
+.vocab-mode-toggle {
+    display: inline-flex;
+    gap: 0.5rem;
+    background: var(--flashcard-bg);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.vocab-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--flashcard-text-light);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.vocab-mode-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--flashcard-text);
+}
+
+.vocab-mode-btn.active {
+    background: white;
+    color: var(--flashcard-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.vocab-mode-btn svg {
+    flex-shrink: 0;
+}
+
+/* ============================================
+   FLASHCARDS CONTAINER
+   ============================================ */
+.flashcards-container {
+    display: none; /* Hidden by default */
+    flex-direction: column;
+    width: 100%;
+    min-height: 500px;
+}
+
+.flashcards-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+}
+
+/* ============================================
+   FLASHCARDS HEADER
+   ============================================ */
+.flashcards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.flashcards-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--flashcard-text);
+}
+
+.flashcards-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ============================================
+   FLASHCARD STAGE (Main viewing area)
+   ============================================ */
+.flashcard-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: 2rem 0;
+    min-height: 400px;
+}
+
+.flashcard-container {
+    flex: 1;
+    max-width: 600px;
+    aspect-ratio: 3 / 2;
+    perspective: 1000px;
+}
+
+/* ============================================
+   PLACEHOLDER (Stage 1)
+   ============================================ */
+.flashcard-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--flashcard-radius);
+    box-shadow: var(--flashcard-shadow);
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    animation: fadeInScale 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.placeholder-title {
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.placeholder-subtitle {
+    margin: 0.5rem 0;
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.placeholder-info {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2rem;
+    font-size: 0.9rem;
+    backdrop-filter: blur(10px);
+}
+
+/* ============================================
+   NAVIGATION BUTTONS
+   ============================================ */
+.flashcard-nav {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 2px solid var(--flashcard-border);
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--flashcard-text-light);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.flashcard-nav:hover {
+    background: var(--flashcard-primary);
+    color: white;
+    border-color: var(--flashcard-primary);
+    transform: scale(1.1);
+}
+
+.flashcard-nav:active {
+    transform: scale(0.95);
+}
+
+.flashcard-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: scale(1);
+}
+
+.flashcard-nav svg {
+    pointer-events: none;
+}
+
+/* ============================================
+   PROGRESS SECTION
+   ============================================ */
+.flashcards-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progress-dots {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 400px;
+}
+
+.progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--flashcard-border);
+    transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+    background: var(--flashcard-primary);
+    transform: scale(1.5);
+}
+
+.progress-text {
+    font-size: 1rem;
+    color: var(--flashcard-text-light);
+    font-weight: 500;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .flashcard-stage {
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .flashcard-nav {
+        width: 40px;
+        height: 40px;
+    }
+
+    .flashcard-container {
+        max-width: 100%;
+    }
+
+    .flashcard-placeholder {
+        padding: 1.5rem;
+    }
+
+    .placeholder-icon {
+        font-size: 3rem;
+    }
+
+    .placeholder-title {
+        font-size: 1.2rem;
+    }
+
+    .placeholder-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .vocab-mode-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .flashcards-header h3 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .flashcard-stage {
+        gap: 0.5rem;
+    }
+
+    .flashcard-nav {
+        width: 36px;
+        height: 36px;
+    }
+
+    .vocab-mode-toggle {
+        gap: 0.25rem;
+    }
+
+    .flashcards-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.vocab-mode-btn:focus,
+.flashcard-nav:focus {
+    outline: 2px solid var(--flashcard-primary);
+    outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

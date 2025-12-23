@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards Demo - Stage 1</title>
+    <link rel="stylesheet" href="styles/flashcards.css">
+    <style>
+        /* Basic page styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .demo-header h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #4A90E2;
+            color: white;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        /* Vocabulary list styling */
+        #vocabulary-list-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .vocab-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        .vocab-item:hover {
+            background: #f5f7fa;
+        }
+
+        .vocab-item:last-child {
+            border-bottom: none;
+        }
+
+        .vocab-word {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .vocab-translation {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .status-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #E3F2FD;
+            border-left: 4px solid #2196F3;
+            border-radius: 0.5rem;
+        }
+
+        .status-info h4 {
+            margin-bottom: 0.5rem;
+            color: #1976D2;
+        }
+
+        .status-info ul {
+            margin-left: 1.5rem;
+            color: #666;
+        }
+
+        .status-info li {
+            margin: 0.25rem 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .demo-header h1 {
+                font-size: 1.8rem;
+            }
+
+            #vocabulary-list-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="demo-header">
+            <h1>🎴 Flashcards Mode Demo</h1>
+            <p>Interactive vocabulary learning system</p>
+            <span class="badge">✅ Stage 1 Complete</span>
+        </div>
+
+        <!-- This is where the toggle buttons will be inserted -->
+        <div id="vocabulary-list-container">
+            <h3 style="margin-bottom: 1rem; color: #333;">📚 Vocabulary List (20 words)</h3>
+            
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">diet</div>
+                    <div class="vocab-translation">диета, рацион питания</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">healthy</div>
+                    <div class="vocab-translation">здоровый</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">exercise</div>
+                    <div class="vocab-translation">упражнение</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">vitamin</div>
+                    <div class="vocab-translation">витамин</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">breakfast</div>
+                    <div class="vocab-translation">завтрак</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">water</div>
+                    <div class="vocab-translation">вода</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">sleep</div>
+                    <div class="vocab-translation">сон</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">fruit</div>
+                    <div class="vocab-translation">фрукт</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">vegetable</div>
+                    <div class="vocab-translation">овощ</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">protein</div>
+                    <div class="vocab-translation">белок</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">energy</div>
+                    <div class="vocab-translation">энергия</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">muscle</div>
+                    <div class="vocab-translation">мышца</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">balance</div>
+                    <div class="vocab-translation">баланс</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">nutrition</div>
+                    <div class="vocab-translation">питание</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">calories</div>
+                    <div class="vocab-translation">калории</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">lifestyle</div>
+                    <div class="vocab-translation">образ жизни</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">fitness</div>
+                    <div class="vocab-translation">фитнес</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">weight</div>
+                    <div class="vocab-translation">вес</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">stress</div>
+                    <div class="vocab-translation">стресс</div>
+                </div>
+            </div>
+            <div class="vocab-item">
+                <div>
+                    <div class="vocab-word">wellness</div>
+                    <div class="vocab-translation">благополучие</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-info">
+            <h4>✅ Stage 1 Success Criteria:</h4>
+            <ul>
+                <li>Toggle buttons appear in vocabulary header ✓</li>
+                <li>Clicking "Flashcards" hides list and shows flashcards container ✓</li>
+                <li>Clicking "List" returns to vocabulary list ✓</li>
+                <li>Placeholder with gradient displays in Flashcards mode ✓</li>
+                <li>Navigation arrows are visible and reactive ✓</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="js/flashcards.js"></script>
+    <script>
+        // Sample vocabulary data
+        const vocabularyData = [
+            { word: 'diet', translation: 'диета, рацион питания', transcription: '[ˈdaɪət]' },
+            { word: 'healthy', translation: 'здоровый', transcription: '[ˈhelθi]' },
+            { word: 'exercise', translation: 'упражнение', transcription: '[ˈeksəsaɪz]' },
+            { word: 'vitamin', translation: 'витамин', transcription: '[ˈvaɪtəmɪn]' },
+            { word: 'breakfast', translation: 'завтрак', transcription: '[ˈbrekfəst]' },
+            { word: 'water', translation: 'вода', transcription: '[ˈwɔːtə]' },
+            { word: 'sleep', translation: 'сон', transcription: '[sliːp]' },
+            { word: 'fruit', translation: 'фрукт', transcription: '[fruːt]' },
+            { word: 'vegetable', translation: 'овощ', transcription: '[ˈvedʒtəbl]' },
+            { word: 'protein', translation: 'белок', transcription: '[ˈprəʊtiːn]' },
+            { word: 'energy', translation: 'энергия', transcription: '[ˈenədʒi]' },
+            { word: 'muscle', translation: 'мышца', transcription: '[ˈmʌsl]' },
+            { word: 'balance', translation: 'баланс', transcription: '[ˈbæləns]' },
+            { word: 'nutrition', translation: 'питание', transcription: '[njuːˈtrɪʃn]' },
+            { word: 'calories', translation: 'калории', transcription: '[ˈkæləriz]' },
+            { word: 'lifestyle', translation: 'образ жизни', transcription: '[ˈlaɪfstaɪl]' },
+            { word: 'fitness', translation: 'фитнес', transcription: '[ˈfɪtnəs]' },
+            { word: 'weight', translation: 'вес', transcription: '[weɪt]' },
+            { word: 'stress', translation: 'стресс', transcription: '[stres]' },
+            { word: 'wellness', translation: 'благополучие', transcription: '[ˈwelnəs]' }
+        ];
+
+        // Initialize flashcards
+        const flashcards = new FlashcardsManager(vocabularyData);
+        flashcards.init('vocabulary-list-container');
+
+        console.log('🎴 Demo page loaded successfully!');
+        console.log('📊 Vocabulary loaded:', vocabularyData.length, 'words');
+    </script>
+</body>
+</html>
