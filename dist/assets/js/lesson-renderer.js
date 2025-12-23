@@ -1,7 +1,7 @@
 /**
  * LESSON RENDERER MODULE
  * Handles UI rendering and DOM manipulation
- * Updated: Auto-insert images after paragraphs + highlight saved words
+ * Updated: Auto-insert images after paragraphs + highlight saved words + embedded quiz
  */
 
 class LessonRenderer {
@@ -56,7 +56,7 @@ class LessonRenderer {
   }
 
   /**
-   * Render reading content with clickable words AND automatic images
+   * Render reading content with clickable words, automatic images AND embedded quiz
    * @param {Array} myWords - Currently saved words
    * @returns {string} HTML string
    */
@@ -156,8 +156,133 @@ class LessonRenderer {
       </div>
       <div class="reading-body">
         ${processedParagraphs}
+        ${this.renderReadingQuiz()}
       </div>
     `;
+  }
+
+  /**
+   * ✨ NEW: Render quiz embedded in reading section
+   * @returns {string} HTML string
+   */
+  renderReadingQuiz() {
+    const quiz = this.data.quiz;
+    if (!quiz || (Array.isArray(quiz) && quiz.length === 0)) {
+      return '';
+    }
+
+    const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
+    if (questions.length === 0) return '';
+
+    const state = window.lessonEngine.quizState;
+    const currentIndex = state.currentQuestionIndex;
+    const question = questions[currentIndex];
+
+    if (state.completed) {
+      return this.renderReadingQuizResults();
+    }
+
+    const questionText = question.question || question.q || '';
+    const options = question.options || question.opts || [];
+    const currentAnswer = state.answers[currentIndex];
+
+    return `
+      <div class="reading-quiz-section" id="reading-quiz">
+        <div class="reading-quiz-header">
+          <h3>💡 Comprehension Check</h3>
+          <span class="reading-quiz-progress">
+            ${currentIndex + 1} / ${questions.length}
+          </span>
+        </div>
+        
+        <div class="reading-quiz-question">
+          <p class="quiz-question-text">${this.escapeHTML(questionText)}</p>
+          
+          <div class="quiz-options">
+            ${options.map((opt, i) => `
+              <button 
+                class="quiz-option ${this.getQuizOptionClass(i, question, currentAnswer)}"
+                onclick="window.lessonEngine.selectReadingQuizAnswer(${i})"
+                ${currentAnswer ? 'disabled' : ''}
+              >
+                ${this.escapeHTML(opt)}
+              </button>
+            `).join('')}
+          </div>
+
+          ${currentAnswer ? `
+            <div class="quiz-feedback ${currentAnswer.correct ? 'correct' : 'wrong'}">
+              ${currentAnswer.correct ? '✓' : '✗'} 
+              ${this.escapeHTML(question.explanation || (currentAnswer.correct ? 'Correct!' : 'Incorrect'))}
+            </div>
+            
+            <button 
+              class="primary-btn" 
+              onclick="window.lessonEngine.nextReadingQuizQuestion()"
+              style="margin-top: 16px;"
+            >
+              ${currentIndex < questions.length - 1 ? 'Next Question →' : 'Finish Quiz'}
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * ✨ NEW: Render quiz results in reading section
+   * @returns {string} HTML string
+   */
+  renderReadingQuizResults() {
+    const answers = window.lessonEngine.quizState.answers;
+    const correct = answers.filter(a => a.correct).length;
+    const total = answers.length;
+    const percentage = Math.round((correct / total) * 100);
+
+    let emoji = '🎉';
+    let message = 'Excellent work!';
+    let color = '#22c55e';
+
+    if (percentage < 60) {
+      emoji = '💪';
+      message = 'Keep practicing!';
+      color = '#f59e0b';
+    } else if (percentage < 80) {
+      emoji = '👍';
+      message = 'Good job!';
+      color = '#3b82f6';
+    }
+
+    return `
+      <div class="reading-quiz-results" style="border-color: ${color};">
+        <div style="font-size: 3rem; margin-bottom: 16px;">${emoji}</div>
+        <h3>${message}</h3>
+        <div class="quiz-score" style="color: ${color};">
+          ${correct} / ${total}
+        </div>
+        <div style="font-size: 1rem; color: var(--text-soft); margin-bottom: 24px;">
+          ${percentage}% correct
+        </div>
+        <button class="primary-btn" onclick="window.lessonEngine.resetQuiz()">
+          🔄 Try Again
+        </button>
+      </div>
+    `;
+  }
+
+  /**
+   * ✨ NEW: Get CSS class for quiz option button based on state
+   * @param {number} index - Option index
+   * @param {Object} question - Question object
+   * @param {Object} answer - User's answer (if exists)
+   * @returns {string} CSS class
+   */
+  getQuizOptionClass(index, question, answer) {
+    if (!answer) return '';
+    
+    if (index === question.correct) return 'correct';
+    if (index === answer.answerIndex && !answer.correct) return 'wrong';
+    return '';
   }
 
   /**
@@ -204,9 +329,9 @@ class LessonRenderer {
       const { en: word, transcription: phonetic, ru: definition, example, part_of_speech, image } = item;
       const isSaved = myWords.some(w => w.word.toLowerCase() === word.toLowerCase());
 
-      const safeWord = this.escapeHTML(word).replace(/'/g, "\\\'" );
-      const safeDef = this.escapeHTML(definition).replace(/'/g, "\\\'" );
-      const safePhonetic = this.escapeHTML(phonetic || '').replace(/'/g, "\\\'" );
+      const safeWord = this.escapeHTML(word).replace(/'/g, "\\'");
+      const safeDef = this.escapeHTML(definition).replace(/'/g, "\\'");
+      const safePhonetic = this.escapeHTML(phonetic || '').replace(/'/g, "\\'");
 
       return `
         <div class="vocab-item ${isSaved ? 'word-saved' : ''}">
@@ -238,7 +363,7 @@ class LessonRenderer {
       <div class="mt-md">
         <h3 class="card-subtitle" style="margin-bottom: 8px;">💬 Common Phrases</h3>
         ${phrases.map(phrase => {
-          const safePhrase = this.escapeHTML(phrase.en).replace(/'/g, "\\\'" );
+          const safePhrase = this.escapeHTML(phrase.en).replace(/'/g, "\\'");
           return `
             <div class="vocab-item">
               <div class="vocab-top-line">
@@ -282,7 +407,7 @@ class LessonRenderer {
 
     const item = vocabulary[index];
     const total = vocabulary.length;
-    const safeWord = this.escapeHTML(item.en).replace(/'/g, "\\\'" );
+    const safeWord = this.escapeHTML(item.en).replace(/'/g, "\\'");
 
     return `
       <div class="vocab-layout">
@@ -497,7 +622,7 @@ class LessonRenderer {
     }
 
     return myWords.map(word => {
-      const safeWord = this.escapeHTML(word.word).replace(/'/g, "\\\'" );
+      const safeWord = this.escapeHTML(word.word).replace(/'/g, "\\'");
       return `
         <div class="sidebar-word">
           <div class="sidebar-word-main">
