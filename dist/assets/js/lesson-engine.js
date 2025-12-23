@@ -616,11 +616,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">  
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\\\'").replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}, '${translation.replace(/'/g, "\\\\''").replace(/"/g, '&quot;')}', this)">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -818,7 +818,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'");
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\''");
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
@@ -987,7 +987,59 @@ class LessonEngine {
   }
 
   /**
-   * Quiz methods
+   * ✨ NEW: Quiz methods for Reading tab
+   */
+  
+  /**
+   * Select answer in reading quiz
+   * @param {number} answerIndex - Index of selected option
+   */
+  selectReadingQuizAnswer(answerIndex) {
+    const quiz = this.lessonData.quiz;
+    const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
+    
+    if (questions.length === 0) return;
+    
+    const question = questions[this.quizState.currentQuestionIndex];
+    const isCorrect = answerIndex === question.correct || answerIndex === question.correct_alt;
+
+    this.quizState.answers[this.quizState.currentQuestionIndex] = {
+      questionIndex: this.quizState.currentQuestionIndex,
+      answerIndex,
+      correct: isCorrect
+    };
+
+    // Re-render reading tab to show feedback
+    this.renderCurrentTab();
+    this.tts.vibrate(isCorrect ? 30 : 50);
+  }
+
+  /**
+   * Move to next question in reading quiz
+   */
+  nextReadingQuizQuestion() {
+    const quiz = this.lessonData.quiz;
+    const questions = Array.isArray(quiz) ? quiz : (quiz.questions || []);
+    
+    if (this.quizState.currentQuestionIndex < questions.length - 1) {
+      this.quizState.currentQuestionIndex++;
+    } else {
+      this.quizState.completed = true;
+    }
+    
+    this.renderCurrentTab();
+    
+    // Smooth scroll to quiz section
+    setTimeout(() => {
+      const quizSection = document.getElementById('reading-quiz');
+      if (quizSection) {
+        quizSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }
+
+  /**
+   * Quiz methods (for standalone Quiz tab)
    */
   selectQuizAnswer(answerIndex) {
     const quiz = this.lessonData.quiz;
@@ -1052,7 +1104,19 @@ class LessonEngine {
       answers: [],
       completed: false
     };
-    this.renderCurrentTab();
+    
+    // If in reading tab, stay there and scroll to quiz
+    if (this.currentTab === 'reading') {
+      this.renderCurrentTab();
+      setTimeout(() => {
+        const quizSection = document.getElementById('reading-quiz');
+        if (quizSection) {
+          quizSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    } else {
+      this.renderCurrentTab();
+    }
   }
 
   /**
