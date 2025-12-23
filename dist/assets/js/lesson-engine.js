@@ -786,12 +786,7 @@ class LessonEngine {
         html = this.renderer.renderReading(this.myWords);
         break;
       case 'vocabulary':
-        // ✨ NEW: Check if Kanban mode
-        if (this.vocabMode === 'kanban') {
-          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
-        } else {
-          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
-        }
+        html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
         break;
       case 'grammar':
         html = this.renderer.renderGrammar();
@@ -888,29 +883,29 @@ class LessonEngine {
   }
 
   /**
-   * ✨ FIXED: Switch vocabulary mode (allow re-initialization)
-   * REMOVED early return guard that prevented re-entering kanban mode
+   * ✨ FIXED: Switch vocabulary mode with proper cleanup and re-initialization
    */
   switchVocabMode(mode) {
-    // Cleanup previous mode first
+    // Always cleanup Kanban when leaving
     if (this.vocabMode === 'kanban' && this.kanbanController) {
       this.kanbanController.detach();
+      console.log('[LessonEngine] Detached Kanban controller');
     }
     
-    // Only update vocabMode if it actually changed
-    if (mode !== this.vocabMode) {
-      this.vocabMode = mode;
-      
-      if (mode === 'flashcard') {
-        this.flashcardIndex = 0;
-      }
+    // Update mode
+    this.vocabMode = mode;
+    
+    if (mode === 'flashcard') {
+      this.flashcardIndex = 0;
     }
     
+    // Re-render
     this.renderCurrentTab();
     
-    // ✨ NEW: Setup Kanban after rendering
+    // Setup Kanban if entering kanban mode (no early return anymore!)
     if (mode === 'kanban') {
       this.setupKanbanListeners();
+      console.log('[LessonEngine] Re-attached Kanban controller');
     }
   }
 
@@ -935,7 +930,7 @@ class LessonEngine {
       this.eventBus.on('kanban:reset-requested', () => this.handleKanbanReset());
     }
     
-    // Attach drag-and-drop listeners (this can be called multiple times)
+    // Attach drag-and-drop listeners (can be called multiple times safely)
     this.kanbanController.attach(kanbanContainer);
     
     console.log('[LessonEngine] Kanban listeners attached');
@@ -1034,7 +1029,7 @@ class LessonEngine {
    */
   clearAllWords() {
     if (confirm('Are you sure you want to clear all saved words?')) {
-      this.storage.clearAllWords();
+      this.storage.clearAll();
       this.myWords = [];
       this.showNotification('All words cleared');
       this.renderCurrentTab();
