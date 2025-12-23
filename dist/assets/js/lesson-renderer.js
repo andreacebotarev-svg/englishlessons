@@ -1,7 +1,7 @@
 /**
  * LESSON RENDERER MODULE
  * Handles UI rendering and DOM manipulation
- * Updated: Auto-insert images after paragraphs + highlight saved words + embedded quiz + Kanban board
+ * Updated: Auto-insert images after paragraphs + highlight saved words + embedded quiz + Kanban board + Theme Switcher
  */
 
 class LessonRenderer {
@@ -25,6 +25,39 @@ class LessonRenderer {
       "'": '&#039;'
     };
     return String(text).replace(/[&<>"']/g, m => map[m]);
+  }
+
+  /**
+   * ✨ NEW: Render theme switcher UI
+   * @param {string} currentTheme - Currently active theme ('default', 'kids', 'dark')
+   * @returns {string} HTML string
+   */
+  renderThemeSwitcher(currentTheme = 'default') {
+    const themes = [
+      { id: 'default', emoji: '🎓', label: 'Classic' },
+      { id: 'kids', emoji: '🎨', label: 'Kids' },
+      { id: 'dark', emoji: '🌙', label: 'Dark' }
+    ];
+
+    const buttonsHTML = themes.map(theme => {
+      const isActive = theme.id === currentTheme;
+      return `
+        <button class="theme-btn ${isActive ? 'active' : ''}"
+                data-theme="${theme.id}"
+                onclick="window.lessonEngine.handleThemeSwitch('${theme.id}')"
+                aria-label="Switch to ${theme.label} theme"
+                ${isActive ? 'aria-pressed="true"' : ''}>
+          <span class="theme-emoji">${theme.emoji}</span>
+          <span class="theme-label">${theme.label}</span>
+        </button>
+      `;
+    }).join('');
+
+    return `
+      <div class="theme-switcher" role="group" aria-label="Theme switcher">
+        ${buttonsHTML}
+      </div>
+    `;
   }
 
   /**
@@ -619,7 +652,7 @@ class LessonRenderer {
     // Render examples section
     const examplesHTML = examples ? `
       <div style="margin-top: 20px;">
-        <h3 style="font-size: 1rem; font-weight: 650; color: var(--text-main); margin-bottom: 12px;">📝 Practice Examples</h3>
+        <h3 style="font-size: 1rem; font-weight: 650; color: var(--text-main); margin-bottom: 12px;">✏️ Practice Examples</h3>
         ${examples.affirmative && examples.affirmative.length > 0 ? `
           <div style="margin-bottom: 16px;">
             <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">Affirmative</div>
