@@ -659,6 +659,84 @@
       color: var(--text-soft);
     }
 
+    /* Embedded Quiz in Reading */
+    .reading-quiz-section {
+      margin-top: var(--space-xl);
+      padding: var(--space-lg);
+      background: linear-gradient(135deg, rgba(79, 140, 255, 0.08) 0%, rgba(79, 140, 255, 0.04) 100%);
+      backdrop-filter: blur(16px) saturate(160%);
+      border-radius: var(--radius-lg);
+      border: 2px solid rgba(79, 140, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(79, 140, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reading-quiz-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 30%, rgba(79, 140, 255, 0.15), transparent 60%);
+      animation: liquidMove 10s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes liquidMove {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(10%, 5%) scale(1.1); }
+      66% { transform: translate(-5%, 10%) scale(0.9); }
+    }
+
+    .reading-quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+      position: relative;
+      z-index: 1;
+    }
+
+    .reading-quiz-header h3 {
+      font-size: 1.2rem;
+      font-weight: 650;
+      color: var(--accent);
+      margin: 0;
+      text-shadow: 0 0 12px rgba(79, 140, 255, 0.5);
+    }
+
+    .reading-quiz-progress {
+      background: rgba(79, 140, 255, 0.25);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 650;
+      border: 1px solid rgba(79, 140, 255, 0.4);
+      box-shadow: 0 4px 16px rgba(79, 140, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .reading-quiz-question {
+      background: rgba(9, 13, 32, 0.6);
+      backdrop-filter: blur(12px);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      position: relative;
+      z-index: 1;
+    }
+
+    .quiz-question-text {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: var(--space-md);
+      line-height: 1.6;
+    }
+
     /* Vocabulary */
     .vocab-layout {
       display: grid;
@@ -862,30 +940,40 @@
 
     .quiz-option {
       border-radius: var(--radius-md);
-      padding: 7px 9px;
-      border: 1px solid rgba(138, 150, 197, 0.6);
-      background: rgba(10, 15, 35, 0.96);
+      padding: 12px 14px;
+      border: 1px solid rgba(138, 150, 197, 0.4);
+      background: rgba(10, 15, 35, 0.7);
+      backdrop-filter: blur(10px) saturate(150%);
       font-size: 0.9rem;
+      color: #E5E5EA;
       cursor: pointer;
       text-align: left;
-      transition: background var(--transition-fast), border-color var(--transition-fast),
-        transform var(--transition-fast), box-shadow var(--transition-fast);
+      transition: all var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
     .quiz-option:hover {
-      background: rgba(18, 26, 60, 0.96);
-      transform: translateY(-1px);
-      box-shadow: 0 9px 24px rgba(0, 0, 0, 0.8);
+      background: rgba(18, 26, 60, 0.8);
+      border-color: rgba(79, 140, 255, 0.6);
+      color: #FFFFFF;
+      transform: translateX(4px);
+      box-shadow: 0 4px 20px rgba(79, 140, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .quiz-option.correct {
       border-color: var(--accent-success);
-      background: rgba(50, 212, 137, 0.15);
+      background: rgba(50, 212, 137, 0.2);
+      color: var(--accent-success);
+      font-weight: 600;
     }
 
     .quiz-option.wrong {
       border-color: var(--accent-danger);
-      background: rgba(255, 79, 106, 0.16);
+      background: rgba(255, 79, 106, 0.2);
+      color: var(--accent-danger);
+      font-weight: 600;
     }
 
     .quiz-feedback {
@@ -895,10 +983,12 @@
 
     .quiz-feedback.correct {
       color: var(--accent-success);
+      text-shadow: 0 0 10px rgba(50, 212, 137, 0.5);
     }
 
     .quiz-feedback.wrong {
       color: var(--accent-danger);
+      text-shadow: 0 0 10px rgba(255, 79, 106, 0.5);
     }
 
     .quiz-footer {
@@ -1006,6 +1096,23 @@
       .tabs {
         width: 100%;
         justify-content: space-between;
+      }
+
+      .reading-quiz-section {
+        padding: var(--space-md);
+      }
+
+      .reading-quiz-header h3 {
+        font-size: 1.1rem;
+      }
+
+      .quiz-question-text {
+        font-size: 0.95rem;
+      }
+
+      .reading-quiz-progress {
+        padding: 4px 10px;
+        font-size: 0.75rem;
       }
     }
 
@@ -1197,7 +1304,7 @@
               </div>
             </header>
 
-            <!-- Tabs -->
+            <!-- Tabs (Quiz tab removed) -->
             <div class="tabs">
               <button class="tab active" data-tab="reading" onclick="switchTab('reading')">
                 <span class="tab-indicator"></span>
@@ -1210,10 +1317,6 @@
               <button class="tab ${hasGrammar ? '' : 'tab-grammar-hidden'}" data-tab="grammar" onclick="switchTab('grammar')">
                 <span class="tab-indicator"></span>
                 Grammar
-              </button>
-              <button class="tab" data-tab="quiz" onclick="switchTab('quiz')">
-                <span class="tab-indicator"></span>
-                Quiz
               </button>
             </div>
 
@@ -1276,10 +1379,6 @@
         case 'grammar':
           contentEl.innerHTML = renderGrammar();
           break;
-        case 'quiz':
-          contentEl.innerHTML = renderQuiz();
-          attachQuizListeners();
-          break;
       }
     }
 
@@ -1319,10 +1418,6 @@
           flashcard.addEventListener('click', flipCard);
         }
       }
-    }
-
-    function attachQuizListeners() {
-      // Обработчики добавляются динамически при клике на опции
     }
 
     // ============================================================
@@ -1377,6 +1472,9 @@
         return `<p class="reading-paragraph">${processText(para.text)}</p>`;
       }).join('');
       
+      // Quiz section
+      const quizSection = renderEmbeddedQuiz();
+      
       return `
         <div class="card-header">
           <h2 class="card-title">📖 Reading</h2>
@@ -1394,7 +1492,139 @@
         <div class="reading-body">
           ${processedParagraphs}
         </div>
+        ${quizSection}
       `;
+    }
+
+    // ============================================================
+    // EMBEDDED QUIZ IN READING
+    // ============================================================
+    function renderEmbeddedQuiz() {
+      const quiz = lessonData.quiz;
+      if (!quiz || !Array.isArray(quiz) || quiz.length === 0) {
+        return '';
+      }
+      
+      if (quizState.completed) {
+        const correctCount = quizState.answers.filter((answer, idx) => answer === quiz[idx].correct).length;
+        const total = quiz.length;
+        const percentage = Math.round((correctCount / total) * 100);
+        
+        return `
+          <div class="reading-quiz-section">
+            <div style="text-align: center; padding: 24px 0; position: relative; z-index: 1;">
+              <div style="font-size: 3rem; margin-bottom: 12px;">
+                ${percentage >= 80 ? '🎉' : percentage >= 60 ? '👍' : '💪'}
+              </div>
+              <div style="font-size: 1.8rem; font-weight: 650; margin-bottom: 8px; color: var(--accent-success);">
+                ${percentage}%
+              </div>
+              <div style="font-size: 1rem; color: var(--text-muted); margin-bottom: 18px;">
+                You got ${correctCount} out of ${total} questions correct
+              </div>
+              <button class="primary-btn" onclick="resetQuiz()">
+                <span>🔄</span> Retake Quiz
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      
+      const currentQuestion = quiz[quizState.currentQuestionIndex];
+      const { question, options, correct } = currentQuestion;
+      const userAnswer = quizState.answers[quizState.currentQuestionIndex];
+      
+      return `
+        <div class="reading-quiz-section">
+          <div class="reading-quiz-header">
+            <h3>🎯 Comprehension Quiz</h3>
+            <span class="reading-quiz-progress">Question ${quizState.currentQuestionIndex + 1} of ${quiz.length}</span>
+          </div>
+          <div class="reading-quiz-question">
+            <div class="quiz-question-text">${escapeHTML(question)}</div>
+            <div class="quiz-options">
+              ${options.map((option, idx) => {
+                let optionClass = '';
+                if (userAnswer !== undefined) {
+                  if (idx === correct) {
+                    optionClass = 'correct';
+                  } else if (idx === userAnswer && idx !== correct) {
+                    optionClass = 'wrong';
+                  }
+                }
+                return `
+                  <button class="quiz-option ${optionClass}" 
+                          onclick="checkAnswer(${idx})" 
+                          ${userAnswer !== undefined ? 'disabled' : ''}>
+                    ${escapeHTML(option)}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            ${userAnswer !== undefined ? `
+              <div class="quiz-feedback ${userAnswer === correct ? 'correct' : 'wrong'}">
+                ${userAnswer === correct 
+                  ? '✓ Correct! Well done.' 
+                  : `✗ Incorrect. The correct answer is: ${escapeHTML(options[correct])}`}
+              </div>
+            ` : ''}
+          </div>
+          <div class="quiz-footer">
+            <div class="quiz-progress">
+              ${quizState.answers.filter(a => a !== undefined).length} / ${quiz.length} answered
+            </div>
+            ${userAnswer !== undefined ? `
+              <button class="primary-btn" onclick="nextQuestion()">
+                ${quizState.currentQuestionIndex < quiz.length - 1 ? 'Next Question →' : 'Finish Quiz'}
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    // QUIZ: ЛОГИКА
+    // ============================================================
+    function checkAnswer(selectedIndex) {
+      const quiz = lessonData.quiz;
+      const currentQuestion = quiz[quizState.currentQuestionIndex];
+      
+      quizState.answers[quizState.currentQuestionIndex] = selectedIndex;
+      
+      // Вибрация и обратная связь
+      if (selectedIndex === currentQuestion.correct) {
+        vibrate(50);
+        showNotification('✓ Correct!', 'success');
+      } else {
+        vibrate([50, 30, 50]);
+        showNotification('✗ Try again next time', 'error');
+      }
+      
+      renderCurrentTab();
+    }
+
+    function nextQuestion() {
+      const quiz = lessonData.quiz;
+      
+      if (quizState.currentQuestionIndex < quiz.length - 1) {
+        quizState.currentQuestionIndex++;
+        renderCurrentTab();
+      } else {
+        quizState.completed = true;
+        renderCurrentTab();
+      }
+      
+      vibrate(10);
+    }
+
+    function resetQuiz() {
+      quizState = {
+        currentQuestionIndex: 0,
+        answers: [],
+        completed: false
+      };
+      renderCurrentTab();
     }
 
     // ============================================================
@@ -1602,141 +1832,6 @@
           </div>
         </div>
       `;
-    }
-
-    // ============================================================
-    // РЕНДЕР: QUIZ
-    // ============================================================
-    function renderQuiz() {
-      const quiz = lessonData.quiz;
-      if (!quiz || !Array.isArray(quiz) || quiz.length === 0) {
-        return '<p class="text-soft">No quiz available.</p>';
-      }
-      
-      if (quizState.completed) {
-        return renderQuizResults();
-      }
-      
-      const currentQuestion = quiz[quizState.currentQuestionIndex];
-      const { question, options, correct } = currentQuestion;
-      const userAnswer = quizState.answers[quizState.currentQuestionIndex];
-      
-      return `
-        <div class="card-header">
-          <h2 class="card-title">🎯 Quiz</h2>
-          <span class="badge">Question ${quizState.currentQuestionIndex + 1} of ${quiz.length}</span>
-        </div>
-        <div class="quiz-body">
-          <div class="quiz-question">${escapeHTML(question)}</div>
-          <div class="quiz-options">
-            ${options.map((option, idx) => {
-              let optionClass = '';
-              if (userAnswer !== undefined) {
-                if (idx === correct) {
-                  optionClass = 'correct';
-                } else if (idx === userAnswer && idx !== correct) {
-                  optionClass = 'wrong';
-                }
-              }
-              return `
-                <button class="quiz-option ${optionClass}" 
-                        onclick="checkAnswer(${idx})" 
-                        ${userAnswer !== undefined ? 'disabled' : ''}>
-                  ${escapeHTML(option)}
-                </button>
-              `;
-            }).join('')}
-          </div>
-          ${userAnswer !== undefined ? `
-            <div class="quiz-feedback ${userAnswer === correct ? 'correct' : 'wrong'}">
-              ${userAnswer === correct 
-                ? '✓ Correct! Well done.' 
-                : `✗ Incorrect. The correct answer is: ${escapeHTML(options[correct])}`}
-            </div>
-          ` : ''}
-        </div>
-        <div class="quiz-footer">
-          <div class="quiz-progress">
-            ${quizState.answers.filter(a => a !== undefined).length} / ${quiz.length} answered
-          </div>
-          ${userAnswer !== undefined ? `
-            <button class="primary-btn" onclick="nextQuestion()">
-              ${quizState.currentQuestionIndex < quiz.length - 1 ? 'Next Question →' : 'Finish Quiz'}
-            </button>
-          ` : ''}
-        </div>
-      `;
-    }
-
-    function renderQuizResults() {
-      const quiz = lessonData.quiz;
-      const correctCount = quizState.answers.filter((answer, idx) => answer === quiz[idx].correct).length;
-      const total = quiz.length;
-      const percentage = Math.round((correctCount / total) * 100);
-      
-      return `
-        <div class="card-header">
-          <h2 class="card-title">🏆 Quiz Results</h2>
-        </div>
-        <div style="text-align: center; padding: 24px 0;">
-          <div style="font-size: 3rem; margin-bottom: 12px;">
-            ${percentage >= 80 ? '🎉' : percentage >= 60 ? '👍' : '💪'}
-          </div>
-          <div style="font-size: 1.8rem; font-weight: 650; margin-bottom: 8px;">
-            ${percentage}%
-          </div>
-          <div style="font-size: 1rem; color: var(--text-muted); margin-bottom: 18px;">
-            You got ${correctCount} out of ${total} questions correct
-          </div>
-          <button class="primary-btn" onclick="resetQuiz()">
-            <span>🔄</span> Retake Quiz
-          </button>
-        </div>
-      `;
-    }
-
-    // ============================================================
-    // QUIZ: ЛОГИКА
-    // ============================================================
-    function checkAnswer(selectedIndex) {
-      const quiz = lessonData.quiz;
-      const currentQuestion = quiz[quizState.currentQuestionIndex];
-      
-      quizState.answers[quizState.currentQuestionIndex] = selectedIndex;
-      
-      // Вибрация и обратная связь
-      if (selectedIndex === currentQuestion.correct) {
-        vibrate(50);
-        showNotification('✓ Correct!', 'success');
-      } else {
-        vibrate([50, 30, 50]);
-        showNotification('✗ Try again next time', 'error');
-      }
-      
-      renderCurrentTab();
-    }
-
-    function nextQuestion() {
-      const quiz = lessonData.quiz;
-      
-      if (quizState.currentQuestionIndex < quiz.length - 1) {
-        quizState.currentQuestionIndex++;
-        renderCurrentTab();
-      } else {
-        quizState.completed = true;
-        renderCurrentTab();
-      }
-      
-      vibrate(10);
-    }
-
-    function resetQuiz() {
-      quizState = {
-        currentQuestionIndex: 0,
-        answers: [],
-        completed: false
-      };
-      renderCurrentTab();
     }
 
     // ============================================================
