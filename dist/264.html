@@ -21,6 +21,72 @@
   <!-- ✨ NEW: Kanban Board CSS -->
   <link rel="stylesheet" href="assets/css/vocabulary-kanban.css">
   
+  <!-- ✨ NEW: Theme System CSS -->
+  <link rel="stylesheet" href="assets/css/lesson-theme-kids.css">
+  
+  <!-- ✨ NEW: Theme Switcher Inline Styles -->
+  <style>
+    /* Theme Switcher Component */
+    .theme-switcher {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      white-space: nowrap;
+    }
+
+    .theme-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    .theme-btn.active {
+      background: white;
+      color: var(--accent-primary, #4A90E2);
+      border-color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .theme-emoji {
+      font-size: 1.2rem;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    }
+
+    .theme-label {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .theme-switcher {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .theme-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+  
   <!-- Preload critical resources -->
   <link rel="preload" href="assets/js/lesson-engine.js" as="script">
   <link rel="preload" href="../data/264.json" as="fetch" crossorigin>
@@ -56,6 +122,10 @@
   <!-- JavaScript Modules (in dependency order) -->
   <script src="assets/js/lesson-storage.js"></script>
   <script src="assets/js/lesson-tts.js"></script>
+  
+  <!-- ✨ NEW: Theme Manager (BEFORE renderer and engine) -->
+  <script src="assets/js/lesson-theme-manager.js"></script>
+  
   <script src="assets/js/lesson-renderer.js"></script>
   
   <!-- ✨ NEW: Kanban Controller + Event Bus (BEFORE lesson-engine.js) -->
@@ -81,6 +151,9 @@
       // Initialize flashcards after lesson loads
       console.log('🎴 Initializing flashcards integration...');
       initFlashcardsIntegration();
+      
+      // ✨ NEW: Log theme system status
+      console.log('🎨 Theme system initialized:', window.lessonEngine.themeManager.getCurrentTheme());
     }).catch(error => {
       console.error('Failed to initialize lesson:', error);
       document.getElementById('loader').innerHTML = `
