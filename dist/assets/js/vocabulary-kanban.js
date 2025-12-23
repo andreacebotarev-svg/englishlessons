@@ -68,7 +68,7 @@ class KanbanController {
     this.draggedCard = null;
     this.sourceColumn = null;
     
-    // ✅ NEW: Proper listener tracking with metadata
+    // ✅ Proper listener tracking with metadata
     this.attachedListeners = [];  // Array of {element, eventType, handler, id}
     this.listenerIdCounter = 0;   // Unique ID generator for debugging
     
@@ -106,6 +106,7 @@ class KanbanController {
     const cards = container.querySelectorAll('.kanban-card[draggable="true"]');
     const columns = container.querySelectorAll('.kanban-column');
     const audioButtons = container.querySelectorAll('.card-audio');
+    const moveButtons = container.querySelectorAll('.card-move');
     const resetBtn = container.querySelector('.kanban-reset-btn');
 
     // Attach card drag listeners
@@ -148,6 +149,13 @@ class KanbanController {
       this._registerListener(btn, 'click', handler);
     });
 
+    // ✨ NEW: Attach move button listeners
+    moveButtons.forEach(btn => {
+      const handler = (e) => this._handleMoveClick(e);
+      btn.addEventListener('click', handler);
+      this._registerListener(btn, 'click', handler);
+    });
+
     // Attach reset button listener
     if (resetBtn) {
       const handler = (e) => this._handleResetClick(e);
@@ -159,6 +167,7 @@ class KanbanController {
       cards: cards.length,
       columns: columns.length,
       audioButtons: audioButtons.length,
+      moveButtons: moveButtons.length,
       hasResetBtn: !!resetBtn
     });
   }
@@ -295,6 +304,54 @@ class KanbanController {
     
     // Emit event
     this.eventBus.emit('kanban:audio-requested', { word });
+  }
+
+  /**
+   * ✨ NEW: Handle move button click - cycle through statuses
+   * @param {Event} e - Click event
+   */
+  _handleMoveClick(e) {
+    e.stopPropagation();
+    
+    const card = e.target.closest('.kanban-card');
+    if (!card) {
+      console.warn('[KanbanController] Move button clicked but no card found');
+      return;
+    }
+    
+    const word = card.dataset.word;
+    const currentColumn = card.closest('.kanban-column');
+    if (!currentColumn) {
+      console.warn('[KanbanController] No column found for card');
+      return;
+    }
+    
+    const currentStatus = currentColumn.dataset.status;
+    
+    // Cycle through statuses: to-learn → learning → known → favorites → to-learn
+    const statusOrder = ['to-learn', 'learning', 'known', 'favorites'];
+    const currentIndex = statusOrder.indexOf(currentStatus);
+    const nextIndex = (currentIndex + 1) % statusOrder.length;
+    const newStatus = statusOrder[nextIndex];
+    
+    console.log('[KanbanController] Move button clicked:', {
+      word,
+      currentStatus,
+      newStatus
+    });
+    
+    // Visual feedback - pulse animation
+    e.target.style.transform = 'scale(0.9)';
+    setTimeout(() => {
+      e.target.style.transform = 'scale(1)';
+    }, 100);
+    
+    // Emit event to LessonEngine
+    this.eventBus.emit('kanban:word-moved', {
+      word,
+      oldStatus: currentStatus,
+      newStatus
+    });
   }
 
   _handleResetClick(e) {
