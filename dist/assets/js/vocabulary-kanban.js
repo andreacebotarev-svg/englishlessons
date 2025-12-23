@@ -67,9 +67,27 @@ class KanbanController {
     this.eventBus = eventBus;
     this.draggedCard = null;
     this.sourceColumn = null;
-    this.boundHandlers = {};
+    
+    // ✅ NEW: Proper listener tracking with metadata
+    this.attachedListeners = [];  // Array of {element, eventType, handler, id}
+    this.listenerIdCounter = 0;   // Unique ID generator for debugging
     
     console.log('[KanbanController] Initialized');
+  }
+
+  /**
+   * Register a listener for proper cleanup
+   * @param {HTMLElement} element - DOM element
+   * @param {string} eventType - Event type (click, dragstart, etc.)
+   * @param {Function} handler - Event handler function
+   */
+  _registerListener(element, eventType, handler) {
+    this.attachedListeners.push({
+      element,
+      eventType,
+      handler,
+      id: ++this.listenerIdCounter
+    });
   }
 
   /**
@@ -87,34 +105,57 @@ class KanbanController {
     // Find all draggable cards
     const cards = container.querySelectorAll('.kanban-card[draggable="true"]');
     const columns = container.querySelectorAll('.kanban-column');
+    const audioButtons = container.querySelectorAll('.card-audio');
     const resetBtn = container.querySelector('.kanban-reset-btn');
 
     // Attach card drag listeners
     cards.forEach(card => {
-      this._attachCardListeners(card);
+      const dragStartHandler = (e) => this._onDragStart(e, card);
+      card.addEventListener('dragstart', dragStartHandler);
+      this._registerListener(card, 'dragstart', dragStartHandler);
+
+      const dragEndHandler = (e) => this._onDragEnd(e, card);
+      card.addEventListener('dragend', dragEndHandler);
+      this._registerListener(card, 'dragend', dragEndHandler);
     });
 
     // Attach column drop listeners
     columns.forEach(column => {
-      this._attachColumnListeners(column);
+      const columnContent = column.querySelector('.column-content');
+      if (!columnContent) return;
+
+      const dragOverHandler = (e) => this._onDragOver(e, column);
+      columnContent.addEventListener('dragover', dragOverHandler);
+      this._registerListener(columnContent, 'dragover', dragOverHandler);
+
+      const dragEnterHandler = (e) => this._onDragEnter(e, column);
+      columnContent.addEventListener('dragenter', dragEnterHandler);
+      this._registerListener(columnContent, 'dragenter', dragEnterHandler);
+
+      const dragLeaveHandler = (e) => this._onDragLeave(e, column);
+      columnContent.addEventListener('dragleave', dragLeaveHandler);
+      this._registerListener(columnContent, 'dragleave', dragLeaveHandler);
+
+      const dropHandler = (e) => this._onDrop(e, column);
+      columnContent.addEventListener('drop', dropHandler);
+      this._registerListener(columnContent, 'drop', dropHandler);
     });
 
     // Attach audio button listeners
-    const audioButtons = container.querySelectorAll('.card-audio');
     audioButtons.forEach(btn => {
       const handler = (e) => this._handleAudioClick(e);
       btn.addEventListener('click', handler);
-      this.boundHandlers[btn] = handler;
+      this._registerListener(btn, 'click', handler);
     });
 
     // Attach reset button listener
     if (resetBtn) {
       const handler = (e) => this._handleResetClick(e);
       resetBtn.addEventListener('click', handler);
-      this.boundHandlers[resetBtn] = handler;
+      this._registerListener(resetBtn, 'click', handler);
     }
 
-    console.log('[KanbanController] Listeners attached:', {
+    console.log('[KanbanController] Attached', this.attachedListeners.length, 'listeners:', {
       cards: cards.length,
       columns: columns.length,
       audioButtons: audioButtons.length,
@@ -123,19 +164,23 @@ class KanbanController {
   }
 
   /**
-   * Detach all listeners (cleanup)
+   * Detach all listeners completely (proper cleanup)
    */
   detach() {
-    console.log('[KanbanController] Detaching listeners...');
+    console.log('[KanbanController] Detaching', this.attachedListeners.length, 'listeners...');
     
-    // Remove all bound handlers
-    Object.keys(this.boundHandlers).forEach(element => {
-      if (element && this.boundHandlers[element]) {
-        element.removeEventListener('click', this.boundHandlers[element]);
+    let removed = 0;
+    this.attachedListeners.forEach(({element, eventType, handler, id}) => {
+      if (element && handler) {
+        element.removeEventListener(eventType, handler);
+        removed++;
       }
     });
     
-    this.boundHandlers = {};
+    console.log(`[KanbanController] Removed ${removed} listeners successfully`);
+    
+    // Clear all state
+    this.attachedListeners = [];
     this.draggedCard = null;
     this.sourceColumn = null;
     
@@ -143,20 +188,8 @@ class KanbanController {
   }
 
   /* ========================================
-     PRIVATE METHODS - Card Listeners
+     PRIVATE METHODS - Drag Handlers
   ======================================== */
-
-  _attachCardListeners(card) {
-    // Drag start
-    const dragStartHandler = (e) => this._onDragStart(e, card);
-    card.addEventListener('dragstart', dragStartHandler);
-    this.boundHandlers[`${card}_dragstart`] = dragStartHandler;
-
-    // Drag end
-    const dragEndHandler = (e) => this._onDragEnd(e, card);
-    card.addEventListener('dragend', dragEndHandler);
-    this.boundHandlers[`${card}_dragend`] = dragEndHandler;
-  }
 
   _onDragStart(e, card) {
     this.draggedCard = card;
@@ -184,35 +217,6 @@ class KanbanController {
     this.sourceColumn = null;
     
     console.log('[KanbanController] Drag ended');
-  }
-
-  /* ========================================
-     PRIVATE METHODS - Column Listeners
-  ======================================== */
-
-  _attachColumnListeners(column) {
-    const columnContent = column.querySelector('.column-content');
-    if (!columnContent) return;
-
-    // Drag over
-    const dragOverHandler = (e) => this._onDragOver(e, column);
-    columnContent.addEventListener('dragover', dragOverHandler);
-    this.boundHandlers[`${columnContent}_dragover`] = dragOverHandler;
-
-    // Drag enter
-    const dragEnterHandler = (e) => this._onDragEnter(e, column);
-    columnContent.addEventListener('dragenter', dragEnterHandler);
-    this.boundHandlers[`${columnContent}_dragenter`] = dragEnterHandler;
-
-    // Drag leave
-    const dragLeaveHandler = (e) => this._onDragLeave(e, column);
-    columnContent.addEventListener('dragleave', dragLeaveHandler);
-    this.boundHandlers[`${columnContent}_dragleave`] = dragLeaveHandler;
-
-    // Drop
-    const dropHandler = (e) => this._onDrop(e, column);
-    columnContent.addEventListener('drop', dropHandler);
-    this.boundHandlers[`${columnContent}_drop`] = dropHandler;
   }
 
   _onDragOver(e, column) {
