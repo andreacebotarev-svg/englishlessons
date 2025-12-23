@@ -18,6 +18,9 @@
   <link rel="stylesheet" href="styles/flashcards.css">
   <link rel="stylesheet" href="styles/flashcards-stage4.css">
   
+  <!-- ✨ NEW: Kanban Board CSS -->
+  <link rel="stylesheet" href="assets/css/vocabulary-kanban.css">
+  
   <!-- Preload critical resources -->
   <link rel="preload" href="assets/js/lesson-engine.js" as="script">
   <link rel="preload" href="../data/264.json" as="fetch" crossorigin>
@@ -54,6 +57,10 @@
   <script src="assets/js/lesson-storage.js"></script>
   <script src="assets/js/lesson-tts.js"></script>
   <script src="assets/js/lesson-renderer.js"></script>
+  
+  <!-- ✨ NEW: Kanban Controller + Event Bus (BEFORE lesson-engine.js) -->
+  <script src="assets/js/vocabulary-kanban.js"></script>
+  
   <script src="assets/js/lesson-engine.js"></script>
   
   <!-- Initialization Script -->
