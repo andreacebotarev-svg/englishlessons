@@ -1,0 +1,444 @@
+/**
+ * VOCABULARY KANBAN BOARD STYLES
+ * Part of modular lesson system
+ * Dependencies: lesson-core.css, lesson-components.css
+ * 
+ * This module adds Kanban board functionality for vocabulary learning
+ * with drag-and-drop support and progress tracking.
+ */
+
+/* ========================================
+   1. KANBAN CONTAINER
+   ======================================== */
+
+.vocab-kanban-container {
+  background: var(--bg-color, #f9fafb);
+  border-radius: var(--radius, 8px);
+  padding: var(--spacing-lg, 2rem);
+  margin-top: var(--spacing-md, 1.5rem);
+}
+
+.kanban-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg, 2rem);
+  padding-bottom: var(--spacing-sm, 1rem);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.kanban-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+  margin: 0;
+}
+
+.kanban-actions {
+  display: flex;
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+.kanban-actions button {
+  padding: 0.5rem 1rem;
+  background: var(--primary-color, #2563eb);
+  color: white;
+  border: none;
+  border-radius: var(--radius, 8px);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.kanban-actions button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   2. KANBAN BOARD (4 COLUMNS)
+   ======================================== */
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md, 1.5rem);
+  min-height: 500px;
+}
+
+/* ========================================
+   3. KANBAN COLUMN
+   ======================================== */
+
+.kanban-column {
+  background: #ffffff;
+  border-radius: var(--radius, 8px);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0,0,0,0.1));
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s ease;
+  overflow: hidden;
+}
+
+/* Column headers with distinct colors */
+.kanban-column[data-status="to-learn"] .column-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.kanban-column[data-status="learning"] .column-header {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.kanban-column[data-status="known"] .column-header {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.kanban-column[data-status="favorites"] .column-header {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+/* Drag over state */
+.kanban-column.drag-over {
+  background: rgba(102, 126, 234, 0.05);
+  border: 2px dashed var(--primary-color, #2563eb);
+}
+
+/* Column Header */
+.column-header {
+  padding: var(--spacing-md, 1.5rem) var(--spacing-sm, 1rem);
+  border-radius: var(--radius, 8px) var(--radius, 8px) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+.column-icon {
+  font-size: 1.25rem;
+}
+
+.column-name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.column-count {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-left: var(--spacing-xs, 0.5rem);
+}
+
+.column-menu {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #ffffff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.column-menu:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Column Content (scrollable) */
+.column-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm, 1rem);
+  min-height: 200px;
+}
+
+/* Scrollbar styling */
+.column-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.column-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================
+   4. KANBAN CARD (Word Card)
+   ======================================== */
+
+.kanban-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius, 8px);
+  padding: var(--spacing-sm, 1rem);
+  margin-bottom: var(--spacing-sm, 1rem);
+  cursor: move;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.kanban-card:hover {
+  background: rgba(102, 126, 234, 0.02);
+  border-color: var(--primary-color, #2563eb);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-card.dragging {
+  opacity: 0.5;
+  transform: rotate(3deg) scale(1.05);
+  cursor: grabbing;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Header */
+.card-header-small {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs, 0.5rem);
+  gap: var(--spacing-xs, 0.5rem);
+}
+
+.card-word {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color, #1f2937);
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.card-drag-handle {
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 1rem;
+  cursor: grab;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.card-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Card Content */
+.card-translation {
+  font-size: 0.875rem;
+  color: var(--text-color, #1f2937);
+  opacity: 0.7;
+  margin: 0.25rem 0;
+}
+
+.card-transcription {
+  font-size: 0.75rem;
+  color: var(--primary-color, #2563eb);
+  font-style: italic;
+  margin: 0.25rem 0 0.75rem 0;
+}
+
+/* Card Footer (Actions) */
+.card-footer {
+  display: flex;
+  gap: var(--spacing-xs, 0.5rem);
+  margin-top: var(--spacing-sm, 1rem);
+  padding-top: var(--spacing-xs, 0.5rem);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card-audio,
+.card-move {
+  flex: 1;
+  padding: 0.5rem;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 6px;
+  color: var(--primary-color, #2563eb);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.card-audio:hover,
+.card-move:hover {
+  background: var(--primary-color, #2563eb);
+  color: #ffffff;
+  border-color: var(--primary-color, #2563eb);
+  transform: translateY(-1px);
+}
+
+/* Card More indicator */
+.card-more {
+  text-align: center;
+  padding: var(--spacing-sm, 1rem);
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* ========================================
+   5. EMPTY STATE
+   ======================================== */
+
+.kanban-empty-state {
+  text-align: center;
+  padding: var(--spacing-lg, 2rem);
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.875rem;
+}
+
+.kanban-empty-state-icon {
+  font-size: 2rem;
+  opacity: 0.3;
+  margin-bottom: var(--spacing-sm, 1rem);
+}
+
+/* ========================================
+   6. RESPONSIVE DESIGN
+   ======================================== */
+
+/* Tablets (1024px and below) */
+@media (max-width: 1024px) {
+  .kanban-board {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm, 1rem);
+  }
+}
+
+/* Mobile (768px and below) */
+@media (max-width: 768px) {
+  .vocab-kanban-container {
+    padding: var(--spacing-sm, 1rem);
+  }
+  
+  .kanban-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm, 1rem);
+  }
+  
+  .kanban-board {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md, 1.5rem);
+  }
+  
+  .kanban-column {
+    max-height: none;
+  }
+  
+  .column-content {
+    max-height: 400px;
+  }
+}
+
+/* Small Mobile (480px and below) */
+@media (max-width: 480px) {
+  .kanban-header h3 {
+    font-size: 1.25rem;
+  }
+  
+  .card-word {
+    font-size: 0.875rem;
+  }
+  
+  .card-footer {
+    flex-direction: column;
+  }
+  
+  .card-audio,
+  .card-move {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* ========================================
+   7. ANIMATIONS
+   ======================================== */
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kanban-card {
+  animation: card-enter 0.3s ease;
+}
+
+@keyframes column-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.kanban-column.drag-over {
+  animation: column-pulse 0.5s ease infinite;
+}
+
+/* ========================================
+   8. ACCESSIBILITY
+   ======================================== */
+
+.kanban-card:focus {
+  outline: 2px solid var(--primary-color, #2563eb);
+  outline-offset: 2px;
+}
+
+.card-audio:focus,
+.card-move:focus {
+  outline: 2px solid var(--primary-color, #2563eb);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .kanban-column {
+    border: 2px solid currentColor;
+  }
+  
+  .kanban-card {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .kanban-card,
+  .card-audio,
+  .card-move {
+    transition: none;
+    animation: none;
+  }
+  
+  .kanban-column.drag-over {
+    animation: none;
+  }
+}
