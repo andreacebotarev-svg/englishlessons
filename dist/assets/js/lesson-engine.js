@@ -10,7 +10,7 @@ class LessonEngine {
     this.tts = new LessonTTS();
     this.lessonData = null;
     this.currentTab = 'reading';
-    this.vocabMode = 'list';
+    this.vocabMode = 'list'; // 'list', 'flashcard', 'kanban' ✨ NEW
     this.flashcardIndex = 0;
     this.myWords = [];
     this.quizState = {
@@ -18,6 +18,12 @@ class LessonEngine {
       answers: [],
       completed: false
     };
+    
+    // ✨ NEW: Event bus for Kanban communication
+    this.eventBus = new SimpleEventBus();
+    
+    // ✨ NEW: Kanban controller (lazy initialized)
+    this.kanbanController = null;
 
     // Expose debugger helpers for console usage only
     window.debugPopup = {
@@ -613,11 +619,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">  
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">  
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")} '${translation.replace(/'/g, "\\\''").replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\''").replace(/"/g, '&quot;')}', this);">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -636,7 +642,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">
             🔊 Listen
           </button>
         </div>
@@ -780,7 +786,12 @@ class LessonEngine {
         html = this.renderer.renderReading(this.myWords);
         break;
       case 'vocabulary':
-        html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
+        // ✨ NEW: Check if Kanban mode
+        if (this.vocabMode === 'kanban') {
+          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
+        } else {
+          html = this.renderer.renderVocabulary(this.vocabMode, this.myWords, this.flashcardIndex);
+        }
         break;
       case 'grammar':
         html = this.renderer.renderGrammar();
@@ -812,7 +823,7 @@ class LessonEngine {
     }
 
     const wordsHTML = this.myWords.map(word => {
-      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\''");
+      const safeWord = this.renderer.escapeHTML(word.word).replace(/'/g, "\\'");
       return `
         <div class="vocab-item">
           <div class="vocab-top-line">
@@ -866,11 +877,116 @@ class LessonEngine {
     const modeButtons = document.querySelectorAll('.vocab-mode-btn');
     modeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        this.vocabMode = btn.dataset.mode;
-        this.flashcardIndex = 0;
-        this.renderCurrentTab();
+        this.switchVocabMode(btn.dataset.mode);
       });
     });
+    
+    // ✨ NEW: Setup Kanban if in kanban mode
+    if (this.vocabMode === 'kanban') {
+      this.setupKanbanListeners();
+    }
+  }
+
+  /**
+   * ✨ NEW: Switch vocabulary mode (with Kanban cleanup)
+   */
+  switchVocabMode(mode) {
+    if (mode === this.vocabMode) return;
+    
+    // ✨ NEW: Cleanup Kanban controller when leaving kanban mode
+    if (this.vocabMode === 'kanban' && this.kanbanController) {
+      this.kanbanController.detach();
+    }
+    
+    this.vocabMode = mode;
+    
+    if (mode === 'flashcard') {
+      this.flashcardIndex = 0;
+    }
+    
+    this.renderCurrentTab();
+    
+    // ✨ NEW: Setup Kanban after rendering
+    if (mode === 'kanban') {
+      this.setupKanbanListeners();
+    }
+  }
+
+  /**
+   * ✨ NEW: Setup Kanban controller and event listeners
+   */
+  setupKanbanListeners() {
+    const kanbanContainer = document.querySelector('.vocab-kanban-container');
+    
+    if (!kanbanContainer) {
+      console.warn('[LessonEngine] Kanban container not found');
+      return;
+    }
+    
+    // Initialize controller (lazy)
+    if (!this.kanbanController) {
+      this.kanbanController = new KanbanController(this.eventBus);
+      
+      // Subscribe to Kanban events
+      this.eventBus.on('kanban:word-moved', (data) => this.handleKanbanWordMoved(data));
+      this.eventBus.on('kanban:audio-requested', (data) => this.handleKanbanAudio(data));
+      this.eventBus.on('kanban:reset-requested', () => this.handleKanbanReset());
+    }
+    
+    // Attach drag-and-drop listeners
+    this.kanbanController.attach(kanbanContainer);
+    
+    console.log('[LessonEngine] Kanban listeners attached');
+  }
+
+  /**
+   * ✨ NEW: Handle word moved between Kanban columns
+   */
+  handleKanbanWordMoved(data) {
+    const { word, oldStatus, newStatus } = data;
+    
+    console.log(`[LessonEngine] Moving word: ${word} from ${oldStatus} to ${newStatus}`);
+    
+    // Update storage
+    this.storage.updateWordStatus(word, newStatus);
+    
+    // Show notification
+    const statusLabels = {
+      'to-learn': 'To Learn',
+      'learning': 'Learning',
+      'known': 'Known',
+      'favorites': 'Favorites'
+    };
+    
+    this.showNotification(`"${word}" moved to ${statusLabels[newStatus]}`);
+    
+    // Re-render current tab (will re-render Kanban board)
+    this.renderCurrentTab();
+  }
+
+  /**
+   * ✨ NEW: Handle audio button click in Kanban card
+   */
+  handleKanbanAudio(data) {
+    const { word } = data;
+    console.log(`[LessonEngine] Playing audio: ${word}`);
+    this.tts.speak(word, 'en');
+  }
+
+  /**
+   * ✨ NEW: Handle reset button click in Kanban board
+   */
+  handleKanbanReset() {
+    console.log('[LessonEngine] Resetting Kanban board');
+    
+    // Clear all word statuses
+    this.storage.clearAllStatuses();
+    
+    // Show notification
+    this.showNotification('All words reset to "To Learn"');
+    
+    // Re-render
+    this.renderCurrentTab();
   }
 
   /**
