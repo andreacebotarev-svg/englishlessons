@@ -1,7 +1,7 @@
 /* ============================================================
    LESSON COMPONENTS STYLES
    Header, Tabs, Card, Buttons, Forms, Vocabulary, etc.
-   Updated: PNG cursor with neon glow animation
+   Updated: PNG cursor with neon glow animation + Quiz in Reading
    ============================================================ */
 
 /* Lesson Header */
@@ -1114,6 +1114,154 @@
 .quiz-progress {
   font-size: 0.8rem;
   color: var(--text-soft);
+}
+
+/* ============================================================
+   READING QUIZ SECTION (Embedded in Reading Tab)
+   ============================================================ */
+
+.reading-quiz-section {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, rgba(79, 140, 255, 0.08) 0%, rgba(79, 140, 255, 0.04) 100%);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(79, 140, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(79, 140, 255, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.reading-quiz-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 30%, rgba(79, 140, 255, 0.15), transparent 60%);
+  animation: liquidMove 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.reading-quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+  position: relative;
+  z-index: 1;
+}
+
+.reading-quiz-header h3 {
+  font-size: 1.2rem;
+  font-weight: 650;
+  color: var(--accent);
+  margin: 0;
+  text-shadow: 0 0 12px rgba(79, 140, 255, 0.5);
+}
+
+.reading-quiz-progress {
+  background: rgba(79, 140, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 650;
+  border: 1px solid rgba(79, 140, 255, 0.4);
+  box-shadow: 0 4px 16px rgba(79, 140, 255, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.reading-quiz-question {
+  background: rgba(9, 13, 32, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  z-index: 1;
+}
+
+.quiz-question-text {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+}
+
+/* Reading Quiz Results */
+.reading-quiz-results {
+  text-align: center;
+  padding: var(--space-xl);
+  background: linear-gradient(135deg, rgba(50, 212, 137, 0.15) 0%, rgba(50, 212, 137, 0.08) 100%);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(50, 212, 137, 0.4);
+  margin-top: var(--space-xl);
+  box-shadow: 0 8px 32px rgba(50, 212, 137, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.reading-quiz-results::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(50, 212, 137, 0.12), transparent 60%);
+  animation: liquidPulse 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.reading-quiz-results h3 {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-md);
+  color: var(--accent-success);
+  text-shadow: 0 0 12px rgba(50, 212, 137, 0.6);
+  position: relative;
+  z-index: 1;
+}
+
+.quiz-score {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-success);
+  margin-bottom: var(--space-lg);
+  text-shadow: 0 0 16px rgba(50, 212, 137, 0.7);
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .reading-quiz-section {
+    padding: var(--space-md);
+  }
+  
+  .reading-quiz-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .quiz-question-text {
+    font-size: 0.95rem;
+  }
+  
+  .reading-quiz-progress {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
 }
 
 /* Notification - Liquid Glass */
