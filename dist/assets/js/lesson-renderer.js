@@ -56,7 +56,7 @@ class LessonRenderer {
   }
 
   // ========================================
-  // KANBAN BOARD RENDERING (NEW)
+  // KANBAN BOARD RENDERING
   // ========================================
 
   /**
@@ -171,7 +171,57 @@ class LessonRenderer {
   }
 
   // ========================================
-  // EXISTING METHODS (keeping all below)
+  // VOCABULARY RENDERING
+  // ========================================
+
+  /**
+   * ✨ UPDATED: Render vocabulary list, flashcards, or Kanban board
+   * @param {string} mode - 'list', 'flashcard', or 'kanban'
+   * @param {Array} myWords - Currently saved words
+   * @param {number} flashcardIndex - Index for flashcard mode
+   * @returns {string} HTML string
+   */
+  renderVocabulary(mode, myWords, flashcardIndex = 0) {
+    const vocabulary = this.data.vocabulary?.words;
+    const phrases = this.data.vocabulary?.phrases;
+
+    if (!vocabulary || !Array.isArray(vocabulary) || vocabulary.length === 0) {
+      return '<p class="text-soft">No vocabulary available.</p>';
+    }
+
+    const header = `
+      <div class="card-header">
+        <h2 class="card-title">📚 Vocabulary</h2>
+        <div class="vocab-mode-toggle">
+          <button class="vocab-mode-btn ${mode === 'list' ? 'active' : ''}" data-mode="list">
+            List
+          </button>
+          <button class="vocab-mode-btn ${mode === 'flashcard' ? 'active' : ''}" data-mode="flashcard">
+            Flashcards
+          </button>
+          <button class="vocab-mode-btn ${mode === 'kanban' ? 'active' : ''}" data-mode="kanban">
+            Board
+          </button>
+        </div>
+      </div>
+    `;
+
+    // ✅ FIX: Now properly returns header + content for all modes
+    if (mode === 'list') {
+      return header + this.renderVocabList(vocabulary, phrases, myWords);
+    } else if (mode === 'flashcard') {
+      return header + this.renderFlashcard(vocabulary, flashcardIndex);
+    } else if (mode === 'kanban') {
+      const groupedWords = this.storage.getWordsByStatus(vocabulary);
+      return header + this.renderKanbanBoard(groupedWords, this.storage);
+    }
+    
+    // Fallback (should never reach here)
+    return header + '<p class="text-soft">Unknown vocabulary mode.</p>';
+  }
+
+  // ========================================
+  // READING RENDERING
   // ========================================
 
   /**
@@ -404,50 +454,9 @@ class LessonRenderer {
     return '';
   }
 
-  /**
-   * ✨ UPDATED: Render vocabulary list, flashcards, or Kanban board
-   * @param {string} mode - 'list', 'flashcard', or 'kanban'
-   * @param {Array} myWords - Currently saved words
-   * @param {number} flashcardIndex - Index for flashcard mode
-   * @returns {string} HTML string
-   */
-  renderVocabulary(mode, myWords, flashcardIndex = 0) {
-    const vocabulary = this.data.vocabulary?.words;
-    const phrases = this.data.vocabulary?.phrases;
-
-    if (!vocabulary || !Array.isArray(vocabulary) || vocabulary.length === 0) {
-      return '<p class="text-soft">No vocabulary available.</p>';
-    }
-
-    const header = `
-      <div class="card-header">
-        <h2 class="card-title">📚 Vocabulary</h2>
-        <div class="vocab-mode-toggle">
-          <button class="vocab-mode-btn ${mode === 'list' ? 'active' : ''}" data-mode="list">
-            List
-          </button>
-          <button class="vocab-mode-btn ${mode === 'flashcard' ? 'active' : ''}" data-mode="flashcard">
-            Flashcards
-          </button>
-          <button class="vocab-mode-btn ${mode === 'kanban' ? 'active' : ''}" data-mode="kanban">
-            Board
-          </button>
-        </div>
-      </div>
-    `;
-
-    if (mode === 'list') {
-      return header + this.renderVocabList(vocabulary, phrases, myWords);
-    } else if (mode === 'flashcard') {
-      return header + this.renderFlashcard(vocabulary, flashcardIndex);
-    } else if (mode === 'kanban') {
-      // ✨ NEW: Render Kanban board
-      const groupedWords = this.storage.getWordsByStatus(vocabulary);
-      return header + this.renderKanbanBoard(groupedWords, this.storage);
-    }
-  }
-
-  // ... (keep all other existing methods: renderVocabList, renderFlashcard, renderGrammar, renderQuiz, renderSidebar, etc.)
+  // ========================================
+  // VOCAB LIST RENDERING
+  // ========================================
   
   renderVocabList(vocabulary, phrases, myWords) {
     const vocabItems = vocabulary.map(item => {
@@ -519,6 +528,10 @@ class LessonRenderer {
     `;
   }
 
+  // ========================================
+  // FLASHCARD RENDERING
+  // ========================================
+
   renderFlashcard(vocabulary, index) {
     if (!vocabulary || vocabulary.length === 0) {
       return '<p class="text-soft">No vocabulary for flashcards.</p>';
@@ -571,6 +584,10 @@ class LessonRenderer {
       </div>
     `;
   }
+
+  // ========================================
+  // GRAMMAR RENDERING
+  // ========================================
 
   renderGrammar() {
     const grammar = this.data.grammar;
@@ -642,6 +659,10 @@ class LessonRenderer {
       </div>
     `;
   }
+
+  // ========================================
+  // QUIZ RENDERING
+  // ========================================
 
   renderQuiz(quizState) {
     let quiz = this.data.quiz;
@@ -721,6 +742,10 @@ class LessonRenderer {
       </div>
     `;
   }
+
+  // ========================================
+  // SIDEBAR RENDERING
+  // ========================================
 
   renderSidebar(myWords) {
     if (myWords.length === 0) {
