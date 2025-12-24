@@ -1,0 +1,190 @@
+/* ============================================================
+   THEME SWITCHER UI COMPONENT
+   Beautiful floating theme toggle for lessons
+   ============================================================ */
+
+/* Theme Switcher Container */
+.theme-switcher {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  gap: var(--space-2);
+  background: var(--bg-surface);
+  padding: var(--space-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(8px);
+  /* Smooth transitions */
+  transition: all var(--duration-normal) var(--easing-standard);
+}
+
+.theme-switcher:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+/* Theme Button */
+.theme-btn {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--font-main);
+  transition: all var(--duration-fast) var(--easing-standard);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Button Icon */
+.theme-btn-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform var(--duration-fast) var(--easing-bounce);
+}
+
+/* Hover State */
+.theme-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.theme-btn:hover .theme-btn-icon {
+  transform: scale(1.15);
+}
+
+/* Active State */
+.theme-btn.active {
+  background: var(--accent-500);
+  color: white;
+  box-shadow: var(--shadow-accent-sm);
+  transform: scale(1.05);
+}
+
+.theme-btn.active .theme-btn-icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+/* Focus State */
+.theme-btn:focus-visible {
+  outline: 2px solid var(--interactive-focus);
+  outline-offset: 2px;
+}
+
+/* Active State Glow Effect */
+.theme-btn.active::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: var(--accent-500);
+  opacity: 0.2;
+  filter: blur(8px);
+  z-index: -1;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.05); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .theme-switcher {
+    top: var(--space-2);
+    right: var(--space-2);
+    gap: var(--space-1);
+    padding: var(--space-1);
+  }
+  
+  .theme-btn {
+    padding: var(--space-1) var(--space-2);
+    font-size: 0.75rem;
+  }
+  
+  /* Hide text labels on very small screens, show icons only */
+  .theme-btn-text {
+    display: none;
+  }
+  
+  .theme-btn-icon {
+    font-size: 1rem;
+  }
+}
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .theme-switcher {
+    gap: var(--space-1);
+  }
+  
+  .theme-btn {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* Theme-Specific Enhancements */
+
+/* Kids Theme: More playful */
+:root.theme-kids .theme-btn:hover .theme-btn-icon {
+  animation: bounce 0.5s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0) scale(1.15); }
+  50% { transform: translateY(-3px) scale(1.2); }
+}
+
+/* Dark Theme: Subtle glow */
+:root.theme-dark .theme-btn.active {
+  box-shadow: var(--shadow-accent-md);
+}
+
+/* Accessibility: High Contrast Mode */
+@media (prefers-contrast: high) {
+  .theme-switcher {
+    border-width: 2px;
+  }
+  
+  .theme-btn {
+    font-weight: 700;
+  }
+  
+  .theme-btn.active {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+  }
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .theme-btn,
+  .theme-btn-icon,
+  .theme-btn.active::before {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .theme-btn:hover,
+  .theme-btn.active {
+    transform: none !important;
+  }
+}
+
+/* Print: Hide switcher */
+@media print {
+  .theme-switcher {
+    display: none;
+  }
+}
