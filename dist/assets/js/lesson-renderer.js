@@ -28,15 +28,15 @@ class LessonRenderer {
   }
 
   /**
-   * ✨ NEW: Render theme switcher UI
+   * ✨ UPDATED: Render beautiful theme switcher UI
    * @param {string} currentTheme - Currently active theme ('default', 'kids', 'dark')
    * @returns {string} HTML string
    */
   renderThemeSwitcher(currentTheme = 'default') {
     const themes = [
-      { id: 'default', emoji: '🎓', label: 'Classic' },
-      { id: 'kids', emoji: '🎨', label: 'Kids' },
-      { id: 'dark', emoji: '🌙', label: 'Dark' }
+      { id: 'default', emoji: '🌙', label: 'Classic' },
+      { id: 'kids', emoji: '🎈', label: 'Kids' },
+      { id: 'dark', emoji: '⭐', label: 'Dark' }
     ];
 
     const buttonsHTML = themes.map(theme => {
@@ -47,8 +47,8 @@ class LessonRenderer {
                 onclick="window.lessonEngine.handleThemeSwitch('${theme.id}')"
                 aria-label="Switch to ${theme.label} theme"
                 ${isActive ? 'aria-pressed="true"' : ''}>
-          <span class="theme-emoji">${theme.emoji}</span>
-          <span class="theme-label">${theme.label}</span>
+          <span class="theme-btn-icon">${theme.emoji}</span>
+          <span class="theme-btn-text">${theme.label}</span>
         </button>
       `;
     }).join('');
