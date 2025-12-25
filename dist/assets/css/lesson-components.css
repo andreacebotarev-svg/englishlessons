@@ -1,7 +1,7 @@
 /* ============================================================
    LESSON COMPONENTS STYLES
    Header, Tabs, Card, Buttons, Forms, Vocabulary, etc.
-   Updated: Theme-aware header + PNG cursor with neon glow + Quiz contrast fix v2
+   Updated: Quiz contrast fix v3 - Remove backdrop-filter for Kids/Dark themes
    ============================================================ */
 
 /* Lesson Header - Theme-aware */
@@ -928,7 +928,7 @@
 }
 
 /* ============================================================
-   QUIZ - THEME-AWARE WITH SEMANTIC TOKENS (ENHANCED)
+   QUIZ - THEME-AWARE WITH SEMANTIC TOKENS (v3 - CRITICAL FIX)
    ============================================================ */
 .quiz-body {
   margin-top: var(--space-sm);
@@ -949,14 +949,20 @@
   gap: 8px;
 }
 
-/* ✅ UPDATED: Uses semantic tokens for theme-adaptive contrast */
+/* ============================================================
+   🔴 CRITICAL FIX v3: Remove backdrop-filter to prevent parent bg bleed
+   - Kids theme: Parent .reading-quiz-section has var(--accent-soft) background
+   - Dark theme: Similar issue with translucent backgrounds
+   - backdrop-filter causes parent color to bleed through
+   - Solution: Solid opaque backgrounds + no backdrop-filter
+   ============================================================ */
 .quiz-option {
   border-radius: var(--radius-md);
   padding: 12px 14px;
-  border: 1px solid var(--quiz-option-border);
-  background: var(--quiz-option-bg);
-  backdrop-filter: blur(10px) saturate(150%);
-  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  border: 2px solid var(--quiz-option-border);  /* ✅ Stronger border */
+  background: var(--quiz-option-bg);  /* ✅ OPAQUE background from tokens */
+  /* ❌ REMOVED: backdrop-filter - causes parent bg bleed */
+  /* ❌ REMOVED: -webkit-backdrop-filter */
   font-size: 0.9rem;
   color: var(--quiz-option-text);  /* ✅ THEME-ADAPTIVE TEXT */
   cursor: pointer;
