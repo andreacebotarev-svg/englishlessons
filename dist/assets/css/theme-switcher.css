@@ -1,6 +1,6 @@
 /* ============================================================
-   APPLE-STYLE THEME SWITCHER v3.2.1 MOBILE HOTFIX
-   iOS Segmented Control - Critical Mobile Layout Fix
+   APPLE-STYLE THEME SWITCHER v3.2.2 CRITICAL HOTFIX
+   iOS Segmented Control - Label Hiding + Position Fix
    ============================================================ */
 
 /* Container with glassmorphism */
@@ -23,6 +23,8 @@
   z-index: 1000;
   /* Mobile constraint */
   max-width: calc(100vw - 2rem);
+  /* Prevent position drift */
+  transform: none !important;
 }
 
 /* Sliding indicator - JS controls transform */
@@ -226,10 +228,10 @@
 }
 
 /* ============================================================
-   MOBILE RESPONSIVE - CRITICAL FIX v3.2.1
+   MOBILE RESPONSIVE - CRITICAL FIX v3.2.2
    ============================================================ */
 
-/* Mobile (<640px) - ULTRA COMPACT */
+/* Mobile (<640px) - ULTRA COMPACT + FORCE HIDE LABELS */
 @media (max-width: 640px) {
   .theme-switcher {
     /* iOS safe area insets for notch */
@@ -267,9 +269,16 @@
     font-size: 1.1rem;
   }
   
-  /* CRITICAL: Hide text labels, show icons only */
-  .theme-label {
+  /* CRITICAL FIX: Force hide labels with maximum specificity */
+  .theme-switcher .theme-btn-apple .theme-label,
+  .theme-switcher .theme-btn .theme-label {
     display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    opacity: 0 !important;
   }
 }
 
@@ -289,6 +298,13 @@
   
   .theme-icon {
     font-size: 1rem;
+  }
+  
+  /* Force hide labels */
+  .theme-switcher .theme-btn-apple .theme-label,
+  .theme-switcher .theme-btn .theme-label {
+    display: none !important;
+    visibility: hidden !important;
   }
 }
 
