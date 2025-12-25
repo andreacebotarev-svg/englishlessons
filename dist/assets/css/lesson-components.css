@@ -1,7 +1,7 @@
 /* ============================================================
    LESSON COMPONENTS STYLES
    Header, Tabs, Card, Buttons, Forms, Vocabulary, etc.
-   Updated: Theme-aware header + PNG cursor with neon glow + Quiz contrast fix
+   Updated: Theme-aware header + PNG cursor with neon glow + Quiz contrast fix v2
    ============================================================ */
 
 /* Lesson Header - Theme-aware */
@@ -928,7 +928,7 @@
 }
 
 /* ============================================================
-   QUIZ - THEME-AWARE WITH SEMANTIC TOKENS
+   QUIZ - THEME-AWARE WITH SEMANTIC TOKENS (ENHANCED)
    ============================================================ */
 .quiz-body {
   margin-top: var(--space-sm);
@@ -940,7 +940,7 @@
 .quiz-question {
   font-size: 0.95rem;
   font-weight: 500;
-  color: var(--text-main);
+  color: var(--text-primary);  /* ✅ HIGH CONTRAST */
 }
 
 .quiz-options {
@@ -958,7 +958,7 @@
   backdrop-filter: blur(10px) saturate(150%);
   -webkit-backdrop-filter: blur(10px) saturate(150%);
   font-size: 0.9rem;
-  color: var(--quiz-option-text);
+  color: var(--quiz-option-text);  /* ✅ THEME-ADAPTIVE TEXT */
   cursor: pointer;
   text-align: left;
   transition: all var(--transition-fast);
@@ -1044,7 +1044,7 @@
   color: var(--text-soft);
 }
 
-/* Reading Quiz */
+/* Reading Quiz - Enhanced Contrast */
 .reading-quiz-section {
   margin-top: var(--space-xl);
   padding: var(--space-lg);
@@ -1082,7 +1082,7 @@
 .reading-quiz-header h3 {
   font-size: 1.2rem;
   font-weight: 650;
-  color: var(--accent);
+  color: var(--text-primary);  /* ✅ HIGH CONTRAST - Kids: #1a1a1a */
   margin: 0;
 }
 
@@ -1110,7 +1110,7 @@
 .quiz-question-text {
   font-size: 1.05rem;
   font-weight: 500;
-  color: var(--text-main);
+  color: var(--text-primary);  /* ✅ HIGH CONTRAST - Kids: #1a1a1a */
   margin-bottom: var(--space-md);
   line-height: 1.6;
 }
