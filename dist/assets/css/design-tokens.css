@@ -1,11 +1,16 @@
 /* ============================================================
    DESIGN TOKENS — UNIFIED THEME SYSTEM
-   Version: 3.1.0
-   Updated: December 24, 2025
-   WCAG 2.1 Level AA Compliant + Contrast Enhanced
+   Version: 3.2.0
+   Updated: December 25, 2025
+   WCAG 2.1 Level AA Compliant + Quiz Contrast Fixed
    ============================================================
 
    This file is the SINGLE SOURCE OF TRUTH for all color tokens.
+   
+   Changelog v3.2.0:
+   - ✅ Added quiz-specific semantic tokens
+   - ✅ Fixed quiz button contrast in Kids theme
+   - ✅ Comprehension Check now readable (17.1:1 contrast)
    
    Changelog v3.1.0:
    - ✅ Kids theme contrast improved (all text ≥4.5:1)
@@ -127,11 +132,17 @@
   --semantic-info-bg: rgba(56, 189, 248, 0.12);
   --semantic-info-border: rgba(56, 189, 248, 0.30);
   
-  /* ═══ SEMANTIC — Content Blocks (NEW) ═══ */
+  /* ═══ SEMANTIC — Content Blocks ═══ */
   --content-block-bg: rgba(79, 140, 255, 0.08);
   --content-block-border: var(--accent-500);
   --content-block-text: var(--text-primary);
   --content-block-heading: var(--accent-400);
+  
+  /* ═══ SEMANTIC — Quiz Components (NEW v3.2) ═══ */
+  --quiz-option-text: var(--text-primary);
+  --quiz-option-bg: var(--bg-surface);
+  --quiz-option-bg-hover: var(--bg-elevated);
+  --quiz-option-border: var(--border-default);
   
   /* ═══ INTERACTIVE — Component States ═══ */
   --interactive-default: var(--accent-500);
@@ -183,7 +194,7 @@
 }
 
 /* ============================================================
-   THEME 2: KIDS (Playful & Accessible) — CONTRAST ENHANCED
+   THEME 2: KIDS (Playful & Accessible) — QUIZ CONTRAST FIXED
    Target: Children aged 7-12 years
    Psychology: Warm cream = comfort, orange = energy
    Accessibility: WCAG AA + enhanced contrast
@@ -244,6 +255,12 @@
   --content-block-border: var(--accent-600);        /* Darker border */
   --content-block-text: #2d2d2d;                    /* High contrast text ✅ */
   --content-block-heading: var(--accent-700);       /* Dark heading ✅ */
+  
+  /* ═══ SEMANTIC — Quiz Components (HIGH CONTRAST FOR KIDS) ═══ */
+  --quiz-option-text: #1a1a1a;                      /* Dark text: 17.1:1 ✅ */
+  --quiz-option-bg: #ffffff;                        /* White background */
+  --quiz-option-bg-hover: #fff9f0;                  /* Light cream hover */
+  --quiz-option-border: rgba(0, 0, 0, 0.15);        /* Visible border */
   
   /* ═══ INTERACTIVE — Component States ═══ */
   --interactive-default: var(--accent-500);
@@ -338,6 +355,12 @@
   --content-block-border: var(--accent-500);
   --content-block-text: var(--text-primary);
   --content-block-heading: var(--accent-300);
+  
+  /* ═══ SEMANTIC — Quiz Components ═══ */
+  --quiz-option-text: var(--text-primary);
+  --quiz-option-bg: var(--bg-surface);
+  --quiz-option-bg-hover: var(--bg-elevated);
+  --quiz-option-border: var(--border-default);
   
   /* ═══ INTERACTIVE — Component States ═══ */
   --interactive-default: var(--accent-500);
