@@ -1,6 +1,6 @@
 /* ============================================================
-   APPLE-STYLE THEME SWITCHER v3.2 FINAL
-   iOS Segmented Control with Spring Physics + Micro-interactions
+   APPLE-STYLE THEME SWITCHER v3.2.1 MOBILE HOTFIX
+   iOS Segmented Control - Critical Mobile Layout Fix
    ============================================================ */
 
 /* Container with glassmorphism */
@@ -21,6 +21,8 @@
               inset 0 1px 0 rgba(255, 255, 255, 0.15);
   isolation: isolate;
   z-index: 1000;
+  /* Mobile constraint */
+  max-width: calc(100vw - 2rem);
 }
 
 /* Sliding indicator - JS controls transform */
@@ -84,6 +86,7 @@
   z-index: 2;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   padding: 8px 16px;
   border: none;
@@ -99,6 +102,9 @@
   outline: none;
   -webkit-tap-highlight-color: transparent;
   overflow: hidden;
+  /* Touch target minimum */
+  min-height: 44px;
+  min-width: 44px;
 }
 
 /* Legacy theme-btn support (fallback) */
@@ -107,6 +113,7 @@
   z-index: 2;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   padding: 8px 16px;
   border: none;
@@ -122,6 +129,8 @@
   outline: none;
   -webkit-tap-highlight-color: transparent;
   overflow: hidden;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 /* Focus indicator (accessibility) */
@@ -216,42 +225,79 @@
   }
 }
 
-/* Mobile Responsive */
+/* ============================================================
+   MOBILE RESPONSIVE - CRITICAL FIX v3.2.1
+   ============================================================ */
+
+/* Mobile (<640px) - ULTRA COMPACT */
 @media (max-width: 640px) {
   .theme-switcher {
-    top: 0.5rem;
-    right: 0.5rem;
-    padding: 4px;
+    /* iOS safe area insets for notch */
+    top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
+    right: max(0.5rem, env(safe-area-inset-right, 0.5rem));
+    /* Tighter spacing */
+    padding: 3px;
+    gap: 0;
     border-radius: 11px;
+    /* Prevent overflow */
+    max-width: calc(100vw - 1rem);
   }
   
   .theme-indicator,
   .theme-indicator-glow {
-    top: 4px;
-    bottom: 4px;
-    left: 4px;
-    border-radius: 7px;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    border-radius: 8px;
+    /* Recalculate width for 3px padding */
+    width: calc(33.333% - 4px);
   }
   
   .theme-btn-apple,
   .theme-btn {
-    padding: 6px 12px;
+    /* Ultra compact - icon only */
+    padding: 4px 8px;
     font-size: 0.8rem;
-    gap: 5px;
+    gap: 0;
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  .theme-icon {
+    font-size: 1.1rem;
+  }
+  
+  /* CRITICAL: Hide text labels, show icons only */
+  .theme-label {
+    display: none !important;
+  }
+}
+
+/* Very small screens (<375px) - iPhone SE, etc */
+@media (max-width: 374px) {
+  .theme-switcher {
+    padding: 2px;
+    right: max(0.25rem, env(safe-area-inset-right, 0.25rem));
+  }
+  
+  .theme-btn-apple,
+  .theme-btn {
+    padding: 3px 6px;
+    min-width: 36px;
+    min-height: 36px;
   }
   
   .theme-icon {
     font-size: 1rem;
   }
-  
-  /* Hide text labels on small screens */
-  .theme-label {
-    display: none;
-  }
 }
 
-/* Tablet */
+/* Tablet (641-1024px) */
 @media (min-width: 641px) and (max-width: 1024px) {
+  .theme-switcher {
+    padding: 4px;
+  }
+  
   .theme-btn-apple,
   .theme-btn {
     padding: 7px 14px;
