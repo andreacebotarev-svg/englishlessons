@@ -1,184 +1,278 @@
 /* ============================================================
-   THEME SWITCHER UI COMPONENT
-   Beautiful floating theme toggle for lessons
+   APPLE-STYLE THEME SWITCHER v3.2 FINAL
+   iOS Segmented Control with Spring Physics + Micro-interactions
    ============================================================ */
 
-/* Theme Switcher Container */
+/* Container with glassmorphism */
 .theme-switcher {
   position: fixed;
-  top: var(--space-4);
-  right: var(--space-4);
-  display: flex;
-  gap: var(--space-2);
-  background: var(--bg-surface);
-  padding: var(--space-2);
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-default);
-  box-shadow: var(--shadow-lg);
-  z-index: var(--z-sticky);
-  backdrop-filter: blur(8px);
-  /* Smooth transitions */
-  transition: all var(--duration-normal) var(--easing-standard);
+  top: var(--space-4, 1rem);
+  right: var(--space-4, 1rem);
+  display: inline-flex;
+  background: rgba(20, 27, 60, 0.7);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-radius: 13px;
+  padding: 5px;
+  gap: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              0 1px 2px rgba(0, 0, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  isolation: isolate;
+  z-index: 1000;
 }
 
-.theme-switcher:hover {
-  box-shadow: var(--shadow-xl);
+/* Sliding indicator - JS controls transform */
+.theme-indicator {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc(33.333% - 5.33px);
+  background: linear-gradient(135deg, 
+              rgba(255, 255, 255, 0.98) 0%, 
+              rgba(245, 245, 247, 0.95) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 9px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25),
+              0 2px 4px rgba(0, 0, 0, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8),
+              inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  /* Spring physics easing - Apple's signature */
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform;
 }
 
-/* Theme Button */
-.theme-btn {
-  padding: var(--space-2) var(--space-4);
-  border: none;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-family: var(--font-main);
-  transition: all var(--duration-fast) var(--easing-standard);
+/* Glow effect - JS controls transform and color */
+.theme-indicator-glow {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc(33.333% - 5.33px);
+  background: radial-gradient(circle, rgba(79, 140, 255, 0.35) 0%, transparent 70%);
+  border-radius: 9px;
+  filter: blur(12px);
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  will-change: transform;
+}
+
+/* Theme-specific glow colors via data attribute */
+.theme-switcher[data-active-theme="default"] .theme-indicator-glow {
+  background: radial-gradient(circle, rgba(255, 193, 7, 0.4) 0%, transparent 70%);
+}
+
+.theme-switcher[data-active-theme="kids"] .theme-indicator-glow {
+  background: radial-gradient(circle, rgba(255, 105, 180, 0.4) 0%, transparent 70%);
+}
+
+.theme-switcher[data-active-theme="dark"] .theme-indicator-glow {
+  background: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, transparent 70%);
+}
+
+/* Theme buttons (new Apple-style) */
+.theme-btn-apple {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 7px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.88rem;
+  font-weight: 590;
+  cursor: pointer;
+  transition: color 0.25s ease, 
+              transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
-  position: relative;
+  border-radius: 9px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   overflow: hidden;
 }
 
-/* Button Icon */
-.theme-btn-icon {
+/* Legacy theme-btn support (fallback) */
+.theme-btn {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.88rem;
+  font-weight: 590;
+  cursor: pointer;
+  transition: color 0.25s ease, 
+              transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space: nowrap;
+  border-radius: 9px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+/* Focus indicator (accessibility) */
+.theme-btn-apple:focus-visible,
+.theme-btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.5),
+              inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+  outline: 2px solid transparent;
+}
+
+.theme-btn-apple:hover:not(.active),
+.theme-btn:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.theme-btn-apple:active,
+.theme-btn:active {
+  transform: scale(0.96);
+}
+
+.theme-btn-apple.active,
+.theme-btn.active {
+  color: #1a1a1a;
+  text-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Icon animations */
+.theme-icon {
   font-size: 1.1rem;
   line-height: 1;
-  transition: transform var(--duration-fast) var(--easing-bounce);
+  filter: grayscale(0.5) brightness(1.2);
+  transition: filter 0.25s ease, 
+              transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-block;
 }
 
-/* Hover State */
-.theme-btn:hover {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  transform: translateY(-1px);
+.theme-btn-apple:hover .theme-icon,
+.theme-btn:hover .theme-icon {
+  filter: grayscale(0.2) brightness(1.3);
+  transform: scale(1.08);
 }
 
-.theme-btn:hover .theme-btn-icon {
+.theme-btn-apple.active .theme-icon,
+.theme-btn.active .theme-icon {
+  filter: grayscale(0) brightness(1);
   transform: scale(1.15);
+  animation: iconBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Active State */
-.theme-btn.active {
-  background: var(--accent-500);
-  color: white;
-  box-shadow: var(--shadow-accent-sm);
-  transform: scale(1.05);
+@keyframes iconBounce {
+  0%, 100% { transform: scale(1.15); }
+  50% { transform: scale(1.25); }
 }
 
-.theme-btn.active .theme-btn-icon {
-  transform: scale(1.1) rotate(-5deg);
+.theme-label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-/* Focus State */
-.theme-btn:focus-visible {
-  outline: 2px solid var(--interactive-focus);
-  outline-offset: 2px;
-}
-
-/* Active State Glow Effect */
-.theme-btn.active::before {
-  content: '';
+/* Ripple effect */
+.ripple {
   position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  background: var(--accent-500);
-  opacity: 0.2;
-  filter: blur(8px);
-  z-index: -1;
-  animation: pulse-glow 2s ease-in-out infinite;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  width: 20px;
+  height: 20px;
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.2; transform: scale(1); }
-  50% { opacity: 0.35; transform: scale(1.05); }
+.ripple.animate {
+  animation: rippleEffect 0.6s ease-out;
+}
+
+@keyframes rippleEffect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .theme-indicator,
+  .theme-indicator-glow,
+  .theme-btn-apple,
+  .theme-btn,
+  .theme-icon {
+    transition-duration: 0.05s !important;
+    animation: none !important;
+  }
 }
 
 /* Mobile Responsive */
 @media (max-width: 640px) {
   .theme-switcher {
-    top: var(--space-2);
-    right: var(--space-2);
-    gap: var(--space-1);
-    padding: var(--space-1);
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 4px;
+    border-radius: 11px;
   }
   
+  .theme-indicator,
+  .theme-indicator-glow {
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    border-radius: 7px;
+  }
+  
+  .theme-btn-apple,
   .theme-btn {
-    padding: var(--space-1) var(--space-2);
-    font-size: 0.75rem;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    gap: 5px;
   }
   
-  /* Hide text labels on very small screens, show icons only */
-  .theme-btn-text {
-    display: none;
-  }
-  
-  .theme-btn-icon {
+  .theme-icon {
     font-size: 1rem;
+  }
+  
+  /* Hide text labels on small screens */
+  .theme-label {
+    display: none;
   }
 }
 
 /* Tablet */
 @media (min-width: 641px) and (max-width: 1024px) {
-  .theme-switcher {
-    gap: var(--space-1);
-  }
-  
+  .theme-btn-apple,
   .theme-btn {
-    padding: var(--space-2) var(--space-3);
+    padding: 7px 14px;
   }
 }
 
-/* Theme-Specific Enhancements */
-
-/* Kids Theme: More playful */
-:root.theme-kids .theme-btn:hover .theme-btn-icon {
-  animation: bounce 0.5s ease;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateY(0) scale(1.15); }
-  50% { transform: translateY(-3px) scale(1.2); }
-}
-
-/* Dark Theme: Subtle glow */
-:root.theme-dark .theme-btn.active {
-  box-shadow: var(--shadow-accent-md);
-}
-
-/* Accessibility: High Contrast Mode */
+/* High Contrast Mode */
 @media (prefers-contrast: high) {
   .theme-switcher {
     border-width: 2px;
   }
   
+  .theme-btn-apple,
   .theme-btn {
     font-weight: 700;
   }
   
+  .theme-btn-apple.active,
   .theme-btn.active {
     outline: 2px solid currentColor;
     outline-offset: -2px;
-  }
-}
-
-/* Accessibility: Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .theme-btn,
-  .theme-btn-icon,
-  .theme-btn.active::before {
-    animation: none !important;
-    transition: none !important;
-  }
-  
-  .theme-btn:hover,
-  .theme-btn.active {
-    transform: none !important;
   }
 }
 
