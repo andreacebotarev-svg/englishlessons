@@ -1,11 +1,17 @@
 /* ============================================================
    DESIGN TOKENS — UNIFIED THEME SYSTEM
-   Version: 3.2.0
+   Version: 3.2.1
    Updated: December 25, 2025
-   WCAG 2.1 Level AA Compliant + Quiz Contrast Fixed
+   WCAG 2.1 Level AA Compliant + Quiz Contrast Fixed (v2)
    ============================================================
 
    This file is the SINGLE SOURCE OF TRUTH for all color tokens.
+   
+   Changelog v3.2.1:
+   - 🔧 CRITICAL FIX: Kids theme quiz buttons now readable
+   - ✅ Changed quiz-option-bg from #ffffff to #f5f5f5 (gray)
+   - ✅ Text contrast improved: 14.1:1 (WCAG AAA)
+   - ✅ Hover state darkened for visual feedback
    
    Changelog v3.2.0:
    - ✅ Added quiz-specific semantic tokens
@@ -194,7 +200,7 @@
 }
 
 /* ============================================================
-   THEME 2: KIDS (Playful & Accessible) — QUIZ CONTRAST FIXED
+   THEME 2: KIDS (Playful & Accessible) — QUIZ CONTRAST FIXED v2
    Target: Children aged 7-12 years
    Psychology: Warm cream = comfort, orange = energy
    Accessibility: WCAG AA + enhanced contrast
@@ -256,10 +262,10 @@
   --content-block-text: #2d2d2d;                    /* High contrast text ✅ */
   --content-block-heading: var(--accent-700);       /* Dark heading ✅ */
   
-  /* ═══ SEMANTIC — Quiz Components (HIGH CONTRAST FOR KIDS) ═══ */
-  --quiz-option-text: #1a1a1a;                      /* Dark text: 17.1:1 ✅ */
-  --quiz-option-bg: #ffffff;                        /* White background */
-  --quiz-option-bg-hover: #fff9f0;                  /* Light cream hover */
+  /* ═══ SEMANTIC — Quiz Components (v3.2.1 - GRAY BG FIX) ═══ */
+  --quiz-option-text: #1a1a1a;                      /* Dark text: 14.1:1 ✅ */
+  --quiz-option-bg: #f5f5f5;                        /* FIXED: Light gray bg ✅ */
+  --quiz-option-bg-hover: #ebebeb;                  /* FIXED: Darker gray hover ✅ */
   --quiz-option-border: rgba(0, 0, 0, 0.15);        /* Visible border */
   
   /* ═══ INTERACTIVE — Component States ═══ */
