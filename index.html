@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Access Portal</title>
+    <style>
+        :root {
+            --accent: #0A84FF;
+            --hw-accent: #BF5AF2;
+            --palace-accent: #FFD60A;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 0;
+            background-color: #000;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            color: white;
+        }
+        
+        .terminal {
+            background: rgba(30, 30, 30, 0.65);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 30px 20px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 85%;
+            max-width: 340px;
+            transition: all 0.4s ease;
+            margin-bottom: 40px;
+        }
+
+        .terminal.expanded { max-width: 440px; }
+
+        h1 { 
+            margin: 0 0 25px; font-weight: 600; font-size: 13px; 
+            text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; 
+        }
+
+        .switcher-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 100px;
+            padding: 4px;
+            display: inline-flex;
+            margin-bottom: 30px;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .switch-bg {
+            position: absolute; left: 4px; top: 4px; height: 32px; width: 80px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 100px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .switch-btn {
+            position: relative; z-index: 2;
+            width: 80px; height: 32px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 13px; font-weight: 500;
+            cursor: pointer; opacity: 0.6; transition: 0.3s;
+        }
+        .switch-btn.active { opacity: 1; color: white; font-weight: 600; }
+
+        .inputs-wrapper { display: flex; justify-content: center; gap: 8px; margin-bottom: 30px; }
+        
+        .digit-box {
+            width: 42px; height: 54px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            font-size: 22px; color: white; text-align: center;
+            outline: none; transition: 0.2s; padding: 0;
+            -moz-appearance: textfield;
+        }
+        .digit-box:focus {
+            border-color: var(--accent);
+            background: rgba(0,0,0,0.4);
+            transform: translateY(-2px);
+        }
+        .digit-box::-webkit-outer-spin-button,
+        .digit-box::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .hw-section {
+            display: flex; gap: 8px; overflow: hidden;
+            width: 0; opacity: 0;
+            transition: all 0.4s ease;
+        }
+        .hw-visible .hw-section { width: 100px; opacity: 1; margin-left: 8px; }
+
+        .launch-btn {
+            width: 100%; padding: 16px;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.3);
+            border: none; border-radius: 16px;
+            font-size: 15px; font-weight: 600; letter-spacing: 0.5px;
+            cursor: default; transition: 0.3s;
+        }
+        .launch-btn.ready {
+            background: var(--accent); color: white; cursor: pointer;
+            box-shadow: 0 5px 20px rgba(10, 132, 255, 0.3);
+        }
+
+        /* ========== TRAINERS SECTION ========== */
+        .trainers-section {
+            width: 90%;
+            max-width: 900px;
+            margin-top: 20px;
+        }
+
+        .trainers-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .trainers-header h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #0A84FF, #BF5AF2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .trainers-header p {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.6;
+            letter-spacing: 0.3px;
+        }
+
+        .trainers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .trainer-card {
+            background: rgba(30, 30, 30, 0.5);
+            backdrop-filter: blur(15px) saturate(150%);
+            -webkit-backdrop-filter: blur(15px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .trainer-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--card-gradient-start), var(--card-gradient-end));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .trainer-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .trainer-card:hover::before {
+            opacity: 1;
+        }
+
+        .trainer-card[data-trainer="to-be"] {
+            --card-gradient-start: #0A84FF;
+            --card-gradient-end: #00D4FF;
+        }
+
+        .trainer-card[data-trainer="present-simple"] {
+            --card-gradient-start: #30D158;
+            --card-gradient-end: #00D4FF;
+        }
+
+        .trainer-card[data-trainer="have-got"] {
+            --card-gradient-start: #BF5AF2;
+            --card-gradient-end: #FF375F;
+        }
+
+        .trainer-card[data-trainer="much-many"] {
+            --card-gradient-start: #FFD60A;
+            --card-gradient-end: #FF9500;
+        }
+
+        .trainer-card[data-trainer="reading"] {
+            --card-gradient-start: #FF375F;
+            --card-gradient-end: #FF6B9D;
+        }
+
+        .trainer-card.new::after {
+            content: 'NEW';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+        }
+
+        .trainer-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(255,255,255,0.2));
+        }
+
+        .trainer-card h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .trainer-card p {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.5;
+            opacity: 0.7;
+        }
+
+        .trainer-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .trainers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="terminal" id="card">
+    <h1>Access Portal</h1>
+
+    <div class="switcher-container">
+        <div class="switch-bg" id="switchBg"></div>
+        <div class="switch-btn active" onclick="setMode('lesson')">Lesson</div>
+        <div class="switch-btn" onclick="setMode('hw')">H.Work</div>
+        <div class="switch-btn" onclick="setMode('palace')">Palace</div>
+    </div>
+    
+    <div class="inputs-wrapper" id="inputContainer">
+        <input type="tel" class="digit-box core" maxlength="1" autofocus>
+        <input type="tel" class="digit-box core" maxlength="1">
+        <input type="tel" class="digit-box core" maxlength="1">
+        
+        <div class="hw-section">
+            <input type="tel" class="digit-box hw" maxlength="1">
+            <input type="tel" class="digit-box hw" maxlength="1">
+        </div>
+    </div>
+
+    <button class="launch-btn" id="goBtn" onclick="go()">Enter Code</button>
+</div>
+
+<!-- TRAINERS SECTION -->
+<div class="trainers-section">
+    <div class="trainers-header">
+        <h2>🎮 Grammar Trainers</h2>
+        <p>Interactive practice with adaptive difficulty</p>
+    </div>
+
+    <div class="trainers-grid">
+        <a href="./trainer/" 
+           class="trainer-card new" 
+           data-trainer="reading">
+            <span class="trainer-icon">📚</span>
+            <h3>Reading Trainer</h3>
+            <p>Build words from phonemes! Learn English reading rules</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🎯 4 lessons</span>
+                <span class="stat-item">⏱️ 5 min</span>
+            </div>
+        </a>
+
+        <a href="./english-trainers/to-be.html" 
+           class="trainer-card" 
+           data-trainer="to-be">
+            <span class="trainer-icon">🔵</span>
+            <h3>To Be</h3>
+            <p>Master am/is/are forms with context-aware exercises</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🎯 3 levels</span>
+                <span class="stat-item">⏱️ 5 min</span>
+            </div>
+        </a>
+
+        <a href="./english-trainers/present-simple.html" 
+           class="trainer-card" 
+           data-trainer="present-simple">
+            <span class="trainer-icon">🟢</span>
+            <h3>Present Simple</h3>
+            <p>Practice do/does with 18 irregular verbs</p>
+            <div class="trainer-stats">
+                <span class="stat-item">📚 18 verbs</span>
+                <span class="stat-item">⏱️ 8 min</span>
+            </div>
+        </a>
+
+        <a href="./english-trainers/have-got.html" 
+           class="trainer-card" 
+           data-trainer="have-got">
+            <span class="trainer-icon">🟣</span>
+            <h3>Have Got</h3>
+            <p>British "have got/has got" with negatives & questions</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🇬🇧 British</span>
+                <span class="stat-item">⏱️ 6 min</span>
+            </div>
+        </a>
+
+        <a href="./english-trainers/much-many.html" 
+           class="trainer-card" 
+           data-trainer="much-many">
+            <span class="trainer-icon">🎯</span>
+            <h3>Much/Many</h3>
+            <p>Arcade-style falling questions! Control character across 3 lanes</p>
+            <div class="trainer-stats">
+                <span class="stat-item">🎮 Arcade</span>
+                <span class="stat-item">🎁 Power-ups</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<script>
+    let mode = 'lesson';
+    const inputs = document.querySelectorAll('.digit-box');
+    const goBtn = document.getElementById('goBtn');
+    const card = document.getElementById('card');
+    const btns = document.querySelectorAll('.switch-btn');
+    const bg = document.getElementById('switchBg');
+    const container = document.getElementById('inputContainer');
+
+    inputs.forEach((inp, i) => {
+        inp.addEventListener('input', (e) => {
+            if(e.target.value.length === 1) {
+                if(i < inputs.length - 1) inputs[i+1].focus();
+            }
+            setTimeout(check, 10);
+        });
+        inp.addEventListener('keydown', (e) => {
+            if(e.key === 'Backspace' && !e.target.value && i > 0) inputs[i-1].focus();
+            if(e.key === 'Enter') go();
+        });
+    });
+
+    function setMode(m) {
+        mode = m;
+        inputs.forEach(i => i.value = '');
+        inputs[0].focus();
+        btns.forEach(b => b.classList.remove('active'));
+
+        if(m === 'lesson') {
+            bg.style.transform = 'translateX(0)';
+            btns[0].classList.add('active');
+            container.classList.remove('hw-visible');
+            card.classList.remove('expanded');
+            document.documentElement.style.setProperty('--accent', '#0A84FF');
+        } 
+        else if (m === 'hw') {
+            bg.style.transform = 'translateX(84px)';
+            btns[1].classList.add('active');
+            container.classList.add('hw-visible');
+            card.classList.add('expanded');
+            document.documentElement.style.setProperty('--accent', '#BF5AF2');
+        }
+        else if (m === 'palace') {
+            bg.style.transform = 'translateX(168px)';
+            btns[2].classList.add('active');
+            container.classList.remove('hw-visible');
+            card.classList.remove('expanded');
+            document.documentElement.style.setProperty('--accent', '#FFD60A');
+        }
+        check();
+    }
+
+    function check() {
+        const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
+        const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
+        
+        let valid = false;
+        if (mode === 'lesson' || mode === 'palace') {
+            valid = core.length === 3;
+        } else if (mode === 'hw') {
+            valid = core.length === 3 && hw.length === 2;
+        }
+
+        if(valid) {
+            goBtn.classList.add('ready');
+            if(mode === 'palace') {
+                goBtn.innerText = "Enter Palace";
+            } else if(mode === 'hw') {
+                goBtn.innerText = "Launch H.Work";
+            } else {
+                goBtn.innerText = "Launch Module";
+            }
+            goBtn.style.pointerEvents = "auto";
+        } else {
+            goBtn.classList.remove('ready');
+            goBtn.innerText = "Enter Code";
+            goBtn.style.pointerEvents = "none";
+        }
+    }
+
+    function go() {
+        const core = Array.from(document.querySelectorAll('.core')).map(i=>i.value).join('');
+        const hw = Array.from(document.querySelectorAll('.hw')).map(i=>i.value).join('');
+        
+        if (mode === 'lesson') {
+            window.location.assign(`./dist/${core}.html`);
+        } 
+        else if (mode === 'hw') {
+            window.location.assign(`./dist/${core}_hw${hw}.html`);
+        }
+        else if (mode === 'palace') {
+            window.location.assign(`./palace_engine/index.html?lesson=${core}`);
+        }
+    }
+    
+    check();
+</script>
+</body>
+</html>

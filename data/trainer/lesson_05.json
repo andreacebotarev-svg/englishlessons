@@ -1,0 +1,68 @@
+{
+  "id": 5,
+  "title": "Урок 5: Сочетание CH",
+  "emoji": "🍒",
+  "rule": "CH читается как [tʃ] - мягкий звук",
+  "description": "Изучаем сочетание CH",
+  "phonemesSet": ["ch", "i", "p", "e", "a", "t", "r", "n", "k", "u"],
+  "wordCount": 8,
+  "estimatedTime": 8,
+  "words": [
+    {
+      "word": "chip",
+      "phonemes": ["ch", "i", "p"],
+      "translation": "чип",
+      "transcription": "[tʃɪp]",
+      "emoji": "🕹️"
+    },
+    {
+      "word": "chat",
+      "phonemes": ["ch", "a", "t"],
+      "translation": "чат",
+      "transcription": "[tʃæt]",
+      "emoji": "💬"
+    },
+    {
+      "word": "chess",
+      "phonemes": ["ch", "e"],
+      "translation": "шахматы",
+      "transcription": "[tʃes]",
+      "emoji": "♟️"
+    },
+    {
+      "word": "chin",
+      "phonemes": ["ch", "i", "n"],
+      "translation": "подбородок",
+      "transcription": "[tʃɪn]",
+      "emoji": "👨"
+    },
+    {
+      "word": "chick",
+      "phonemes": ["ch", "i", "k"],
+      "translation": "цыпленок",
+      "transcription": "[tʃɪk]",
+      "emoji": "🐥"
+    },
+    {
+      "word": "rich",
+      "phonemes": ["r", "i", "ch"],
+      "translation": "богатый",
+      "transcription": "[rɪtʃ]",
+      "emoji": "💰"
+    },
+    {
+      "word": "much",
+      "phonemes": ["m", "u", "ch"],
+      "translation": "много",
+      "transcription": "[mʌtʃ]",
+      "emoji": "🔢"
+    },
+    {
+      "word": "inch",
+      "phonemes": ["i", "n", "ch"],
+      "translation": "дюйм",
+      "transcription": "[ɪntʃ]",
+      "emoji": "📏"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+name: Generate and Upload Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      lesson_number:
+        description: 'Lesson number'
+        required: true
+        type: string
+
+jobs:
+  generate-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Generate images using OpenAI
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # Your image generation script here
+          echo "Generating images for lesson ${{ github.event.inputs.lesson_number }}"
+          
+      - name: Commit and push images
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add dist/images/
+          git diff --staged --quiet || git commit -m "Add generated images for lesson ${{ github.event.inputs.lesson_number }}"
+          git push

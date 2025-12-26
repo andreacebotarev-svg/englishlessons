@@ -1,0 +1,312 @@
+/**
+ * Instanced Card Manager для GPU Instancing карточек
+ * Использует texture atlas и InstancedMesh для оптимизации производительности
+ */
+import * as THREE from 'three';
+import { SharedGeometryPool } from './SharedGeometryPool.js';
+
+export class InstancedCardManager {
+    /**
+     * Конструктор InstancedCardManager
+     */
+    constructor() {
+        this.instancedMesh = null;
+        this.customShaderMaterial = null;
+        this.uvOffsetsAttribute = null;
+        this.scene = null;  // Add scene reference
+        
+        // Initialize custom shader material
+        this._initCustomShaderMaterial();
+    }
+
+    /**
+     * Инициализировать custom shader material с поддержкой UV offsets
+     * @private
+     */
+    _initCustomShaderMaterial() {
+        // Vertex shader source
+        const vertexShaderSource = `
+            attribute vec4 uvOffset;
+            
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            varying vec3 vViewPosition;
+            
+            void main() {
+                // Map local UV coordinates to atlas UV coordinates
+                // CRITICAL BUG FIX #4: Correct UV mapping - removing Y-axis inversion
+                vUv = vec2(
+                    mix(uvOffset.x, uvOffset.x + uvOffset.z, uv.x),
+                    mix(uvOffset.y, uvOffset.y + uvOffset.w, uv.y)  // NO Y inversion - Three.js UVs already correct
+                );
+                
+                // Calculate normal and view position for lighting
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vViewPosition = -mvPosition.xyz;
+                
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+        
+        // Fragment shader source
+        const fragmentShaderSource = `
+            uniform sampler2D atlasTexture;
+            uniform vec3 ambientLightColor;
+            uniform vec3 directionalLightDirection;
+            uniform vec3 directionalLightColor;
+            
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            varying vec3 vViewPosition;
+            
+            void main() {
+                vec4 texColor = texture2D(atlasTexture, vUv);
+                if (texColor.a < 0.1) discard; // Handle transparency
+                
+                // Simple Lambert lighting
+                vec3 normal = normalize(vNormal);
+                vec3 lightDir = normalize(directionalLightDirection);
+                
+                float diffuse = max(dot(normal, lightDir), 0.0);
+                vec3 lighting = ambientLightColor + (directionalLightColor * diffuse);
+                
+                vec3 finalColor = texColor.rgb * lighting;
+                gl_FragColor = vec4(finalColor, texColor.a);
+            }
+        `;
+        
+        // CRITICAL BUG FIX #1: Proper uniforms for lighting support with error handling
+        try {
+            this.customShaderMaterial = new THREE.ShaderMaterial({
+                uniforms: THREE.UniformsUtils.merge([
+                    THREE.UniformsLib.common,  // Base uniforms
+                    THREE.UniformsLib.lights,  // Lighting uniforms
+                    { 
+                        atlasTexture: { value: null }
+                    }
+                ]),
+                vertexShader: vertexShaderSource,
+                fragmentShader: fragmentShaderSource,
+                transparent: true,
+                side: THREE.DoubleSide,
+                lights: true  // CRITICAL BUG FIX: Enable lighting
+            });
+            
+            // Validate shader compilation
+            this.customShaderMaterial.needsUpdate = true;
+            
+            // Listen for shader errors
+            this.customShaderMaterial.onBeforeCompile = (shader) => {
+                console.log('✅ Shader compiled successfully');
+            };
+            
+        } catch (error) {
+            console.error('❌ Shader compilation failed:', error);
+            
+            // Fallback to basic material
+            console.warn('⚠️ Falling back to MeshBasicMaterial');
+            this.customShaderMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff0000,  // Red = error indicator
+                side: THREE.DoubleSide
+            });
+            
+            throw new Error('Shader initialization failed: ' + error.message);
+        }
+    }
+
+    /**
+     * Создать InstancedMesh для карточек
+     * @param {number} count - количество инстансов
+     * @param {THREE.Texture} atlasTexture - текстура атласа
+     * @param {Map} uvMap - карта UV координат
+     * @param {Object} cardSize - размер карточки {width, height}
+     * @returns {THREE.InstancedMesh} - созданный InstancedMesh
+     */
+    createInstancedMesh(count, atlasTexture, uvMap, cardSize = { width: 768, height: 384 }) {
+        try {
+            // Update shader material with atlas texture
+            this.customShaderMaterial.uniforms.atlasTexture.value = atlasTexture;
+            
+            // Calculate geometry size based on card aspect ratio
+            const aspectRatio = cardSize.width / cardSize.height;
+            const geometryHeight = 2;  // Base height
+            const geometryWidth = geometryHeight * aspectRatio;
+            
+            // Get shared geometry from pool
+            const pool = SharedGeometryPool.getInstance();
+            const geometry = pool.getCardGeometry(aspectRatio);
+            
+            // Create InstancedMesh
+            this.instancedMesh = new THREE.InstancedMesh(geometry, this.customShaderMaterial, count);
+            
+            // ✅ CRITICAL: Initialize lighting uniforms from scene
+            if (this.scene) {
+                this.updateLightingUniforms(this.scene);
+            }
+            
+            // Initialize UV offsets attribute
+            this.uvOffsetsAttribute = new THREE.InstancedBufferAttribute(new Float32Array(count * 4), 4);
+            
+            // Set initial UV offsets based on uvMap
+            for (let i = 0; i < count; i++) {
+                const uvData = uvMap.get(i) || { uMin: 0, vMin: 0, uMax: 1, vMax: 1 };
+                
+                // Store: [uOffset, vOffset, uWidth, vHeight]
+                const uWidth = uvData.uMax - uvData.uMin;
+                const vHeight = uvData.vMax - uvData.vMin;
+                
+                // ✅ CRITICAL FIX: Use setXYZW() instead of setXYWH()
+                this.uvOffsetsAttribute.setXYZW(i, uvData.uMin, uvData.vMin, uWidth, vHeight);
+            }
+            
+            this.instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            this.instancedMesh.geometry.setAttribute('uvOffset', this.uvOffsetsAttribute);
+            
+            // CRITICAL BUG FIX #2: Mark attribute as needing update
+            this.uvOffsetsAttribute.needsUpdate = true;
+            
+            return this.instancedMesh;
+        } catch (error) {
+            console.error('Error creating instanced mesh:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Обновить трансформацию конкретного инстанса
+     * @param {number} index - индекс инстанса
+     * @param {THREE.Vector3} position - новая позиция
+     * @param {THREE.Euler|THREE.Quaternion} rotation - новая ориентация
+     * @param {THREE.Vector3} [scale=new THREE.Vector3(1,1,1)] - масштаб
+     */
+    updateInstanceTransform(index, position, rotation, scale = new THREE.Vector3(1, 1, 1)) {
+        if (!this.instancedMesh || index >= this.instancedMesh.count) {
+            console.warn(`Invalid instance index: ${index}`);
+            return;
+        }
+        
+        const matrix = new THREE.Matrix4();
+        matrix.compose(position, 
+                      rotation.isEuler ? new THREE.Quaternion().setFromEuler(rotation) : rotation,
+                      scale);
+        
+        this.instancedMesh.setMatrixAt(index, matrix);
+        
+        // CRITICAL BUG FIX #5: Mark instance matrix as needing update
+        this.instancedMesh.instanceMatrix.needsUpdate = true;
+    }
+
+    /**
+     * Установить смещение UV для конкретного инстанса
+     * @param {number} index - индекс инстанса
+     * @param {Object} uvOffset - объект смещения { uMin, vMin, uMax, vMax }
+     */
+    setInstanceUVOffset(index, uvOffset) {
+        if (!this.uvOffsetsAttribute || index >= this.uvOffsetsAttribute.count) {
+            console.warn(`Invalid instance index for UV offset: ${index}`);
+            return;
+        }
+        
+        // Calculate scale from offset values
+        const uScale = uvOffset.uMax - uvOffset.uMin;
+        const vScale = uvOffset.vMax - uvOffset.vMin;
+        
+        // ✅ CRITICAL FIX: Use setXYZW() instead of setXYWH()
+        this.uvOffsetsAttribute.setXYZW(index, uvOffset.uMin, uvOffset.vMin, uScale, vScale);
+        this.uvOffsetsAttribute.needsUpdate = true;
+    }
+
+    /**
+     * Получить пересечение raycast с InstancedMesh
+     * CRITICAL BUG FIX: Raycast для InstancedMesh
+     * @param {THREE.Raycaster} raycaster - raycaster объект
+     * @returns {Object|null} - информация о пересечении
+     */
+    /**
+     * Обновить lighting uniforms из сцены
+     * @param {THREE.Scene} scene 
+     */
+    updateLightingUniforms(scene) {
+        if (!this.customShaderMaterial?.uniforms) return;
+        
+        // Найти источники света
+        let ambientLight = null;
+        let directionalLight = null;
+        
+        scene.traverse((obj) => {
+            if (!ambientLight && obj.isAmbientLight) ambientLight = obj;
+            if (!directionalLight && obj.isDirectionalLight) directionalLight = obj;
+        });
+        
+        // Обновить ambient light
+        if (ambientLight) {
+            if (!this.customShaderMaterial.uniforms.ambientLightColor) {
+                this.customShaderMaterial.uniforms.ambientLightColor = { value: new THREE.Color() };
+            }
+            const color = ambientLight.color.clone().multiplyScalar(ambientLight.intensity);
+            this.customShaderMaterial.uniforms.ambientLightColor.value.copy(color);
+        }
+        
+        // Обновить directional light
+        if (directionalLight) {
+            if (!this.customShaderMaterial.uniforms.directionalLightColor) {
+                this.customShaderMaterial.uniforms.directionalLightColor = { value: new THREE.Color() };
+            }
+            if (!this.customShaderMaterial.uniforms.directionalLightDirection) {
+                this.customShaderMaterial.uniforms.directionalLightDirection = { value: new THREE.Vector3() };
+            }
+            
+            const color = directionalLight.color.clone().multiplyScalar(directionalLight.intensity);
+            this.customShaderMaterial.uniforms.directionalLightColor.value.copy(color);
+            
+            const dir = new THREE.Vector3();
+            directionalLight.getWorldDirection(dir);
+            this.customShaderMaterial.uniforms.directionalLightDirection.value.copy(dir);
+        }
+    }
+
+    /**
+     * Диагностика shader material
+     */
+    debugShaderMaterial() {
+        console.log('=== Shader Material Debug ===');
+        console.log('Type:', this.customShaderMaterial.type);
+        console.log('Uniforms:', this.customShaderMaterial.uniforms);
+        
+        if (this.customShaderMaterial.uniforms) {
+            console.log('atlasTexture:', this.customShaderMaterial.uniforms.atlasTexture?.value);
+            console.log('ambientLightColor:', this.customShaderMaterial.uniforms.ambientLightColor?.value);
+            console.log('directionalLightColor:', this.customShaderMaterial.uniforms.directionalLightColor?.value);
+            console.log('directionalLightDirection:', this.customShaderMaterial.uniforms.directionalLightDirection?.value);
+        }
+        
+        console.log('Vertex Shader:', this.customShaderMaterial.vertexShader);
+        console.log('Fragment Shader:', this.customShaderMaterial.fragmentShader);
+    }
+
+    getRaycastIntersection(raycaster) {
+        if (!this.instancedMesh) return null;
+        
+        const intersects = raycaster.intersectObject(this.instancedMesh);
+        
+        if (intersects.length > 0) {
+            const intersection = intersects[0];
+            
+            // Three.js automatically adds instanceId
+            const instanceId = intersection.instanceId;
+            
+            if (instanceId !== undefined) {
+                return {
+                    instanceId,
+                    point: intersection.point,
+                    distance: intersection.distance,
+                    face: intersection.face,
+                    object: this.instancedMesh
+                };
+            }
+        }
+        
+        return null;
+    }
+}

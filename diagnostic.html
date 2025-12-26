@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Performance Diagnostic</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        #world {
+            width: 100%;
+            height: 60vh;
+            border: 1px solid #444;
+        }
+        #controls {
+            margin-top: 10px;
+        }
+        button {
+            background: #0f4c75;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1a1a2e;
+        }
+        #debug-output {
+            margin-top: 20px;
+            padding: 10px;
+            background: #0f0f1a;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Performance Diagnostic for Palace Engine</h1>
+    <div id="world"></div>
+    <div id="controls">
+        <button onclick="runDiagnostic()">Run Diagnostic</button>
+        <button onclick="checkCards()">Check Cards</button>
+        <button onclick="checkDrawCalls()">Check Draw Calls</button>
+    </div>
+    <div id="debug-output"></div>
+
+    <script type="module">
+        // Import THREE and run diagnostic when page loads
+        import * as THREE from 'three';
+        
+        // Export THREE globally for console access
+        window.THREE = THREE;
+        
+        // Wait a bit for the app to potentially load, then run diagnostic
+        setTimeout(() => {
+            if (window.App) {
+                console.log("App is available, running diagnostic...");
+            } else {
+                console.log("App not available yet, you can run diagnostics after loading the actual app");
+            }
+        }, 2000);
+        
+        function runDiagnostic() {
+            if (!window.App || !window.App.scene || !window.App.renderer) {
+                document.getElementById('debug-output').textContent = 
+                    "❌ App not loaded yet. Please load the palace engine app first.";
+                return;
+            }
+            
+            const output = [];
+            output.push('🔍 DRAW CALLS ANALYSIS:\n');
+
+            // 1. Посчитать объекты в сцене
+            output.push('1️⃣ Scene children count:', window.App.scene.children.length);
+
+            // 2. Посчитать Mesh объекты
+            let meshCount = 0;
+            let lineCount = 0;
+            let lightCount = 0;
+            let otherCount = 0;
+
+            window.App.scene.traverse((obj) => {
+                if (obj.isMesh) meshCount++;
+                else if (obj.isLine) lineCount++;
+                else if (obj.isLight) lightCount++;
+                else if (obj.isObject3D && !obj.isScene) otherCount++;
+            });
+
+            output.push('   Mesh objects:', meshCount);
+            output.push('   Line objects:', lineCount);
+            output.push('   Light objects:', lightCount);
+            output.push('   Other Object3D:', otherCount);
+            output.push('');
+
+            // 3. Проверить рендерер
+            output.push('2️⃣ Renderer info:');
+            const info = window.App.renderer.info;
+            output.push('   Programs:', info.programs?.length);
+            output.push('   Draw calls:', info.render.calls);
+            output.push('   Triangles:', info.render.triangles);
+            output.push('   Textures:', info.memory.textures);
+            output.push('   Geometries:', info.memory.geometries);
+            output.push('');
+
+            // 4. Проверить карточки
+            output.push('3️⃣ Cards analysis:');
+            if (window.App.cards && window.App.cards.length > 0) {
+                window.App.cards.slice(0, 3).forEach((card, i) => {
+                    output.push(`   Card ${i}:`, {
+                        visible: card.visible,
+                        materialNeedsUpdate: card.material.needsUpdate,
+                        textureNeedsUpdate: card.material.map?.needsUpdate,
+                        frustumCulled: card.frustumCulled,
+                        layers: card.layers.mask
+                    });
+                });
+            } else {
+                output.push('   No cards found or cards not loaded yet');
+            }
+
+            document.getElementById('debug-output').textContent = output.join('\n');
+        }
+
+        function checkCards() {
+            if (!window.App || !window.App.cards) {
+                document.getElementById('debug-output').textContent = 
+                    "❌ App or cards not loaded yet.";
+                return;
+            }
+            
+            const cards = window.App.cards;
+            const output = [
+                `Cards count: ${cards.length}`,
+                `First card is Mesh: ${cards[0]?.isMesh || false}`,
+                `InstancedMesh exists: ${!!window.App.instancedMesh}`,
+                `Has texture: ${!!cards[0]?.material?.map}`
+            ];
+            
+            document.getElementById('debug-output').textContent = output.join('\n');
+        }
+
+        function checkDrawCalls() {
+            if (!window.App || !window.App.renderer) {
+                document.getElementById('debug-output').textContent = 
+                    "❌ App or renderer not loaded yet.";
+                return;
+            }
+            
+            const info = window.App.renderer.info;
+            const output = [
+                `Draw calls: ${info.render.calls}`,
+                `Triangles: ${info.render.triangles}`,
+                `Textures: ${info.memory.textures}`,
+                `Geometries: ${info.memory.geometries}`
+            ];
+            
+            document.getElementById('debug-output').textContent = output.join('\n');
+        }
+        
+        // Make functions available globally
+        window.runDiagnostic = runDiagnostic;
+        window.checkCards = checkCards;
+        window.checkDrawCalls = checkDrawCalls;
+    </script>
+</body>
+</html>

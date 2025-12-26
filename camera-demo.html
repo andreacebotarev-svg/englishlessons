@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Cinematic Camera Demo - Portal 2 Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #0a0a1a;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* UI Оверлей */
+        .ui-overlay {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 350px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .ui-overlay h1 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #00ff88;
+        }
+
+        .controls-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .controls-list li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .controls-list li:before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: #00ff88;
+        }
+
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-right: 5px;
+        }
+
+        .status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            font-size: 12px;
+        }
+
+        .status-item {
+            margin: 5px 0;
+        }
+
+        .status-label {
+            color: #888;
+            display: inline-block;
+            width: 100px;
+        }
+
+        .status-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 1000;
+        }
+
+        .toggle-ui {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .toggle-ui:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="loading" id="loading">🎬 Loading Cinematic Camera...</div>
+
+    <button class="toggle-ui" onclick="toggleUI()">Toggle UI (H)</button>
+
+    <div class="ui-overlay" id="ui-overlay">
+        <h1>🎬 Cinematic Camera Demo</h1>
+        <p><strong>Portal 2 Style</strong> - Smooth camera rail system with autofocus</p>
+        
+        <h3 style="margin-top: 15px; color: #00ff88;">⌨️ Controls:</h3>
+        <ul class="controls-list">
+            <li><span class="key">W</span> / <span class="key">↑</span> Move Forward</li>
+            <li><span class="key">S</span> / <span class="key">↓</span> Move Backward</li>
+            <li><span class="key">Space</span> Next Waypoint</li>
+            <li><span class="key">Home</span> Jump to Start</li>
+            <li><span class="key">End</span> Jump to End</li>
+            <li><span class="key">Escape</span> Return to Rail</li>
+            <li><span class="key">R</span> Toggle Rail Visualization</li>
+            <li><span class="key">H</span> Toggle UI</li>
+            <li><span class="key">Click</span> Focus on Card</li>
+        </ul>
+    </div>
+
+    <div class="status" id="status">
+        <div class="status-item">
+            <span class="status-label">Position:</span>
+            <span class="status-value" id="status-position">0%</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Velocity:</span>
+            <span class="status-value" id="status-velocity">0.000</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">FOV:</span>
+            <span class="status-value" id="status-fov">35°</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Focused:</span>
+            <span class="status-value" id="status-focused">None</span>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/+esm"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import gsap from 'gsap';
+        import { initializeCinematicScene } from './palace_engine/example_integration.js';
+
+        // Инициализация
+        document.getElementById('loading').style.display = 'none';
+
+        const { scene, camera, renderer, cinematicCamera, controls, cards } = initializeCinematicScene();
+
+        // Перемещение canvas в контейнер
+        const container = document.getElementById('canvas-container');
+        container.appendChild(renderer.domElement);
+
+        // Обновление статуса
+        function updateStatus() {
+            const position = (cinematicCamera.currentT * 100).toFixed(1);
+            const velocity = Math.abs(cinematicCamera.velocity).toFixed(3);
+            const fov = camera.fov.toFixed(0);
+            const focused = cinematicCamera.focusedCard 
+                ? cinematicCamera.focusedCard.userData.word 
+                : 'None';
+
+            document.getElementById('status-position').textContent = position + '%';
+            document.getElementById('status-velocity').textContent = velocity;
+            document.getElementById('status-fov').textContent = fov + '°';
+            document.getElementById('status-focused').textContent = focused;
+        }
+
+        // Обновление статуса каждые 100ms
+        setInterval(updateStatus, 100);
+
+        // Toggle UI
+        window.toggleUI = function() {
+            const overlay = document.getElementById('ui-overlay');
+            const status = document.getElementById('status');
+            overlay.style.display = overlay.style.display === 'none' ? 'block' : 'none';
+            status.style.display = status.style.display === 'none' ? 'block' : 'none';
+        };
+
+        // H клавиша для toggle UI
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyH') {
+                toggleUI();
+            }
+        });
+
+        console.log('✅ Demo initialized successfully!');
+        console.log('🎬 Use WASD or arrow keys to move camera');
+        console.log('👆 Click on cards to focus');
+    </script>
+</body>
+</html>

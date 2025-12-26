@@ -1,0 +1,36 @@
+/* ============================================
+   MEMORY PALACE - MAIN STYLESHEET
+   Версия: 2.2
+   Дата: 2025-12-10
+   
+   Структура импортов (порядок важен!):
+   1. variables.css     - Переменные
+   2. reset.css         - Сброс стилей
+   3. animations.css    - Анимации
+   4. ui-layer.css      - UI элементы
+   5. scene-3d.css      - 3D сцена
+   6. world-objects.css - Объекты мира
+   7. cards.css         - Карточки (линейный режим)
+   8. room-box.css      - 🏛️ Система комнат-боксов
+   9. room-card.css     - 🎴 Карточки в комнатах
+   10. quiz-mode.css    - 🎮 Quiz-режим (интерактивные задания)
+   11. wasd-hints.css   - 🎮 Подсказки WASD-управления
+   12. crosshair.css    - 🎯 Minecraft-style прицел
+   13. responsive.css   - Адаптивность
+   14. mobile-controls.css - 📱 Мобильные контролы (D-Pad + Touch)
+   ============================================ */
+
+@import url('variables.css');
+@import url('reset.css');
+@import url('animations.css');
+@import url('ui-layer.css');
+@import url('scene-3d.css');
+@import url('world-objects.css');
+@import url('cards.css');
+@import url('room-box.css');
+@import url('room-card.css');
+@import url('quiz-mode.css');    /* 🎮 Quiz UI */
+@import url('wasd-hints.css');
+@import url('crosshair.css');
+@import url('responsive.css');
+@import url('mobile-controls.css');  /* 📱 НОВЫЙ: Мобильные контролы */

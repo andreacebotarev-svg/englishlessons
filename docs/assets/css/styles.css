@@ -1,0 +1,1276 @@
+/* =========================================================
+   Premium Liquid Glass — Tutor Landing (Mobile-First)
+   File: /docs/assets/css/styles.css
+   Senior-level mobile optimization:
+   - Touch targets ≥44×44px (Apple HIG)
+   - Safe-area-inset for notched devices
+   - Performance optimizations
+   - Reduced motion support
+   ========================================================= */
+
+/* -----------------------------
+   Design tokens
+----------------------------- */
+:root {
+  color-scheme: light dark;
+
+  /* Typography - Mobile First */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text",
+    Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Fluid typography с безопасными минимумами для мобильных */
+  --fs-0: clamp(0.813rem, 0.75rem + 0.3vw, 0.875rem);     /* 13-14px */
+  --fs-1: clamp(0.938rem, 0.875rem + 0.3vw, 1rem);       /* 15-16px */
+  --fs-2: clamp(1.063rem, 1rem + 0.3vw, 1.125rem);       /* 17-18px */
+  --fs-3: clamp(1.25rem, 1.125rem + 0.6vw, 1.375rem);    /* 20-22px */
+  --fs-4: clamp(1.75rem, 1.5rem + 1.2vw, 2.85rem);       /* 28-46px */
+  --fs-5: clamp(2rem, 1.75rem + 1.5vw, 3.55rem);         /* 32-57px */
+
+  --lh-tight: 1.15;
+  --lh-normal: 1.6;
+
+  /* Layout - Mobile First */
+  --container: 1120px;
+  --pad: max(1rem, env(safe-area-inset-left, 1rem));
+  --pad-block: clamp(1rem, 4vw, 2rem);
+
+  --space-1: 0.5rem;
+  --space-2: 0.75rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+  --space-7: 4.5rem;
+
+  /* Touch targets - минимум 44x44px (Apple HIG) */
+  --touch-min: 44px;
+
+  /* Radius */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+
+  /* Motion */
+  --easing: cubic-bezier(.2, .8, .2, 1);
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 360ms;
+
+  /* Glass - снижена интенсивность для производительности на мобильных */
+  --blur-sm: 8px;
+  --blur-md: 12px;
+  --blur-lg: 16px;
+
+  /* Colors */
+  --bg: #070A12;
+  --bg-2: #060B18;
+
+  --surface: rgba(255, 255, 255, 0.055);
+  --surface-2: rgba(255, 255, 255, 0.085);
+  --stroke: rgba(255, 255, 255, 0.14);
+
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.70);
+  --subtle: rgba(255, 255, 255, 0.52);
+
+  --primary: #7AA7FF;
+  --primary-2: #A78BFA;
+
+  --good: #44D7A8;
+  --bad: #FF6B7A;
+  --warn: #FFCC66;
+
+  --shadow-1: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 12px 40px rgba(0, 0, 0, 0.45);
+
+  --b-1: 1px solid var(--stroke);
+  --focus: rgba(122, 167, 255, 0.55);
+
+  /* Gradients */
+  --g-accent: linear-gradient(135deg, rgba(122,167,255,1), rgba(167,139,250,1));
+  --g-glass: linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.045));
+}
+
+/* Desktop: усиливаем эффекты */
+@media (min-width: 768px) {
+  :root {
+    --blur-sm: 10px;
+    --blur-md: 14px;
+    --blur-lg: 18px;
+    --shadow-1: 0 10px 30px rgba(0, 0, 0, 0.40);
+    --shadow-2: 0 18px 60px rgba(0, 0, 0, 0.52);
+    --r-sm: 12px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-xl: 28px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -----------------------------
+   Base / reset
+----------------------------- */
+*,
+*::before,
+*::after { 
+  box-sizing: border-box;
+  /* Убираем синюю подсветку при tap */
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Предотвращаем горизонтальный скролл */
+  overflow-x: hidden;
+  /* Оптимизация рендеринга на мобильных */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Предотвращаем iOS font scaling */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* Учитываем safe areas для notch */
+  padding: env(safe-area-inset-top, 0) 
+           env(safe-area-inset-right, 0) 
+           env(safe-area-inset-bottom, 0) 
+           env(safe-area-inset-left, 0);
+  
+  font-family: var(--font-sans);
+  font-size: var(--fs-1);
+  line-height: var(--lh-normal);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(900px 600px at 18% 12%, rgba(122, 167, 255, 0.16), transparent 60%),
+    radial-gradient(800px 600px at 82% 8%, rgba(167, 139, 250, 0.12), transparent 62%),
+    linear-gradient(180deg, var(--bg), var(--bg-2));
+  background-attachment: fixed;
+}
+
+/* Отключаем grain на мобильных для производительности */
+@media (min-width: 768px) {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.06) 0 1px, transparent 2px),
+      radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.05) 0 1px, transparent 2px);
+    background-size: 260px 260px, 320px 320px, 360px 360px;
+    filter: blur(0.2px);
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  /* Улучшаем область клика на touch-устройствах */
+  -webkit-tap-highlight-color: rgba(122, 167, 255, 0.15);
+  /* Запрещаем callout на iOS */
+  -webkit-touch-callout: none;
+}
+
+a:hover { text-decoration: underline; }
+
+::selection {
+  background: rgba(122, 167, 255, 0.30);
+  color: rgba(255,255,255,0.95);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+/* Улучшаем scroll на мобильных */
+html,
+body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}
+
+/* -----------------------------
+   Typography helpers
+----------------------------- */
+.kicker {
+  font-size: var(--fs-0);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  font-weight: 600;
+}
+
+.h1 {
+  font-size: var(--fs-5);
+  line-height: var(--lh-tight);
+  margin: 0;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.h2 {
+  font-size: var(--fs-4);
+  line-height: var(--lh-tight);
+  margin: 0;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.h3 {
+  font-size: var(--fs-3);
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: -0.01em;
+  font-weight: 650;
+}
+
+.h4 {
+  font-size: var(--fs-2);
+  line-height: 1.35;
+  margin: 0;
+  letter-spacing: -0.005em;
+  font-weight: 600;
+}
+
+.p {
+  font-size: var(--fs-2);
+  color: var(--muted);
+  margin: 0;
+}
+
+.small {
+  font-size: var(--fs-0);
+  color: var(--subtle);
+  line-height: 1.5;
+}
+
+/* -----------------------------
+   Layout helpers
+----------------------------- */
+.container {
+  width: min(var(--container), 100% - (var(--pad) * 2));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: clamp(2rem, 8vw, 5rem);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.center { text-align: center; }
+
+/* Mobile-first grid */
+.grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+
+/* Tablet: 2 колонки */
+@media (min-width: 640px) {
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid { gap: var(--space-4); }
+}
+
+/* Desktop: 3 колонки */
+@media (min-width: 900px) {
+  .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(255,255,255,0.10);
+  margin-block: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .divider { margin-block: var(--space-5); }
+}
+
+/* =============================================
+   METHOD SECTION LAYOUT
+   Новая компоновка: 40% слева (4 карточки) + 60% справа (платформа)
+   ============================================= */
+
+/* Mobile: стеком */
+.grid-method-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+/* Desktop: 40/60 split */
+@media (min-width: 900px) {
+  .grid-method-split {
+    grid-template-columns: 40% 60%;
+    gap: var(--space-5);
+  }
+}
+
+/* Левая колонка: стек 4 компактных карточек */
+.method-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 900px) {
+  .method-steps {
+    gap: var(--space-2);
+  }
+}
+
+/* Компактные карточки (уменьшенный padding) */
+.card.compact {
+  padding: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .card.compact {
+    padding: var(--space-4);
+  }
+}
+
+/* Правая колонка: акцентная карточка платформы */
+.method-platform {
+  display: flex;
+}
+
+.platform-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+  padding: var(--space-4);
+  /* Слабый акцентный фон */
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.25);
+}
+
+@media (min-width: 768px) {
+  .platform-card {
+    padding: var(--space-5);
+  }
+}
+
+/* Превью платформы: градиент + иконка */
+.platform-preview {
+  width: 100%;
+  height: clamp(140px, 20vw, 220px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+
+/* Бейдж DEMO */
+.platform-badge {
+  position: absolute;
+  bottom: var(--space-2);
+  right: var(--space-2);
+  background: rgba(255, 255, 255, 0.25);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: var(--fs-0);
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .platform-badge {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* Контент платформы */
+.platform-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Кнопка в платформе (полная ширина на мобиле) */
+.platform-card .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .platform-card .btn {
+    width: auto;
+    align-self: flex-start;
+  }
+}
+
+/* -----------------------------
+   Glass surfaces
+----------------------------- */
+.glass {
+  background: var(--g-glass);
+  border: var(--b-1);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Прогрессивное улучшение: backdrop-filter только на поддерживающих устройствах */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @media (min-width: 768px) {
+    .glass {
+      backdrop-filter: blur(var(--blur-md)) saturate(1.25);
+      -webkit-backdrop-filter: blur(var(--blur-md)) saturate(1.25);
+    }
+  }
+  
+  /* На мобильных: легче */
+  @media (max-width: 767px) {
+    .glass {
+      backdrop-filter: blur(var(--blur-sm)) saturate(1.1);
+      -webkit-backdrop-filter: blur(var(--blur-sm)) saturate(1.1);
+    }
+  }
+}
+
+/* Highlight только на desktop */
+@media (min-width: 768px) {
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    pointer-events: none;
+    background:
+      radial-gradient(800px 220px at 20% 10%, rgba(255,255,255,0.14), transparent 60%),
+      radial-gradient(700px 220px at 80% 0%, rgba(255,255,255,0.08), transparent 55%);
+    opacity: 0.40;
+  }
+}
+
+.card {
+  padding: clamp(1rem, 4vw, 1.5rem);
+}
+
+/* Hover только на устройствах с мышью */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+  }
+}
+
+/* Transitions */
+.card,
+.btn,
+.input,
+.textarea,
+.nav a {
+  transition:
+    transform var(--dur-2) var(--easing),
+    box-shadow var(--dur-2) var(--easing),
+    background-color var(--dur-2) var(--easing),
+    border-color var(--dur-2) var(--easing),
+    opacity var(--dur-2) var(--easing),
+    filter var(--dur-2) var(--easing);
+}
+
+/* -----------------------------
+   Header / Mobile Navigation
+----------------------------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding-block: 0.75rem;
+  padding-inline: max(var(--pad), env(safe-area-inset-left, 1rem));
+  background: rgba(6, 10, 18, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .header {
+    backdrop-filter: blur(var(--blur-sm)) saturate(1.3);
+    -webkit-backdrop-filter: blur(var(--blur-sm)) saturate(1.3);
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* Mobile: hamburger menu */
+.nav-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+}
+
+.nav-toggle:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform var(--dur-2) var(--easing), opacity var(--dur-2) var(--easing);
+}
+
+/* Анимация X */
+.nav-toggle.is-active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle.is-active span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle.is-active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile menu */
+.nav-links {
+  display: none;
+  position: fixed;
+  top: calc(60px + env(safe-area-inset-top, 0));
+  left: 0;
+  right: 0;
+  background: rgba(6, 10, 18, 0.98);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  padding: var(--space-4) var(--pad);
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: calc(100vh - 60px - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0));
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav-links {
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  }
+}
+
+.nav-links.is-open {
+  display: flex;
+}
+
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.875rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  min-height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-2);
+  font-weight: 500;
+}
+
+.nav-links a:hover,
+.nav-links a:active,
+.nav-links a.is-active {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+}
+
+/* Desktop: горизонтальное меню */
+@media (min-width: 768px) {
+  .nav-toggle { display: none; }
+  
+  .nav-links {
+    display: flex;
+    position: static;
+    flex-direction: row;
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    max-height: none;
+    overflow: visible;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+  
+  .nav-links a {
+    padding: 0.625rem 0.875rem;
+    font-size: var(--fs-1);
+    min-height: auto;
+  }
+}
+
+/* -----------------------------
+   Hero
+----------------------------- */
+.hero {
+  padding-block: clamp(2rem, 8vw, 6rem);
+}
+
+.hero .h1 {
+  text-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .hero-actions { margin-top: var(--space-4); }
+}
+
+/* Mobile: full-width buttons */
+@media (max-width: 640px) {
+  .hero-actions {
+    flex-direction: column;
+  }
+  
+  .hero-actions .btn {
+    width: 100%;
+  }
+}
+
+.hero-badges {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+/* -----------------------------
+   Buttons - Touch Optimized
+----------------------------- */
+.btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  /* Минимум 44x44px для touch */
+  min-height: var(--touch-min);
+  padding: 0.875rem 1.25rem;
+  border-radius: 999px;
+
+  font-weight: 650;
+  font-size: var(--fs-1);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  
+  /* Предотвращаем double-tap zoom на iOS */
+  touch-action: manipulation;
+}
+
+/* Hover только на устройствах с мышью */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    text-decoration: none;
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.11);
+    border-color: rgba(255, 255, 255, 0.20);
+  }
+}
+
+/* Active state для touch */
+.btn:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.btn-primary {
+  color: rgba(8, 10, 18, 0.95);
+  background: var(--g-accent);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 10px 36px rgba(122, 167, 255, 0.20),
+    0 2px 0 rgba(255,255,255,0.16) inset;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    filter: brightness(1.04) saturate(1.03);
+    box-shadow:
+      0 14px 48px rgba(122, 167, 255, 0.26),
+      0 2px 0 rgba(255,255,255,0.18) inset;
+  }
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-lg {
+  padding: 1rem 1.5rem;
+  font-size: var(--fs-2);
+  min-height: 52px;
+}
+
+.btn[disabled],
+.btn.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  pointer-events: none;
+}
+
+.btn.is-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.btn.is-loading::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.55);
+  border-top-color: rgba(255,255,255,0.0);
+  margin-left: 0.4rem;
+  animation: spin 900ms linear infinite;
+}
+
+/* -----------------------------
+   Pills / badges
+----------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  font-size: var(--fs-0);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  line-height: 1.3;
+}
+
+.pill strong { color: var(--text); font-weight: 650; }
+
+/* -----------------------------
+   Forms - Touch Optimized
+----------------------------- */
+.form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .form { gap: var(--space-4); }
+}
+
+.label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: var(--fs-1);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  /* Минимум 44px для touch */
+  min-height: var(--touch-min);
+  padding: 0.875rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  
+  /* Улучшаем читаемость на мобильных */
+  font-size: max(16px, var(--fs-1)); /* Предотвращает zoom на iOS */
+  line-height: 1.5;
+  font-family: inherit;
+  
+  /* Лучшее UX на мобильных */
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: rgba(122, 167, 255, 0.65);
+  box-shadow: 0 0 0 4px rgba(122, 167, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.input:invalid,
+.textarea:invalid {
+  border-color: rgba(255, 107, 122, 0.65);
+}
+
+.help {
+  font-size: var(--fs-0);
+  color: var(--subtle);
+  line-height: 1.5;
+}
+
+/* -----------------------------
+   Lists
+----------------------------- */
+.ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--muted);
+}
+
+.ul li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* -----------------------------
+   Media containers
+----------------------------- */
+.media {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.media--portrait { aspect-ratio: 3 / 4; }
+.media--landscape { aspect-ratio: 16 / 9; }
+.media--doc { aspect-ratio: 4 / 3; }
+
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.media--padded {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.media--padded img {
+  border-radius: calc(var(--r-lg) - 6px);
+}
+
+/* -----------------------------
+   Animations
+----------------------------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sheen {
+  0% { transform: translateX(-120%) rotate(12deg); opacity: 0; }
+  15% { opacity: 0.35; }
+  55% { opacity: 0.18; }
+  100% { transform: translateX(140%) rotate(12deg); opacity: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.reveal.is-visible {
+  animation: fadeUp var(--dur-3) var(--easing) both;
+}
+
+/* Sheen только на desktop */
+@media (min-width: 768px) and (hover: hover) {
+  .glass.is-sheen::before {
+    content: "";
+    position: absolute;
+    inset: -40% -40%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255,255,255,0.00) 35%,
+      rgba(255,255,255,0.15) 50%,
+      rgba(255,255,255,0.00) 65%,
+      transparent 100%);
+    pointer-events: none;
+    transform: translateX(-120%) rotate(12deg);
+    animation: sheen 6.2s var(--easing) infinite;
+    opacity: 0.0;
+  }
+}
+
+/* -----------------------------
+   Footer
+----------------------------- */
+.footer {
+  padding-block: 2rem;
+  padding-inline: max(var(--pad), env(safe-area-inset-left, 1rem));
+  color: var(--subtle);
+  font-size: var(--fs-0);
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .footer {
+    padding-block: 2.5rem;
+  }
+}
+
+/* -----------------------------
+   Utilities
+----------------------------- */
+.hidden { display: none !important; }
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-5 { margin-top: var(--space-5); }
+
+/* ============================================
+   LIGHTBOX - Mobile Optimized
+   ============================================ */
+
+.lightbox {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.96);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  /* Учитываем safe areas */
+  padding: max(var(--space-3), env(safe-area-inset-top, 16px)) 
+           max(var(--space-2), env(safe-area-inset-right, 16px)) 
+           max(var(--space-3), env(safe-area-inset-bottom, 16px)) 
+           max(var(--space-2), env(safe-area-inset-left, 16px));
+  animation: fadeIn 0.25s ease;
+  /* Блокируем скролл body при открытом lightbox */
+  overscroll-behavior: contain;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lightbox-content {
+  max-width: 94%;
+  max-height: 75vh;
+  object-fit: contain;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.9);
+  border-radius: var(--r-md);
+  animation: zoomIn 0.25s ease;
+  /* Запрещаем перетаскивание изображения */
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+}
+
+@media (min-width: 768px) {
+  .lightbox-content {
+    max-width: 90%;
+    max-height: 85vh;
+    border-radius: var(--r-lg);
+  }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.lightbox-caption {
+  color: white;
+  font-size: var(--fs-1);
+  text-align: center;
+  margin-top: var(--space-3);
+  max-width: 90%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--r-md);
+  line-height: 1.4;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .lightbox-caption {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+@media (min-width: 768px) {
+  .lightbox-caption {
+    font-size: var(--fs-2);
+    max-width: 80%;
+    padding: 1rem 1.25rem;
+  }
+}
+
+.lightbox-close {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top, 12px));
+  right: max(12px, env(safe-area-inset-right, 12px));
+  width: var(--touch-min);
+  height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 300;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  transition: 0.2s;
+  z-index: 10;
+  touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+  .lightbox-close {
+    top: max(var(--space-5), env(safe-area-inset-top, 20px));
+    right: max(var(--space-5), env(safe-area-inset-right, 20px));
+    font-size: 42px;
+    width: 52px;
+    height: 52px;
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lightbox-close:hover {
+    color: #ff4444;
+    transform: scale(1.08);
+    background: rgba(0, 0, 0, 0.8);
+  }
+}
+
+.lightbox-close:active {
+  transform: scale(0.95);
+}
+
+/* Стрелки навигации - адаптивные */
+.lightbox-prev,
+.lightbox-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--touch-min);
+  height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  transition: 0.2s;
+  z-index: 10;
+  touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+  .lightbox-prev,
+  .lightbox-next {
+    font-size: 32px;
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lightbox-prev:hover,
+  .lightbox-next:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-50%) scale(1.08);
+  }
+}
+
+.lightbox-prev:active,
+.lightbox-next:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.lightbox-prev {
+  left: max(8px, env(safe-area-inset-left, 8px));
+}
+
+.lightbox-next {
+  right: max(8px, env(safe-area-inset-right, 8px));
+}
+
+@media (min-width: 768px) {
+  .lightbox-prev { left: max(var(--space-5), env(safe-area-inset-left, 20px)); }
+  .lightbox-next { right: max(var(--space-5), env(safe-area-inset-right, 20px)); }
+}
+
+/* Стили для thumbnail-карточек */
+.cert-thumbnail {
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+  /* Улучшаем область клика */
+  -webkit-tap-highlight-color: rgba(122, 167, 255, 0.15);
+  touch-action: manipulation;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cert-thumbnail:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+  
+  .cert-thumbnail:hover img {
+    transform: scale(1.04);
+  }
+}
+
+/* На touch-устройствах: легкое нажатие */
+@media (hover: none) {
+  .cert-thumbnail:active {
+    transform: scale(0.97);
+  }
+}
+
+.cert-thumbnail img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.cert-thumbnail figcaption {
+  text-align: center;
+  padding: var(--space-2);
+  font-weight: 500;
+  font-size: var(--fs-0);
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  .cert-thumbnail figcaption {
+    font-size: var(--fs-1);
+    padding: var(--space-3);
+  }
+}
+
+/* ============================================
+   CERT-GALLERY специфичные стили
+   ============================================ */
+
+.cert-gallery {
+  /* Mobile: 1 колонка для лучшей читаемости */
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .cert-gallery {
+    /* Tablet: 2 колонки */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .cert-gallery {
+    /* Desktop: 3 колонки */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

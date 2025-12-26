@@ -1,0 +1,435 @@
+/* ============================================
+   🎮 QUIZ-MODE STYLES
+   Interactive quiz with input field + animations
+   ============================================ */
+
+/* === QUIZ CONTAINER === */
+.room-card__quiz {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 3;
+  animation: quizSlideIn 0.3s ease-out;
+}
+
+@keyframes quizSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === INPUT FIELD === */
+.room-card__input {
+  width: 100%;
+  height: 50px;
+  font-size: 18px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 500;
+  
+  border: 2px solid #FFD60A;
+  border-radius: 25px;
+  
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  color: #FFFFFF;
+  padding: 0 20px;
+  
+  text-align: center;
+  outline: none;
+  
+  transition: all 0.3s ease;
+  
+  /* Отключаем стандартные браузерные функции */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.room-card__input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* Focus state */
+.room-card__input:focus {
+  border-color: rgba(255, 214, 10, 1);
+  background: rgba(0, 0, 0, 0.7);
+  box-shadow: 
+    0 0 0 4px rgba(255, 214, 10, 0.2),
+    0 0 30px rgba(255, 214, 10, 0.4),
+    inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+}
+
+/* === HINT === */
+.room-card__hint {
+  font-size: 14px;
+  color: #64B5F6;
+  text-align: center;
+  padding: 8px 16px;
+  background: rgba(33, 150, 243, 0.15);
+  border-radius: 12px;
+  border-left: 3px solid #2196F3;
+  animation: hintFadeIn 0.3s ease-out;
+}
+
+@keyframes hintFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === FEEDBACK MESSAGE === */
+.room-card__feedback {
+  font-size: 14px;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  animation: feedbackPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.room-card__feedback--correct {
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.room-card__feedback--wrong {
+  color: #f44336;
+  background: rgba(244, 67, 54, 0.15);
+}
+
+@keyframes feedbackPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================
+   🟢 SUCCESS ANIMATION
+   ============================================ */
+
+.room-card--success {
+  animation: successBurst 0.6s ease-out;
+  border: 3px solid #4CAF50 !important;
+  background: linear-gradient(135deg, 
+    rgba(76, 175, 80, 0.2), 
+    rgba(129, 199, 132, 0.15)) !important;
+}
+
+@keyframes successBurst {
+  0% {
+    box-shadow: 
+      0 0 0 0 rgba(76, 175, 80, 0.8),
+      0 0 100px rgba(76, 175, 80, 0.6);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 30px rgba(76, 175, 80, 0),
+      0 0 150px rgba(76, 175, 80, 0.4);
+    filter: brightness(1.2);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 60px rgba(76, 175, 80, 0),
+      0 0 200px rgba(76, 175, 80, 0);
+    filter: brightness(1);
+  }
+}
+
+/* Частицы успеха */
+.success-particle {
+  position: fixed;
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 10001;
+  user-select: none;
+  animation: particleFloat 1s ease-out forwards;
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: 
+      translate(var(--tx), var(--ty)) 
+      rotate(360deg) 
+      scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   🔴 ERROR ANIMATION
+   ============================================ */
+
+.room-card--error {
+  animation: 
+    errorShake 0.4s ease-in-out,
+    errorPulse 0.6s ease-in-out;
+  border: 3px solid #f44336 !important;
+  background: linear-gradient(135deg, 
+    rgba(244, 67, 54, 0.2), 
+    rgba(229, 115, 115, 0.15)) !important;
+}
+
+/* Тряска */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Пульсация */
+@keyframes errorPulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.6); 
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(244, 67, 54, 0.8); 
+  }
+}
+
+/* Иконка статуса (галочка/крестик) */
+.room-card__status-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 80px;
+  pointer-events: none;
+  z-index: 1000;
+  animation: iconPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.room-card__status-icon::before {
+  display: block;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.room-card__status-icon--success::before {
+  content: '✅';
+}
+
+.room-card__status-icon--error::before {
+  content: '❌';
+}
+
+@keyframes iconPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ============================================
+   📊 QUIZ STATS OVERLAY
+   ============================================ */
+
+#quiz-stats {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  border: 2px solid rgba(255, 214, 10, 0.5);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 200px;
+  
+  z-index: 9999;
+  
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(255, 214, 10, 0.2);
+  
+  animation: statsSlideIn 0.4s ease-out;
+}
+
+@keyframes statsSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+#quiz-stats h3 {
+  margin: 0 0 15px;
+  color: #FFD60A;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(255, 214, 10, 0.5);
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.stat__label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+}
+
+.stat__value {
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 16px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.stat__value--green {
+  color: #4CAF50;
+}
+
+.stat__value--red {
+  color: #f44336;
+}
+
+.stat__value--gold {
+  color: #FF9800;
+}
+
+/* ============================================
+   🏆 ACHIEVEMENT TOAST
+   ============================================ */
+
+#achievement-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  
+  padding: 30px 50px;
+  border-radius: 20px;
+  
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  
+  z-index: 10000;
+  
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(102, 126, 234, 0.6);
+  
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: none;
+}
+
+#achievement-toast.show {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#achievement-toast .achievement-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+  display: block;
+  animation: iconBounce 0.6s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ============================================
+   👉 DOUBLE-CLICK HINT (for RMB × 2)
+   ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ============================================
+   📱 MOBILE ADAPTATIONS
+   ============================================ */
+
+@media (max-width: 768px) {
+  #quiz-stats {
+    top: 60px;
+    right: 10px;
+    padding: 15px;
+    min-width: 160px;
+    font-size: 12px;
+  }
+  
+  #quiz-stats h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .stat {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .stat__value {
+    font-size: 14px;
+  }
+  
+  .room-card__input {
+    height: 45px;
+    font-size: 16px;
+  }
+  
+  .success-particle {
+    font-size: 20px;
+  }
+  
+  #achievement-toast {
+    padding: 20px 30px;
+    font-size: 18px;
+  }
+}

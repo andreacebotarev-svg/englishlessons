@@ -1,0 +1,223 @@
+/* ============================================
+   RESPONSIVE & ACCESSIBILITY
+   Описание: Media queries и accessibility настройки
+   Зависимости: variables.css
+   ============================================ */
+
+/* === TABLET & MOBILE (max-width: 768px) === */
+@media (max-width: 768px) {
+    /* Уменьшаем perspective для менее агрессивного 3D */
+    :root {
+        --perspective: 600px; /* было 800px */
+    }
+    
+    /* 🚀 ОПТИМИЗАЦИЯ GPU - отключаем тяжелые эффекты */
+    .room {
+        width: 280px !important;  /* было 350px */
+        min-height: 380px !important; /* было 450px */
+        padding: 20px !important; /* было 30px */
+        
+        /* Отключаем backdrop-filter (очень тяжело для мобильных GPU) */
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        
+        /* Делаем фон чуть непрозрачнее, раз блюра нет */
+        background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
+        
+        /* Упрощаем тени - одна простая тень вместо нескольких */
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    /* Убираем сложные тени с текста */
+    .room-word {
+        font-size: 32px !important; /* было 42px */
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8) !important;
+    }
+    
+    .room-translation {
+        font-size: 18px !important; /* было 22px */
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    .room-example {
+        font-size: 14px !important; /* было 16px */
+    }
+    
+    /* Упрощаем тени картинок */
+    .room-image-wrapper {
+        max-width: 240px !important; /* было 280px */
+        height: 200px !important; /* было 240px */
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    /* Увеличиваем кнопку озвучивания для удобства тапа */
+    .room-speaker {
+        width: 48px !important;  /* было 44px */
+        height: 48px !important;
+        font-size: 22px !important; /* было 20px */
+    }
+    
+    /* Убираем hover (не работает на тач) */
+    .room:hover {
+        filter: none !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    /* Вместо hover - active при тапе */
+    .room:active {
+        filter: brightness(1.15) !important;
+        transform: scale(0.98) !important;
+    }
+    
+    /* Упрощаем активное состояние */
+    .room--active {
+        box-shadow: 0 12px 32px rgba(255, 214, 10, 0.3) !important;
+    }
+    
+    .room--active .room-word {
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9) !important;
+    }
+    
+    .room--active .room-image-wrapper {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7) !important;
+    }
+    
+    /* Упрощаем туман для производительности */
+    #scene::after {
+        background: radial-gradient(ellipse at center, 
+            transparent 30%, 
+            #000 90%
+        ) !important;
+    }
+    
+    /* 🚀 ОПТИМИЗАЦИЯ СТЕН - упрощаем градиенты для экономии видеопамяти */
+    .floor,
+    .wall-left,
+    .wall-right {
+        /* Убираем сложные repeating-linear-gradient */
+        background: rgba(30, 30, 30, 0.9) !important;
+        /* Упрощаем тени */
+        box-shadow: none !important;
+    }
+    
+    /* Убираем декоративные элементы на стенах */
+    .wall-left::before,
+    .wall-right::before {
+        display: none !important;
+    }
+    
+    /* Упрощаем источники света */
+    .light-source {
+        box-shadow: 0 0 20px rgba(255, 214, 10, 0.5) !important;
+    }
+    
+    /* Оптимизация GPU */
+    .room {
+        will-change: auto !important; /* Не резервировать GPU память */
+    }
+    
+    /* UI элементы */
+    #loading { 
+        font-size: var(--font-size-lg); 
+        padding: var(--spacing-md) var(--spacing-lg); 
+    }
+    
+    #controls-hint { 
+        font-size: var(--font-size-xs); 
+        bottom: var(--spacing-md);
+        /* Меняем текст подсказки */
+    }
+    
+    #controls-hint div {
+        display: none;
+    }
+    
+    #controls-hint::after {
+        content: 'Swipe up/down to navigate';
+        display: block;
+    }
+}
+
+/* === SMALL MOBILE (max-width: 480px) === */
+@media (max-width: 480px) {
+    /* Ещё меньше для очень маленьких экранов */
+    :root {
+        --perspective: 500px;
+    }
+    
+    .room {
+        width: 260px !important;
+        min-height: 350px !important;
+        padding: 15px !important;
+        gap: 15px !important;
+    }
+    
+    .room-word {
+        font-size: 28px !important;
+    }
+    
+    .room-translation {
+        font-size: 16px !important;
+    }
+    
+    .room-example {
+        font-size: 13px !important;
+    }
+    
+    .room-image-wrapper {
+        max-width: 220px !important;
+        height: 180px !important;
+    }
+    
+    .room-speaker {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 20px !important;
+    }
+}
+
+/* === LANDSCAPE ORIENTATION WARNING === */
+@media (orientation: landscape) and (max-width: 896px) and (max-height: 500px) {
+    body::before {
+        content: '📱 Rotate your device for better experience';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.95);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        z-index: 10000;
+        font-size: 16px;
+        text-align: center;
+        border: 2px solid rgba(255, 214, 10, 0.5);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+    }
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .room {
+        animation: none !important;
+    }
+}
+
+/* === HIGH CONTRAST === */
+@media (prefers-contrast: high) {
+    .room {
+        border-width: 3px !important;
+    }
+    
+    .room-word,
+    .room-translation {
+        text-shadow: none !important;
+    }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "englishlessons-cinematic-camera",
+  "version": "1.0.0",
+  "description": "3D English Learning App with Cinematic Camera System (Portal 2 Style)",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "vite build && gh-pages -d dist",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui"
+  },
+  "keywords": [
+    "threejs",
+    "gsap",
+    "3d",
+    "camera",
+    "cinematic",
+    "english",
+    "learning"
+  ],
+  "author": "andreacebotarev-svg",
+  "license": "MIT",
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "three": "^0.152.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.0",
+    "stats.js": "^0.17.0",
+    "vite": "^5.0.0"
+  }
+}
