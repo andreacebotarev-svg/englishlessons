@@ -1,25 +1,27 @@
 /**
- * APPLE-STYLE THEME MANAGER v3.3.2 SINGLETON FIX
- * iOS Segmented Control with Spring Physics + Micro-interactions
- * Fixed: Singleton pattern prevents duplicate switchers
+ * APPLE-STYLE THEME MANAGER v3.4.0 ARCHITECTURAL FIX
+ * Integrates Theme Bar into Layout Header
+ * Fixed: Scroll behavior, DOM positioning, and layout stability
  */
 
 class ThemeManager {
   constructor() {
     // 🔥 SINGLETON ENFORCEMENT - Prevent duplicate switchers
-    // This is critical because LessonEngine creates ThemeManager instance
-    // AND also calls injectThemeSwitcher(), causing duplicates
     const existingSwitchers = document.querySelectorAll('.theme-switcher');
     if (existingSwitchers.length > 0) {
-      console.warn(`[ThemeManager v3.3.2] Found ${existingSwitchers.length} existing switcher(s), removing for singleton...`);
+      console.warn(`[ThemeManager v3.4.0] Found ${existingSwitchers.length} existing switcher(s), removing for singleton...`);
       existingSwitchers.forEach(s => s.remove());
     }
+    
+    // Check for existing header to avoid duplicates
+    const existingHeader = document.getElementById('theme-bar-header');
+    if (existingHeader) existingHeader.remove();
 
     this.currentTheme = this.loadTheme();
     this.applyTheme(this.currentTheme);
     this.createThemeSwitcherUI();
     this.attachKeyboardNav();
-    console.log(`[ThemeManager v3.3.2] Initialized with theme: ${this.currentTheme}`);
+    console.log(`[ThemeManager v3.4.0] Initialized with theme: ${this.currentTheme}`);
   }
 
   /**
@@ -29,7 +31,6 @@ class ThemeManager {
   loadTheme() {
     const saved = localStorage.getItem('eng-tutor-theme');
     const theme = saved || 'default';
-    console.log(`[ThemeManager] Loaded theme from storage: ${theme}`);
     return theme;
   }
 
@@ -39,7 +40,6 @@ class ThemeManager {
    */
   saveTheme(themeId) {
     localStorage.setItem('eng-tutor-theme', themeId);
-    console.log(`[ThemeManager] Saved theme to storage: ${themeId}`);
   }
 
   /**
@@ -103,7 +103,7 @@ class ThemeManager {
   /**
    * Create Apple-style theme switcher UI
    * iOS Segmented Control with sliding indicator
-   * ULTIMATE FIX: Singleton pattern + body root + nuclear inline styles + animations
+   * NEW: Injects into fixed layout header
    */
   createThemeSwitcherUI() {
     const themes = [
@@ -112,20 +112,23 @@ class ThemeManager {
       { id: 'dark', icon: '🌙', label: 'Dark' }
     ];
 
-    // Create container - KEEP class for CSS animations!
+    // 1. Create Layout Header (Container)
+    const header = document.createElement('div');
+    header.id = 'theme-bar-header';
+    header.setAttribute('role', 'banner');
+    
+    // 2. Adjust Body Padding to prevent overlap
+    // We add a CSS class or inline style to body to reserve space
+    // Check existing padding to avoid overriding it completely if possible
+    // But for simplicity and robustness, we append a spacer style
+    document.body.style.paddingTop = 'calc(var(--space-lg, 20px) + 60px)';
+
+    // 3. Create Switcher
     const switcher = document.createElement('div');
-    switcher.className = 'theme-switcher'; // CRITICAL: Keep class for animations!
+    switcher.className = 'theme-switcher'; // Main styling class
     switcher.setAttribute('role', 'group');
     switcher.setAttribute('aria-label', 'Theme selector');
     switcher.setAttribute('data-active-theme', this.currentTheme);
-
-    // Nuclear inline styles for position (override any CSS)
-    switcher.style.cssText = `
-      position: fixed !important;
-      top: max(0.5rem, env(safe-area-inset-top, 0.5rem)) !important;
-      right: max(0.5rem, env(safe-area-inset-right, 0.5rem)) !important;
-      z-index: 9999 !important;
-    `;
 
     // Create sliding indicator (background)
     const indicator = document.createElement('div');
@@ -157,15 +160,16 @@ class ThemeManager {
       switcher.appendChild(btn);
     });
 
-    // Inject to <body> root with PREPEND (highest priority)
-    document.body.prepend(switcher);
+    // 4. Assemble: Switcher -> Header -> Body
+    header.appendChild(switcher);
+    document.body.prepend(header);
 
     // Position indicator after DOM render
     requestAnimationFrame(() => {
       this.updateIndicatorPosition(this.currentTheme, false);
     });
 
-    console.log('[ThemeManager v3.3.2] Apple-style switcher created at body root (singleton enforced)');
+    console.log('[ThemeManager v3.4.0] Integrated theme bar into layout header');
   }
 
   /**
@@ -237,8 +241,6 @@ class ThemeManager {
         glow.style.transition = '';
       });
     }
-
-    console.log(`[ThemeManager] Indicator moved to ${themeId} (offset: ${offsetX}px)`);
   }
 
   /**
@@ -292,7 +294,6 @@ class ThemeManager {
         const newTheme = themes[newIndex];
         const button = document.querySelector(`[data-theme="${newTheme}"]`);
         this.setTheme(newTheme, button);
-        console.log(`[ThemeManager] Keyboard navigation: ${this.currentTheme}`);
       }
     });
 
