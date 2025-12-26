@@ -1,16 +1,25 @@
 /**
- * APPLE-STYLE THEME MANAGER v3.3.1 ULTIMATE FIX
+ * APPLE-STYLE THEME MANAGER v3.3.2 SINGLETON FIX
  * iOS Segmented Control with Spring Physics + Micro-interactions
- * Fixed: position:fixed at body root + Animation restore
+ * Fixed: Singleton pattern prevents duplicate switchers
  */
 
 class ThemeManager {
   constructor() {
+    // 🔥 SINGLETON ENFORCEMENT - Prevent duplicate switchers
+    // This is critical because LessonEngine creates ThemeManager instance
+    // AND also calls injectThemeSwitcher(), causing duplicates
+    const existingSwitchers = document.querySelectorAll('.theme-switcher');
+    if (existingSwitchers.length > 0) {
+      console.warn(`[ThemeManager v3.3.2] Found ${existingSwitchers.length} existing switcher(s), removing for singleton...`);
+      existingSwitchers.forEach(s => s.remove());
+    }
+
     this.currentTheme = this.loadTheme();
     this.applyTheme(this.currentTheme);
     this.createThemeSwitcherUI();
     this.attachKeyboardNav();
-    console.log(`[ThemeManager v3.3.1] Initialized with theme: ${this.currentTheme}`);
+    console.log(`[ThemeManager v3.3.2] Initialized with theme: ${this.currentTheme}`);
   }
 
   /**
@@ -94,30 +103,23 @@ class ThemeManager {
   /**
    * Create Apple-style theme switcher UI
    * iOS Segmented Control with sliding indicator
-   * ULTIMATE FIX: Force remove + inject to body + nuclear inline styles + keep class for animations
+   * ULTIMATE FIX: Singleton pattern + body root + nuclear inline styles + animations
    */
   createThemeSwitcherUI() {
-    // STEP 1: Remove ALL existing switchers (force cleanup)
-    const existingSwitchers = document.querySelectorAll('.theme-switcher');
-    if (existingSwitchers.length > 0) {
-      console.warn(`[ThemeManager] Found ${existingSwitchers.length} existing switcher(s), removing...`);
-      existingSwitchers.forEach(s => s.remove());
-    }
-
     const themes = [
       { id: 'default', icon: '☀️', label: 'Light' },
       { id: 'kids', icon: '🎨', label: 'Kids' },
       { id: 'dark', icon: '🌙', label: 'Dark' }
     ];
 
-    // STEP 2: Create container - KEEP class for CSS animations!
+    // Create container - KEEP class for CSS animations!
     const switcher = document.createElement('div');
     switcher.className = 'theme-switcher'; // CRITICAL: Keep class for animations!
     switcher.setAttribute('role', 'group');
     switcher.setAttribute('aria-label', 'Theme selector');
     switcher.setAttribute('data-active-theme', this.currentTheme);
 
-    // STEP 3: Nuclear inline styles for position (override any CSS)
+    // Nuclear inline styles for position (override any CSS)
     switcher.style.cssText = `
       position: fixed !important;
       top: max(0.5rem, env(safe-area-inset-top, 0.5rem)) !important;
@@ -155,15 +157,15 @@ class ThemeManager {
       switcher.appendChild(btn);
     });
 
-    // STEP 4: CRITICAL FIX - Inject to <body> root with PREPEND (highest priority)
+    // Inject to <body> root with PREPEND (highest priority)
     document.body.prepend(switcher);
 
-    // STEP 5: Position indicator after DOM render
+    // Position indicator after DOM render
     requestAnimationFrame(() => {
       this.updateIndicatorPosition(this.currentTheme, false);
     });
 
-    console.log('[ThemeManager] Apple-style switcher created at body root (prepend) with animations');
+    console.log('[ThemeManager v3.3.2] Apple-style switcher created at body root (singleton enforced)');
   }
 
   /**
