@@ -3,11 +3,35 @@
    iOS Segmented Control - Label Hiding + Position Fix
    ============================================================ */
 
+/* 
+   NEW: Layout Integration Container 
+   Provides a stable, fixed context for the theme bar
+*/
+#theme-bar-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px; /* Allocated space */
+  z-index: 10000;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 max(1rem, env(safe-area-inset-right, 1rem));
+  box-sizing: border-box;
+  pointer-events: none; /* Let clicks pass through empty space */
+  /* Optional: faint gradient to ensure readability if content scrolls under */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 100%);
+}
+
 /* Container with glassmorphism */
 .theme-switcher {
-  position: fixed;
-  top: var(--space-4, 1rem);
-  right: var(--space-4, 1rem);
+  /* Reset positioning to flow within header */
+  position: relative;
+  top: auto;
+  right: auto;
+  transform: none !important;
+  
   display: inline-flex;
   background: rgba(20, 27, 60, 0.7);
   backdrop-filter: blur(24px) saturate(180%);
@@ -20,11 +44,11 @@
               0 1px 2px rgba(0, 0, 0, 0.2),
               inset 0 1px 0 rgba(255, 255, 255, 0.15);
   isolation: isolate;
-  z-index: 1000;
+  z-index: 1001;
+  pointer-events: auto; /* Re-enable clicks */
+  
   /* Mobile constraint */
   max-width: calc(100vw - 2rem);
-  /* Prevent position drift */
-  transform: none !important;
 }
 
 /* Sliding indicator - JS controls transform */
@@ -233,10 +257,13 @@
 
 /* Mobile (<640px) - ULTRA COMPACT + FORCE HIDE LABELS */
 @media (max-width: 640px) {
+  /* Adjust header for safe area */
+  #theme-bar-header {
+    height: 50px;
+    padding: 0 max(0.5rem, env(safe-area-inset-right, 0.5rem));
+  }
+
   .theme-switcher {
-    /* iOS safe area insets for notch */
-    top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
-    right: max(0.5rem, env(safe-area-inset-right, 0.5rem));
     /* Tighter spacing */
     padding: 3px;
     gap: 0;
@@ -286,7 +313,6 @@
 @media (max-width: 374px) {
   .theme-switcher {
     padding: 2px;
-    right: max(0.25rem, env(safe-area-inset-right, 0.25rem));
   }
   
   .theme-btn-apple,
@@ -340,7 +366,8 @@
 
 /* Print: Hide switcher */
 @media print {
-  .theme-switcher {
+  .theme-switcher,
+  #theme-bar-header {
     display: none;
   }
 }
