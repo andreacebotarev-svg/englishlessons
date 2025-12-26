@@ -44,7 +44,7 @@ class LessonEngine {
       this.render();
       this.hideLoader();
       this.injectPopupStyles();
-      this.injectThemeSwitcher(); // ✨ NEW: Inject theme switcher UI
+      this.injectThemeSwitcher(); // ✨ NEW: Inject theme switcher UI (with duplicate check)
     } catch (error) {
       console.error('Initialization error:', error);
       this.showError(error.message);
@@ -52,9 +52,15 @@ class LessonEngine {
   }
 
   /**
-   * ✨ NEW: Inject theme switcher UI into lesson header
+   * ✨ FIXED: Inject theme switcher UI into lesson header (with duplicate prevention)
    */
   injectThemeSwitcher() {
+    // ✅ CRITICAL FIX: Check if ThemeManager already created switcher
+    if (document.querySelector('.theme-switcher')) {
+      console.log('[LessonEngine] ThemeManager switcher already exists, skipping inject');
+      return;
+    }
+
     const headerActions = document.querySelector('.lesson-actions');
     if (!headerActions) {
       console.warn('[LessonEngine] Could not find .lesson-actions for theme switcher');
@@ -504,7 +510,7 @@ class LessonEngine {
               </div>
             </div>
             <div class="lesson-actions">
-              <!-- Theme switcher will be injected here -->
+              <!-- Theme switcher will be injected here (if not already created by ThemeManager) -->
               <button class="primary-btn" onclick="window.lessonEngine.speakAllReading()" aria-label="Listen to reading">
                 <span>🔊</span> Listen All
               </button>
@@ -675,11 +681,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">  
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">  
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', this)">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\'")}', this);">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -698,7 +704,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">
             🔊 Listen
           </button>
         </div>
