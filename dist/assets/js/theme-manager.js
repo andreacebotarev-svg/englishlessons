@@ -1,7 +1,7 @@
 /**
- * APPLE-STYLE THEME MANAGER v3.2 FINAL
+ * APPLE-STYLE THEME MANAGER v3.3.0 CRITICAL FIX
  * iOS Segmented Control with Spring Physics + Micro-interactions
- * Complete rewrite with indicator positioning, ripple effects, animations
+ * Fixed: Double render issue + position:fixed stability
  */
 
 class ThemeManager {
@@ -10,7 +10,7 @@ class ThemeManager {
     this.applyTheme(this.currentTheme);
     this.createThemeSwitcherUI();
     this.attachKeyboardNav();
-    console.log(`[ThemeManager v3.2] Initialized with theme: ${this.currentTheme}`);
+    console.log(`[ThemeManager v3.3.0] Initialized with theme: ${this.currentTheme}`);
   }
 
   /**
@@ -94,12 +94,14 @@ class ThemeManager {
   /**
    * Create Apple-style theme switcher UI
    * iOS Segmented Control with sliding indicator
+   * CRITICAL FIX: Remove duplicates before creating new one
    */
   createThemeSwitcherUI() {
-    // Check if already exists
-    if (document.querySelector('.theme-switcher')) {
-      console.log('[ThemeManager] Switcher already exists, skipping creation');
-      return;
+    // CRITICAL FIX: Remove ALL existing switchers first
+    const existingSwitchers = document.querySelectorAll('.theme-switcher');
+    if (existingSwitchers.length > 0) {
+      console.warn(`[ThemeManager] Found ${existingSwitchers.length} existing switcher(s), removing...`);
+      existingSwitchers.forEach(s => s.remove());
     }
 
     const themes = [
@@ -114,6 +116,14 @@ class ThemeManager {
     switcher.setAttribute('role', 'group');
     switcher.setAttribute('aria-label', 'Theme selector');
     switcher.setAttribute('data-active-theme', this.currentTheme);
+
+    // CRITICAL FIX: Force position:fixed with inline styles (!important equivalent)
+    switcher.style.cssText = `
+      position: fixed !important;
+      top: max(0.5rem, env(safe-area-inset-top, 0.5rem)) !important;
+      right: max(0.5rem, env(safe-area-inset-right, 0.5rem)) !important;
+      z-index: 9999 !important;
+    `;
 
     // Create sliding indicator (background)
     const indicator = document.createElement('div');
@@ -145,7 +155,7 @@ class ThemeManager {
       switcher.appendChild(btn);
     });
 
-    // Inject into body
+    // CRITICAL FIX: Inject directly into <body> (root level, bypasses transform parents)
     document.body.appendChild(switcher);
 
     // Position indicator after DOM render
@@ -153,7 +163,7 @@ class ThemeManager {
       this.updateIndicatorPosition(this.currentTheme, false);
     });
 
-    console.log('[ThemeManager] Apple-style switcher created');
+    console.log('[ThemeManager] Apple-style switcher created at body root with fixed position');
   }
 
   /**
