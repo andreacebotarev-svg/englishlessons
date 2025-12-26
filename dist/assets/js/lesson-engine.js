@@ -52,7 +52,8 @@ class LessonEngine {
   }
 
   /**
-   * ✨ FIXED: Inject theme switcher UI into lesson header (with duplicate prevention)
+   * ✨ UPDATED: Inject theme switcher UI into Reading tab layout (not inside content)
+   * Theme bar is now part of the Reading tab layout, not inside lesson content
    */
   injectThemeSwitcher() {
     // ✅ CRITICAL FIX: Check if ThemeManager already created switcher
@@ -61,23 +62,32 @@ class LessonEngine {
       return;
     }
 
-    const headerActions = document.querySelector('.lesson-actions');
-    if (!headerActions) {
-      console.warn('[LessonEngine] Could not find .lesson-actions for theme switcher');
+    // ✅ NEW: Look for theme-bar-container in layout (part of Reading tab structure)
+    const themeBarContainer = document.getElementById('theme-bar-container');
+    if (!themeBarContainer) {
+      console.warn('[LessonEngine] Could not find #theme-bar-container for theme switcher');
+      // Fallback to old location for backward compatibility
+      const headerActions = document.querySelector('.lesson-actions');
+      if (headerActions) {
+        console.log('[LessonEngine] Falling back to .lesson-actions');
+        const currentTheme = this.themeManager.getCurrentTheme();
+        const switcherHTML = this.renderer.renderThemeSwitcher(currentTheme);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = switcherHTML;
+        const switcherElement = tempDiv.firstElementChild;
+        headerActions.insertBefore(switcherElement, headerActions.firstChild);
+        return;
+      }
       return;
     }
 
     const currentTheme = this.themeManager.getCurrentTheme();
     const switcherHTML = this.renderer.renderThemeSwitcher(currentTheme);
     
-    // Insert before first child (Listen All button)
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = switcherHTML;
-    const switcherElement = tempDiv.firstElementChild;
+    // Insert into theme-bar-container (part of Reading tab layout)
+    themeBarContainer.innerHTML = switcherHTML;
     
-    headerActions.insertBefore(switcherElement, headerActions.firstChild);
-    
-    console.log('[LessonEngine] Theme switcher injected');
+    console.log('[LessonEngine] Theme switcher injected into Reading tab layout');
   }
 
   /**
@@ -540,6 +550,11 @@ class LessonEngine {
             </button>
           </div>
 
+          <!-- Theme Bar Container - Part of Reading Tab Layout -->
+          <div class="theme-bar-container" id="theme-bar-container">
+            <!-- Theme switcher will be injected here -->
+          </div>
+
           <div class="card">
             <div class="card-inner" id="tab-content">
               <!-- Dynamic content -->
@@ -551,6 +566,16 @@ class LessonEngine {
 
     // Initialize Magic Line animation AFTER DOM ready
     this.initTabAnimations();
+    
+    // ✅ NEW: Set initial theme-bar visibility based on current tab
+    const themeBarContainer = document.getElementById('theme-bar-container');
+    if (themeBarContainer) {
+      if (this.currentTab === 'reading') {
+        themeBarContainer.classList.remove('hidden');
+      } else {
+        themeBarContainer.classList.add('hidden');
+      }
+    }
   }
 
   /**
@@ -812,6 +837,16 @@ class LessonEngine {
     buttons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
+    
+    // ✅ NEW: Show/hide theme-bar based on active tab
+    const themeBarContainer = document.getElementById('theme-bar-container');
+    if (themeBarContainer) {
+      if (tabName === 'reading') {
+        themeBarContainer.classList.remove('hidden');
+      } else {
+        themeBarContainer.classList.add('hidden');
+      }
+    }
     
     // Move indicator to new active tab
     const activeBtn = document.querySelector('.tab.active');

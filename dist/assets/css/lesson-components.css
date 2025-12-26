@@ -224,6 +224,33 @@
   display: none;
 }
 
+/* Theme Bar Container - Part of Reading Tab Layout */
+.theme-bar-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: var(--space-md) 0;
+  margin: 0;
+  position: relative;
+  z-index: 10;
+  /* Ensure it doesn't scroll with content */
+  flex-shrink: 0;
+  /* ✅ Show only when Reading tab is active */
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--transition-med), visibility var(--transition-med);
+}
+
+/* ✅ Hide theme-bar when Reading tab is not active */
+.theme-bar-container.hidden {
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
 /* Card - Glassmorphism */
 .card {
   background: var(--bg-card); /* Uses theme card background */

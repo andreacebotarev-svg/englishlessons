@@ -5,9 +5,8 @@
 
 /* Container with glassmorphism */
 .theme-switcher {
-  position: fixed;
-  top: var(--space-4, 1rem);
-  right: var(--space-4, 1rem);
+  /* ✅ UPDATED: Changed from fixed to relative for layout integration */
+  position: relative;
   display: inline-flex;
   background: rgba(20, 27, 60, 0.7);
   backdrop-filter: blur(24px) saturate(180%);
@@ -25,6 +24,13 @@
   max-width: calc(100vw - 2rem);
   /* Prevent position drift */
   transform: none !important;
+}
+
+/* ✅ NEW: Fixed positioning fallback for backward compatibility (when not in theme-bar-container) */
+.theme-switcher:not(.theme-bar-container .theme-switcher) {
+  position: fixed;
+  top: var(--space-4, 1rem);
+  right: var(--space-4, 1rem);
 }
 
 /* Sliding indicator - JS controls transform */
@@ -234,15 +240,19 @@
 /* Mobile (<640px) - ULTRA COMPACT + FORCE HIDE LABELS */
 @media (max-width: 640px) {
   .theme-switcher {
-    /* iOS safe area insets for notch */
-    top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
-    right: max(0.5rem, env(safe-area-inset-right, 0.5rem));
     /* Tighter spacing */
     padding: 3px;
     gap: 0;
     border-radius: 11px;
     /* Prevent overflow */
     max-width: calc(100vw - 1rem);
+  }
+  
+  /* ✅ NEW: Fixed positioning fallback for mobile (when not in theme-bar-container) */
+  .theme-switcher:not(.theme-bar-container .theme-switcher) {
+    /* iOS safe area insets for notch */
+    top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
+    right: max(0.5rem, env(safe-area-inset-right, 0.5rem));
   }
   
   .theme-indicator,
@@ -286,6 +296,10 @@
 @media (max-width: 374px) {
   .theme-switcher {
     padding: 2px;
+  }
+  
+  /* ✅ NEW: Fixed positioning fallback for very small screens */
+  .theme-switcher:not(.theme-bar-container .theme-switcher) {
     right: max(0.25rem, env(safe-area-inset-right, 0.25rem));
   }
   
