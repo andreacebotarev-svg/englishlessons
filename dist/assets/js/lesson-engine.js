@@ -44,7 +44,7 @@ class LessonEngine {
       this.render();
       this.hideLoader();
       this.injectPopupStyles();
-      this.injectThemeSwitcher(); // ✨ NEW: Inject theme switcher UI (with duplicate check)
+      // ThemeSwitcher is now handled by ThemeManager singleton
     } catch (error) {
       console.error('Initialization error:', error);
       this.showError(error.message);
@@ -52,62 +52,20 @@ class LessonEngine {
   }
 
   /**
-   * ✨ FIXED: Inject theme switcher UI into lesson header (with duplicate prevention)
+   * DEPRECATED: Theme switcher is now injected by ThemeManager
    */
   injectThemeSwitcher() {
-    // ✅ CRITICAL FIX: Check if ThemeManager already created switcher
-    if (document.querySelector('.theme-switcher')) {
-      console.log('[LessonEngine] ThemeManager switcher already exists, skipping inject');
-      return;
-    }
-
-    const headerActions = document.querySelector('.lesson-actions');
-    if (!headerActions) {
-      console.warn('[LessonEngine] Could not find .lesson-actions for theme switcher');
-      return;
-    }
-
-    const currentTheme = this.themeManager.getCurrentTheme();
-    const switcherHTML = this.renderer.renderThemeSwitcher(currentTheme);
-    
-    // Insert before first child (Listen All button)
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = switcherHTML;
-    const switcherElement = tempDiv.firstElementChild;
-    
-    headerActions.insertBefore(switcherElement, headerActions.firstChild);
-    
-    console.log('[LessonEngine] Theme switcher injected');
+    // Left empty to prevent interference with ThemeManager's fixed header
+    console.log('[LessonEngine] Skipping legacy theme injection (handled by ThemeManager)');
   }
 
   /**
-   * ✨ NEW: Handle theme switch from UI
+   * DEPRECATED: Theme switching is handled by ThemeManager internally
+   * Kept for backward compatibility if called from console
    * @param {string} themeId - Theme ID ('default', 'kids', 'dark')
    */
   handleThemeSwitch(themeId) {
-    console.log(`[LessonEngine] Switching theme to: ${themeId}`);
-    
-    // Apply theme via ThemeManager
     this.themeManager.setTheme(themeId);
-    
-    // Update active button state
-    const buttons = document.querySelectorAll('.theme-btn');
-    buttons.forEach(btn => {
-      const isActive = btn.dataset.theme === themeId;
-      btn.classList.toggle('active', isActive);
-      btn.setAttribute('aria-pressed', isActive.toString());
-    });
-    
-    // Show notification
-    const themeNames = {
-      'default': 'Classic',
-      'kids': 'Kids',
-      'dark': 'Dark'
-    };
-    this.showNotification(`Theme changed to ${themeNames[themeId]}`);
-    
-    // Haptic feedback
-    this.tts.vibrate(20);
   }
 
   /**
