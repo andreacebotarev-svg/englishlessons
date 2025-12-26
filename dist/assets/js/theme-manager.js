@@ -1,7 +1,7 @@
 /**
- * APPLE-STYLE THEME MANAGER v3.3.0 CRITICAL FIX
+ * APPLE-STYLE THEME MANAGER v3.3.1 ULTIMATE FIX
  * iOS Segmented Control with Spring Physics + Micro-interactions
- * Fixed: Double render issue + position:fixed stability
+ * Fixed: position:fixed at body root + Animation restore
  */
 
 class ThemeManager {
@@ -10,7 +10,7 @@ class ThemeManager {
     this.applyTheme(this.currentTheme);
     this.createThemeSwitcherUI();
     this.attachKeyboardNav();
-    console.log(`[ThemeManager v3.3.0] Initialized with theme: ${this.currentTheme}`);
+    console.log(`[ThemeManager v3.3.1] Initialized with theme: ${this.currentTheme}`);
   }
 
   /**
@@ -94,10 +94,10 @@ class ThemeManager {
   /**
    * Create Apple-style theme switcher UI
    * iOS Segmented Control with sliding indicator
-   * CRITICAL FIX: Remove duplicates before creating new one
+   * ULTIMATE FIX: Force remove + inject to body + nuclear inline styles + keep class for animations
    */
   createThemeSwitcherUI() {
-    // CRITICAL FIX: Remove ALL existing switchers first
+    // STEP 1: Remove ALL existing switchers (force cleanup)
     const existingSwitchers = document.querySelectorAll('.theme-switcher');
     if (existingSwitchers.length > 0) {
       console.warn(`[ThemeManager] Found ${existingSwitchers.length} existing switcher(s), removing...`);
@@ -110,14 +110,14 @@ class ThemeManager {
       { id: 'dark', icon: '🌙', label: 'Dark' }
     ];
 
-    // Create container with data attribute for CSS
+    // STEP 2: Create container - KEEP class for CSS animations!
     const switcher = document.createElement('div');
-    switcher.className = 'theme-switcher';
+    switcher.className = 'theme-switcher'; // CRITICAL: Keep class for animations!
     switcher.setAttribute('role', 'group');
     switcher.setAttribute('aria-label', 'Theme selector');
     switcher.setAttribute('data-active-theme', this.currentTheme);
 
-    // CRITICAL FIX: Force position:fixed with inline styles (!important equivalent)
+    // STEP 3: Nuclear inline styles for position (override any CSS)
     switcher.style.cssText = `
       position: fixed !important;
       top: max(0.5rem, env(safe-area-inset-top, 0.5rem)) !important;
@@ -155,15 +155,15 @@ class ThemeManager {
       switcher.appendChild(btn);
     });
 
-    // CRITICAL FIX: Inject directly into <body> (root level, bypasses transform parents)
-    document.body.appendChild(switcher);
+    // STEP 4: CRITICAL FIX - Inject to <body> root with PREPEND (highest priority)
+    document.body.prepend(switcher);
 
-    // Position indicator after DOM render
+    // STEP 5: Position indicator after DOM render
     requestAnimationFrame(() => {
       this.updateIndicatorPosition(this.currentTheme, false);
     });
 
-    console.log('[ThemeManager] Apple-style switcher created at body root with fixed position');
+    console.log('[ThemeManager] Apple-style switcher created at body root (prepend) with animations');
   }
 
   /**
