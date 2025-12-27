@@ -167,19 +167,7 @@ body[data-theme="kids"] .primary-btn:active {
 
 body[data-theme="kids"] .primary-btn.secondary {
   background: var(--button-secondary-bg);
-  color: #1a1a1a; /* Dark text for better contrast on yellow background */
-  font-weight: 700; /* Bolder text for better visibility */
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5); /* Subtle white shadow for readability */
-  border: 2px solid rgba(0, 0, 0, 0.15); /* Dark border for definition */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 
-              0 0 0 1px rgba(255, 255, 255, 0.3) inset; /* Enhanced shadow for depth */
-}
-
-body[data-theme="kids"] .primary-btn.secondary:hover {
-  background: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%); /* Darker yellow on hover */
-  color: #000; /* Even darker text on hover */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
-              0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  color: var(--text-main);
 }
 
 /* ============================================
