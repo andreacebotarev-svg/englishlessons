@@ -469,8 +469,8 @@ class LessonEngine {
             </div>
             <div class="lesson-actions">
               <!-- Theme switcher will be injected here (if not already created by ThemeManager) -->
-              <button class="primary-btn" onclick="window.lessonEngine.speakAllReading()" aria-label="Listen to reading">
-                <span>🔊</span> Listen All
+              <button class="primary-btn" onclick="window.lessonEngine.speakAllReading()" aria-label="Play audio for reading">
+                🔊 Play audio
               </button>
               <div class="lesson-progress">
                 <div class="progress-bar">

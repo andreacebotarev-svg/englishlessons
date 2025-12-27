@@ -358,7 +358,7 @@ class LessonRenderer {
       <div class="reading-controls">
         <div class="reading-controls-left">
           <button class="primary-btn secondary" onclick="window.lessonEngine.speakAllReading()">
-            <span>🔊</span> Listen
+            🔊 Play audio
           </button>
         </div>
         <div class="reading-controls-right">
