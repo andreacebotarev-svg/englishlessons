@@ -476,6 +476,34 @@
 }
 
 /* ============================================================
+   AUDIO BUTTONS VISIBILITY CONTROL - CSS CLASSES APPROACH
+   ✅ Uses CSS classes instead of inline !important styles
+   ============================================================ */
+
+/* Default state: Play visible, Pause hidden */
+:root.theme-kids .reading-controls-left .kids-audio-btn-play,
+body[data-theme="kids"] .reading-controls-left .kids-audio-btn-play {
+  display: inline-flex;
+}
+
+:root.theme-kids .reading-controls-left .kids-audio-btn-pause,
+body[data-theme="kids"] .reading-controls-left .kids-audio-btn-pause {
+  display: none;
+}
+
+/* Hidden state for Play button (when audio is playing) */
+:root.theme-kids .reading-controls-left .kids-audio-btn-play.is-hidden,
+body[data-theme="kids"] .reading-controls-left .kids-audio-btn-play.is-hidden {
+  display: none !important;
+}
+
+/* Visible state for Pause button (when audio is playing) */
+:root.theme-kids .reading-controls-left .kids-audio-btn-pause.is-visible,
+body[data-theme="kids"] .reading-controls-left .kids-audio-btn-pause.is-visible {
+  display: inline-flex !important;
+}
+
+/* ============================================================
    DARK THEME AUDIO BUTTONS - WCAG AAA COMPLIANT
    Contrast ratio: 17.8:1 (light gray bg / black text)
    ============================================================ */

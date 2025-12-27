@@ -3,6 +3,12 @@
  * Main application controller
  */
 
+// ✨ DEBUG HELPER - Conditional logging for development
+const DEBUG = window.location.hostname === 'localhost' || 
+              window.location.hostname === '127.0.0.1' ||
+              window.DEBUG_MODE === true;
+const debug = (...args) => DEBUG && console.log('[LessonEngine]', ...args);
+
 class LessonEngine {
   constructor(lessonId) {
     this.lessonId = lessonId;
@@ -49,6 +55,14 @@ class LessonEngine {
       this.hideLoader();
       this.injectPopupStyles();
       // ThemeSwitcher is now handled by ThemeManager singleton
+      
+      // ✨ IMPROVED: Initialize audio buttons after render using double RAF
+      // This ensures DOM is ready and CSS is applied before button update
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          this.updateAudioButtons();
+        });
+      });
     } catch (error) {
       console.error('Initialization error:', error);
       this.showError(error.message);
@@ -64,12 +78,31 @@ class LessonEngine {
   }
 
   /**
+   * ✨ NEW: Centralized method to get current theme
+   * @returns {string} Current theme ID ('default', 'kids', 'dark')
+   */
+  getCurrentTheme() {
+    if (document.documentElement.classList.contains('theme-kids')) return 'kids';
+    if (document.documentElement.classList.contains('theme-dark')) return 'dark';
+    return 'default';
+  }
+
+  /**
    * DEPRECATED: Theme switching is handled by ThemeManager internally
    * Kept for backward compatibility if called from console
+   * ✨ IMPROVED: Only updates buttons, doesn't re-render entire tab
    * @param {string} themeId - Theme ID ('default', 'kids', 'dark')
    */
   handleThemeSwitch(themeId) {
     this.themeManager.setTheme(themeId);
+    
+    // ✨ IMPROVED: Double RAF for reliable CSS update, then update only buttons
+    // This preserves scroll position and other UI state
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.updateAudioButtons();
+      });
+    });
   }
 
   /**
@@ -1137,24 +1170,94 @@ class LessonEngine {
   }
 
   /**
-   * ✨ NEW: Update audio button visibility based on playback state
+   * ✨ IMPROVED: Update audio button visibility based on playback state
+   * Uses CSS classes instead of inline !important styles
+   * Uses MutationObserver for reliable container detection
+   * Includes ARIA attributes for accessibility
    */
   updateAudioButtons() {
-    const playBtn = document.querySelector('.kids-audio-btn-play');
-    const pauseBtn = document.querySelector('.kids-audio-btn-pause');
+    const readingControls = document.querySelector('.reading-controls-left');
     
-    if (playBtn && pauseBtn) {
-      if (this.isAudioPlaying) {
-        playBtn.style.display = 'none';
-        pauseBtn.style.display = 'inline-flex';
-      } else {
-        playBtn.style.display = 'inline-flex';
-        pauseBtn.style.display = 'none';
-      }
-    } else if (playBtn) {
-      // If only play button exists (not Kids theme), update its text
-      playBtn.textContent = this.isAudioPlaying ? '⏸ Pause' : '🔊 Play audio';
+    // ✨ IMPROVED: Use MutationObserver if container not found
+    if (!readingControls) {
+      this.observeAudioButtonsContainer();
+      return;
     }
+    
+    const playBtn = readingControls.querySelector('.kids-audio-btn-play');
+    const pauseBtn = readingControls.querySelector('.kids-audio-btn-pause');
+    
+    // Kids theme: Two separate buttons
+    if (playBtn && pauseBtn) {
+      // ✨ IMPROVED: Use CSS classes instead of inline styles with !important
+      if (this.isAudioPlaying) {
+        playBtn.classList.add('is-hidden');
+        pauseBtn.classList.add('is-visible');
+        
+        // ✨ Accessibility: ARIA attributes
+        playBtn.setAttribute('aria-hidden', 'true');
+        pauseBtn.setAttribute('aria-hidden', 'false');
+      } else {
+        playBtn.classList.remove('is-hidden');
+        pauseBtn.classList.remove('is-visible');
+        
+        // ✨ Accessibility: ARIA attributes
+        playBtn.setAttribute('aria-hidden', 'false');
+        pauseBtn.setAttribute('aria-hidden', 'true');
+      }
+      
+      debug('Audio buttons updated', { 
+        isPlaying: this.isAudioPlaying,
+        playVisible: !this.isAudioPlaying,
+        pauseVisible: this.isAudioPlaying
+      });
+      return;
+    }
+    
+    // Other themes: Single button - update text
+    if (playBtn) {
+      playBtn.textContent = this.isAudioPlaying ? '⏸ Pause' : '🔊 Play audio';
+      debug('Single audio button updated', { isPlaying: this.isAudioPlaying });
+      return;
+    }
+    
+    // Buttons not found
+    debug('Audio buttons not found - Reading section might not be rendered');
+  }
+
+  /**
+   * ✨ NEW: Observe DOM for audio buttons container appearance
+   * Uses MutationObserver for reliable detection without race conditions
+   */
+  observeAudioButtonsContainer() {
+    // Prevent multiple observers
+    if (this._audioButtonsObserver) return;
+    
+    debug('Setting up MutationObserver for audio buttons container');
+    
+    this._audioButtonsObserver = new MutationObserver((mutations, obs) => {
+      const controls = document.querySelector('.reading-controls-left');
+      if (controls) {
+        debug('Audio buttons container found via MutationObserver');
+        obs.disconnect();
+        this._audioButtonsObserver = null;
+        this.updateAudioButtons();
+      }
+    });
+    
+    this._audioButtonsObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Cleanup after 10 seconds to prevent memory leaks
+    setTimeout(() => {
+      if (this._audioButtonsObserver) {
+        debug('MutationObserver timeout - cleaning up');
+        this._audioButtonsObserver.disconnect();
+        this._audioButtonsObserver = null;
+      }
+    }, 10000);
   }
 
   /**
