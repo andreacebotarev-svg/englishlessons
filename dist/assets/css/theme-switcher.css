@@ -1,37 +1,20 @@
 /* ============================================================
-   APPLE-STYLE THEME SWITCHER v3.2.2 CRITICAL HOTFIX
-   iOS Segmented Control - Label Hiding + Position Fix
+   APPLE-STYLE THEME SWITCHER v3.5.0
+   Integrated into Reading tab layout
    ============================================================ */
 
-/* 
-   NEW: Layout Integration Container 
-   Provides a stable, fixed context for the theme bar
-*/
-#theme-bar-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px; /* Allocated space */
-  z-index: 10000;
+/* Reading header top - flex container for title and theme switcher */
+.reading-header-top {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  padding: 0 max(1rem, env(safe-area-inset-right, 1rem));
-  box-sizing: border-box;
-  pointer-events: none; /* Let clicks pass through empty space */
-  /* Optional: faint gradient to ensure readability if content scrolls under */
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 100%);
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 /* Container with glassmorphism */
 .theme-switcher {
-  /* Reset positioning to flow within header */
   position: relative;
-  top: auto;
-  right: auto;
-  transform: none !important;
-  
   display: inline-flex;
   background: rgba(20, 27, 60, 0.7);
   backdrop-filter: blur(24px) saturate(180%);
@@ -44,11 +27,12 @@
               0 1px 2px rgba(0, 0, 0, 0.2),
               inset 0 1px 0 rgba(255, 255, 255, 0.15);
   isolation: isolate;
-  z-index: 1001;
-  pointer-events: auto; /* Re-enable clicks */
+  z-index: 1;
+  pointer-events: auto;
   
-  /* Mobile constraint */
-  max-width: calc(100vw - 2rem);
+  /* Responsive constraint */
+  max-width: 100%;
+  flex-shrink: 0;
 }
 
 /* Sliding indicator - JS controls transform */
@@ -257,10 +241,10 @@
 
 /* Mobile (<640px) - ULTRA COMPACT + FORCE HIDE LABELS */
 @media (max-width: 640px) {
-  /* Adjust header for safe area */
-  #theme-bar-header {
-    height: 50px;
-    padding: 0 max(0.5rem, env(safe-area-inset-right, 0.5rem));
+  .reading-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 
   .theme-switcher {
@@ -366,8 +350,7 @@
 
 /* Print: Hide switcher */
 @media print {
-  .theme-switcher,
-  #theme-bar-header {
+  .theme-switcher {
     display: none;
   }
 }

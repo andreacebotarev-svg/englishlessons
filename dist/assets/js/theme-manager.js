@@ -1,7 +1,7 @@
 /**
- * APPLE-STYLE THEME MANAGER v3.4.0 ARCHITECTURAL FIX
- * Integrates Theme Bar into Layout Header
- * Fixed: Scroll behavior, DOM positioning, and layout stability
+ * APPLE-STYLE THEME MANAGER v3.5.0
+ * Theme Bar integrated into Reading tab layout
+ * Removed fixed header, now renders HTML for embedding in content
  */
 
 class ThemeManager {
@@ -9,7 +9,7 @@ class ThemeManager {
     // 🔥 SINGLETON ENFORCEMENT - Prevent duplicate switchers
     const existingSwitchers = document.querySelectorAll('.theme-switcher');
     if (existingSwitchers.length > 0) {
-      console.warn(`[ThemeManager v3.4.0] Found ${existingSwitchers.length} existing switcher(s), removing for singleton...`);
+      console.warn(`[ThemeManager v3.5.0] Found ${existingSwitchers.length} existing switcher(s), removing for singleton...`);
       existingSwitchers.forEach(s => s.remove());
     }
     
@@ -19,9 +19,8 @@ class ThemeManager {
 
     this.currentTheme = this.loadTheme();
     this.applyTheme(this.currentTheme);
-    this.createThemeSwitcherUI();
     this.attachKeyboardNav();
-    console.log(`[ThemeManager v3.4.0] Initialized with theme: ${this.currentTheme}`);
+    console.log(`[ThemeManager v3.5.0] Initialized with theme: ${this.currentTheme}`);
   }
 
   /**
@@ -101,75 +100,66 @@ class ThemeManager {
   }
 
   /**
-   * Create Apple-style theme switcher UI
+   * Render theme switcher HTML string (for embedding in content)
    * iOS Segmented Control with sliding indicator
-   * NEW: Injects into fixed layout header
+   * @returns {string} HTML string for theme switcher
    */
-  createThemeSwitcherUI() {
+  renderThemeSwitcherHTML() {
     const themes = [
       { id: 'default', icon: '☀️', label: 'Light' },
       { id: 'kids', icon: '🎨', label: 'Kids' },
       { id: 'dark', icon: '🌙', label: 'Dark' }
     ];
 
-    // 1. Create Layout Header (Container)
-    const header = document.createElement('div');
-    header.id = 'theme-bar-header';
-    header.setAttribute('role', 'banner');
-    
-    // 2. Adjust Body Padding to prevent overlap
-    // We add a CSS class or inline style to body to reserve space
-    // Check existing padding to avoid overriding it completely if possible
-    // But for simplicity and robustness, we append a spacer style
-    document.body.style.paddingTop = 'calc(var(--space-lg, 20px) + 60px)';
-
-    // 3. Create Switcher
-    const switcher = document.createElement('div');
-    switcher.className = 'theme-switcher'; // Main styling class
-    switcher.setAttribute('role', 'group');
-    switcher.setAttribute('aria-label', 'Theme selector');
-    switcher.setAttribute('data-active-theme', this.currentTheme);
-
-    // Create sliding indicator (background)
-    const indicator = document.createElement('div');
-    indicator.className = 'theme-indicator';
-    switcher.appendChild(indicator);
-
-    // Create glow effect
-    const glow = document.createElement('div');
-    glow.className = 'theme-indicator-glow';
-    switcher.appendChild(glow);
-
-    // Create buttons
-    themes.forEach((theme, index) => {
-      const btn = document.createElement('button');
-      btn.className = `theme-btn-apple${theme.id === this.currentTheme ? ' active' : ''}`;
-      btn.setAttribute('data-theme', theme.id);
-      btn.setAttribute('aria-label', `Switch to ${theme.label} theme`);
-      btn.setAttribute('aria-pressed', theme.id === this.currentTheme);
-      
-      btn.innerHTML = `
-        <span class="theme-icon">${theme.icon}</span>
-        <span class="theme-label">${theme.label}</span>
+    const buttonsHTML = themes.map(theme => {
+      const isActive = theme.id === this.currentTheme;
+      return `
+        <button class="theme-btn-apple ${isActive ? 'active' : ''}"
+                data-theme="${theme.id}"
+                onclick="window.lessonEngine?.themeManager?.setTheme('${theme.id}', this)"
+                aria-label="Switch to ${theme.label} theme"
+                ${isActive ? 'aria-pressed="true"' : ''}>
+          <span class="theme-icon">${theme.icon}</span>
+          <span class="theme-label">${theme.label}</span>
+        </button>
       `;
-      
-      btn.addEventListener('click', (e) => {
-        this.setTheme(theme.id, e.currentTarget);
-      });
-      
-      switcher.appendChild(btn);
-    });
+    }).join('');
 
-    // 4. Assemble: Switcher -> Header -> Body
-    header.appendChild(switcher);
-    document.body.prepend(header);
+    return `
+      <div class="theme-switcher" 
+           role="group" 
+           aria-label="Theme selector"
+           data-active-theme="${this.currentTheme}">
+        <div class="theme-indicator"></div>
+        <div class="theme-indicator-glow"></div>
+        ${buttonsHTML}
+      </div>
+    `;
+  }
+
+  /**
+   * Initialize theme switcher after it's been inserted into DOM
+   * Attaches event listeners and positions indicator
+   * @param {HTMLElement} switcherElement - The theme switcher DOM element
+   */
+  initializeThemeSwitcher(switcherElement) {
+    if (!switcherElement) return;
+
+    // Attach click handlers to buttons
+    const buttons = switcherElement.querySelectorAll('.theme-btn-apple');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const themeId = btn.getAttribute('data-theme');
+        this.setTheme(themeId, e.currentTarget);
+      });
+    });
 
     // Position indicator after DOM render
     requestAnimationFrame(() => {
       this.updateIndicatorPosition(this.currentTheme, false);
     });
 
-    console.log('[ThemeManager v3.4.0] Integrated theme bar into layout header');
+    console.log('[ThemeManager v3.5.0] Theme switcher initialized in content');
   }
 
   /**

@@ -5,10 +5,11 @@
  */
 
 class LessonRenderer {
-  constructor(lessonData, tts, storage) {
+  constructor(lessonData, tts, storage, themeManager = null) {
     this.data = lessonData;
     this.tts = tts;
     this.storage = storage;
+    this.themeManager = themeManager;
   }
 
   /**
@@ -342,9 +343,17 @@ class LessonRenderer {
       return paraHTML;
     }).join('');
 
+    // Get theme switcher HTML if themeManager is available
+    const themeSwitcherHTML = this.themeManager 
+      ? this.themeManager.renderThemeSwitcherHTML() 
+      : '';
+
     return `
       <div class="card-header">
-        <h2 class="card-title">📖 Reading</h2>
+        <div class="reading-header-top">
+          <h2 class="card-title">📖 Reading</h2>
+          ${themeSwitcherHTML}
+        </div>
       </div>
       <div class="reading-controls">
         <div class="reading-controls-left">

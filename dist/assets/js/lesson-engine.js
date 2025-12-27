@@ -403,7 +403,7 @@ class LessonEngine {
     }
     
     this.lessonData = await response.json();
-    this.renderer = new LessonRenderer(this.lessonData, this.tts, this.storage);
+    this.renderer = new LessonRenderer(this.lessonData, this.tts, this.storage, this.themeManager);
   }
 
   /**
@@ -817,6 +817,15 @@ class LessonEngine {
     }
 
     contentEl.innerHTML = html;
+    
+    // Initialize theme switcher if it exists in the rendered content
+    if (this.currentTab === 'reading') {
+      const themeSwitcher = contentEl.querySelector('.theme-switcher');
+      if (themeSwitcher && this.themeManager) {
+        this.themeManager.initializeThemeSwitcher(themeSwitcher);
+      }
+    }
+    
     this.attachCurrentTabListeners();
   }
 
