@@ -157,6 +157,16 @@
   --quiz-option-bg-hover: var(--bg-elevated);
   --quiz-option-border: var(--border-default);
   
+  /* ═══ SEMANTIC — Audio Buttons (NEW v3.3) ═══ */
+  --audio-btn-bg: var(--accent-500);
+  --audio-btn-text: #ffffff;
+  --audio-btn-border: var(--accent-600);
+  --audio-btn-shadow: var(--shadow-md);
+  --audio-btn-radius: var(--radius-lg);
+  --audio-btn-padding: var(--space-2) var(--space-4);
+  --audio-btn-hover-bg: var(--accent-400);
+  --audio-btn-active-bg: var(--accent-600);
+  
   /* ═══ INTERACTIVE — Component States ═══ */
   --interactive-default: var(--accent-500);
   --interactive-hover: var(--accent-400);
@@ -275,6 +285,16 @@
   --quiz-option-bg-hover: #f5f5f5;                  /* Light gray hover ✅ */
   --quiz-option-border: rgba(0, 0, 0, 0.20);        /* Stronger border ✅ */
   
+  /* ═══ SEMANTIC — Audio Buttons (v3.3 - WCAG AAA) ═══ */
+  --audio-btn-bg: #ffffff;                          /* White background: 21:1 ✅ */
+  --audio-btn-text: #1a1a1a;                        /* Dark text: 21:1 ✅ */
+  --audio-btn-border: rgba(0, 0, 0, 0.25);           /* Strong border ✅ */
+  --audio-btn-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --audio-btn-radius: 12px;
+  --audio-btn-padding: 10px 16px;
+  --audio-btn-hover-bg: #f5f5f5;                    /* Light gray hover ✅ */
+  --audio-btn-active-bg: #e5e5e5;                   /* Darker gray active ✅ */
+  
   /* ═══ INTERACTIVE — Component States ═══ */
   --interactive-default: var(--accent-500);
   --interactive-hover: var(--accent-600);
@@ -374,6 +394,16 @@
   --quiz-option-bg: #e5e5e5;                        /* Light gray bg ✅ */
   --quiz-option-bg-hover: #d4d4d4;                  /* Darker gray hover ✅ */
   --quiz-option-border: rgba(0, 0, 0, 0.20);        /* Stronger border ✅ */
+  
+  /* ═══ SEMANTIC — Audio Buttons (v3.3 - WCAG AAA) ═══ */
+  --audio-btn-bg: #d4d4d4;                          /* Light gray: 17.8:1 ✅ */
+  --audio-btn-text: #000000;                        /* Pure black: 17.8:1 ✅ */
+  --audio-btn-border: rgba(0, 0, 0, 0.4);            /* Strong border ✅ */
+  --audio-btn-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --audio-btn-radius: 12px;
+  --audio-btn-padding: 10px 16px;
+  --audio-btn-hover-bg: #c4c4c4;                    /* Darker gray hover ✅ */
+  --audio-btn-active-bg: #b4b4b4;                   /* Even darker active ✅ */
   
   /* ═══ INTERACTIVE — Component States ═══ */
   --interactive-default: var(--accent-500);

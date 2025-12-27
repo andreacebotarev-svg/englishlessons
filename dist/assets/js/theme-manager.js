@@ -102,7 +102,12 @@ class ThemeManager {
   /**
    * Render theme switcher HTML string (for embedding in content)
    * iOS Segmented Control with sliding indicator
-   * @returns {string} HTML string for theme switcher
+   * 
+   * ✅ IMPORTANT: This method returns ONLY theme switcher buttons.
+   * It does NOT contain any audio buttons or other controls.
+   * Audio buttons are rendered separately via renderer.renderAudioButtons()
+   * 
+   * @returns {string} HTML string for theme switcher (NO audio buttons)
    */
   renderThemeSwitcherHTML() {
     const themes = [

@@ -344,10 +344,13 @@ class LessonRenderer {
     }).join('');
 
     // Get theme switcher HTML if themeManager is available
+    // ✅ IMPORTANT: themeSwitcherHTML contains ONLY theme switcher buttons (no audio buttons)
     const themeSwitcherHTML = this.themeManager 
       ? this.themeManager.renderThemeSwitcherHTML() 
       : '';
 
+    // ✅ IMPORTANT: renderAudioButtons() is called ONLY ONCE in .reading-controls-left
+    // This is the SINGLE source of truth for audio buttons in Reading section
     return `
       <div class="card-header">
         <div class="reading-header-top">
@@ -788,8 +791,12 @@ class LessonRenderer {
   // ========================================
 
   /**
-   * ✨ NEW: Render audio buttons with high contrast for Kids theme
+   * ✨ Render audio buttons with high contrast for Kids theme
    * Returns two buttons: Play (always visible when not playing) and Pause (visible only when playing)
+   * 
+   * ✅ IMPORTANT: This method should be called ONLY ONCE per Reading section.
+   * The single call location is in renderReading() -> .reading-controls-left
+   * 
    * @returns {string} HTML string for audio buttons
    */
   renderAudioButtons() {
