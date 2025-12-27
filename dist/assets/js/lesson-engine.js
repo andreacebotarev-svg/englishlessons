@@ -449,6 +449,7 @@ class LessonEngine {
 
   /**
    * Render main interface structure (NO SIDEBAR)
+   * ✨ FIXED: Removed duplicate audio button from header
    */
   renderInterface() {
     const { title, subtitle, meta } = this.lessonData;
@@ -472,10 +473,7 @@ class LessonEngine {
               </div>
             </div>
             <div class="lesson-actions">
-              <!-- Theme switcher will be injected here (if not already created by ThemeManager) -->
-              <button class="primary-btn" onclick="window.lessonEngine.speakAllReading()" aria-label="Play audio for reading">
-                🔊 Play audio
-              </button>
+              <!-- ✅ FIXED: Removed duplicate audio button - audio controls now only in reading-controls-left -->
               <div class="lesson-progress">
                 <div class="progress-bar">
                   <div class="progress-bar-fill"></div>
@@ -643,11 +641,11 @@ class LessonEngine {
         ${transcription ? `<div class="word-popup-phonetic">${transcription}</div>` : ''}
         <div class="word-popup-translation">${translation}</div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">  
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}')";>  
             🔊 Listen
           </button>
           <button class="word-popup-btn ${this.storage.isWordSaved(word) ? 'saved' : ''}" 
-                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}'', '${translation.replace(/'/g, "\\'")}', this);">
+                  onclick="window.lessonEngine.toggleWordFromPopup('${word.replace(/'/g, "\\'")}', '${translation.replace(/'/g, "\\'")}}', this);">
             ${this.storage.isWordSaved(word) ? '✓ Saved' : '💾 Save'}
           </button>
         </div>
@@ -666,7 +664,7 @@ class LessonEngine {
           ⚠️ Translation unavailable
         </div>
         <div class="word-popup-actions">
-          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}');">
+          <button class="word-popup-btn primary" onclick="window.lessonEngine.speakWord('${word.replace(/'/g, "\\'")}}');">
             🔊 Listen
           </button>
         </div>
