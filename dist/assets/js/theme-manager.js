@@ -86,6 +86,14 @@ class ThemeManager {
       this.createRipple(button);
     }
     
+    // ✨ FIX: Update audio buttons after theme switch
+    // This ensures Play/Pause buttons are visible for Kids theme
+    if (window.lessonEngine && typeof window.lessonEngine.updateAudioButtons === 'function') {
+      setTimeout(() => {
+        window.lessonEngine.updateAudioButtons();
+      }, 100);
+    }
+    
     console.log(`[ThemeManager] Theme applied: ${themeId}`);
   }
 

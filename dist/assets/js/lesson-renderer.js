@@ -797,6 +797,9 @@ class LessonRenderer {
    * ✅ IMPORTANT: This method should be called ONLY ONCE per Reading section.
    * The single call location is in renderReading() -> .reading-controls-left
    * 
+   * ✨ FIX: Both buttons are ALWAYS rendered for Kids theme (even if hidden via display)
+   * This ensures updateAudioButtons() can always find and toggle them
+   * 
    * @returns {string} HTML string for audio buttons
    */
   renderAudioButtons() {
@@ -811,8 +814,10 @@ class LessonRenderer {
     
     if (isKidsTheme) {
       // Kids theme: Two separate buttons with high contrast
+      // ✨ FIX: Always render both buttons, visibility controlled by updateAudioButtons()
       const isPlaying = window.lessonEngine?.isAudioPlaying || false;
       
+      // ✨ IMPORTANT: Both buttons MUST be in DOM for updateAudioButtons() to work
       return `
         <button class="kids-audio-btn-play" 
                 onclick="window.lessonEngine.playAudio()"

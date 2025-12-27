@@ -49,6 +49,12 @@ class LessonEngine {
       this.hideLoader();
       this.injectPopupStyles();
       // ThemeSwitcher is now handled by ThemeManager singleton
+      
+      // ✨ FIX: Initialize audio buttons after render
+      // This ensures buttons are properly displayed for Kids theme
+      setTimeout(() => {
+        this.updateAudioButtons();
+      }, 200);
     } catch (error) {
       console.error('Initialization error:', error);
       this.showError(error.message);
@@ -70,6 +76,15 @@ class LessonEngine {
    */
   handleThemeSwitch(themeId) {
     this.themeManager.setTheme(themeId);
+    
+    // ✨ FIX: Re-render Reading tab after theme switch to update audio buttons
+    // This ensures that Kids theme shows both Play and Pause buttons
+    if (this.currentTab === 'reading') {
+      // Use setTimeout to ensure theme classes are applied first
+      setTimeout(() => {
+        this.renderCurrentTab();
+      }, 50);
+    }
   }
 
   /**
@@ -1138,22 +1153,48 @@ class LessonEngine {
 
   /**
    * ✨ NEW: Update audio button visibility based on playback state
+   * ✨ FIX: Improved selector to find buttons in reading-controls-left container
+   * ✨ FIX: Added retry logic if buttons not found immediately
    */
-  updateAudioButtons() {
-    const playBtn = document.querySelector('.kids-audio-btn-play');
-    const pauseBtn = document.querySelector('.kids-audio-btn-pause');
+  updateAudioButtons(retryCount = 0) {
+    // ✨ FIX: Use more specific selector to find buttons in reading controls
+    const readingControls = document.querySelector('.reading-controls-left');
+    const playBtn = readingControls 
+      ? readingControls.querySelector('.kids-audio-btn-play')
+      : document.querySelector('.kids-audio-btn-play');
+    const pauseBtn = readingControls 
+      ? readingControls.querySelector('.kids-audio-btn-pause')
+      : document.querySelector('.kids-audio-btn-pause');
     
     if (playBtn && pauseBtn) {
+      // Kids theme: Two separate buttons - toggle visibility
+      // ✨ FIX: Use !important to override any CSS that might interfere
       if (this.isAudioPlaying) {
-        playBtn.style.display = 'none';
-        pauseBtn.style.display = 'inline-flex';
+        playBtn.style.setProperty('display', 'none', 'important');
+        pauseBtn.style.setProperty('display', 'inline-flex', 'important');
       } else {
-        playBtn.style.display = 'inline-flex';
-        pauseBtn.style.display = 'none';
+        playBtn.style.setProperty('display', 'inline-flex', 'important');
+        pauseBtn.style.setProperty('display', 'none', 'important');
       }
+      
+      console.log(`[AudioButtons] Updated: Play=${!this.isAudioPlaying}, Pause=${this.isAudioPlaying}`);
+      return true; // Success
     } else if (playBtn) {
-      // If only play button exists (not Kids theme), update its text
+      // Other themes: Single button - update text
       playBtn.textContent = this.isAudioPlaying ? '⏸ Pause' : '🔊 Play audio';
+      return true; // Success
+    } else {
+      // No buttons found - might not be rendered yet
+      // ✨ FIX: Retry up to 3 times with delay
+      if (retryCount < 3) {
+        console.log(`[AudioButtons] Buttons not found, retrying... (${retryCount + 1}/3)`);
+        setTimeout(() => {
+          this.updateAudioButtons(retryCount + 1);
+        }, 100);
+      } else {
+        console.warn('[AudioButtons] Buttons not found after retries. Reading section might not be rendered.');
+      }
+      return false; // Not found
     }
   }
 
