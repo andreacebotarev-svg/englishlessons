@@ -492,9 +492,12 @@ class LessonRenderer {
   getQuizOptionClass(index, question, answer) {
     if (!answer) return '';
     
-    if (index === question.correct) return 'correct';
-    if (index === answer.answerIndex && !answer.correct) return 'wrong';
-    return '';
+    const className = index === question.correct ? 'correct' : 
+                      index === answer.answerIndex && !answer.correct ? 'wrong' : '';
+    
+    console.log(`[Quiz] Option ${index}: class="${className}", correct=${question.correct}, userAnswer=${answer.answerIndex}`);
+    
+    return className;
   }
 
   // ========================================

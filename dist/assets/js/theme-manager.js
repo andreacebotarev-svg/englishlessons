@@ -74,6 +74,13 @@ class ThemeManager {
     // Add new theme class
     document.documentElement.classList.add(`theme-${themeId}`);
     
+    // Set data-theme attribute on both html and body for maximum compatibility
+    document.documentElement.setAttribute('data-theme', themeId);
+    document.body.setAttribute('data-theme', themeId);
+    
+    // Load theme-specific CSS if it exists
+    this.loadThemeCSS(themeId);
+    
     // Update state
     this.currentTheme = themeId;
     this.saveTheme(themeId);
@@ -106,7 +113,37 @@ class ThemeManager {
    */
   applyTheme(themeId) {
     document.documentElement.classList.add(`theme-${themeId}`);
+    document.documentElement.setAttribute('data-theme', themeId);
+    document.body.setAttribute('data-theme', themeId);
+    this.loadThemeCSS(themeId);
     console.log(`[ThemeManager] Initial theme applied: ${themeId}`);
+  }
+
+  /**
+   * Load theme-specific CSS file
+   * @param {string} themeId - Theme ID
+   */
+  loadThemeCSS(themeId) {
+    // Remove existing theme CSS
+    const existingLink = document.getElementById('theme-specific-css');
+    if (existingLink) {
+      existingLink.remove();
+    }
+
+    if (themeId === 'default') return;
+
+    const link = document.createElement('link');
+    link.id = 'theme-specific-css';
+    link.rel = 'stylesheet';
+    link.href = `assets/css/lesson-theme-${themeId}.css`;
+    
+    // Check if file exists before appending (optional but good)
+    link.onerror = () => {
+      console.warn(`[ThemeManager] Theme CSS not found: ${link.href}`);
+      link.remove();
+    };
+
+    document.head.appendChild(link);
   }
 
   /**

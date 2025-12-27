@@ -1322,6 +1322,9 @@ class LessonEngine {
     const question = questions[this.quizState.currentQuestionIndex];
     const isCorrect = answerIndex === question.correct || answerIndex === question.correct_alt;
 
+    console.log(`[Quiz] Answer selected: ${answerIndex}, correct: ${isCorrect}`);
+    console.log('[Quiz] Current theme:', document.documentElement.getAttribute('data-theme') || 'default');
+
     this.quizState.answers[this.quizState.currentQuestionIndex] = {
       questionIndex: this.quizState.currentQuestionIndex,
       answerIndex,
@@ -1330,6 +1333,13 @@ class LessonEngine {
 
     // Re-render reading tab to show feedback
     this.renderCurrentTab();
+    
+    // Double-check DOM update
+    requestAnimationFrame(() => {
+      const buttons = document.querySelectorAll('.quiz-option');
+      console.log('[Quiz] Buttons after render:', Array.from(buttons).map(b => `${b.textContent.trim()}: ${b.className}`));
+    });
+
     this.tts.vibrate(isCorrect ? 30 : 50);
   }
 
