@@ -86,12 +86,14 @@ class ThemeManager {
       this.createRipple(button);
     }
     
-    // ✨ FIX: Update audio buttons after theme switch
-    // This ensures Play/Pause buttons are visible for Kids theme
+    // ✨ IMPROVED: Update audio buttons after theme switch using double RAF
+    // This ensures CSS is applied before button update
     if (window.lessonEngine && typeof window.lessonEngine.updateAudioButtons === 'function') {
-      setTimeout(() => {
-        window.lessonEngine.updateAudioButtons();
-      }, 100);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.lessonEngine.updateAudioButtons();
+        });
+      });
     }
     
     console.log(`[ThemeManager] Theme applied: ${themeId}`);

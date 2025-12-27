@@ -791,44 +791,42 @@ class LessonRenderer {
   // ========================================
 
   /**
-   * ✨ Render audio buttons with high contrast for Kids theme
+   * ✨ IMPROVED: Render audio buttons with high contrast for Kids theme
    * Returns two buttons: Play (always visible when not playing) and Pause (visible only when playing)
    * 
    * ✅ IMPORTANT: This method should be called ONLY ONCE per Reading section.
    * The single call location is in renderReading() -> .reading-controls-left
    * 
-   * ✨ FIX: Both buttons are ALWAYS rendered for Kids theme (even if hidden via display)
-   * This ensures updateAudioButtons() can always find and toggle them
+   * ✨ IMPROVED: Uses centralized theme detection
+   * ✨ IMPROVED: Initial CSS classes set for proper visibility
+   * ✨ IMPROVED: ARIA attributes included for accessibility
    * 
    * @returns {string} HTML string for audio buttons
    */
   renderAudioButtons() {
-    // Check if we're in Kids theme - multiple ways to detect
-    const htmlClasses = document.documentElement.classList;
-    const bodyTheme = document.body.getAttribute('data-theme');
-    const currentTheme = window.lessonEngine?.themeManager?.getCurrentTheme();
+    // ✨ IMPROVED: Use centralized theme detection method
+    const currentTheme = window.lessonEngine?.getCurrentTheme?.() || 
+                        window.lessonEngine?.themeManager?.getCurrentTheme() || 
+                        'default';
     
-    const isKidsTheme = htmlClasses.contains('theme-kids') ||
-                       bodyTheme === 'kids' ||
-                       currentTheme === 'kids';
+    const isKidsTheme = currentTheme === 'kids';
     
     if (isKidsTheme) {
       // Kids theme: Two separate buttons with high contrast
-      // ✨ FIX: Always render both buttons, visibility controlled by updateAudioButtons()
+      // ✨ IMPROVED: Initial state set via CSS classes, not inline styles
       const isPlaying = window.lessonEngine?.isAudioPlaying || false;
       
-      // ✨ IMPORTANT: Both buttons MUST be in DOM for updateAudioButtons() to work
       return `
-        <button class="kids-audio-btn-play" 
+        <button class="kids-audio-btn-play ${isPlaying ? 'is-hidden' : ''}" 
                 onclick="window.lessonEngine.playAudio()"
-                style="display: ${isPlaying ? 'none' : 'inline-flex'};"
-                aria-label="Play audio">
+                aria-label="Play audio"
+                aria-hidden="${isPlaying}">
           🔊 Listen
         </button>
-        <button class="kids-audio-btn-pause" 
+        <button class="kids-audio-btn-pause ${isPlaying ? 'is-visible' : ''}" 
                 onclick="window.lessonEngine.pauseAudio()"
-                style="display: ${isPlaying ? 'inline-flex' : 'none'};"
-                aria-label="Pause audio">
+                aria-label="Pause audio"
+                aria-hidden="${!isPlaying}">
           ⏸ Pause
         </button>
       `;
