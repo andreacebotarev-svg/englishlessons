@@ -317,13 +317,13 @@ body[data-theme="kids"] .tab:hover {
 }
 
 body[data-theme="kids"] .tab.active {
-  background: var(--button-primary-bg);
+  background: linear-gradient(135deg, #FF4D8A 0%, #FF6B9D 100%);
   color: var(--text-on-accent);
   box-shadow: var(--glow-pink);
 }
 
 body[data-theme="kids"] .tab-indicator {
-  background: var(--accent-primary);
+  background: #FF4D8A;
   height: 4px;
   border-radius: 2px;
   box-shadow: var(--glow-pink);
@@ -360,10 +360,26 @@ body[data-theme="kids"] .theme-btn:hover {
 }
 
 body[data-theme="kids"] .theme-btn.active {
-  background: var(--button-primary-bg);
+  background: linear-gradient(135deg, #FF4D8A 0%, #FF6B9D 100%);
   color: var(--text-on-accent);
-  border-color: var(--accent-primary);
+  border-color: #FF4D8A;
   box-shadow: var(--shadow-soft);
+}
+
+/* Apple-style theme switcher for Kids theme */
+body[data-theme="kids"] .theme-btn-apple.active {
+  color: #1a1a1a;
+}
+
+body[data-theme="kids"] .theme-switcher[data-active-theme="kids"] .theme-indicator {
+  background: linear-gradient(135deg, 
+              rgba(255, 77, 138, 0.98) 0%, 
+              rgba(255, 107, 157, 0.95) 100%);
+}
+
+body[data-theme="kids"] .theme-switcher[data-active-theme="kids"] .theme-indicator-glow {
+  background: radial-gradient(circle, rgba(255, 77, 138, 0.5) 0%, transparent 70%);
+  opacity: 0.7;
 }
 
 /* ============================================

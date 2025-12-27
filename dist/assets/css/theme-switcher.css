@@ -83,7 +83,7 @@
 }
 
 .theme-switcher[data-active-theme="kids"] .theme-indicator-glow {
-  background: radial-gradient(circle, rgba(255, 105, 180, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 77, 138, 0.5) 0%, transparent 70%);
 }
 
 .theme-switcher[data-active-theme="dark"] .theme-indicator-glow {
