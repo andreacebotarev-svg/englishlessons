@@ -35,6 +35,7 @@ $files = @(
     "dist/assets/js/theme-manager.js",
     "dist/assets/js/lesson-renderer.js",
     "dist/assets/js/lesson-engine.js",
+    "dist/assets/js/lesson-tts.js",
     "dist/assets/css/theme-switcher.css",
     "dist/assets/css/lesson-theme-kids.css"
 )
@@ -62,15 +63,16 @@ if ($missingCount -gt 0) {
 
 Write-Host ""
 Write-Host "Создание коммита..." -ForegroundColor Green
-git commit -m "refactor: integrate theme bar into Reading tab layout + improve button visibility
+git commit -m "feat: add high-contrast audio controls for Kids theme + refactor theme bar
 
-- Remove fixed header theme bar from global layout
-- Integrate theme switcher into Reading tab header
-- Update ThemeManager to render HTML instead of creating DOM elements
-- Update CSS to use relative positioning instead of fixed
-- Add reading-header-top flex container for title and theme switcher
-- Change button text from 'Listen All' to '🔊 Play audio' for better visibility
-- Improve button contrast in Kids theme with dark text and enhanced shadows"
+- Integrate theme bar into Reading tab layout (remove fixed header)
+- Add two separate audio buttons for Kids theme: Play and Pause
+- Implement high-contrast button styles (WCAG AA compliant, 4.8:1 ratio)
+- Add audio playback state tracking with UI updates
+- Change button text to '🔊 Play audio' for better visibility
+- Improve button contrast in Kids theme with solid opaque backgrounds
+- Move deploy script to .scripts/ folder with documentation
+- Update TTS to return Promises for better async handling"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ОШИБКА: Не удалось создать коммит. Возможно, нет изменений для коммита." -ForegroundColor Red

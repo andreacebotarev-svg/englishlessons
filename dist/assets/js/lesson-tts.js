@@ -73,46 +73,59 @@ class LessonTTS {
    * @param {string} text - Text to speak
    * @param {string} lang - Language code (default: 'en')
    * @param {Object} options - Additional options
+   * @returns {Promise} Resolves when speech finishes
    */
   speak(text, lang = 'en', options = {}) {
-    const cleaned = this.cleanText(text);
-    if (!cleaned) return;
-
-    // Stop current speech if playing
-    this.stop();
-
-    try {
-      // Create utterance
-      this.currentUtterance = new SpeechSynthesisUtterance(cleaned);
-      
-      // Set voice
-      const voice = this.getVoice(lang);
-      if (voice) {
-        this.currentUtterance.voice = voice;
+    return new Promise((resolve, reject) => {
+      const cleaned = this.cleanText(text);
+      if (!cleaned) {
+        resolve();
+        return;
       }
-      
-      // Set language
-      this.currentUtterance.lang = lang === 'ru' ? 'ru-RU' : 'en-US';
-      
-      // Set options
-      this.currentUtterance.rate = options.rate || 0.9;
-      this.currentUtterance.pitch = options.pitch || 1.0;
-      this.currentUtterance.volume = options.volume || 1.0;
-      
-      // Error handling
-      this.currentUtterance.onerror = (event) => {
-        console.warn('TTS error:', event.error);
-      };
-      
-      // Speak
-      this.synthesis.speak(this.currentUtterance);
-      
-      // Vibrate on mobile
-      this.vibrate(10);
-      
-    } catch (e) {
-      console.error('TTS error:', e);
-    }
+
+      // Stop current speech if playing
+      this.stop();
+
+      try {
+        // Create utterance
+        this.currentUtterance = new SpeechSynthesisUtterance(cleaned);
+        
+        // Set voice
+        const voice = this.getVoice(lang);
+        if (voice) {
+          this.currentUtterance.voice = voice;
+        }
+        
+        // Set language
+        this.currentUtterance.lang = lang === 'ru' ? 'ru-RU' : 'en-US';
+        
+        // Set options
+        this.currentUtterance.rate = options.rate || 0.9;
+        this.currentUtterance.pitch = options.pitch || 1.0;
+        this.currentUtterance.volume = options.volume || 1.0;
+        
+        // Error handling
+        this.currentUtterance.onerror = (event) => {
+          console.warn('TTS error:', event.error);
+          reject(event.error);
+        };
+        
+        // Success handling
+        this.currentUtterance.onend = () => {
+          resolve();
+        };
+        
+        // Speak
+        this.synthesis.speak(this.currentUtterance);
+        
+        // Vibrate on mobile
+        this.vibrate(10);
+        
+      } catch (e) {
+        console.error('TTS error:', e);
+        reject(e);
+      }
+    });
   }
 
   /**
@@ -120,21 +133,22 @@ class LessonTTS {
    * @param {Array<string>} texts - Array of texts to speak
    * @param {number} delay - Delay between each text in ms (default: 800)
    * @param {string} lang - Language code
+   * @returns {Promise} Resolves when all texts are spoken
    */
   async speakSequence(texts, delay = 800, lang = 'en') {
-    for (let i = 0; i < texts.length; i++) {
-      this.speak(texts[i], lang);
-      
-      // Wait for utterance to finish + delay
-      await new Promise(resolve => {
-        if (this.currentUtterance) {
-          this.currentUtterance.onend = () => {
-            setTimeout(resolve, delay);
-          };
-        } else {
-          setTimeout(resolve, delay);
+    try {
+      for (let i = 0; i < texts.length; i++) {
+        // Wait for current utterance to finish
+        await this.speak(texts[i], lang);
+        
+        // Add delay between utterances (except for last one)
+        if (i < texts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
-      });
+      }
+    } catch (error) {
+      console.warn('speakSequence error:', error);
+      throw error;
     }
   }
 

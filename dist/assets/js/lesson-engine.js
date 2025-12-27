@@ -26,6 +26,10 @@ class LessonEngine {
     // ✨ NEW: Kanban controller (lazy initialized)
     this.kanbanController = null;
 
+    // ✨ NEW: Audio playback state for Kids theme
+    this.isAudioPlaying = false;
+    this.audioSequencePromise = null;
+
     // Expose debugger helpers for console usage only
     window.debugPopup = {
       inspect: (word) => this.debugInspectPopup(word),
@@ -824,6 +828,9 @@ class LessonEngine {
       if (themeSwitcher && this.themeManager) {
         this.themeManager.initializeThemeSwitcher(themeSwitcher);
       }
+      
+      // Update audio buttons state after render
+      this.updateAudioButtons();
     }
     
     this.attachCurrentTabListeners();
@@ -1070,11 +1077,86 @@ class LessonEngine {
    * Speak all reading content
    */
   speakAllReading() {
+    this.playAudio();
+  }
+
+  /**
+   * ✨ NEW: Play audio for reading (with state tracking)
+   */
+  async playAudio() {
     const reading = this.lessonData.content?.reading;
     if (!reading) return;
 
+    // If already playing, do nothing
+    if (this.isAudioPlaying) return;
+
+    this.isAudioPlaying = true;
+    this.updateAudioButtons();
+
     const texts = reading.filter(p => p.type !== 'fact').map(para => para.text);
-    this.tts.speakSequence(texts, 1500);
+    
+    try {
+      // Start speaking sequence
+      await this.tts.speakSequence(texts, 1500);
+      // Audio finished successfully
+      this.isAudioPlaying = false;
+      this.updateAudioButtons();
+    } catch (error) {
+      // Error occurred
+      console.warn('Audio playback error:', error);
+      this.isAudioPlaying = false;
+      this.updateAudioButtons();
+    }
+
+    // Also monitor synthesis state for manual stops
+    const checkState = setInterval(() => {
+      if (!this.tts.synthesis.speaking && this.isAudioPlaying) {
+        this.isAudioPlaying = false;
+        this.updateAudioButtons();
+        clearInterval(checkState);
+      }
+    }, 100);
+
+    // Cleanup after 5 minutes max
+    setTimeout(() => {
+      clearInterval(checkState);
+      if (this.isAudioPlaying) {
+        this.isAudioPlaying = false;
+        this.updateAudioButtons();
+      }
+    }, 300000);
+  }
+
+  /**
+   * ✨ NEW: Pause/stop audio playback
+   */
+  pauseAudio() {
+    if (!this.isAudioPlaying) return;
+
+    this.tts.stop();
+    this.isAudioPlaying = false;
+    this.updateAudioButtons();
+  }
+
+  /**
+   * ✨ NEW: Update audio button visibility based on playback state
+   */
+  updateAudioButtons() {
+    const playBtn = document.querySelector('.kids-audio-btn-play');
+    const pauseBtn = document.querySelector('.kids-audio-btn-pause');
+    
+    if (playBtn && pauseBtn) {
+      if (this.isAudioPlaying) {
+        playBtn.style.display = 'none';
+        pauseBtn.style.display = 'inline-flex';
+      } else {
+        playBtn.style.display = 'inline-flex';
+        pauseBtn.style.display = 'none';
+      }
+    } else if (playBtn) {
+      // If only play button exists (not Kids theme), update its text
+      playBtn.textContent = this.isAudioPlaying ? '⏸ Pause' : '🔊 Play audio';
+    }
   }
 
   /**

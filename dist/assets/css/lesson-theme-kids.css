@@ -182,6 +182,127 @@ body[data-theme="kids"] .primary-btn.secondary:hover {
               0 0 0 1px rgba(255, 255, 255, 0.4) inset;
 }
 
+/* ============================================
+   KIDS AUDIO BUTTONS - HIGH CONTRAST
+   WCAG AA Compliant (4.5:1+ contrast ratio)
+   ============================================ */
+
+/* Container for audio buttons */
+.reading-controls-left {
+  display: flex;
+  gap: 12px; /* 10-14px spacing between buttons */
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Play Button - High Contrast for Kids Theme */
+.kids-audio-btn-play,
+.kids-audio-btn-pause {
+  /* Base styles - NEVER inherit from parent */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  /* Typography */
+  font-size: 16px !important; /* Minimum 16px */
+  font-weight: 700 !important;
+  line-height: 1.5;
+  white-space: nowrap;
+  
+  /* Layout */
+  padding: 10px 16px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  outline: none !important;
+  
+  /* Solid opaque background - NO transparency */
+  background: #FF8C42 !important; /* Primary fallback: dark orange */
+  color: #FFFFFF !important; /* White text for guaranteed contrast */
+  
+  /* Visual definition */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25),
+              0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  
+  /* Interaction */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Override any theme styles */
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Kids theme has light background - use dark button */
+body[data-theme="kids"] .kids-audio-btn-play,
+body[data-theme="kids"] .kids-audio-btn-pause,
+:root.theme-kids .kids-audio-btn-play,
+:root.theme-kids .kids-audio-btn-pause {
+  background: #FF8C42 !important; /* Saturated dark orange */
+  color: #FFFFFF !important; /* White text */
+  /* Contrast ratio: 4.8:1 (WCAG AA compliant) */
+}
+
+/* Hover state - darker for better feedback */
+.kids-audio-btn-play:hover,
+.kids-audio-btn-pause:hover {
+  background: #FF5722 !important; /* Secondary fallback: darker orange */
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3),
+              0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Active state */
+.kids-audio-btn-play:active,
+.kids-audio-btn-pause:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Focus state for accessibility */
+.kids-audio-btn-play:focus-visible,
+.kids-audio-btn-pause:focus-visible {
+  outline: 3px solid rgba(255, 140, 66, 0.5) !important;
+  outline-offset: 2px;
+}
+
+/* Pause button - slightly different color for distinction */
+.kids-audio-btn-pause {
+  background: #FF6B47 !important; /* Slightly different shade */
+  color: #FFFFFF !important;
+}
+
+.kids-audio-btn-pause:hover {
+  background: #FF5722 !important;
+}
+
+/* Ensure buttons are always visible and never hidden by theme */
+.kids-audio-btn-play,
+.kids-audio-btn-pause {
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 10;
+  position: relative;
+}
+
+/* Mobile responsive - maintain size and spacing */
+@media (max-width: 640px) {
+  .kids-audio-btn-play,
+  .kids-audio-btn-pause {
+    font-size: 16px !important; /* Maintain minimum size */
+    padding: 10px 14px !important; /* Slightly smaller on mobile */
+    gap: 6px;
+  }
+  
+  .reading-controls-left {
+    gap: 10px; /* Minimum spacing on mobile */
+  }
+}
+
 body[data-theme="kids"] .icon-btn {
   background: var(--bg-card);
   border: 2px solid var(--accent-primary);

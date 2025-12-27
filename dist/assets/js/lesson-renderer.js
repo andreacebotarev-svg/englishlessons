@@ -357,9 +357,7 @@ class LessonRenderer {
       </div>
       <div class="reading-controls">
         <div class="reading-controls-left">
-          <button class="primary-btn secondary" onclick="window.lessonEngine.speakAllReading()">
-            🔊 Play audio
-          </button>
+          ${this.renderAudioButtons()}
         </div>
         <div class="reading-controls-right">
           ${wordCount} words
@@ -783,6 +781,53 @@ class LessonRenderer {
         </button>
       </div>
     `;
+  }
+
+  // ========================================
+  // AUDIO BUTTONS RENDERING
+  // ========================================
+
+  /**
+   * ✨ NEW: Render audio buttons with high contrast for Kids theme
+   * Returns two buttons: Play (always visible when not playing) and Pause (visible only when playing)
+   * @returns {string} HTML string for audio buttons
+   */
+  renderAudioButtons() {
+    // Check if we're in Kids theme - multiple ways to detect
+    const htmlClasses = document.documentElement.classList;
+    const bodyTheme = document.body.getAttribute('data-theme');
+    const currentTheme = window.lessonEngine?.themeManager?.getCurrentTheme();
+    
+    const isKidsTheme = htmlClasses.contains('theme-kids') ||
+                       bodyTheme === 'kids' ||
+                       currentTheme === 'kids';
+    
+    if (isKidsTheme) {
+      // Kids theme: Two separate buttons with high contrast
+      const isPlaying = window.lessonEngine?.isAudioPlaying || false;
+      
+      return `
+        <button class="kids-audio-btn-play" 
+                onclick="window.lessonEngine.playAudio()"
+                style="display: ${isPlaying ? 'none' : 'inline-flex'};"
+                aria-label="Play audio">
+          🔊 Listen
+        </button>
+        <button class="kids-audio-btn-pause" 
+                onclick="window.lessonEngine.pauseAudio()"
+                style="display: ${isPlaying ? 'inline-flex' : 'none'};"
+                aria-label="Pause audio">
+          ⏸ Pause
+        </button>
+      `;
+    } else {
+      // Other themes: Single button (backward compatible)
+      return `
+        <button class="primary-btn secondary" onclick="window.lessonEngine.speakAllReading()">
+          🔊 Play audio
+        </button>
+      `;
+    }
   }
 
   // ========================================
